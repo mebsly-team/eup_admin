@@ -29,7 +29,7 @@ export default function NavUpgrade() {
             {user?.displayName?.charAt(0).toUpperCase()}
           </Avatar>
 
-          <Label
+          {/* <Label
             color="success"
             variant="filled"
             sx={{
@@ -42,7 +42,7 @@ export default function NavUpgrade() {
             }}
           >
             Free
-          </Label>
+          </Label> */}
         </Box>
 
         <Stack spacing={0.5} sx={{ mb: 2, mt: 1.5, width: 1 }}>
@@ -54,10 +54,6 @@ export default function NavUpgrade() {
             {user?.email}
           </Typography>
         </Stack>
-
-        <Button variant="contained" href={paths.minimalUI} target="_blank" rel="noopener">
-          Upgrade to Pro
-        </Button>
       </Stack>
     </Stack>
   );
