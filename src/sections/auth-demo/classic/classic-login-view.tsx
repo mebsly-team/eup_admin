@@ -53,7 +53,7 @@ export default function ClassicLoginView() {
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5 }}>
-      <Typography variant="h4">Sign in to Minimal</Typography>
+      <Typography variant="h4">Sign in</Typography>
 
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2">New user?</Typography>
@@ -83,17 +83,6 @@ export default function ClassicLoginView() {
           ),
         }}
       />
-
-      <Link
-        component={RouterLink}
-        href={paths.authDemo.classic.forgotPassword}
-        variant="body2"
-        color="inherit"
-        underline="always"
-        sx={{ alignSelf: 'flex-end' }}
-      >
-        Forgot password?
-      </Link>
 
       <LoadingButton
         fullWidth
