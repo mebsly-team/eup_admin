@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 
-import { HomeView } from 'src/sections/home/view';
+import { OverviewEcommerceView } from 'src/sections/overview/e-commerce/view';
 
 // ----------------------------------------------------------------------
 
-export default function HomePage() {
+export default function OverviewEcommercePage() {
   return (
     <>
       <Helmet>
-        <title> Minimal: The starting point for your next project</title>
+        <title> Dashboard: E-Commerce</title>
       </Helmet>
 
-      <HomeView />
+      <OverviewEcommerceView />
     </>
   );
 }
