@@ -77,15 +77,12 @@ export const paths = {
   dashboard: {
     root: ROOTS.DASHBOARD,
     mail: `${ROOTS.DASHBOARD}/mail`,
-    chat: `${ROOTS.DASHBOARD}/chat`,
     blank: `${ROOTS.DASHBOARD}/blank`,
     kanban: `${ROOTS.DASHBOARD}/kanban`,
-    walktour: `${ROOTS.DASHBOARD}/walktour`,
     calendar: `${ROOTS.DASHBOARD}/calendar`,
     permission: `${ROOTS.DASHBOARD}/permission`,
     fileManager: `${ROOTS.DASHBOARD}/file-manager`,
     general: {
-      app: `${ROOTS.DASHBOARD}/app`,
       ecommerce: `${ROOTS.DASHBOARD}/ecommerce`,
       analytics: `${ROOTS.DASHBOARD}/analytics`,
       file: `${ROOTS.DASHBOARD}/file`,
