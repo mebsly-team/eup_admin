@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import moment from 'moment';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -34,16 +34,24 @@ const USER_TYPES = [
   { value: 'admin', label: 'Admin' },
 ];
 
+const CUSTOMER_COLORS = [
+  { value: 'red', label: 'Red' },
+  { value: 'yellow', label: 'Yellow' },
+  { value: 'green', label: 'Green' },
+  { value: 'blue', label: 'Blue' },
+  { value: 'brown', label: 'Brown' },
+];
+
 export default function UserNewEditForm({ currentUser }: Props) {
   const router = useRouter();
-
+  const [isBusiness, setIsBusiness] = useState(!["particular", "admin"].includes(currentUser.type))
   const { enqueueSnackbar } = useSnackbar();
 
   const NewUserSchema = Yup.object().shape({
-    type: Yup.string().required('Role is required'),
-    first_name: Yup.string().required('Name is required'),
-    last_name: Yup.string().required('SurName is required'),
-    password: Yup.string().required('password is required'),
+    type: Yup.string().required('Type is required'),
+    first_name: !isBusiness && Yup.string().required('Name is required'),
+    last_name: !isBusiness && Yup.string().required('SurName is required'),
+    password: currentUser ? null : Yup.string().required('password is required'),
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
   });
 
@@ -82,13 +90,15 @@ export default function UserNewEditForm({ currentUser }: Props) {
     reset,
     control,
     handleSubmit,
-    formState: { isSubmitting },
-    
+    getValues,
+    setValue,
+    formState: { isSubmitting, ...rest2 },
+    ...rest
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      data.birthdate = moment(data.birthdate).format('YYYY-MM-DD');
+      data.birthdate = moment.isDate(data.birthdate) ? moment(data.birthdate).format('YYYY-MM-DD') : null;
       if (currentUser) {
         const response = await axiosInstance.put(`/users/${currentUser.id}/`, data);
       } else {
@@ -116,7 +126,10 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFSelect name="type" label="User Type">
+              <RHFSelect name="type" label="User Type" onChange={(e) => {
+                setValue("type", e.target.value)
+                setIsBusiness(!["particular", "admin"].includes(e.target.value))
+              }}>
                 <MenuItem value="">None</MenuItem>
                 <Divider sx={{ borderStyle: 'dashed' }} />
                 {USER_TYPES.map((option) => (
@@ -128,7 +141,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
               <RHFTextField name="email" label="Email Address" />
               <RHFTextField name="first_name" label="Name" />
               <RHFTextField name="last_name" label="Last Name" />
-              <RHFTextField name="password" label="Password" type="password" />
+              {currentUser ? null : <RHFTextField name="password" label="Password" type="password" />}
               <RHFTextField name="phone_number" label="Phone Number" />
               <RHFTextField name="mobile_number" label="Mobile Number" />
               <Controller
@@ -175,7 +188,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
             </Box>
           </Card>
 
-          <Card sx={{ p: 3, mt: 5 }}>
+          {isBusiness ? <Card sx={{ p: 3, mt: 5 }}>
             <Box
               rowGap={3}
               columnGap={2}
@@ -199,14 +212,25 @@ export default function UserNewEditForm({ currentUser }: Props) {
               <RHFTextField name="vat" label="vat" />
               <RHFTextField name="kvk" label="kvk" />
               <RHFTextField name="payment_method" label="payment_method" />
-              <RHFTextField name="customer_percentage" label="customer_percentage" />
-              <RHFTextField name="invoice_discount" label="invoice_discount" />
+              <RHFTextField name="customer_percentage" label="customer_percentage" type="number" />
+              <RHFTextField name="invoice_discount" label="invoice_discount" type="number" />
               <RHFTextField name="payment_termin" label="payment_termin" />
-              <RHFTextField name="credit_limit" label="credit_limit" />
+              <RHFTextField name="credit_limit" label="credit_limit" type="number" />
               <RHFTextField name="payment_method" label="payment_method" />
               <RHFTextField name="invoice_address" label="invoice_address" />
+              <RHFTextField name="invoice_language" label="invoice_language" />
               <RHFTextField name="discount_group" label="discount_group" />
-              <RHFTextField name="customer_color" label="customer_color" />
+              <RHFTextField name="inform_via" label="inform_via" />
+              <RHFSelect name="customer_color" label="customer_color">
+                <MenuItem value="">None</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                {CUSTOMER_COLORS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+
               <RHFTextField name="relation_type" label="relation_type" />
               <RHFTextField name="relation_via" label="relation_via" />
               <RHFTextField name="days_closed" label="days_closed" />
@@ -253,26 +277,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
-              <RHFSwitch
-                name="inform_via"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    inform_via
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="invoice_language"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    invoice_language
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
+
               <RHFSwitch
                 name="notify"
                 labelPlacement="start"
@@ -284,7 +289,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
             </Box>
-          </Card>
+          </Card> : null}
 
           <Card sx={{ p: 3, mt: 5 }}>
             <Box

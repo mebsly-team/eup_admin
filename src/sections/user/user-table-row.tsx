@@ -34,7 +34,7 @@ export default function UserTableRow({
   onSelectRow,
   onDeleteRow,
 }: Props) {
-  const { first_name, last_name, company, role, status, email, phone_number } = row;
+  const { fullname, business_name, last_login, kvk, vat, type, is_active, email, phone_number, contact_person_phone_number, contact_person_name, contact_person_email } = row;
 
   const confirm = useBoolean();
 
@@ -53,8 +53,8 @@ export default function UserTableRow({
           {/* <Avatar alt={name} src={avatarUrl} sx={{ mr: 2 }} /> */}
 
           <ListItemText
-            primary={first_name}
-            secondary={last_name}
+            primary={business_name || fullname}
+            secondary={type}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
               component: 'span',
@@ -63,23 +63,48 @@ export default function UserTableRow({
           />
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{phone_number}</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <ListItemText
+            primary={email}
+            secondary={phone_number}
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{
+              component: 'span',
+              color: 'text.disabled',
+            }}
+          />
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{company}</TableCell>
+        </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{role}</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <ListItemText
+            primary={contact_person_name || "-"}
+            secondary={contact_person_phone_number}
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{
+              component: 'span',
+              color: 'text.disabled',
+            }}
+          /></TableCell>
+
+        <TableCell sx={{ whiteSpace: 'nowrap' }}><ListItemText
+          primary={kvk || "-"}
+          secondary={vat}
+          primaryTypographyProps={{ typography: 'body2' }}
+          secondaryTypographyProps={{
+            component: 'span',
+            color: 'text.disabled',
+          }}
+        /></TableCell>
 
         <TableCell>
           <Label
-            variant="soft"
+            // variant="soft"
             color={
-              (status === 'active' && 'success') ||
-              (status === 'pending' && 'warning') ||
-              (status === 'banned' && 'error') ||
-              'default'
+              is_active ? 'success' : 'error'
             }
           >
-            {status}
+            {is_active ? "✓" : "x"}
           </Label>
         </TableCell>
 
@@ -94,7 +119,7 @@ export default function UserTableRow({
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
-      </TableRow>
+      </TableRow >
 
       <UserQuickEditForm currentUser={row} open={quickEdit.value} onClose={quickEdit.onFalse} />
 
@@ -122,7 +147,7 @@ export default function UserTableRow({
           }}
         >
           <Iconify icon="solar:pen-bold" />
-          Edit
+          View/Edit
         </MenuItem>
       </CustomPopover>
 

@@ -46,14 +46,22 @@ import UserTableFiltersResult from '../user-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
+const USER_TYPES = [
+  { value: 'special', label: 'Special' },
+  { value: 'wholesaler', label: 'Wholesaler' },
+  { value: 'supermarket', label: 'Supermarket' },
+  { value: 'particular', label: 'Particular' },
+  { value: 'admin', label: 'Admin' },
+];
+
+const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'in_active', label: 'Inactive' }];
 
 const TABLE_HEAD = [
-  { id: 'first_name', label: 'Name' },
-  { id: 'phone_number', label: 'Phone Number', width: 180 },
-  { id: 'company', label: 'Company', width: 220 },
-  { id: 'role', label: 'Role', width: 180 },
-  { id: 'status', label: 'Status', width: 100 },
+  { id: 'fullname', label: 'Name/Type' },
+  { id: 'email', label: 'Email/Phone', width: 180 },
+  { id: 'company', label: 'POC', width: 220 },
+  { id: 'type', label: 'KVK/VAT', width: 180 },
+  { id: 'is_active', label: 'Active?', width: 100 },
   { id: '', width: 88 },
 ];
 
@@ -75,6 +83,7 @@ export default function UserListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IUserItem[]>(userList);
   const [filters, setFilters] = useState(defaultFilters);
+
   const dataFiltered = applyFilter({
     inputData: userList,
     comparator: getComparator(table.order, table.orderBy),
@@ -94,24 +103,22 @@ export default function UserListView() {
 
   useEffect(() => {
     getAll();
-  }, [table.page, table.rowsPerPage]);
+  }, [filters, table.page, table.rowsPerPage]);
+
   console.log('userList', userList);
 
-  const getAllUsers = async () => {
+
+
+  const getAll = async () => {
+    const statusFilter = filters.status !== "all" ? `&is_active=${filters.status === "active"}` : ""
+    const searchFilter = filters.name ? `&search=${filters.name}` : ""
+    const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : ""
     const { data } = await axiosInstance.get(
-      `/users/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0`
+      `/users/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0${typeFilter}${searchFilter}${statusFilter}`
     );
     setCount(data.count);
     setUserList(data.results);
   };
-
-  const getAll = useCallback(async () => {
-    const { data } = await axiosInstance.get(
-      `/users/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0`
-    );
-    setCount(data.count);
-    setUserList(data.results);
-  }, [table.page, table.rowsPerPage]);
 
   const handleFilters = useCallback(
     (name: string, value: IUserTableFilterValue) => {
@@ -208,23 +215,23 @@ export default function UserListView() {
                 iconPosition="end"
                 value={tab.value}
                 label={tab.label}
-                icon={
-                  <Label
-                    variant={
-                      ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                    }
-                    color={
-                      (tab.value === 'active' && 'success') ||
-                      (tab.value === 'pending' && 'warning') ||
-                      (tab.value === 'banned' && 'error') ||
-                      'default'
-                    }
-                  >
-                    {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                      ? tableData.filter((user) => user.status === tab.value).length
-                      : tableData.length}
-                  </Label>
-                }
+              // icon={
+              //   <Label
+              //     variant={
+              //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
+              //     }
+              //     color={
+              //       (tab.value === 'active' && 'success') ||
+              //       (tab.value === 'pending' && 'warning') ||
+              //       (tab.value === 'banned' && 'error') ||
+              //       'default'
+              //     }
+              //   >
+              //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
+              //       ? tableData.filter((user) => user.status === tab.value).length
+              //       : tableData.length}
+              //   </Label>
+              // }
               />
             ))}
           </Tabs>
@@ -233,7 +240,7 @@ export default function UserListView() {
             filters={filters}
             onFilters={handleFilters}
             //
-            roleOptions={_roles}
+            roleOptions={USER_TYPES}
           />
 
           {canReset && (

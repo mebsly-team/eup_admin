@@ -73,11 +73,13 @@ export default function UserTableToolbar({
           <InputLabel>Role</InputLabel>
 
           <Select
-            multiple
+            // multiple
             value={filters.role}
             onChange={handleFilterRole}
             input={<OutlinedInput label="Role" />}
-            renderValue={(selected) => selected.map((value) => value).join(', ')}
+            renderValue={(selected) => {
+              return selected.map((value) => value).join(', ')
+            }}
             MenuProps={{
               PaperProps: {
                 sx: { maxHeight: 240 },
@@ -85,9 +87,9 @@ export default function UserTableToolbar({
             }}
           >
             {roleOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                <Checkbox disableRipple size="small" checked={filters.role.includes(option)} />
-                {option}
+              <MenuItem key={option.value} value={option.value}>
+                <Checkbox disableRipple size="small" checked={filters.role.includes(option.value)} />
+                {option.label}
               </MenuItem>
             ))}
           </Select>
