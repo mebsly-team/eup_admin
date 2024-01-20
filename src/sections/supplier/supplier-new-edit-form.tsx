@@ -7,7 +7,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Divider, MenuItem } from '@mui/material';
+import { Divider, MenuItem, Typography } from '@mui/material';
+
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { paths } from 'src/routes/paths';
@@ -16,7 +17,7 @@ import { useRouter } from 'src/routes/hooks';
 import axiosInstance from 'src/utils/axios';
 
 import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, { RHFSelect, RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 
 import { ISupplierItem } from 'src/types/supplier';
 
@@ -35,31 +36,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       .email('Email must be a valid email address'),
     phone: Yup.string().required('Phone number is required'),
     mobile_phone: Yup.string().required('Phone number is required'),
-    gender: Yup.string().required('Gender is required'),
-    address: Yup.string().notRequired(),
-    city: Yup.string().notRequired(),
-    country: Yup.string().notRequired(),
-    postal_code: Yup.string().notRequired(),
-    contact_person: Yup.string().notRequired(),
-    iban: Yup.string().notRequired(),
-    bic: Yup.string().notRequired(),
-    debtor_number: Yup.string().notRequired(),
-    payment_terms: Yup.string().notRequired(),
-    payment_instruction: Yup.string().notRequired(),
-    payment_method: Yup.string().notRequired(),
-    minimum_order_amount: Yup.string().notRequired(),
-    account_holder_name: Yup.string().notRequired(),
-    account_holder_city: Yup.string().notRequired(),
-    vat_number: Yup.string().notRequired(),
-    kvk_number: Yup.string().notRequired(),
-    facebook: Yup.string().notRequired(),
-    linkedin: Yup.string().notRequired(),
-    twitter: Yup.string().notRequired(),
-    instagram: Yup.string().notRequired(),
-    pinterest: Yup.string().notRequired(),
-    tiktok: Yup.string().notRequired(),
-    website: Yup.string().notRequired(),
-    memo: Yup.string().notRequired(),
+    contact_person: Yup.string().required('contact_person is required'),
   });
   const defaultValues = useMemo(
     () => ({
@@ -139,20 +116,25 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               }}
             >
               <RHFTextField name="name" label=" Name" />
+              <RHFTextField name="contact_person" label="contact_person" />
               <RHFTextField name="email_general" label="Email" />
               <RHFTextField name="phone" label="Phone Number" />
               <RHFTextField name="mobile_phone" label="Mobile Number" />
-              <RHFSelect name="gender" label="Gender">
-                <MenuItem value="">None</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                <MenuItem value="male">Male</MenuItem>
-                <MenuItem value="female">Female</MenuItem>
-              </RHFSelect>
-              <RHFTextField name="contact_person" label="contact_person" />
-              <RHFTextField name="address" label="address" />
-              <RHFTextField name="postal_code" label="postal_code" />
-              <RHFTextField name="city" label="city" />
-              <RHFTextField name="country" label="country" />
+
+
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
               <RHFTextField name="iban" label="iban" />
               <RHFTextField name="bic" label="bic" />
               <RHFTextField name="account_holder_name" label="account_holder_name" />
@@ -160,26 +142,88 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               <RHFTextField name="vat_number" label="vat_number" />
               <RHFTextField name="kvk_number" label="kvk_number" />
               <RHFTextField name="debtor_number" label="debtor_number" />
+
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
               <RHFTextField name="payment_terms" label="payment_terms" />
               <RHFTextField name="payment_instruction" label="payment_instruction" />
               <RHFTextField name="payment_method" label="payment_method" />
-              <RHFTextField name="minimum_order_amount" label="minimum_order_amount" />
+              <RHFTextField name="order_method" label="order_method" />
+              <RHFTextField name="delivery_time_of_order" label="delivery_time_of_order" type="number" />
+              <RHFTextField name="minimum_order_amount" label="minimum_order_amount" type="number" />
+              <RHFTextField name="percentage_to_add" label="percentage_to_add" type="number" />
+
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
               <RHFTextField name="facebook" label="facebook" />
               <RHFTextField name="linkedin" label="linkedin" />
               <RHFTextField name="twitter" label="twitter" />
               <RHFTextField name="instagram" label="instagram" />
               <RHFTextField name="pinterest" label="pinterest" />
               <RHFTextField name="tiktok" label="tiktok" />
-              <RHFTextField name="memo" label="memo" />
               <RHFTextField name="website" label="website" />
+              <RHFTextField name="memo" label="memo" />
+              <RHFTextField name="supplier_extra_info" label="supplier_extra_info" />
+              <RHFSwitch
+                name="is_active"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    Active
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="hasGivenPaymentAuth"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    hasGivenPaymentAuth
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="has_connection_with_supplier_system"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    has_connection_with_supplier_system
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
             </Box>
-
-            <Stack alignItems="flex-end" sx={{ mt: 3 }}>
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentSupplier ? 'Create Category' : 'Save Changes'}
-              </LoadingButton>
-            </Stack>
           </Card>
+
+          <Stack alignItems="flex-end" sx={{ mt: 3 }}>
+            <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+              {!currentSupplier ? 'Create Supplier' : 'Save Changes'}
+            </LoadingButton>
+          </Stack>
         </Grid>
       </Grid>
     </FormProvider>

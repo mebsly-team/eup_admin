@@ -40,26 +40,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const NewUserSchema = Yup.object().shape({
+    type: Yup.string().required('Role is required'),
     first_name: Yup.string().required('Name is required'),
     last_name: Yup.string().required('SurName is required'),
     password: Yup.string().required('password is required'),
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
-    phone_number: Yup.string().required('Phone number is required'),
-    mobile_number: Yup.string().required('Phone number is required'),
-    gender: Yup.string().required('Gender is required'),
-    type: Yup.string().required('Role is required'),
-    birthdate: Yup.string().required('Birthdate is required'),
-    fax: Yup.string(),
-    facebook: Yup.string(),
-    linkedin: Yup.string(),
-    twitter: Yup.string(),
-    instagram: Yup.string(),
-    pinterest: Yup.string(),
-    tiktok: Yup.string(),
-    notes: Yup.string(),
-    website: Yup.string(),
-    is_active: Yup.boolean(),
-    is_staff: Yup.boolean(),
   });
 
   const defaultValues = useMemo(
@@ -98,6 +83,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
     control,
     handleSubmit,
     formState: { isSubmitting },
+    
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
@@ -130,12 +116,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="first_name" label="Name" />
-              <RHFTextField name="last_name" label="Last Name" />
-              <RHFTextField name="password" label="Password" type="password" />
-              <RHFTextField name="email" label="Email Address" />
-              <RHFTextField name="phone_number" label="Phone Number" />
-              <RHFTextField name="mobile_number" label="Mobile Number" />
               <RHFSelect name="type" label="User Type">
                 <MenuItem value="">None</MenuItem>
                 <Divider sx={{ borderStyle: 'dashed' }} />
@@ -145,18 +125,18 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   </MenuItem>
                 ))}
               </RHFSelect>
-              <RHFSelect name="gender" label="Gender">
-                <MenuItem value="">None</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                <MenuItem value="male">Male</MenuItem>
-                <MenuItem value="female">Female</MenuItem>
-              </RHFSelect>
+              <RHFTextField name="email" label="Email Address" />
+              <RHFTextField name="first_name" label="Name" />
+              <RHFTextField name="last_name" label="Last Name" />
+              <RHFTextField name="password" label="Password" type="password" />
+              <RHFTextField name="phone_number" label="Phone Number" />
+              <RHFTextField name="mobile_number" label="Mobile Number" />
               <Controller
                 name="birthdate"
                 control={control}
                 render={({ field, fieldState: { error } }) => (
                   <DatePicker
-                    label="Date create"
+                    label="Birth Date"
                     value={field.value || null}
                     format="yyyy-MM-dd"
                     onChange={(newValue) => {
@@ -172,14 +152,182 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   />
                 )}
               />
+              <RHFSwitch
+                name="is_subscribed_newsletters"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_subscribed_newsletters
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_access_granted_social_media"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_access_granted_social_media
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <RHFTextField name="business_name" label="business_name" />
+              <RHFTextField name="contact_person_name" label="contact_person_name" />
+              <RHFTextField name="contact_person_phone_number" label="contact_person_phone_number" />
+              <RHFTextField name="contact_person_email" label="contact_person_email" />
+              <RHFTextField name="department" label="department" />
+              <RHFTextField name="classification" label="classification" />
+              <RHFTextField name="branch" label="branch" />
+              <RHFTextField name="iban" label="iban" />
+              <RHFTextField name="bic" label="bic" />
+              <RHFTextField name="account_holder_name" label="account_holder_name" />
+              <RHFTextField name="account_holder_city" label="account_holder_city" />
+              <RHFTextField name="vat" label="vat" />
+              <RHFTextField name="kvk" label="kvk" />
+              <RHFTextField name="payment_method" label="payment_method" />
+              <RHFTextField name="customer_percentage" label="customer_percentage" />
+              <RHFTextField name="invoice_discount" label="invoice_discount" />
+              <RHFTextField name="payment_termin" label="payment_termin" />
+              <RHFTextField name="credit_limit" label="credit_limit" />
+              <RHFTextField name="payment_method" label="payment_method" />
+              <RHFTextField name="invoice_address" label="invoice_address" />
+              <RHFTextField name="discount_group" label="discount_group" />
+              <RHFTextField name="customer_color" label="customer_color" />
+              <RHFTextField name="relation_type" label="relation_type" />
+              <RHFTextField name="relation_via" label="relation_via" />
+              <RHFTextField name="days_closed" label="days_closed" />
+              <RHFTextField name="days_no_delivery" label="days_no_delivery" />
               <RHFTextField name="fax" label="fax" />
+              <RHFTextField name="website" label="website" />
+              <RHFSwitch
+                name="incasseren"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    incasseren
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_payment_termin_active"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_payment_termin_active
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_eligible_to_work_with"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_eligible_to_work_with
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="inform_when_new_products"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    inform_when_new_products
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="inform_via"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    inform_via
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="invoice_language"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    invoice_language
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="notify"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    notify
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
               <RHFTextField name="facebook" label="facebook" />
               <RHFTextField name="linkedin" label="linkedin" />
               <RHFTextField name="twitter" label="twitter" />
               <RHFTextField name="instagram" label="instagram" />
               <RHFTextField name="pinterest" label="pinterest" />
               <RHFTextField name="tiktok" label="tiktok" />
-              <RHFTextField name="notes" label="notes" />
+            </Box>
+          </Card>
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <RHFTextField name="notes" label="notes" type="textarea" />
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
               <RHFSwitch
                 name="is_staff"
                 labelPlacement="start"
@@ -201,13 +349,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
             </Box>
-
-            <Stack alignItems="flex-end" sx={{ mt: 3 }}>
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentUser ? 'Create User' : 'Save Changes'}
-              </LoadingButton>
-            </Stack>
           </Card>
+          <Stack alignItems="flex-end" sx={{ mt: 3 }}>
+            <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+              {!currentUser ? 'Create User' : 'Save Changes'}
+            </LoadingButton>
+          </Stack>
         </Grid>
       </Grid>
     </FormProvider>

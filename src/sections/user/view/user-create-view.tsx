@@ -31,7 +31,6 @@ export default function UserCreateView() {
           mb: { xs: 3, md: 5 },
         }}
       />
-
       <UserNewEditForm />
     </Container>
   );

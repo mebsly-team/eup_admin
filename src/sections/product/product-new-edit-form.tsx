@@ -34,7 +34,7 @@ import FormProvider, {
   RHFSelect,
   RHFTextField,
   RHFAutocomplete,
-  RHFMultiSelectCategory,
+  RHFMultiSelectCategory,RHFSwitch
 } from 'src/components/hook-form';
 
 import { IProductItem } from 'src/types/product';
@@ -44,6 +44,15 @@ import { IProductItem } from 'src/types/product';
 type Props = {
   currentProduct?: IProductItem;
 };
+
+
+const UNIT_CHOICES = [
+  { value: 'piece', label: 'piece' },
+  { value: 'package', label: 'package' },
+  { value: 'box', label: 'box' },
+  { value: 'pallet_layer', label: 'pallet_layer' },
+  { value: 'pallet_full', label: 'pallet_full' },
+];
 
 export default function ProductNewEditForm({ currentProduct }: Props) {
   const router = useRouter();
@@ -183,10 +192,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           {!mdUp && <CardHeader title="Details" />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
+            <RHFTextField name="parent_product" label="parent_product" />
             <RHFTextField name="title" label="Product Title" />
+            <RHFTextField name="title_long" label="Product Title Long" />
+            <RHFTextField name="description" label="Product description" />
             <Stack spacing={1.5}>
-              <Typography variant="subtitle2">Content</Typography>
-              <RHFEditor simple name="description" />
+              <Typography variant="subtitle2">description_long</Typography>
+              <RHFEditor simple name="description_long" />
             </Stack>
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Images</Typography>
@@ -198,7 +210,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 onDrop={handleDrop}
                 onRemove={handleRemoveFile}
                 onRemoveAll={handleRemoveAllFiles}
-                // onUpload={() => console.info('ON UPLOAD')}
+              // onUpload={() => console.info('ON UPLOAD')}
               />
             </Stack>
           </Stack>
@@ -234,9 +246,221 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              {/* <RHFTextField name="code" label="Product Code" />
+              <RHFTextField name="price_per_piece" label="price_per_piece" />
+              <RHFTextField name="price_per_unit" label="price_per_unit" />
+              <RHFTextField name="price_consumers" label="price_consumers" />
+              <RHFTextField name="price_cost" label="price_cost" />
+              <RHFSelect name="unit" label="unit">
+                <MenuItem value="">None</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                {UNIT_CHOICES.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+              <RHFTextField name="quantity_per_unit" label="quantity_per_unit" type="number" />
+              <RHFTextField name="quantity_total_content" label="quantity_total_content" type="number" />
+              <RHFTextField name="max_order_allowed_per_unit" label="max_order_allowed_per_unit" type="number" />
+              <RHFTextField name="overall_stock" label="overall_stock" type="number" />
+              <RHFTextField name="free_stock" label="free_stock" type="number" />
+              <RHFTextField name="ordered_in_progress_stock" label="ordered_in_progress_stock" type="number" />
+              <RHFTextField name="work_in_progress_stock" label="work_in_progress_stock" type="number" />
+              <RHFTextField name="max_stock_at_rack" label="max_stock_at_rack" type="number" />
+              <RHFTextField name="min_stock_value" label="min_stock_value" type="number" />
+              <RHFTextField name="stock_at_supplier" label="stock_at_supplier" type="number" />
+              <RHFSwitch
+                name="stock_disable_when_sold_out"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    stock_disable_when_sold_out
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
 
-              <RHFTextField name="sku" label="Product SKU" /> */}
+              <RHFTextField name="ean" label="ean" />
+              <RHFTextField name="article_code" label="article_code" />
+              <RHFTextField name="hs_code" label="hs_code" />
+              <RHFTextField name="supplier_article_code" label="supplier_article_code" />
+              <RHFTextField name="sku" label="Product SKU" />
+
+              <RHFTextField name="delivery_time" label="delivery_time" />
+              <RHFTextField name="location" label="location" />
+              <RHFTextField name="extra_location" label="extra_location" />
+              <RHFTextField name="size_x_value" label="size_x_value" />
+              <RHFTextField name="size_y_value" label="size_y_value" />
+              <RHFTextField name="size_z_value" label="size_z_value" />
+              <RHFTextField name="size_unit" label="size_unit" />
+              <RHFTextField name="weight" label="weight" />
+              <RHFTextField name="weight_unit" label="weight_unit" />
+              <RHFTextField name="volume_value" label="volume_value" />
+              <RHFTextField name="volume_unit" label="volume_unit" />
+              <RHFTextField name="volume" label="volume" />
+
+              <RHFTextField name="important_information" label="important_information" />
+              <RHFTextField name="meta_title" label="meta_title" />
+              <RHFTextField name="meta_description" label="meta_description" />
+              <RHFTextField name="meta_keywords" label="meta_keywords" />
+              <RHFTextField name="url" label="url" />
+
+
+              <RHFTextField name="vat" label="vat" />
+              <RHFTextField name="stock_alert_value" label="stock_alert_value" />
+              <RHFTextField name="languages_on_item_package" label="languages_on_item_package" />
+              <RHFTextField name="sell_count" label="sell_count" />
+    
+              <RHFSwitch
+                name="is_only_for_logged_in_user"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_only_for_logged_in_user
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_used"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_used
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_regular"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_regular
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_featured"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_featured
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_visible_on_web"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_visible_on_web
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_visible_on_mobile"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_visible_on_mobile
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_only_for_export"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_only_for_export
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_only_for_B2B"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_only_for_B2B
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_listed_on_marktplaats"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_listed_on_marktplaats
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_listed_on_2dehands"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_listed_on_2dehands
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="stock_check"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    stock_check
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="stock_alert"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    stock_alert
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="has_electronic_barcode"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    has_electronic_barcode
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_brief_box"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    is_brief_box
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+
+
+
+
+
+
+
+
+
+
               {/* <RHFTextField
                 name="quantity"
                 label="Quantity"

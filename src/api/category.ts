@@ -18,7 +18,7 @@ export function useGetCategories() {
       itemsLoading: isLoading,
       itemsError: error,
       itemsValidating: isValidating,
-      itemsEmpty: !isLoading && !data?.results.length,
+      itemsEmpty: !isLoading && !data?.results?.length,
     }),
     [data?.results, error, isLoading, isValidating]
   );

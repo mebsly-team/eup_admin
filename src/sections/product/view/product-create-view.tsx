@@ -31,7 +31,6 @@ export default function ProductCreateView() {
           mb: { xs: 3, md: 5 },
         }}
       />
-
       <ProductNewEditForm />
     </Container>
   );

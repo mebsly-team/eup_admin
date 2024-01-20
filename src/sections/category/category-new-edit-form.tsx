@@ -97,7 +97,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               <Stack spacing={1.5}>
                 <RHFAutocomplete
                   name="parent_category"
-                  label="Top Categories"
+                  label="Parent Category"
                   autoHighlight
                   options={items.map((option) => option)}
                   getOptionLabel={(option) => option.name}
