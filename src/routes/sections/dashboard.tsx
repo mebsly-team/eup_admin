@@ -21,6 +21,10 @@ const ProductEditPage = lazy(() => import('src/pages/dashboard/product/edit'));
 const BrandListPage = lazy(() => import('src/pages/dashboard/brand/list'));
 const BrandCreatePage = lazy(() => import('src/pages/dashboard/brand/new'));
 const BrandEditPage = lazy(() => import('src/pages/dashboard/brand/edit'));
+// LANGUAGE
+const LanguageListPage = lazy(() => import('src/pages/dashboard/language/list'));
+const LanguageCreatePage = lazy(() => import('src/pages/dashboard/language/new'));
+const LanguageEditPage = lazy(() => import('src/pages/dashboard/language/edit'));
 // CATEGORY
 const CategoryListPage = lazy(() => import('src/pages/dashboard/category/list'));
 const CategoryCreatePage = lazy(() => import('src/pages/dashboard/category/new'));
@@ -138,6 +142,15 @@ export const dashboardRoutes = [
           { path: ':id', element: <InvoiceDetailsPage /> },
           { path: ':id/edit', element: <InvoiceEditPage /> },
           { path: 'new', element: <InvoiceCreatePage /> },
+        ],
+      },
+      {
+        path: 'language',
+        children: [
+          { element: <LanguageListPage />, index: true },
+          { path: 'list', element: <LanguageListPage /> },
+          { path: 'new', element: <LanguageCreatePage /> },
+          { path: ':id/edit', element: <LanguageEditPage /> },
         ],
       },
       { path: 'file-manager', element: <FileManagerPage /> },

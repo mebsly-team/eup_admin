@@ -163,6 +163,17 @@ export function useNavData() {
             ],
           },
 
+          // LANGUAGE
+          {
+            title: t('language'),
+            path: paths.dashboard.language.root,
+            icon: ICONS.order,
+            children: [
+              { title: t('list'), path: paths.dashboard.language.root },
+              { title: t('create'), path: paths.dashboard.language.new },
+            ],
+          },
+
 
           // FILE MANAGER
           {

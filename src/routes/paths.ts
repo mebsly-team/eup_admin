@@ -114,6 +114,11 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/brand/new`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/brand/${id}/edit`,
     },
+    language: {
+      root: `${ROOTS.DASHBOARD}/language`,
+      new: `${ROOTS.DASHBOARD}/language/new`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/language/${id}/edit`,
+    },
     category: {
       root: `${ROOTS.DASHBOARD}/category`,
       new: `${ROOTS.DASHBOARD}/category/new`,
