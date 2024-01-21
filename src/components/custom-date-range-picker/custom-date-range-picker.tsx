@@ -18,16 +18,12 @@ import { DateRangePickerProps } from './types';
 export default function CustomDateRangePicker({
   title = 'Select date range',
   variant = 'input',
-  //
   startDate,
   endDate,
-  //
   onChangeStartDate,
   onChangeEndDate,
-  //
   open,
   onClose,
-  //
   error,
 }: DateRangePickerProps) {
   const mdUp = useResponsive('up', 'md');
@@ -54,8 +50,8 @@ export default function CustomDateRangePicker({
         sx={{
           ...(isCalendarView &&
             mdUp && {
-              overflow: 'unset',
-            }),
+            overflow: 'unset',
+          }),
         }}
       >
         <Stack

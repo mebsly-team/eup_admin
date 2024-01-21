@@ -1,7 +1,10 @@
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import axiosInstance from 'src/utils/axios';
+import { paths } from 'src/routes/paths';
+import Button from '@mui/material/Button';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,6 +12,8 @@ import Stack from '@mui/material/Stack';
 import { Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
+import ImageGallery from 'src/components/imageGallery/index.tsx';
+import Image from 'src/components/image';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -23,10 +28,11 @@ type Props = {
 
 export default function BrandNewEditForm({ currentBrand }: Props) {
   const router = useRouter();
-
+  const [isImageGalleryOpen, setImageGalleryOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
 
-  const NewUserSchema = Yup.object().shape({
+  const NewBrandSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
     description: Yup.string(),
     logo: Yup.mixed<any>().nullable(),
@@ -43,7 +49,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
   );
 
   const methods = useForm({
-    resolver: yupResolver(NewUserSchema),
+    resolver: yupResolver(NewBrandSchema),
     defaultValues,
   });
 
@@ -53,41 +59,31 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
     setValue,
     handleSubmit,
     formState: { isSubmitting },
+    ...rest
   } = methods;
 
+  const handleSelectImage = async (idList) => {
+    const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
+    setSelectedImage(data)
+    setImageGalleryOpen(false)
+  }
+
   const onSubmit = handleSubmit(async (data) => {
+    const finalData = { ...data, logo_id: selectedImage?.id }
     try {
       if (currentBrand) {
-        const response = await axiosInstance.put(`/brands/${currentBrand.id}/`, data);
+        const response = await axiosInstance.put(`/brands/${currentBrand.id}/`, finalData);
       } else {
-        const response = await axiosInstance.post(`/brands/`, data);
+        const response = await axiosInstance.post(`/brands/`, finalData);
       }
       enqueueSnackbar(currentBrand ? 'Update success!' : 'Create success!');
       reset();
       router.push(paths.dashboard.brand.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: 'Hatalı İşlem!' });
+      enqueueSnackbar({ variant: 'error', message: 'Error!' });
     }
   });
 
-  const handleDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-
-      const newFile = Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      });
-
-      if (file) {
-        setValue('logo', file, { shouldValidate: true });
-      }
-    },
-    [setValue]
-  );
-
-  const handleRemoveFile = useCallback(() => {
-    setValue('logo', null);
-  }, [setValue]);
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -107,12 +103,10 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               <RHFTextField name="description" label="Description" />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Logo</Typography>
-                <RHFUpload
-                  name="logo"
-                  maxSize={3145728}
-                  onDrop={handleDrop}
-                  onDelete={handleRemoveFile}
-                />
+                {selectedImage ? <Image src={selectedImage?.image} /> : null}
+                <Button onClick={() => setImageGalleryOpen(true)}>
+                  Upload Photo
+                </Button>
               </Stack>
             </Box>
 
@@ -122,6 +116,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               </LoadingButton>
             </Stack>
           </Card>
+          {isImageGalleryOpen ? <ImageGallery onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} /> : null}
         </Grid>
       </Grid>
     </FormProvider>

@@ -21,7 +21,7 @@ export default function CategoryEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentCategory, setCurrentCategory] = useState<any>();
   const getBrandInfo = async (brandId: string) => {
-    const { data } = await axiosInstance.get(`/brand/${brandId}/`);
+    const { data } = await axiosInstance.get(`/categories/${brandId}/`);
     setCurrentCategory(data);
   };
 
