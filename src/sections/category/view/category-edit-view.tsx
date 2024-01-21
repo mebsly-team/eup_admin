@@ -9,6 +9,8 @@ import axiosInstance from 'src/utils/axios';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
+import { ICategoryItem } from 'src/types/category';
+
 import CategoryNewEditForm from '../category-new-edit-form';
 
 // ----------------------------------------------------------------------
@@ -19,14 +21,14 @@ type Props = {
 
 export default function CategoryEditView({ id }: Props) {
   const settings = useSettingsContext();
-  const [currentCategory, setCurrentCategory] = useState<any>();
-  const getBrandInfo = async (brandId: string) => {
-    const { data } = await axiosInstance.get(`/categories/${brandId}/`);
+  const [currentCategory, setCurrentCategory] = useState<ICategoryItem>();
+  const getCategoryInfo = async (categoryId: string) => {
+    const { data } = await axiosInstance.get(`/categories/${categoryId}/`);
     setCurrentCategory(data);
   };
 
   useEffect(() => {
-    getBrandInfo(id);
+    getCategoryInfo(id);
   }, [id]);
 
   return (
@@ -40,7 +42,7 @@ export default function CategoryEditView({ id }: Props) {
           },
           {
             name: 'Category',
-            href: paths.dashboard.brand.root,
+            href: paths.dashboard.category.root,
           },
           { name: currentCategory?.name },
         ]}

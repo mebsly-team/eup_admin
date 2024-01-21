@@ -1,54 +1,55 @@
 import * as Yup from 'yup';
-import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import axiosInstance from 'src/utils/axios';
+import { paths } from 'src/routes/paths';
+import Button from '@mui/material/Button';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import { Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
+import ImageGallery from 'src/components/imageGallery/index.tsx';
+import Image from 'src/components/image';
 
-import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import axiosInstance from 'src/utils/axios';
-
-import { useGetCategories } from 'src/api/category';
-
 import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, { RHFTextField, RHFAutocomplete } from 'src/components/hook-form';
+import FormProvider, { RHFUpload, RHFTextField } from 'src/components/hook-form';
 
-type Category = {
-  name: string;
-  parent_category: number;
-};
+import { ICategoryItem } from 'src/types/category';
 
 type Props = {
-  currentCategory?: Category;
+  currentCategory?: ICategoryItem;
 };
 
 export default function CategoryNewEditForm({ currentCategory }: Props) {
   const router = useRouter();
-  const { items } = useGetCategories();
-  console.log('items', items);
+  const [isImageGalleryOpen, setImageGalleryOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
 
-  const NewSchema = Yup.object().shape({
+  const NewCategorySchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
-    parent_category: Yup.mixed().notRequired(),
+    description: Yup.string(),
+    image: Yup.mixed<any>().nullable(),
   });
 
   const defaultValues = useMemo(
     () => ({
+      // id: currentCategory?.id || null,
       name: currentCategory?.name || '',
-      parent_category: currentCategory?.parent_category || null,
+      description: currentCategory?.description || '',
+      image: currentCategory?.image || null,
     }),
     [currentCategory]
   );
 
   const methods = useForm({
-    resolver: yupResolver(NewSchema),
+    resolver: yupResolver(NewCategorySchema),
     defaultValues,
   });
 
@@ -58,26 +59,31 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     setValue,
     handleSubmit,
     formState: { isSubmitting },
+    ...rest
   } = methods;
 
+  const handleSelectImage = async (idList) => {
+    const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
+    setSelectedImage(data)
+    setImageGalleryOpen(false)
+  }
+
   const onSubmit = handleSubmit(async (data) => {
+    const finalData = { ...data, image: selectedImage?.id }
     try {
-      const payload: Category = {
-        name: data.name,
-        parent_category: data?.parent_category?.id,
-      };
       if (currentCategory) {
-        const response = await axiosInstance.put(`/categories/${currentCategory.id}/`, payload);
+        const response = await axiosInstance.put(`/categories/${currentCategory.id}/`, finalData);
       } else {
-        const response = await axiosInstance.post(`/categories/`, payload);
+        const response = await axiosInstance.post(`/categories/`, finalData);
       }
       enqueueSnackbar(currentCategory ? 'Update success!' : 'Create success!');
       reset();
       router.push(paths.dashboard.category.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: 'Hatalı İşlem!' });
+      enqueueSnackbar({ variant: 'error', message: 'Error!' });
     }
   });
+
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -94,20 +100,13 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               }}
             >
               <RHFTextField name="name" label=" Name" />
+              <RHFTextField name="description" label="Description" />
               <Stack spacing={1.5}>
-                <RHFAutocomplete
-                  name="parent_category"
-                  label="Parent Category"
-                  autoHighlight
-                  options={items.map((option) => option)}
-                  getOptionLabel={(option) => option.name}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option.id} value={option.id}>
-                      {option.name}
-                    </li>
-                  )}
-                />
+                <Typography variant="subtitle2">Image</Typography>
+                {selectedImage ? <Image src={selectedImage?.image} /> : null}
+                <Button onClick={() => setImageGalleryOpen(true)}>
+                  Upload Photo
+                </Button>
               </Stack>
             </Box>
 
@@ -117,6 +116,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               </LoadingButton>
             </Stack>
           </Card>
+          {isImageGalleryOpen ? <ImageGallery onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} /> : null}
         </Grid>
       </Grid>
     </FormProvider>

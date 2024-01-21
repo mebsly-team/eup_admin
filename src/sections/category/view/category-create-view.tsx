@@ -23,7 +23,7 @@ export default function CategoryCreateView() {
           },
           {
             name: 'Category',
-            href: paths.dashboard.brand.root,
+            href: paths.dashboard.category.root,
           },
           { name: 'New category' },
         ]}

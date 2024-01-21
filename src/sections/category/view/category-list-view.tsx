@@ -1,23 +1,17 @@
-import { useSWRConfig } from 'swr';
 import isEqual from 'lodash/isEqual';
 import { useState, useEffect, useCallback } from 'react';
 
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
+import { alpha } from '@mui/material/styles';
 import Container from '@mui/material/Container';
-import {
-  DataGrid,
-  GridColDef,
-  GridToolbarExport,
-  GridActionsCellItem,
-  GridToolbarContainer,
-  GridRowSelectionModel,
-  GridToolbarQuickFilter,
-  GridToolbarFilterButton,
-  GridToolbarColumnsButton,
-  GridColumnVisibilityModel,
-} from '@mui/x-data-grid';
+import TableBody from '@mui/material/TableBody';
+import IconButton from '@mui/material/IconButton';
+import TableContainer from '@mui/material/TableContainer';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -27,175 +21,145 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
 
-import { PRODUCT_STOCK_OPTIONS } from 'src/_mock';
-import { useGetCategories } from 'src/api/category';
-
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
+import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
-import EmptyContent from 'src/components/empty-content';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
+import {
+  useTable,
+  getComparator,
+  TableHeadCustom,
+  TableSelectedAction,
+  TablePaginationCustom,
+} from 'src/components/table';
 
-import { IBrandItem } from 'src/types/brand';
-import { IProductTableFilters } from 'src/types/product';
+import { ICategoryItem, ICategoryTableFilters, ICategoryTableFilterValue } from 'src/types/category';
 
-import TableToolbar from '../table-toolbar';
-import TableFiltersResult from '../table-filters-result';
+import CategoryTableRow from '../category-table-row';
+import CategoryTableToolbar from '../category-table-toolbar';
+import CategoryTableFiltersResult from '../category-table-filters-result';
+
 // ----------------------------------------------------------------------
 
-const PUBLISH_OPTIONS = [
-  { value: 'published', label: 'Published' },
-  { value: 'draft', label: 'Draft' },
+
+const TABLE_HEAD = [
+  { id: 'image', label: 'Image', width: 180 },
+  { id: 'name', label: 'Category Name' },
+  { id: 'parent_category', label: 'Parent' },
+  { id: 'sub_categories', label: 'Subcategories' },
+  // { id: 'description', label: 'Description', width: 220 },
 ];
 
-const defaultFilters: IProductTableFilters = {
-  publish: [],
-  stock: [],
+const defaultFilters: ICategoryTableFilters = {
+  name: '',
 };
-
-const HIDE_COLUMNS = {
-  category: false,
-};
-
-const HIDE_COLUMNS_TOGGLABLE = ['category', 'actions'];
 
 // ----------------------------------------------------------------------
 
 export default function CategoryListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const confirmRows = useBoolean();
-  const deleteConfirmRow = useBoolean();
-  const [deletedId, setDeletedId] = useState();
-  const router = useRouter();
-  const { mutate } = useSWRConfig();
+  const table = useTable();
   const settings = useSettingsContext();
-
-  const { items, itemsLoading } = useGetCategories();
-
-  const [tableData, setTableData] = useState<IBrandItem[]>([]);
-
+  const router = useRouter();
+  const confirm = useBoolean();
+  const [categoryList, setCategoryList] = useState<ICategoryItem[]>([]);
+  const [count, setCount] = useState(0);
+  const [tableData, setTableData] = useState<ICategoryItem[]>(categoryList);
   const [filters, setFilters] = useState(defaultFilters);
 
-  const [selectedRowIds, setSelectedRowIds] = useState<GridRowSelectionModel>([]);
-
-  const [columnVisibilityModel, setColumnVisibilityModel] =
-    useState<GridColumnVisibilityModel>(HIDE_COLUMNS);
-
-  useEffect(() => {
-    if (items.length) {
-      setTableData(items);
-    }
-  }, [items]);
-
   const dataFiltered = applyFilter({
-    inputData: tableData,
+    inputData: categoryList,
+    comparator: getComparator(table.order, table.orderBy),
     filters,
   });
 
+  const dataInPage = dataFiltered.slice(
+    table.page * table.rowsPerPage,
+    table.page * table.rowsPerPage + table.rowsPerPage
+  );
+
+  const denseHeight = table.dense ? 56 : 56 + 20;
+
   const canReset = !isEqual(defaultFilters, filters);
 
-  const handleFilters = useCallback((name: string, value: any) => {
-    setFilters((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  }, []);
+  const notFound = (!categoryList?.length && canReset) || !categoryList?.length;
+
+  useEffect(() => {
+    getAll();
+  }, [filters, table.page, table.rowsPerPage]);
+
+  console.log('categoryList', categoryList);
+
+
+  const getAll = async () => {
+    const searchFilter = filters.name ? `&search=${filters.name}` : ""
+    const { data } = await axiosInstance.get(
+      `/categories/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0${searchFilter}`
+    );
+    setCount(data.count);
+    setCategoryList(data.results);
+  };
+
+  const handleFilters = useCallback(
+    (name: string, value: ICategoryTableFilterValue) => {
+      table.onResetPage();
+      setFilters((prevState) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    },
+    [table]
+  );
 
   const handleResetFilters = useCallback(() => {
     setFilters(defaultFilters);
   }, []);
 
-  const handleDeleteRow = useCallback(async () => {
-    try {
-      const { data } = await axiosInstance.delete(`/categories/${deletedId}/`);
-      mutate('/categories/');
+  const handleDeleteRow = useCallback(
+    async (id: string) => {
+      const deleteRow = categoryList.filter((row) => row.id !== id);
+      const { data } = await axiosInstance.delete(`/categories/${id}/`);
       enqueueSnackbar('Delete success!');
-    } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: `${error.detail}` });
-    }
-    deleteConfirmRow.onFalse();
-  }, [deletedId, mutate, enqueueSnackbar, deleteConfirmRow]);
+      getAll();
+      // setTableData(deleteRow);
 
-  const handleDeleteRows = useCallback(async () => {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const item of selectedRowIds) {
-      // eslint-disable-next-line no-await-in-loop
-      await axiosInstance.delete(`/categories/${item}/`);
-    }
-    mutate('/categories/');
+      // table.onUpdatePageDeleteRow(dataInPage?.length);
+    },
+    [dataInPage?.length, enqueueSnackbar, table, categoryList]
+  );
+
+  const handleDeleteRows = useCallback(() => {
+    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
+
     enqueueSnackbar('Delete success!');
-  }, [enqueueSnackbar, mutate, selectedRowIds]);
+
+    setTableData(deleteRows);
+
+    table.onUpdatePageDeleteRows({
+      totalRowsInPage: dataInPage?.length,
+      totalRowsFiltered: dataFiltered?.length,
+    });
+  }, [dataFiltered?.length, dataInPage?.length, enqueueSnackbar, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.brand.edit(id));
+      router.push(paths.dashboard.category.edit(id));
     },
     [router]
   );
 
-  const columns: GridColDef[] = [
-    {
-      field: 'name',
-      headerName: 'Category Name',
-      flex: 1,
-      minWidth: 360,
-      hideable: false,
-    },
-    {
-      type: 'actions',
-      field: 'actions',
-      headerName: ' ',
-      align: 'right',
-      headerAlign: 'right',
-      width: 80,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      getActions: (params) => [
-        <GridActionsCellItem
-          showInMenu
-          icon={<Iconify icon="solar:pen-bold" />}
-          label="Edit"
-          onClick={() => handleEditRow(params.row.id)}
-        />,
-        <GridActionsCellItem
-          showInMenu
-          icon={<Iconify icon="solar:trash-bin-trash-bold" />}
-          label="Delete"
-          onClick={() => {
-            setDeletedId(params.row.id);
-            deleteConfirmRow.onTrue();
-          }}
-          sx={{ color: 'error.main' }}
-        />,
-      ],
-    },
-  ];
-
-  const getTogglableColumns = () =>
-    columns
-      .filter((column) => !HIDE_COLUMNS_TOGGLABLE.includes(column.field))
-      .map((column) => column.field);
 
   return (
     <>
-      <Container
-        maxWidth={settings.themeStretch ? false : 'lg'}
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
+      <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
           heading="List"
           links={[
             { name: 'Dashboard', href: paths.dashboard.root },
-            {
-              name: 'Category',
-              href: paths.dashboard.category.root,
-            },
+            { name: 'Category', href: paths.dashboard.category.root },
             { name: 'List' },
           ]}
           action={
@@ -209,117 +173,107 @@ export default function CategoryListView() {
             </Button>
           }
           sx={{
-            mb: {
-              xs: 3,
-              md: 5,
-            },
+            mb: { xs: 3, md: 5 },
           }}
         />
 
-        <Card
-          sx={{
-            height: { xs: 800, md: 2 },
-            flexGrow: { md: 1 },
-            display: { md: 'flex' },
-            flexDirection: { md: 'column' },
-          }}
-        >
-          <DataGrid
-            checkboxSelection
-            disableRowSelectionOnClick
-            rows={dataFiltered}
-            columns={columns}
-            loading={itemsLoading}
-            getRowHeight={() => 'auto'}
-            pageSizeOptions={[5, 10, 25]}
-            initialState={{
-              pagination: {
-                paginationModel: { pageSize: 10 },
-              },
-            }}
-            onRowSelectionModelChange={(newSelectionModel) => {
-              setSelectedRowIds(newSelectionModel);
-            }}
-            columnVisibilityModel={columnVisibilityModel}
-            onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
-            slots={{
-              toolbar: () => (
-                <>
-                  <GridToolbarContainer>
-                    <TableToolbar
-                      filters={filters}
-                      onFilters={handleFilters}
-                      stockOptions={PRODUCT_STOCK_OPTIONS}
-                      publishOptions={PUBLISH_OPTIONS}
+        <Card>
+          <CategoryTableToolbar
+            filters={filters}
+            onFilters={handleFilters}
+          />
+
+          {canReset && (
+            <CategoryTableFiltersResult
+              filters={filters}
+              onFilters={handleFilters}
+              //
+              onResetFilters={handleResetFilters}
+              //
+              results={categoryList?.length}
+              sx={{ p: 2.5, pt: 0 }}
+            />
+          )}
+
+          <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
+            <TableSelectedAction
+              dense={table.dense}
+              numSelected={table.selected?.length}
+              rowCount={categoryList?.length}
+              onSelectAllRows={(checked) =>
+                table.onSelectAllRows(
+                  checked,
+                  categoryList.map((row) => row.id)
+                )
+              }
+              action={
+                <Tooltip title="Delete">
+                  <IconButton color="primary" onClick={confirm.onTrue}>
+                    <Iconify icon="solar:trash-bin-trash-bold" />
+                  </IconButton>
+                </Tooltip>
+              }
+            />
+
+            <Scrollbar>
+              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
+                <TableHeadCustom
+                  order={table.order}
+                  orderBy={table.orderBy}
+                  headLabel={TABLE_HEAD}
+                  rowCount={categoryList?.length}
+                  numSelected={table.selected?.length}
+                  onSort={table.onSort}
+                  onSelectAllRows={(checked) =>
+                    table.onSelectAllRows(
+                      checked,
+                      categoryList.map((row) => row.id)
+                    )
+                  }
+                />
+
+                <TableBody>
+                  {categoryList.map((row) => (
+                    <CategoryTableRow
+                      key={row.id}
+                      row={row}
+                      selected={table.selected.includes(row.id)}
+                      onSelectRow={() => table.onSelectRow(row.id)}
+                      onDeleteRow={() => handleDeleteRow(row.id)}
+                      onEditRow={() => handleEditRow(row.id)}
                     />
+                  ))}
 
-                    <GridToolbarQuickFilter />
+                  {/* <TableEmptyRows
+                    height={denseHeight}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, categoryList?.length)}
+                  />
 
-                    <Stack
-                      spacing={1}
-                      flexGrow={1}
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="flex-end"
-                    >
-                      {!!selectedRowIds.length && (
-                        <Button
-                          size="small"
-                          color="error"
-                          startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-                          onClick={confirmRows.onTrue}
-                        >
-                          Delete ({selectedRowIds.length})
-                        </Button>
-                      )}
+                  <TableNoData notFound={notFound} /> */}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
 
-                      <GridToolbarColumnsButton />
-                      <GridToolbarFilterButton />
-                      <GridToolbarExport />
-                    </Stack>
-                  </GridToolbarContainer>
-
-                  {canReset && (
-                    <TableFiltersResult
-                      filters={filters}
-                      onFilters={handleFilters}
-                      onResetFilters={handleResetFilters}
-                      results={dataFiltered.length}
-                      sx={{ p: 2.5, pt: 0 }}
-                    />
-                  )}
-                </>
-              ),
-              noRowsOverlay: () => <EmptyContent title="No Data" />,
-              noResultsOverlay: () => <EmptyContent title="No results found" />,
-            }}
-            slotProps={{
-              columnsPanel: {
-                getTogglableColumns,
-              },
-            }}
+          <TablePaginationCustom
+            count={count}
+            page={table.page}
+            rowsPerPage={table.rowsPerPage}
+            onPageChange={table.onChangePage}
+            onRowsPerPageChange={table.onChangeRowsPerPage}
+            dense={table.dense}
+            onChangeDense={table.onChangeDense}
           />
         </Card>
       </Container>
-      <ConfirmDialog
-        open={deleteConfirmRow.value}
-        onClose={deleteConfirmRow.onFalse}
-        title="Delete"
-        content="Are you sure want to delete?"
-        action={
-          <Button variant="contained" color="error" onClick={handleDeleteRow}>
-            Delete
-          </Button>
-        }
-      />
 
       <ConfirmDialog
-        open={confirmRows.value}
-        onClose={confirmRows.onFalse}
+        open={confirm.value}
+        onClose={confirm.onFalse}
         title="Delete"
         content={
           <>
-            Are you sure want to delete <strong> {selectedRowIds.length} </strong> items?
+            Are you sure want to delete <strong> {table.selected?.length} </strong> items?
           </>
         }
         action={
@@ -328,7 +282,7 @@ export default function CategoryListView() {
             color="error"
             onClick={() => {
               handleDeleteRows();
-              confirmRows.onFalse();
+              confirm.onFalse();
             }}
           >
             Delete
@@ -343,10 +297,31 @@ export default function CategoryListView() {
 
 function applyFilter({
   inputData,
+  comparator,
   filters,
 }: {
-  inputData: IBrandItem[];
-  filters: IProductTableFilters;
+  inputData: ICategoryItem[];
+  comparator: (a: any, b: any) => number;
+  filters: ICategoryTableFilters;
 }) {
+  const { first_name } = filters;
+
+  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
+
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+
+  inputData = stabilizedThis.map((el) => el[0]);
+
+  if (name) {
+    inputData = inputData.filter(
+      (category) => category.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
+    );
+  }
+
+
   return inputData;
 }
