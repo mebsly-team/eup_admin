@@ -36,12 +36,12 @@ export default function ImageGallery({
   maxNumberOfSelectedImages = 1,
   onlyPreviewOneImage = true,
   onSelect = () => { },
+  itemsPerPage = 9
 }: Props) {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [imageList, setImageList] = useState(gallery);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const itemsPerPage = 2; // Change this value to set the number of images per page
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -61,7 +61,7 @@ export default function ImageGallery({
   };
 
   const slides = imageList.map((slide) => ({
-    src: slide.image,
+    src: slide.url,
   }));
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -102,7 +102,8 @@ export default function ImageGallery({
       setUploadError(null);
 
       const formData = new FormData();
-      formData.append("image", selectedFile);
+      // formData.append("image", selectedFile);
+      formData.append("url", selectedFile);
 
       // Make a POST request to the image upload endpoint
       await axiosInstance.post("/images/new/", formData);
@@ -171,8 +172,8 @@ export default function ImageGallery({
                   <Image
                     alt="gallery"
                     ratio="1/1"
-                    src={image.image}
-                    onClick={() => lightbox.onOpen(image.image)}
+                    src={image.url}
+                    onClick={() => lightbox.onOpen(image.url)}
                   />
                   <ListItemText
                     sx={{

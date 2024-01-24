@@ -95,7 +95,7 @@ export default function BrandListView() {
   const getAll = async () => {
     const searchFilter = filters.name ? `&search=${filters.name}` : ""
     const { data } = await axiosInstance.get(
-      `/brands/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0${searchFilter}`
+      `/brands/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage}${searchFilter}`
     );
     setCount(data.count);
     setBrandList(data.results);

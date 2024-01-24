@@ -14,13 +14,13 @@ export function useGetCategories() {
 
   const memoizedValue = useMemo(
     () => ({
-      items: (data?.results as IBrandItem[]) || [],
+      items: (data as IBrandItem[]) || [],
       itemsLoading: isLoading,
       itemsError: error,
       itemsValidating: isValidating,
-      itemsEmpty: !isLoading && !data?.results?.length,
+      itemsEmpty: !isLoading && !data?.length,
     }),
-    [data?.results, error, isLoading, isValidating]
+    [data, error, isLoading, isValidating]
   );
 
   return memoizedValue;

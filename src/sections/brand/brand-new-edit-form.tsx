@@ -103,7 +103,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               <RHFTextField name="description" label="Description" />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Logo</Typography>
-                {selectedImage ? <Image src={selectedImage?.image} /> : null}
+                {selectedImage ? <Image src={selectedImage?.url} /> : null}
                 <Button onClick={() => setImageGalleryOpen(true)}>
                   Upload Photo
                 </Button>
