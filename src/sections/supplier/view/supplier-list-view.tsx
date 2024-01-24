@@ -43,6 +43,9 @@ import { IProductTableFilters } from 'src/types/product';
 // eslint-disable-next-line import/extensions
 import TableToolbar from '../table-toolbar';
 import TableFiltersResult from '../table-filters-result';
+
+import { useLocales, useTranslate } from 'src/locales';
+
 // ----------------------------------------------------------------------
 
 const PUBLISH_OPTIONS = [
@@ -71,6 +74,7 @@ export default function SuuplierListView() {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const settings = useSettingsContext();
+  const { t, onChangeLang } = useTranslate();
 
   const { items, itemsLoading } = useGetSuppliers();
 
@@ -111,7 +115,8 @@ export default function SuuplierListView() {
     try {
       const { data } = await axiosInstance.delete(`/suppliers/${deletedId}/`);
       mutate('/suppliers/');
-      enqueueSnackbar('Delete success!');
+      enqueueSnackbar(t("delete_success"));
+
     } catch (error) {
       enqueueSnackbar({ variant: 'error', message: `${error.detail}` });
     }
@@ -125,7 +130,8 @@ export default function SuuplierListView() {
       await axiosInstance.delete(`/suppliers/${item}/`);
     }
     mutate('/suppliers/');
-    enqueueSnackbar('Delete success!');
+    enqueueSnackbar(t("delete_success"));
+
   }, [enqueueSnackbar, mutate, selectedRowIds]);
 
   const handleEditRow = useCallback(
@@ -157,13 +163,13 @@ export default function SuuplierListView() {
         <GridActionsCellItem
           showInMenu
           icon={<Iconify icon="solar:pen-bold" />}
-          label="Edit"
+          label={t("edit")}
           onClick={() => handleEditRow(params.row.id)}
         />,
         <GridActionsCellItem
           showInMenu
           icon={<Iconify icon="solar:trash-bin-trash-bold" />}
-          label="Delete"
+          label={t("delete")}
           onClick={() => {
             setDeletedId(params.row.id);
             deleteConfirmRow.onTrue();
@@ -270,7 +276,7 @@ export default function SuuplierListView() {
                           startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
                           onClick={confirmRows.onTrue}
                         >
-                          Delete ({selectedRowIds.length})
+                          {t("delete")} ({selectedRowIds.length})
                         </Button>
                       )}
 
@@ -305,11 +311,11 @@ export default function SuuplierListView() {
       <ConfirmDialog
         open={deleteConfirmRow.value}
         onClose={deleteConfirmRow.onFalse}
-        title="Delete"
+        title={t("delete")}
         content="Are you sure want to delete?"
         action={
           <Button variant="contained" color="error" onClick={handleDeleteRow}>
-            Delete
+            {t("delete")}
           </Button>
         }
       />
@@ -317,12 +323,8 @@ export default function SuuplierListView() {
       <ConfirmDialog
         open={confirmRows.value}
         onClose={confirmRows.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {selectedRowIds.length} </strong> items?
-          </>
-        }
+        title={t("delete")}
+        content={t("sure_delete_selected_items")}
         action={
           <Button
             variant="contained"
@@ -332,7 +334,7 @@ export default function SuuplierListView() {
               confirmRows.onFalse();
             }}
           >
-            Delete
+            {t("delete")}
           </Button>
         }
       />

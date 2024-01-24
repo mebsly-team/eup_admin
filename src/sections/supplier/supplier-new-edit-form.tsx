@@ -18,6 +18,7 @@ import axiosInstance from 'src/utils/axios';
 
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
+import { useLocales, useTranslate } from 'src/locales';
 
 import { ISupplierItem } from 'src/types/supplier';
 
@@ -28,15 +29,14 @@ type Props = {
 export default function SupplierNewEditForm({ currentSupplier }: Props) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const { t, onChangeLang } = useTranslate();
 
   const NewSchema = Yup.object().shape({
-    name: Yup.string().required('Name is required'),
-    email_general: Yup.string()
-      .required('Email is required')
-      .email('Email must be a valid email address'),
-    phone: Yup.string().required('Phone number is required'),
-    mobile_phone: Yup.string().required('Phone number is required'),
-    contact_person: Yup.string().required('contact_person is required'),
+    name: Yup.string().required(t('name_required')),
+    email_general: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
+    phone: Yup.string().required(t('phone_required')),
+    mobile_phone: Yup.string().required(t('phone_required')),
+    contact_person: Yup.string().required(t('contact_person_required')),
   });
   const defaultValues = useMemo(
     () => ({
@@ -93,11 +93,11 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       } else {
         const response = await axiosInstance.post(`/suppliers/`, data);
       }
-      enqueueSnackbar(currentSupplier ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentSupplier ? t('update_success') : t('create_success'));
       reset();
       router.push(paths.dashboard.supplier.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: 'Hatalı İşlem!' });
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     }
   });
 
@@ -115,12 +115,51 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="name" label=" Name" />
-              <RHFTextField name="contact_person" label="contact_person" />
-              <RHFTextField name="email_general" label="Email" />
-              <RHFTextField name="phone" label="Phone Number" />
-              <RHFTextField name="mobile_phone" label="Mobile Number" />
+              <RHFTextField name="name" label={t("name")} />
+              <RHFTextField name="contact_person" label={t("contact_person")} />
+              <RHFTextField name="email_general" label={t("email")} />
+              <RHFTextField name="phone" label={t("phone")} />
+              <RHFTextField name="mobile_phone" label={t("mobile")} />
+            </Box>
+          </Card>
 
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <RHFTextField name="iban" label={t("iban")} />
+              <RHFTextField name="bic" label={t("bic")} />
+              <RHFTextField name="account_holder_name" label={t("account_holder_name")} />
+              <RHFTextField name="account_holder_city" label={t("account_holder_city")} />
+              <RHFTextField name="vat_number" label={t("vat_number")} />
+              <RHFTextField name="kvk_number" label={t("kvk_number")} />
+              <RHFTextField name="debtor_number" label={t("debtor_number")} />
+            </Box>
+          </Card>
+
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <RHFTextField name="payment_terms" label={t("payment_terms")} />
+              <RHFTextField name="payment_instruction" label={t("payment_instruction")} />
+              <RHFTextField name="payment_method" label={t("payment_method")} />
+              <RHFTextField name="order_method" label={t("order_method")} />
+              <RHFTextField name="delivery_time_of_order" label={t("delivery_time_of_order")} type="number" />
+              <RHFTextField name="minimum_order_amount" label={t("minimum_order_amount")} type="number" />
+              <RHFTextField name="percentage_to_add" label={t("percentage_to_add")} type="number" />
 
             </Box>
           </Card>
@@ -135,63 +174,21 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="iban" label="iban" />
-              <RHFTextField name="bic" label="bic" />
-              <RHFTextField name="account_holder_name" label="account_holder_name" />
-              <RHFTextField name="account_holder_city" label="account_holder_city" />
-              <RHFTextField name="vat_number" label="vat_number" />
-              <RHFTextField name="kvk_number" label="kvk_number" />
-              <RHFTextField name="debtor_number" label="debtor_number" />
-
-            </Box>
-          </Card>
-
-          <Card sx={{ p: 3, mt: 5 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="payment_terms" label="payment_terms" />
-              <RHFTextField name="payment_instruction" label="payment_instruction" />
-              <RHFTextField name="payment_method" label="payment_method" />
-              <RHFTextField name="order_method" label="order_method" />
-              <RHFTextField name="delivery_time_of_order" label="delivery_time_of_order" type="number" />
-              <RHFTextField name="minimum_order_amount" label="minimum_order_amount" type="number" />
-              <RHFTextField name="percentage_to_add" label="percentage_to_add" type="number" />
-
-            </Box>
-          </Card>
-
-          <Card sx={{ p: 3, mt: 5 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="facebook" label="facebook" />
-              <RHFTextField name="linkedin" label="linkedin" />
-              <RHFTextField name="twitter" label="twitter" />
-              <RHFTextField name="instagram" label="instagram" />
-              <RHFTextField name="pinterest" label="pinterest" />
-              <RHFTextField name="tiktok" label="tiktok" />
-              <RHFTextField name="website" label="website" />
-              <RHFTextField name="memo" label="memo" />
-              <RHFTextField name="supplier_extra_info" label="supplier_extra_info" />
+              <RHFTextField name="facebook" label={t("facebook")} />
+              <RHFTextField name="linkedin" label={t("linkedin")} />
+              <RHFTextField name="twitter" label={t("twitter")} />
+              <RHFTextField name="instagram" label={t("instagram")} />
+              <RHFTextField name="pinterest" label={t("pinterest")} />
+              <RHFTextField name="tiktok" label={t("tiktok")} />
+              <RHFTextField name="website" label={t("website")} />
+              <RHFTextField name="memo" label={t("memo")} />
+              <RHFTextField name="supplier_extra_info" label={t("supplier_extra_info")} />
               <RHFSwitch
                 name="is_active"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    Active
+                    {t("active")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -201,7 +198,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    hasGivenPaymentAuth
+                    {t("has_given_payment_auth")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -211,7 +208,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    has_connection_with_supplier_system
+                    {t("has_connection_with_supplier_system")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -221,7 +218,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
 
           <Stack alignItems="flex-end" sx={{ mt: 3 }}>
             <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-              {!currentSupplier ? 'Create Supplier' : 'Save Changes'}
+              {!currentSupplier ? t('create_supplier') : t('save_changes')}
             </LoadingButton>
           </Stack>
         </Grid>

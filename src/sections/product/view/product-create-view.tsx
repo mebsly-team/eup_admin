@@ -6,26 +6,28 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
 import ProductNewEditForm from '../product-new-edit-form';
+import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
 export default function ProductCreateView() {
   const settings = useSettingsContext();
+  const { t, onChangeLang } = useTranslate();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Create a new product"
+        heading={t('create_new_product')}
         links={[
           {
-            name: 'Dashboard',
+            name: t('dashboard'),
             href: paths.dashboard.root,
           },
           {
-            name: 'Product',
+            name: t('product'),
             href: paths.dashboard.product.root,
           },
-          { name: 'New product' },
+          { name: t('new_product') },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },

@@ -21,39 +21,45 @@ import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 
 import { IUserItem } from 'src/types/user';
+import { useLocales, useTranslate } from 'src/locales';
+
 
 type Props = {
   currentUser?: IUserItem;
 };
 
-const USER_TYPES = [
-  { value: 'special', label: 'Special' },
-  { value: 'wholesaler', label: 'Wholesaler' },
-  { value: 'supermarket', label: 'Supermarket' },
-  { value: 'particular', label: 'Particular' },
-  { value: 'admin', label: 'Admin' },
-];
 
-const CUSTOMER_COLORS = [
-  { value: 'red', label: 'Red' },
-  { value: 'yellow', label: 'Yellow' },
-  { value: 'green', label: 'Green' },
-  { value: 'blue', label: 'Blue' },
-  { value: 'brown', label: 'Brown' },
-];
 
 export default function UserNewEditForm({ currentUser }: Props) {
+  const { t, onChangeLang } = useTranslate();
+
   const router = useRouter();
-  const [isBusiness, setIsBusiness] = useState(!["particular", "admin"].includes(currentUser.type))
+  const [isBusiness, setIsBusiness] = useState(!["particular", "admin"].includes(currentUser?.type || "particular"))
   const { enqueueSnackbar } = useSnackbar();
 
   const NewUserSchema = Yup.object().shape({
-    type: Yup.string().required('Type is required'),
-    first_name: !isBusiness && Yup.string().required('Name is required'),
-    last_name: !isBusiness && Yup.string().required('SurName is required'),
-    password: currentUser ? null : Yup.string().required('password is required'),
-    email: Yup.string().required('Email is required').email('Email must be a valid email address'),
+    type: Yup.string().required(t('type_required')),
+    first_name: !isBusiness && Yup.string().required(t('name_required')),
+    last_name: !isBusiness && Yup.string().required(t('surname_required')),
+    password: currentUser ? null : Yup.string().required(t('password_required')),
+    email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
   });
+
+  const USER_TYPES = [
+    { value: 'special', label: t('special') },
+    { value: 'wholesaler', label: t('wholesaler') },
+    { value: 'supermarket', label: t('supermarket') },
+    { value: 'particular', label: t('particular') },
+    { value: 'admin', label: t('admin') },
+  ];
+
+  const CUSTOMER_COLORS = [
+    { value: 'red', label: t('red') },
+    { value: 'yellow', label: t('yellow') },
+    { value: 'green', label: t('green') },
+    { value: 'blue', label: t('blue') },
+    { value: 'brown', label: t('brown') },
+  ];
 
   const defaultValues = useMemo(
     () => ({
@@ -104,11 +110,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
       } else {
         const response = await axiosInstance.post('/users/', data);
       }
-      enqueueSnackbar(currentUser ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentUser ? t('update_success') : t('create_success'));
       reset();
       router.push(paths.dashboard.user.list);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: 'Hatalı İşlem!' });
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     }
   });
 
@@ -126,7 +132,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFSelect name="type" label="User Type" onChange={(e) => {
+              <RHFSelect name="type" label={t("user_type")} onChange={(e) => {
                 setValue("type", e.target.value)
                 setIsBusiness(!["particular", "admin"].includes(e.target.value))
               }}>
@@ -138,18 +144,18 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   </MenuItem>
                 ))}
               </RHFSelect>
-              <RHFTextField name="email" label="Email Address" />
-              <RHFTextField name="first_name" label="Name" />
-              <RHFTextField name="last_name" label="Last Name" />
-              {currentUser ? null : <RHFTextField name="password" label="Password" type="password" />}
-              <RHFTextField name="phone_number" label="Phone Number" />
-              <RHFTextField name="mobile_number" label="Mobile Number" />
+              <RHFTextField name="email" label={t("email")} />
+              <RHFTextField name="first_name" label={t("name")} />
+              <RHFTextField name="last_name" label={t("lastname")} />
+              {currentUser ? null : <RHFTextField name="password" label={t("password")} type="password" />}
+              <RHFTextField name="phone_number" label={t("phone")} />
+              <RHFTextField name="mobile_number" label={t("mobile")} />
               <Controller
                 name="birthdate"
                 control={control}
                 render={({ field, fieldState: { error } }) => (
                   <DatePicker
-                    label="Birth Date"
+                    label={t("birthdate")}
                     value={field.value || null}
                     format="yyyy-MM-dd"
                     onChange={(newValue) => {
@@ -169,8 +175,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="is_subscribed_newsletters"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_subscribed_newsletters
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("is_subscribed_newsletters")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -179,8 +185,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="is_access_granted_social_media"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_access_granted_social_media
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("is_access_granted_social_media")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -198,31 +204,31 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="business_name" label="business_name" />
-              <RHFTextField name="contact_person_name" label="contact_person_name" />
-              <RHFTextField name="contact_person_phone_number" label="contact_person_phone_number" />
-              <RHFTextField name="contact_person_email" label="contact_person_email" />
-              <RHFTextField name="department" label="department" />
-              <RHFTextField name="classification" label="classification" />
-              <RHFTextField name="branch" label="branch" />
-              <RHFTextField name="iban" label="iban" />
-              <RHFTextField name="bic" label="bic" />
-              <RHFTextField name="account_holder_name" label="account_holder_name" />
-              <RHFTextField name="account_holder_city" label="account_holder_city" />
-              <RHFTextField name="vat" label="vat" />
-              <RHFTextField name="kvk" label="kvk" />
-              <RHFTextField name="payment_method" label="payment_method" />
-              <RHFTextField name="customer_percentage" label="customer_percentage" type="number" />
-              <RHFTextField name="invoice_discount" label="invoice_discount" type="number" />
-              <RHFTextField name="payment_termin" label="payment_termin" />
-              <RHFTextField name="credit_limit" label="credit_limit" type="number" />
-              <RHFTextField name="payment_method" label="payment_method" />
-              <RHFTextField name="invoice_address" label="invoice_address" />
-              <RHFTextField name="invoice_language" label="invoice_language" />
-              <RHFTextField name="discount_group" label="discount_group" />
-              <RHFTextField name="inform_via" label="inform_via" />
-              <RHFSelect name="customer_color" label="customer_color">
-                <MenuItem value="">None</MenuItem>
+              <RHFTextField name="business_name" label={t("business_name")} />
+              <RHFTextField name="contact_person_name" label={t("contact_person_name")} />
+              <RHFTextField name="contact_person_phone_number" label={t("contact_person_phone_number")} />
+              <RHFTextField name="contact_person_email" label={t("contact_person_email")} />
+              <RHFTextField name="department" label={t("department")} />
+              <RHFTextField name="classification" label={t("classification")} />
+              <RHFTextField name="branch" label={t("branch")} />
+              <RHFTextField name="iban" label={t("iban")} />
+              <RHFTextField name="bic" label={t("bic")} />
+              <RHFTextField name="account_holder_name" label={t("account_holder_name")} />
+              <RHFTextField name="account_holder_city" label={t("account_holder_city")} />
+              <RHFTextField name="vat" label={t("vat")} />
+              <RHFTextField name="kvk" label={t("kvk")} />
+              <RHFTextField name="payment_method" label={t("payment_method")} />
+              <RHFTextField name="customer_percentage" label={t("customer_percentage")} type="number" />
+              <RHFTextField name="invoice_discount" label={t("invoice_discount")} type="number" />
+              <RHFTextField name="payment_termin" label={t("payment_termin")} />
+              <RHFTextField name="credit_limit" label={t("credit_limit")} type="number" />
+              <RHFTextField name="payment_method" label={t("payment_method")} />
+              <RHFTextField name="invoice_address" label={t("invoice_address")} />
+              <RHFTextField name="invoice_language" label={t("invoice_language")} />
+              <RHFTextField name="discount_group" label={t("discount_group")} />
+              <RHFTextField name="inform_via" label={t("inform_via")} />
+              <RHFSelect name="customer_color" label={t("customer_color")}>
+                <MenuItem value="">{t("none")}</MenuItem>
                 <Divider sx={{ borderStyle: 'dashed' }} />
                 {CUSTOMER_COLORS.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
@@ -231,18 +237,18 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 ))}
               </RHFSelect>
 
-              <RHFTextField name="relation_type" label="relation_type" />
-              <RHFTextField name="relation_via" label="relation_via" />
-              <RHFTextField name="days_closed" label="days_closed" />
-              <RHFTextField name="days_no_delivery" label="days_no_delivery" />
-              <RHFTextField name="fax" label="fax" />
-              <RHFTextField name="website" label="website" />
+              <RHFTextField name="relation_type" label={t("relation_type")} />
+              <RHFTextField name="relation_via" label={t("relation_via")} />
+              <RHFTextField name="days_closed" label={t("days_closed")} />
+              <RHFTextField name="days_no_delivery" label={t("days_no_delivery")} />
+              <RHFTextField name="fax" label={t("fax")} />
+              <RHFTextField name="website" label={t("website")} />
               <RHFSwitch
                 name="incasseren"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    incasseren
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("incasseren")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -251,8 +257,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="is_payment_termin_active"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_payment_termin_active
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("is_payment_termin_active")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -261,8 +267,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="is_eligible_to_work_with"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_eligible_to_work_with
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("is_eligible_to_work_with")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -271,8 +277,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="inform_when_new_products"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    inform_when_new_products
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("inform_when_new_products")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -282,8 +288,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="notify"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    notify
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("notify")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -301,12 +307,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="facebook" label="facebook" />
-              <RHFTextField name="linkedin" label="linkedin" />
-              <RHFTextField name="twitter" label="twitter" />
-              <RHFTextField name="instagram" label="instagram" />
-              <RHFTextField name="pinterest" label="pinterest" />
-              <RHFTextField name="tiktok" label="tiktok" />
+              <RHFTextField name="facebook" label={t("facebook")} />
+              <RHFTextField name="linkedin" label={t("linkedin")} />
+              <RHFTextField name="twitter" label={t("twitter")} />
+              <RHFTextField name="instagram" label={t("instagram")} />
+              <RHFTextField name="pinterest" label={t("pinterest")} />
+              <RHFTextField name="tiktok" label={t("tiktok")} />
             </Box>
           </Card>
           <Card sx={{ p: 3, mt: 5 }}>
@@ -319,7 +325,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="notes" label="notes" type="textarea" />
+              <RHFTextField name="notes" label={t("notes")} type="textarea" />
             </Box>
           </Card>
 
@@ -337,8 +343,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="is_staff"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    Staff
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("staff")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -347,8 +353,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 name="is_active"
                 labelPlacement="start"
                 label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    Active
+                  < Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t("active")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}

@@ -44,6 +44,7 @@ import {
   RenderCellPublish,
   RenderCellCreatedAt,
 } from '../product-table-row';
+import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -68,6 +69,7 @@ const HIDE_COLUMNS_TOGGLABLE = ['category', 'actions'];
 export default function ProductListView() {
   const { enqueueSnackbar } = useSnackbar();
   const confirmRows = useBoolean();
+  const { t, onChangeLang } = useTranslate();
 
   const router = useRouter();
 
@@ -112,7 +114,8 @@ export default function ProductListView() {
     (id: string) => {
       const deleteRow = tableData.filter((row) => row.id !== id);
 
-      enqueueSnackbar('Delete success!');
+      enqueueSnackbar(t("delete_success"));
+
 
       setTableData(deleteRow);
     },
@@ -122,7 +125,8 @@ export default function ProductListView() {
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !selectedRowIds.includes(row.id));
 
-    enqueueSnackbar('Delete success!');
+    enqueueSnackbar(t("delete_success"));
+
 
     setTableData(deleteRows);
   }, [enqueueSnackbar, selectedRowIds, tableData]);
@@ -205,13 +209,13 @@ export default function ProductListView() {
         <GridActionsCellItem
           showInMenu
           icon={<Iconify icon="solar:pen-bold" />}
-          label="Edit"
+          label={t("edit")}
           onClick={() => handleEditRow(params.row.id)}
         />,
         <GridActionsCellItem
           showInMenu
           icon={<Iconify icon="solar:trash-bin-trash-bold" />}
-          label="Delete"
+          label={t("delete")}
           onClick={() => {
             handleDeleteRow(params.row.id);
           }}
@@ -317,7 +321,7 @@ export default function ProductListView() {
                           startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
                           onClick={confirmRows.onTrue}
                         >
-                          Delete ({selectedRowIds.length})
+                          {t("delete")} ({selectedRowIds.length})
                         </Button>
                       )}
 
@@ -353,12 +357,8 @@ export default function ProductListView() {
       <ConfirmDialog
         open={confirmRows.value}
         onClose={confirmRows.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {selectedRowIds.length} </strong> items?
-          </>
-        }
+        title={t("delete")}
+        content={t("sure_delete_selected_items")}
         action={
           <Button
             variant="contained"
@@ -368,7 +368,7 @@ export default function ProductListView() {
               confirmRows.onFalse();
             }}
           >
-            Delete
+            {t("delete")}
           </Button>
         }
       />

@@ -37,23 +37,6 @@ export default function OverviewEcommerceView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
       <Grid container spacing={3}>
-        <Grid xs={12} md={8}>
-          <EcommerceWelcome
-            title={`Congratulations! \n ${user?.displayName}`}
-            description="Best seller of the month You have done 57.6% more sales today."
-            img={<MotivationIllustration />}
-            action={
-              <Button variant="contained" color="primary">
-                Go Now
-              </Button>
-            }
-          />
-        </Grid>
-
-        <Grid xs={12} md={4}>
-          <EcommerceNewProducts list={_ecommerceNewProducts} />
-        </Grid>
-
         <Grid xs={12} md={4}>
           <EcommerceWidgetSummary
             title="Product Sold"

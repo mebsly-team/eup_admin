@@ -21,6 +21,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFUpload, RHFTextField } from 'src/components/hook-form';
 
 import { ICategoryItem } from 'src/types/category';
+import { useLocales, useTranslate } from 'src/locales';
 
 type Props = {
   currentCategory?: ICategoryItem;
@@ -31,9 +32,10 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
+  const { t, onChangeLang } = useTranslate();
 
   const NewCategorySchema = Yup.object().shape({
-    name: Yup.string().required('Name is required'),
+    name: Yup.string().required(t('name_required')),
     description: Yup.string(),
     image: Yup.mixed<any>().nullable(),
   });
@@ -76,11 +78,12 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
       } else {
         const response = await axiosInstance.post(`/categories/`, finalData);
       }
-      enqueueSnackbar(currentCategory ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentCategory ? t('update_success') : t('create_success'));
+
       reset();
       router.push(paths.dashboard.category.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: 'Error!' });
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     }
   });
 
@@ -99,20 +102,21 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="name" label=" Name" />
-              <RHFTextField name="description" label="Description" />
+              <RHFTextField name="name" label={t("name")} />
+              <RHFTextField name="description" label={t("description")} />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Image</Typography>
                 {selectedImage ? <Image src={selectedImage?.image} /> : null}
                 <Button onClick={() => setImageGalleryOpen(true)}>
-                  Upload Photo
+                  {t("upload")}
                 </Button>
               </Stack>
             </Box>
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentCategory ? 'Create Category' : 'Save Changes'}
+                {!currentCategory ? t('create_category') : t('save_changes')}
+
               </LoadingButton>
             </Stack>
           </Card>

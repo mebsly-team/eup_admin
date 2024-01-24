@@ -20,6 +20,7 @@ import { RouterLink } from 'src/routes/components';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
+import { useLocales, useTranslate } from 'src/locales';
 
 import { _roles, USER_STATUS_OPTIONS } from 'src/_mock';
 
@@ -83,6 +84,7 @@ export default function UserListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IUserItem[]>(userList);
   const [filters, setFilters] = useState(defaultFilters);
+  const { t, onChangeLang } = useTranslate();
 
   const dataFiltered = applyFilter({
     inputData: userList,
@@ -139,7 +141,8 @@ export default function UserListView() {
     async (id: string) => {
       const deleteRow = userList.filter((row) => row.id !== id);
       const { data } = await axiosInstance.delete(`/users/${id}/`);
-      enqueueSnackbar('Delete success!');
+      enqueueSnackbar(t("delete_success"));
+
       getAll();
       // setTableData(deleteRow);
 
@@ -151,7 +154,8 @@ export default function UserListView() {
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
 
-    enqueueSnackbar('Delete success!');
+    enqueueSnackbar(t("delete_success"));
+
 
     setTableData(deleteRows);
 
@@ -267,7 +271,7 @@ export default function UserListView() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title={t("delete")}>
                   <IconButton color="primary" onClick={confirm.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -330,12 +334,8 @@ export default function UserListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {table.selected.length} </strong> items?
-          </>
-        }
+        title={t("delete")}
+        content={t("sure_delete_selected_items")}
         action={
           <Button
             variant="contained"
@@ -345,7 +345,7 @@ export default function UserListView() {
               confirm.onFalse();
             }}
           >
-            Delete
+            {t("delete")}
           </Button>
         }
       />

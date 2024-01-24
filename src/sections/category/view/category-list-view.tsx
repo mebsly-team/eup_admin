@@ -41,6 +41,7 @@ import { ICategoryItem, ICategoryTableFilters, ICategoryTableFilterValue } from 
 import CategoryTableRow from '../category-table-row';
 import CategoryTableToolbar from '../category-table-toolbar';
 import CategoryTableFiltersResult from '../category-table-filters-result';
+import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -69,6 +70,7 @@ export default function CategoryListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<ICategoryItem[]>(categoryList);
   const [filters, setFilters] = useState(defaultFilters);
+  const { t, onChangeLang } = useTranslate();
 
   const dataFiltered = applyFilter({
     inputData: categoryList,
@@ -122,7 +124,8 @@ export default function CategoryListView() {
     async (id: string) => {
       const deleteRow = categoryList.filter((row) => row.id !== id);
       const { data } = await axiosInstance.delete(`/categories/${id}/`);
-      enqueueSnackbar('Delete success!');
+      enqueueSnackbar(t("delete_success"));
+
       getAll();
       // setTableData(deleteRow);
 
@@ -134,7 +137,8 @@ export default function CategoryListView() {
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
 
-    enqueueSnackbar('Delete success!');
+    enqueueSnackbar(t("delete_success"));
+
 
     setTableData(deleteRows);
 
@@ -207,7 +211,7 @@ export default function CategoryListView() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title={t("delete")}>
                   <IconButton color="primary" onClick={confirm.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -270,12 +274,8 @@ export default function CategoryListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {table.selected?.length} </strong> items?
-          </>
-        }
+        title={t("delete")}
+        content={t("sure_delete_selected_items")}
         action={
           <Button
             variant="contained"
@@ -285,7 +285,7 @@ export default function CategoryListView() {
               confirm.onFalse();
             }}
           >
-            Delete
+            {t("delete")}
           </Button>
         }
       />

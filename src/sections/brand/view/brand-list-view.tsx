@@ -35,6 +35,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from 'src/components/table';
+import { useLocales, useTranslate } from 'src/locales';
 
 import { IBrandItem, IBrandTableFilters, IBrandTableFilterValue } from 'src/types/brand';
 
@@ -67,6 +68,7 @@ export default function BrandListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IBrandItem[]>(brandList);
   const [filters, setFilters] = useState(defaultFilters);
+  const { t, onChangeLang } = useTranslate();
 
   const dataFiltered = applyFilter({
     inputData: brandList,
@@ -120,7 +122,7 @@ export default function BrandListView() {
     async (id: string) => {
       const deleteRow = brandList.filter((row) => row.id !== id);
       const { data } = await axiosInstance.delete(`/brands/${id}/`);
-      enqueueSnackbar('Delete success!');
+      enqueueSnackbar(t("delete_success"));
       getAll();
       // setTableData(deleteRow);
 
@@ -132,7 +134,7 @@ export default function BrandListView() {
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
 
-    enqueueSnackbar('Delete success!');
+    enqueueSnackbar(t("delete_success"));
 
     setTableData(deleteRows);
 
@@ -205,7 +207,7 @@ export default function BrandListView() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title={t("delete")}>
                   <IconButton color="primary" onClick={confirm.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -268,12 +270,9 @@ export default function BrandListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {table.selected?.length} </strong> items?
-          </>
-        }
+        title={t("delete")}
+        content={t("sure_delete_selected_items")}
+
         action={
           <Button
             variant="contained"
@@ -283,7 +282,7 @@ export default function BrandListView() {
               confirm.onFalse();
             }}
           >
-            Delete
+            {t("delete")}
           </Button>
         }
       />

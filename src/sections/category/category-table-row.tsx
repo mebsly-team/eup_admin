@@ -17,6 +17,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { ICategoryItem } from 'src/types/category';
 
 import CategoryQuickEditForm from './category-quick-edit-form';
+import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -36,6 +37,7 @@ export default function CategoryTableRow({
   onDeleteRow,
 }: Props) {
   const { name, image, parent_category, sub_categories } = row;
+  const { t, onChangeLang } = useTranslate();
 
   const confirm = useBoolean();
 
@@ -93,7 +95,7 @@ export default function CategoryTableRow({
           sx={{ color: 'error.main' }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          Delete
+          {t("delete")}
         </MenuItem>
 
         <MenuItem
@@ -103,18 +105,18 @@ export default function CategoryTableRow({
           }}
         >
           <Iconify icon="solar:pen-bold" />
-          View/Edit
+          {t("view_edit")}
         </MenuItem>
       </CustomPopover>
 
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content="Are you sure want to delete?"
+        title={t("delete")}
+        content={t("sure_delete")}
         action={
           <Button variant="contained" color="error" onClick={onDeleteRow}>
-            Delete
+            {t("delete")}
           </Button>
         }
       />

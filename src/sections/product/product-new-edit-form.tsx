@@ -44,6 +44,7 @@ import FormProvider, {
 
 import { IProductItem } from 'src/types/product';
 import { getValue } from '@mui/system';
+import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -51,20 +52,7 @@ type Props = {
   currentProduct?: IProductItem;
 };
 
-const DELIVERY_CHOICES = [
-  { value: '0', label: 'Vandaag Besteld Morgen In Huis' },
-  { value: '1', label: '3 / 5 Dagen' },
-  { value: '2', label: '5 / 10 Dagen' },
-  { value: '3', label: 'Op Aanvragen' },
-];
 
-const UNIT_CHOICES = [
-  { value: 'piece', label: 'piece' },
-  { value: 'package', label: 'package' },
-  { value: 'box', label: 'box' },
-  { value: 'pallet_layer', label: 'pallet_layer' },
-  { value: 'pallet_full', label: 'pallet_full' },
-];
 
 export default function ProductNewEditForm({ currentProduct }: Props) {
   const router = useRouter();
@@ -72,69 +60,86 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const { items: brands } = useGetBrands();
   const { items: suppliers } = useGetSuppliers();
   const mdUp = useResponsive('up', 'md');
+  const { t, onChangeLang } = useTranslate();
 
   const { enqueueSnackbar } = useSnackbar();
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
 
-  const NewProductSchema = Yup.object().shape({
-    title: Yup.string().required('Title is required'),
-    description: Yup.string().required('Description is required'),
-    ean: Yup.string().required('Ean is required'),
-    article_code: Yup.string().required('Article Code is required'),
-    // sku: Yup.string().required('SKU is required'),
-    // hs_code: Yup.string().required('HS Code is required'),
-    // supplier_article_code: Yup.string().required('Supplier Article Code is required'),
-    categories: Yup.array().min(1, 'Must have at least 1 category'),
-    brand: Yup.number().required('Brand is required'),
-    supplier: Yup.number().required('Supplier is required'),
-    // tags: Yup.array().min(2, 'Must have at least 2 tags'),
-    price_per_piece: Yup.number().moreThan(0, 'Price per piece should be greater than 0'),
-    price_per_unit: Yup.number().moreThan(0, 'Price per unit should be greater than 0'),
-    price_consumers: Yup.number().moreThan(0, 'Consumer price should be greater than 0'),
-    price_cost: Yup.number().moreThan(0, 'Cost price should be greater than 0'),
-    vat: Yup.number().required('VAT is required'),
+  const DELIVERY_CHOICES = [
+    { value: '0', label: t('delivery_choice_0') },
+    { value: '1', label: t('delivery_choice_1') },
+    { value: '2', label: t('delivery_choice_2') },
+    { value: '3', label: t('delivery_choice_3') },
+  ];
 
-    overall_stock: Yup.number().required('Overall Stock is required'),
-    free_stock: Yup.number().required('Free Stock is required'),
-    ordered_in_progress_stock: Yup.number().required('Ordered in Progress Stock is required'),
-    work_in_progress_stock: Yup.number().required('Work in Progress Stock is required'),
-    max_stock_at_rack: Yup.number().required('Max Stock at Rack is required'),
-    min_stock_value: Yup.number().required('Min Stock Value is required'),
-    stock_at_supplier: Yup.number().required('Stock at Supplier is required'),
-    location: Yup.string().required('Location is required'),
-    // extra_location: Yup.string().required('Extra Location is required'),
-    // stock_alert_value: Yup.number().required('Stock Alert Value is required'),
-    // stock_alert: Yup.boolean().required('Stock Alert is required'),
-    // stock_disable_when_sold_out: Yup.boolean().required('Stock Disable When Sold Out is required'),
-    // stock_check: Yup.boolean().required('Stock Check is required'),
-    delivery_time: Yup.string().required('Delivery Time is required'),
-    // important_information: Yup.string().required('Important Information is required'),
-    // languages_on_item_package: Yup.string().required('Languages on Item Package is required'),
-    // is_only_for_logged_in_user: Yup.boolean().required('Is Only for Logged-in User is required'),
-    // is_used: Yup.boolean().required('Is Used is required'),
-    // is_regular: Yup.boolean().required('Is Regular is required'),
-    // is_featured: Yup.boolean().required('Is Featured is required'),
-    // is_visible_on_web: Yup.boolean().required('Is Visible on Web is required'),
-    // is_visible_on_mobile: Yup.boolean().required('Is Visible on Mobile is required'),
-    // is_only_for_export: Yup.boolean().required('Is Only for Export is required'),
-    // is_only_for_B2B: Yup.boolean().required('Is Only for B2B is required'),
-    // is_listed_on_marktplaats: Yup.boolean().required('Is Listed on Marktplaats is required'),
-    // is_listed_on_2dehands: Yup.boolean().required('Is Listed on 2dehands is required'),
-    // has_electronic_barcode: Yup.boolean().required('Has Electronic Barcode is required'),
-    // size_x_value: Yup.string().required('Size X Value is required'),
-    // size_y_value: Yup.string().required('Size Y Value is required'),
-    // size_z_value: Yup.string().required('Size Z Value is required'),
-    // size_unit: Yup.string().required('Size Unit is required'),
-    // weight: Yup.string().required('Weight is required'),
-    // weight_unit: Yup.string().required('Weight Unit is required'),
-    // volume_unit: Yup.string().required('Volume Unit is required'),
-    // volume: Yup.string().required('Volume is required'),
-    // is_brief_box: Yup.boolean().required('Is Brief Box is required'),
-    // meta_title: Yup.string().required('Meta Title is required'),
-    // meta_description: Yup.string().required('Meta Description is required'),
-    // meta_keywords: Yup.string().required('Meta Keywords is required'),
-    // url: Yup.string().required('URL is required'),
+  const UNIT_CHOICES = [
+    { value: 'piece', label: t('piece') },
+    { value: 'package', label: t('package') },
+    { value: 'box', label: t('box') },
+    { value: 'pallet_layer', label: t('pallet_layer') },
+    { value: 'pallet_full', label: t('pallet_full') },
+  ];
+
+  const NewProductSchema = Yup.object().shape({
+    title: Yup.string().required(t('validation.title')),
+    description: Yup.string().required(t('validation.description')),
+    ean: Yup.string().required(t('validation.ean')),
+    article_code: Yup.string().required(t('validation.articleCode')),
+    // sku: Yup.string().required(t('validation.sku')),
+    // hs_code: Yup.string().required(t('validation.hsCode')),
+    // supplier_article_code: Yup.string().required(t('validation.supplierArticleCode')),
+    categories: Yup.array().min(1, t('validation.minCategory')),
+    brand: Yup.number().required(t('validation.brand')),
+    supplier: Yup.number().required(t('validation.supplier')),
+    // tags: Yup.array().min(2, t('validation.minTags')),
+    price_per_piece: Yup.number().moreThan(0, t('validation.moreThanZero')),
+    price_per_unit: Yup.number().moreThan(0, t('validation.moreThanZero')),
+    price_consumers: Yup.number().moreThan(0, t('validation.moreThanZero')),
+    price_cost: Yup.number().moreThan(0, t('validation.moreThanZero')),
+    vat: Yup.number().required(t('validation.vat')),
+
+    overall_stock: Yup.number().required(t('validation.overallStock')),
+    free_stock: Yup.number().required(t('validation.freeStock')),
+    ordered_in_progress_stock: Yup.number().required(t('validation.orderedInProgressStock')),
+    work_in_progress_stock: Yup.number().required(t('validation.workInProgressStock')),
+    max_stock_at_rack: Yup.number().required(t('validation.maxStockAtRack')),
+    min_stock_value: Yup.number().required(t('validation.minStockValue')),
+    stock_at_supplier: Yup.number().required(t('validation.stockAtSupplier')),
+
+    location: Yup.string().required(t('validation.location')),
+    // extra_location: Yup.string().required(t('validation.extra_location')),
+    // stock_alert_value: Yup.number().required(t('validation.stock_alert_value')),
+    // stock_alert: Yup.boolean().required(t('validation.stock_alert')),
+    // stock_disable_when_sold_out: Yup.boolean().required(t('validation.stock_disable_when_sold_out')),
+    // stock_check: Yup.boolean().required(t('validation.stock_check')),
+    // important_information: Yup.string().required(t('important_information')),
+    // languages_on_item_package: Yup.string().required(t('validation.languages_on_item_package')),
+    // is_only_for_logged_in_user: Yup.boolean().required(t('validation.is_only_for_logged_in_user')),
+    // is_used: Yup.boolean().required(t('validation.is_used')),
+    // is_regular: Yup.boolean().required(t('validation.is_regular')),
+    // is_featured: Yup.boolean().required(t('validation.is_featured')),
+    // is_visible_on_web: Yup.boolean().required(t('validation.is_visible_on_web')),
+    // is_visible_on_mobile: Yup.boolean().required(t('validation.is_visible_on_mobile')),
+    // is_only_for_export: Yup.boolean().required(t('validation.is_only_for_export')),
+    // is_only_for_B2B: Yup.boolean().required(t('validation.is_only_for_B2B')),
+    // is_listed_on_marktplaats: Yup.boolean().required(t('validation.is_listed_on_marktplaats')),
+    // is_listed_on_2dehands: Yup.boolean().required(t('validation.is_listed_on_2dehands')),
+    // has_electronic_barcode: Yup.boolean().required(t('validation.has_electronic_barcode')),
+    // size_x_value: Yup.string().required(t('validation.size_x_value')),
+    // size_y_value: Yup.string().required(t('validation.size_y_value')),
+    // size_z_value: Yup.string().required(t('validation.size_z_value')),
+    // size_unit: Yup.string().required(t('validation.size_unit')),
+    // weight: Yup.string().required(t('validation.weight')),
+    // weight_unit: Yup.string().required(t('validation.weight_unit')),
+    // volume_unit: Yup.string().required(t('validation.volume_unit')),
+    // volume: Yup.string().required(t('validation.volume')),
+    // is_brief_box: Yup.boolean().required(t('validation.is_brief_box')),
+    // meta_title: Yup.string().required(t('validation.meta_title')),
+    // meta_description: Yup.string().required(t('validation.meta_description')),
+    // meta_keywords: Yup.string().required(t('validation.meta_keywords')),
+    // url: Yup.string().required(t('validation.url')),
+
   });
 
 
@@ -256,10 +261,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         const response = await axiosInstance.post('/products/', data);
       }
       reset();
-      enqueueSnackbar(currentProduct ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
       router.push(paths.dashboard.product.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: 'Hatalı İşlem!' });
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     }
   });
 
@@ -274,25 +279,25 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Basic Information
+            {t("basic_nformation")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Title, short description, image...
+            {t("title_short_description_image")}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Details" />}
+          {!mdUp && <CardHeader title={t("details")} />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="parent_product" label="parent_product" />
-            <RHFTextField name="title" label="Product Title" />
-            <RHFTextField name="title_long" label="Product Title Long" />
-            <RHFTextField name="description" label="Product description" />
+            <RHFTextField name="parent_product" label={t("parent_product")} />
+            <RHFTextField name="title" label={t("product_title")} />
+            <RHFTextField name="title_long" label={t("product_title_long")} />
+            <RHFTextField name="description" label={t("product_description")} />
             <Stack spacing={1.5}>
-              <Typography variant="subtitle2">description_long</Typography>
+              <Typography variant="subtitle2">{t("description_long")}</Typography>
               <RHFEditor simple name="description_long" />
             </Stack>
             <Divider sx={{ borderStyle: 'dashed' }} />
@@ -306,18 +311,18 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="ean" label="ean" />
-              <RHFTextField name="article_code" label="article_code" />
-              <RHFTextField name="sku" label="sku" />
-              <RHFTextField name="hs_code" label="hs_code" />
-              <RHFTextField name="supplier_article_code" label="supplier_article_code" />
+              <RHFTextField name="ean" label={t("ean")} />
+              <RHFTextField name="article_code" label={t("article_code")} />
+              <RHFTextField name="sku" label={t("sku")} />
+              <RHFTextField name="hs_code" label={t("hs_code")} />
+              <RHFTextField name="supplier_article_code" label={t("supplier_article_code")} />
             </Box>
             <Divider sx={{ borderStyle: 'dashed' }} />
 
-            <RHFMultiSelectCategory checkbox name="categories" label="Category" options={categories} />
+            <RHFMultiSelectCategory checkbox name="categories" label={t("Category")} options={categories} />
             <RHFAutocomplete
               name="brand"
-              placeholder="Brand"
+              placeholder={t("Brand")}
               options={brands.map(item => item.id)}
               getOptionLabel={(option) => brands.find(item => item.id === option)?.name || ""}
               renderOption={(props, option) => (
@@ -328,7 +333,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             />
             <RHFAutocomplete
               name="supplier"
-              placeholder="Supplier"
+              placeholder={t("supplier")}
               options={suppliers.map(item => item.id)}
               getOptionLabel={(option) => suppliers.find(item => item.id === option)?.name || ""}
               renderOption={(props, option) => (
@@ -388,10 +393,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Images
+            {t("images")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Upload images
+            {t("upload_images")}
           </Typography>
         </Grid>
       )}
@@ -401,7 +406,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         {JSON.stringify(errors)}
 
         <Card>
-          {!mdUp && <CardHeader title="Pricing" />}
+          {!mdUp && <CardHeader title={t("pricing")} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -432,7 +437,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             </Box>
             {/* Add Image button */}
             <IconButton onClick={() => setImageGalleryOpen(true)}>
-              Upload Photo
+              {t("Upload Photo")}
             </IconButton>
           </Stack>
         </Card>
@@ -445,17 +450,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Pricing
+            {t("pricing")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Price related inputs
+            {t("price_related_inputs")}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Pricing" />}
+          {!mdUp && <CardHeader title={t("pricing")} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -468,7 +473,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             >
               <RHFTextField
                 name="price_per_piece"
-                label="price_per_piece"
+                label={t("price_per_piece")}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -485,7 +490,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
               <RHFTextField
                 name="price_per_unit"
-                label="price_per_unit"
+                label={t("price_per_unit")}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -501,7 +506,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
               <RHFTextField
                 name="price_consumers"
-                label="price_consumers"
+                label={t("price_consumers")}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -517,7 +522,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
               <RHFTextField
                 name="price_cost"
-                label="price_cost"
+                label={t("price_cost")}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -532,7 +537,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 }}
               />
               <RHFTextField name="vat" label="vat" type="number" />
-
             </Box>
           </Stack>
         </Card>
@@ -545,18 +549,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Stock and Inventory
+            {t("stock_and_inventory")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Additional functions and attributes...
+            {t("number_of__products")}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Stock and Inventory" />}
-
+          {!mdUp && <CardHeader title={t("stock_and_inventory")} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -567,22 +570,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="overall_stock" label="overall_stock" type="number" />
-              <RHFTextField name="free_stock" label="free_stock" type="number" />
-              <RHFTextField name="ordered_in_progress_stock" label="ordered_in_progress_stock" type="number" />
-              <RHFTextField name="work_in_progress_stock" label="work_in_progress_stock" type="number" />
-              <RHFTextField name="max_stock_at_rack" label="max_stock_at_rack" type="number" />
-              <RHFTextField name="min_stock_value" label="min_stock_value" type="number" />
-              <RHFTextField name="stock_at_supplier" label="stock_at_supplier" type="number" />
-              <RHFTextField name="location" label="location" />
-              <RHFTextField name="extra_location" label="extra_location" />
-              <RHFTextField name="stock_alert_value" label="stock_alert_value" type="number" />
+              <RHFTextField name="overall_stock" label={t("overall_stock")} type="number" />
+              <RHFTextField name="free_stock" label={t("free_stock")} type="number" />
+              <RHFTextField name="ordered_in_progress_stock" label={t("ordered_in_progress_stock")} type="number" />
+              <RHFTextField name="work_in_progress_stock" label={t("work_in_progress_stock")} type="number" />
+              <RHFTextField name="max_stock_at_rack" label={t("max_stock_at_rack")} type="number" />
+              <RHFTextField name="min_stock_value" label={t("min_stock_value")} type="number" />
+              <RHFTextField name="stock_at_supplier" label={t("stock_at_supplier")} type="number" />
+              <RHFTextField name="location" label={t("location")} />
+              <RHFTextField name="extra_location" label={t("extra_location")} />
+              <RHFTextField name="stock_alert_value" label={t("stock_alert_value")} type="number" />
               <RHFSwitch
                 name="stock_alert"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    stock_alert
+                    {t("stock_alert")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -592,7 +595,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    stock_disable_when_sold_out
+                    {t("stock_disable_when_sold_out")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -602,7 +605,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    stock_check
+                    {t("stock_check")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -620,22 +623,21 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Product Properties
+            {t("product_properties")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Additional functions and attributes...
+            {t("product_attributes")}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Product Properties" />}
-
+          {!mdUp && <CardHeader title={t("product_properties")} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <CountrySelect
-              label="languages_on_item_package"
-              placeholder="Select languages..."
+              label={t("languages_on_item_package")}
+              placeholder={t("select_languages")}
               fullWidth
               multiple
               limitTags={2}
@@ -645,7 +647,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               getOptionLabel={(option) => option}
             />
             <Stack spacing={1.5}>
-              <Typography variant="subtitle2">important_information</Typography>
+              <Typography variant="subtitle2">{t("important_information")}</Typography>
               <RHFEditor simple name="important_information" />
             </Stack>
             <Box
@@ -672,7 +674,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_only_for_logged_in_user
+                    {t("is_only_for_logged_in_user")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -682,7 +684,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_used
+                    {t("is_used")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -692,7 +694,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_regular
+                    {t("is_regular")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -702,7 +704,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_featured
+                    {t("is_featured")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -712,7 +714,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_visible_on_web
+                    {t("is_visible_on_web")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -722,7 +724,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_visible_on_mobile
+                    {t("is_visible_on_mobile")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -732,7 +734,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_only_for_export
+                    {t("is_only_for_export")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -742,7 +744,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_only_for_B2B
+                    {t("is_only_for_B2B")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -752,7 +754,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_listed_on_marktplaats
+                    {t("is_listed_on_marktplaats")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -762,7 +764,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_listed_on_2dehands
+                    {t("is_listed_on_2dehands")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -774,7 +776,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    has_electronic_barcode
+                    {t("has_electronic_barcode")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -794,18 +796,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Size & Volume
+            {t("size_volume")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Additional functions and attributes...
+            {t("pyhsical_attributes")}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Size & Volume" />}
-
+          {!mdUp && <CardHeader title={t("size_volume")} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -816,20 +817,20 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="size_x_value" label="size_x_value" />
-              <RHFTextField name="size_y_value" label="size_y_value" />
-              <RHFTextField name="size_z_value" label="size_z_value" />
-              <RHFTextField name="size_unit" label="size_unit" />
-              <RHFTextField name="weight" label="weight" />
-              <RHFTextField name="weight_unit" label="weight_unit" />
-              <RHFTextField name="volume_unit" label="volume_unit" />
-              <RHFTextField name="volume" label="volume" />
+              <RHFTextField name="size_x_value" label={t("size_x_value")} />
+              <RHFTextField name="size_y_value" label={t("size_y_value")} />
+              <RHFTextField name="size_z_value" label={t("size_z_value")} />
+              <RHFTextField name="size_unit" label={t("size_unit")} />
+              <RHFTextField name="weight" label={t("weight")} />
+              <RHFTextField name="weight_unit" label={t("weight_unit")} />
+              <RHFTextField name="volume_unit" label={t("volume_unit")} />
+              <RHFTextField name="volume" label={t("volume")} />
               <RHFSwitch
                 name="is_brief_box"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    is_brief_box
+                    {t("is_brief_box")}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -847,24 +848,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            Meta Data
+            {t("meta_data")}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Additional functions and attributes...
+            {t("data_used_for_SEO")}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title="Meta Data" />}
-
+          {!mdUp && <CardHeader title={t("meta_data")} />}
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="meta_title" label="meta_title" />
-            <RHFTextField name="meta_description" label="meta_description" />
-            <RHFTextField name="meta_keywords" label="meta_keywords" />
-            <RHFTextField name="url" label="url" />
-            <Divider sx={{ borderStyle: 'dashed' }} />
+            <RHFTextField name="meta_title" label={t("meta_title")} />
+            <RHFTextField name="meta_description" label={t("meta_description")} />
+            <RHFTextField name="meta_keywords" label={t("meta_keywords")} />
+            <RHFTextField name="url" label={t("url")} />
           </Stack>
         </Card>
       </Grid>
@@ -875,14 +874,18 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     <>
       {mdUp && <Grid md={4} />}
       <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center' }}>
-        {/* <FormControlLabel
-          control={<Switch defaultChecked />}
-          label="Publish"
-          sx={{ flexGrow: 1, pl: 3 }}
-        /> */}
-
+        <RHFSwitch
+          name="publish"
+          labelPlacement="start"
+          label={
+            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+              {t("publish")}
+            </Typography>
+          }
+          sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+        />
         <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
-          {!currentProduct ? 'Create Product' : 'Save Changes'}
+          {!currentProduct ? t('create_product') : t('save_changes')}
         </LoadingButton>
       </Grid>
     </>

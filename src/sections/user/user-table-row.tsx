@@ -16,6 +16,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { IUserItem } from 'src/types/user';
 
 import UserQuickEditForm from './user-quick-edit-form';
+import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +36,7 @@ export default function UserTableRow({
   onDeleteRow,
 }: Props) {
   const { fullname, business_name, last_login, kvk, vat, type, is_active, email, phone_number, contact_person_phone_number, contact_person_name, contact_person_email } = row;
+  const { t, onChangeLang } = useTranslate();
 
   const confirm = useBoolean();
 
@@ -137,7 +139,7 @@ export default function UserTableRow({
           sx={{ color: 'error.main' }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          Delete
+          {t("delete")}
         </MenuItem>
 
         <MenuItem
@@ -147,18 +149,18 @@ export default function UserTableRow({
           }}
         >
           <Iconify icon="solar:pen-bold" />
-          View/Edit
+          {t("view_edit")}
         </MenuItem>
       </CustomPopover>
 
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content="Are you sure want to delete?"
+        title={t("delete")}
+        content={t("sure_delete")}
         action={
           <Button variant="contained" color="error" onClick={onDeleteRow}>
-            Delete
+            {t("delete")}
           </Button>
         }
       />

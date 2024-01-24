@@ -18,6 +18,8 @@ import { IBrandItem } from 'src/types/brand';
 
 import BrandQuickEditForm from './brand-quick-edit-form';
 
+import { useLocales, useTranslate } from 'src/locales';
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -36,6 +38,7 @@ export default function BrandTableRow({
   onDeleteRow,
 }: Props) {
   const { logo_url, name, description } = row;
+  const { t, onChangeLang } = useTranslate();
 
   const confirm = useBoolean();
 
@@ -95,7 +98,7 @@ export default function BrandTableRow({
           sx={{ color: 'error.main' }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          Delete
+          {t("delete")}
         </MenuItem>
 
         <MenuItem
@@ -105,18 +108,18 @@ export default function BrandTableRow({
           }}
         >
           <Iconify icon="solar:pen-bold" />
-          View/Edit
+          {t("view_edit")}
         </MenuItem>
       </CustomPopover>
 
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content="Are you sure want to delete?"
+        title={t("delete")}
+        content={t("sure_delete")}
         action={
           <Button variant="contained" color="error" onClick={onDeleteRow}>
-            Delete
+            {t("delete")}
           </Button>
         }
       />
