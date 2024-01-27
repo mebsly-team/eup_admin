@@ -1,13 +1,10 @@
 import isEqual from 'lodash/isEqual';
 import { useState, useEffect, useCallback } from 'react';
 
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import { alpha } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
@@ -21,7 +18,8 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
 
-import Label from 'src/components/label';
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
@@ -36,20 +34,23 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { ICategoryItem, ICategoryTableFilters, ICategoryTableFilterValue } from 'src/types/category';
+import {
+  ICategoryItem,
+  ICategoryTableFilters,
+  ICategoryTableFilterValue,
+} from 'src/types/category';
 
 import CategoryTableRow from '../category-table-row';
 import CategoryTableToolbar from '../category-table-toolbar';
 import CategoryTableFiltersResult from '../category-table-filters-result';
-import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
-
 const TABLE_HEAD = [
+  { id: 'id', label: 'ID', width: 180, align: 'center' },
   { id: 'image', label: 'Image', width: 180 },
   { id: 'name', label: 'Category Name' },
-  { id: 'parent_category', label: 'Parent' },
+  // { id: 'parent_category', label: 'Parent' },
   { id: 'sub_categories', label: 'Subcategories' },
   // { id: 'description', label: 'Description', width: 220 },
 ];
@@ -72,16 +73,18 @@ export default function CategoryListView() {
   const [filters, setFilters] = useState(defaultFilters);
   const { t, onChangeLang } = useTranslate();
 
-  const dataFiltered = applyFilter({
-    inputData: categoryList,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
+  const dataFiltered =
+    applyFilter({
+      inputData: categoryList,
+      comparator: getComparator(table.order, table.orderBy),
+      filters,
+    }) || [];
 
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
+  const dataInPage =
+    dataFiltered?.slice(
+      table.page * table.rowsPerPage,
+      table.page * table.rowsPerPage + table.rowsPerPage
+    ) || [];
 
   const denseHeight = table.dense ? 56 : 56 + 20;
 
@@ -95,14 +98,20 @@ export default function CategoryListView() {
 
   console.log('categoryList', categoryList);
 
-
   const getAll = async () => {
-    const searchFilter = filters.name ? `&search=${filters.name}` : ""
-    const { data } = await axiosInstance.get(
-      `/categories/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0${searchFilter}`
-    );
-    setCount(data.count);
-    setCategoryList(data.results);
+    const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    try {
+      const { data } = await axiosInstance.get(
+        `/categories/?limit=${table.rowsPerPage}&offset=${
+          table.rowsPerPage * table.page
+        }${searchFilter}`
+      );
+      console.log('data', data);
+      setCount(data.count || 0);
+      setCategoryList(data.results || []);
+    } catch {
+      enqueueSnackbar({ variant: 'error', message: t('error') });
+    }
   };
 
   const handleFilters = useCallback(
@@ -122,31 +131,20 @@ export default function CategoryListView() {
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
-      const deleteRow = categoryList.filter((row) => row.id !== id);
-      const { data } = await axiosInstance.delete(`/categories/${id}/`);
-      enqueueSnackbar(t("delete_success"));
-
-      getAll();
-      // setTableData(deleteRow);
-
-      // table.onUpdatePageDeleteRow(dataInPage?.length);
+      try {
+        const { data } = await axiosInstance.delete(`/categories/${id}/`);
+        enqueueSnackbar(t('delete_success'));
+        getAll();
+      } catch (error) {
+        enqueueSnackbar({ variant: 'error', message: t('error') });
+      }
     },
-    [dataInPage?.length, enqueueSnackbar, table, categoryList]
+    [enqueueSnackbar, t, getAll]
   );
 
   const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
-    enqueueSnackbar(t("delete_success"));
-
-
-    setTableData(deleteRows);
-
-    table.onUpdatePageDeleteRows({
-      totalRowsInPage: dataInPage?.length,
-      totalRowsFiltered: dataFiltered?.length,
-    });
-  }, [dataFiltered?.length, dataInPage?.length, enqueueSnackbar, table, tableData]);
+    // pass
+  }, []);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -154,7 +152,6 @@ export default function CategoryListView() {
     },
     [router]
   );
-
 
   return (
     <>
@@ -182,10 +179,7 @@ export default function CategoryListView() {
         />
 
         <Card>
-          <CategoryTableToolbar
-            filters={filters}
-            onFilters={handleFilters}
-          />
+          <CategoryTableToolbar filters={filters} onFilters={handleFilters} />
 
           {canReset && (
             <CategoryTableFiltersResult
@@ -205,13 +199,10 @@ export default function CategoryListView() {
               numSelected={table.selected?.length}
               rowCount={categoryList?.length}
               onSelectAllRows={(checked) =>
-                table.onSelectAllRows(
-                  checked,
-                  categoryList.map((row) => row.id)
-                )
+                table.onSelectAllRows(checked, categoryList?.map((row) => row.id))
               }
               action={
-                <Tooltip title={t("delete")}>
+                <Tooltip title={t('delete')}>
                   <IconButton color="primary" onClick={confirm.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -228,23 +219,23 @@ export default function CategoryListView() {
                   rowCount={categoryList?.length}
                   numSelected={table.selected?.length}
                   onSort={table.onSort}
-                  onSelectAllRows={(checked) =>
-                    table.onSelectAllRows(
-                      checked,
-                      categoryList.map((row) => row.id)
-                    )
-                  }
+                  // onSelectAllRows={(checked) =>
+                  //   table.onSelectAllRows(
+                  //     checked,
+                  //     categoryList.map((row) => row.id)
+                  //   )
+                  // }
                 />
 
                 <TableBody>
-                  {categoryList.map((row) => (
+                  {categoryList?.map((row) => (
                     <CategoryTableRow
                       key={row.id}
                       row={row}
                       selected={table.selected.includes(row.id)}
                       onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
-                      onEditRow={() => handleEditRow(row.id)}
+                      onDeleteRow={handleDeleteRow}
+                      onEditRow={handleEditRow}
                     />
                   ))}
 
@@ -274,8 +265,8 @@ export default function CategoryListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title={t("delete")}
-        content={t("sure_delete_selected_items")}
+        title={t('delete')}
+        content={t('sure_delete_selected_items')}
         action={
           <Button
             variant="contained"
@@ -285,7 +276,7 @@ export default function CategoryListView() {
               confirm.onFalse();
             }}
           >
-            {t("delete")}
+            {t('delete')}
           </Button>
         }
       />
@@ -304,24 +295,23 @@ function applyFilter({
   comparator: (a: any, b: any) => number;
   filters: ICategoryTableFilters;
 }) {
-  const { first_name } = filters;
+  const { name } = filters;
 
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
+  const stabilizedThis = inputData?.map((el, index) => [el, index] as const);
 
-  stabilizedThis.sort((a, b) => {
+  stabilizedThis?.sort((a, b) => {
     const order = comparator(a[0], b[0]);
     if (order !== 0) return order;
     return a[1] - b[1];
   });
 
-  inputData = stabilizedThis.map((el) => el[0]);
+  inputData = stabilizedThis?.map((el) => el[0]);
 
   if (name) {
-    inputData = inputData.filter(
+    inputData = inputData?.filter(
       (category) => category.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
   }
-
 
   return inputData;
 }

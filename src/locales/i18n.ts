@@ -6,10 +6,10 @@ import { localStorageGetItem } from 'src/utils/storage-available';
 
 import { defaultLang } from './config-lang';
 import translationEn from './langs/en.json';
-import translationFr from './langs/fr.json';
-import translationVi from './langs/vi.json';
-import translationCn from './langs/cn.json';
-import translationAr from './langs/ar.json';
+import translationNl from './langs/nl.json';
+import translationTr from './langs/tr.json';
+// import translationCn from './langs/cn.json';
+// import translationAr from './langs/ar.json';
 
 // ----------------------------------------------------------------------
 
@@ -21,13 +21,13 @@ i18n
   .init({
     resources: {
       en: { translations: translationEn },
-      fr: { translations: translationFr },
-      vi: { translations: translationVi },
-      cn: { translations: translationCn },
-      ar: { translations: translationAr },
+      nl: { translations: translationNl },
+      tr: { translations: translationTr },
+      // cn: { translations: translationCn },
+      // ar: { translations: translationAr },
     },
     lng,
-    fallbackLng: 'en',
+    fallbackLng: 'nl',
     debug: false,
     ns: ['translations'],
     defaultNS: 'translations',

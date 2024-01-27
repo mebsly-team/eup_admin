@@ -37,6 +37,17 @@ import {
 
 export const allLangs = [
   {
+    label: 'Nederland',
+    value: 'nl',
+    systemValue: merge(frFRDate, frFRDataGrid, frFRCore),
+    adapterLocale: frFRAdapter,
+    icon: 'flagpack:nl',
+    numberFormat: {
+      code: 'nl-Nl',
+      currency: 'EUR',
+    },
+  },
+  {
     label: 'English',
     value: 'en',
     systemValue: merge(enUSDate, enUSDataGrid, enUSCore),
@@ -44,21 +55,21 @@ export const allLangs = [
     icon: 'flagpack:gb-nir',
     numberFormat: {
       code: 'en-US',
-      currency: 'USD',
-    },
-  },
-  {
-    label: 'French',
-    value: 'fr',
-    systemValue: merge(frFRDate, frFRDataGrid, frFRCore),
-    adapterLocale: frFRAdapter,
-    icon: 'flagpack:fr',
-    numberFormat: {
-      code: 'fr-Fr',
       currency: 'EUR',
     },
   },
   {
+    label: 'Turkce',
+    value: 'tr',
+    systemValue: merge(frFRDate, frFRDataGrid, frFRCore),
+    adapterLocale: frFRAdapter,
+    icon: 'flagpack:tr',
+    numberFormat: {
+      code: 'tr-Tr',
+      currency: 'EUR',
+    },
+  },
+  /* {
     label: 'Vietnamese',
     value: 'vi',
     systemValue: merge(viVNDate, viVNDataGrid, viVNCore),
@@ -90,7 +101,7 @@ export const allLangs = [
       code: 'ar',
       currency: 'AED',
     },
-  },
+  }, */
 ];
 
 export const defaultLang = allLangs[0]; // English

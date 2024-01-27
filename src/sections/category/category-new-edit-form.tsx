@@ -28,11 +28,13 @@ type Props = {
 };
 
 export default function CategoryNewEditForm({ currentCategory }: Props) {
+  console.log(currentCategory)
   const router = useRouter();
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
   const { t, onChangeLang } = useTranslate();
+  console.log(selectedImage)
 
   const NewCategorySchema = Yup.object().shape({
     name: Yup.string().required(t('name_required')),
@@ -106,7 +108,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               <RHFTextField name="description" label={t("description")} />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Image</Typography>
-                {selectedImage ? <Image src={selectedImage?.image} /> : null}
+                 <Image src={selectedImage?.url || currentCategory?.image} />
                 <Button onClick={() => setImageGalleryOpen(true)}>
                   {t("upload")}
                 </Button>

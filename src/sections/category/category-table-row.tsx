@@ -1,23 +1,21 @@
+import { useState } from 'react';
+
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
-import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
 
 import { useBoolean } from 'src/hooks/use-boolean';
-import Image from 'src/components/image';
 
-import Label from 'src/components/label';
+import { useTranslate } from 'src/locales';
+
+import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 import { ICategoryItem } from 'src/types/category';
-
-import CategoryQuickEditForm from './category-quick-edit-form';
-import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -29,41 +27,38 @@ type Props = {
   onDeleteRow: VoidFunction;
 };
 
-export default function CategoryTableRow({
-  row,
-  selected,
-  onEditRow,
-  onSelectRow,
-  onDeleteRow,
-}: Props) {
+export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }: Props) {
   const { name, image, parent_category, sub_categories } = row;
   const { t, onChangeLang } = useTranslate();
-
+  const selected = table?.selected?.includes(row.id);
+  const onSelectRow = () => table?.onSelectRow(row.id);
   const confirm = useBoolean();
 
   const quickEdit = useBoolean();
 
   const popover = usePopover();
-
+  const [isSubCategoriesOpen, setSubCategoriesOpen] = useState(false);
   return (
     <>
       <TableRow hover selected={selected}>
-        <TableCell padding="checkbox">
-          <Checkbox checked={selected} onClick={onSelectRow} />
-        </TableCell>
+        <TableCell align="center">{row.id}</TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={name} src={image} />
+          <Image alt={name} src={image} maxWidth={100} />
         </TableCell>
 
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{name}</TableCell>
+        {/* <TableCell sx={{ whiteSpace: 'nowrap' }}>{parent_category || '-'}</TableCell> */}
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          {name}
-        </TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          {parent_category || "-"}
-        </TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          {sub_categories?.length || 0}
+          {sub_categories?.length || 0}{' '}
+          {sub_categories?.length ? (
+            <Iconify
+              width={16}
+              className="arrow"
+              icon="eva:arrow-ios-downward-fill"
+              onClick={() => setSubCategoriesOpen(!isSubCategoriesOpen)}
+            />
+          ) : null}
         </TableCell>
 
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
@@ -77,9 +72,8 @@ export default function CategoryTableRow({
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
-      </TableRow >
-
-      <CategoryQuickEditForm currentCategory={row} open={quickEdit.value} onClose={quickEdit.onFalse} />
+      </TableRow>
+      {/* <CategoryQuickEditForm currentCategory={row} open={quickEdit.value} onClose={quickEdit.onFalse} /> */}
 
       <CustomPopover
         open={popover.open}
@@ -95,31 +89,42 @@ export default function CategoryTableRow({
           sx={{ color: 'error.main' }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          {t("delete")}
+          {t('delete')}
         </MenuItem>
 
         <MenuItem
           onClick={() => {
-            onEditRow();
+            onEditRow(row.id);
             popover.onClose();
           }}
         >
           <Iconify icon="solar:pen-bold" />
-          {t("view_edit")}
+          {t('view_edit')}
         </MenuItem>
       </CustomPopover>
 
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title={t("delete")}
-        content={t("sure_delete")}
+        title={t('delete')}
+        content={t('sure_delete')}
         action={
-          <Button variant="contained" color="error" onClick={onDeleteRow}>
-            {t("delete")}
+          <Button variant="contained" color="error" onClick={() => onDeleteRow(row.id)}>
+            {t('delete')}
           </Button>
         }
       />
+
+      {isSubCategoriesOpen &&
+        sub_categories.map((row) => (
+          <CategoryTableRow
+            key={row.id}
+            row={row}
+            table={table}
+            onDeleteRow={onDeleteRow}
+            onEditRow={onEditRow}
+          />
+        ))}
     </>
   );
 }

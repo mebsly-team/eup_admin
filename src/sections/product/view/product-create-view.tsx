@@ -17,7 +17,7 @@ export default function ProductCreateView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading={t('create_new_product')}
+        heading={t('create_product')}
         links={[
           {
             name: t('dashboard'),

@@ -4,7 +4,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import { MenuItem } from '@mui/material';
@@ -12,13 +11,9 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import CountrySelect from 'src/components/country-select';
-import { countries } from 'src/assets/data';
-import ImageGallery from 'src/components/imageGallery/index.tsx';
-import Iconify from 'src/components/iconify';
-import IconButton from '@mui/material/IconButton';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -27,32 +22,32 @@ import { useResponsive } from 'src/hooks/use-responsive';
 
 import axiosInstance from 'src/utils/axios';
 
-import { _tags } from 'src/_mock';
+import { useTranslate } from 'src/locales';
+import { countries } from 'src/assets/data';
 import { useGetBrands } from 'src/api/brand';
 import { useGetSuppliers } from 'src/api/supplier';
 import { useGetCategories } from 'src/api/category';
 
+import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
+import CountrySelect from 'src/components/country-select';
+import ImageGallery from 'src/components/imageGallery/index.tsx';
 import FormProvider, {
   RHFEditor,
-  RHFUpload,
   RHFSelect,
+  RHFSwitch,
   RHFTextField,
   RHFAutocomplete,
-  RHFMultiSelectCategory, RHFSwitch
+  RHFMultiSelectCategory,
 } from 'src/components/hook-form';
 
 import { IProductItem } from 'src/types/product';
-import { getValue } from '@mui/system';
-import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   currentProduct?: IProductItem;
 };
-
-
 
 export default function ProductNewEditForm({ currentProduct }: Props) {
   const router = useRouter();
@@ -139,9 +134,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     // meta_description: Yup.string().required(t('validation.meta_description')),
     // meta_keywords: Yup.string().required(t('validation.meta_keywords')),
     // url: Yup.string().required(t('validation.url')),
-
   });
-
 
   const defaultValues = useMemo(
     () => ({
@@ -210,7 +203,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     [currentProduct]
   );
 
-
   const methods = useForm({
     resolver: yupResolver(NewProductSchema),
     defaultValues,
@@ -226,7 +218,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     ...rest
   } = methods;
   const [multiCountry, setMultiCountry] = useState<string[]>([]);
-  const [isImageGalleryOpen, setImageGalleryOpen] = useState(false)
+  const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
 
   const values = watch();
 
@@ -248,12 +240,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     }
   }, [currentProduct, defaultValues, reset]);
 
-
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const imageIds = data.images.map(item => item.id)
+      const imageIds = data.images.map((item) => item.id);
       delete data.image_urls;
-      data.images = imageIds
+      data.images = imageIds;
       data.tags = [];
       if (currentProduct) {
         const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
@@ -268,8 +259,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     }
   });
 
-
-
   const handleChangeIncludeTaxes = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setIncludeTaxes(event.target.checked);
   }, []);
@@ -279,25 +268,25 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("basic_nformation")}
+            {t('basic_information')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("title_short_description_image")}
+            {t('title_short_description_image')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title={t("details")} />}
+          {!mdUp && <CardHeader title={t('details')} />}
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="parent_product" label={t("parent_product")} />
-            <RHFTextField name="title" label={t("product_title")} />
-            <RHFTextField name="title_long" label={t("product_title_long")} />
-            <RHFTextField name="description" label={t("product_description")} />
+            <RHFTextField name="parent_product" label={t('parent_product')} />
+            <RHFTextField name="title" label={t('product_title')} />
+            <RHFTextField name="title_long" label={t('product_title_long')} />
+            <RHFTextField name="description" label={t('product_description')} />
             <Stack spacing={1.5}>
-              <Typography variant="subtitle2">{t("description_long")}</Typography>
+              <Typography variant="subtitle2">{t('description_long')}</Typography>
               <RHFEditor simple name="description_long" />
             </Stack>
             <Divider sx={{ borderStyle: 'dashed' }} />
@@ -311,34 +300,39 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="ean" label={t("ean")} />
-              <RHFTextField name="article_code" label={t("article_code")} />
-              <RHFTextField name="sku" label={t("sku")} />
-              <RHFTextField name="hs_code" label={t("hs_code")} />
-              <RHFTextField name="supplier_article_code" label={t("supplier_article_code")} />
+              <RHFTextField name="ean" label={t('ean')} />
+              <RHFTextField name="article_code" label={t('article_code')} />
+              <RHFTextField name="sku" label={t('sku')} />
+              <RHFTextField name="hs_code" label={t('hs_code')} />
+              <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
             </Box>
             <Divider sx={{ borderStyle: 'dashed' }} />
 
-            <RHFMultiSelectCategory checkbox name="categories" label={t("Category")} options={categories} />
+            <RHFMultiSelectCategory
+              checkbox
+              name="categories"
+              label={t('Category')}
+              options={categories}
+            />
             <RHFAutocomplete
               name="brand"
-              placeholder={t("Brand")}
-              options={brands.map(item => item.id)}
-              getOptionLabel={(option) => brands.find(item => item.id === option)?.name || ""}
+              placeholder={t('Brand')}
+              options={brands.map((item) => item.id)}
+              getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
               renderOption={(props, option) => (
                 <li {...props} key={option}>
-                  {brands.find(item => item.id === option)?.name || ""}
+                  {brands.find((item) => item.id === option)?.name || ''}
                 </li>
               )}
             />
             <RHFAutocomplete
               name="supplier"
-              placeholder={t("supplier")}
-              options={suppliers.map(item => item.id)}
-              getOptionLabel={(option) => suppliers.find(item => item.id === option)?.name || ""}
+              placeholder={t('supplier')}
+              options={suppliers.map((item) => item.id)}
+              getOptionLabel={(option) => suppliers.find((item) => item.id === option)?.name || ''}
               renderOption={(props, option) => (
                 <li {...props} key={option}>
-                  {suppliers.find(item => item.id === option)?.name || ""}
+                  {suppliers.find((item) => item.id === option)?.name || ''}
                 </li>
               )}
             />
@@ -374,18 +368,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </>
   );
 
-
   const handleSelectImage = async (idList) => {
     const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
-    const imageList = getValues("images")
-    setValue("images", [...imageList, data]);
-    setImageGalleryOpen(false)
-  }
+    const imageList = getValues('images');
+    setValue('images', [...imageList, data]);
+    setImageGalleryOpen(false);
+  };
   const handleDeleteImage = (index) => {
     // Function to delete an image from the list
-    const imageList = getValues("images")
-    const updatedImageList = imageList.filter(item => item.id !== index);
-    setValue("images", updatedImageList);
+    const imageList = getValues('images');
+    const updatedImageList = imageList.filter((item) => item.id !== index);
+    setValue('images', updatedImageList);
   };
 
   const renderImages = (
@@ -393,20 +386,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("images")}
+            {t('images')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("upload_images")}
+            {t('upload_images')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
-        {JSON.stringify(getValues("images"))}
-        {JSON.stringify(errors)}
-
         <Card>
-          {!mdUp && <CardHeader title={t("pricing")} />}
+          {!mdUp && <CardHeader title={t('pricing')} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -418,7 +408,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               }}
             >
               {/* List images with delete icon */}
-              {getValues("images")?.map((item, index) => (
+              {getValues('images')?.map((item, index) => (
                 <div key={index} style={{ position: 'relative' }}>
                   <img
                     src={item.url}
@@ -436,9 +426,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               ))}
             </Box>
             {/* Add Image button */}
-            <IconButton onClick={() => setImageGalleryOpen(true)}>
-              {t("Upload Photo")}
-            </IconButton>
+            <IconButton onClick={() => setImageGalleryOpen(true)}>{t('Upload Photo')}</IconButton>
           </Stack>
         </Card>
       </Grid>
@@ -450,17 +438,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("pricing")}
+            {t('pricing')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("price_related_inputs")}
+            {t('price_related_inputs')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title={t("pricing")} />}
+          {!mdUp && <CardHeader title={t('pricing')} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -473,7 +461,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             >
               <RHFTextField
                 name="price_per_piece"
-                label={t("price_per_piece")}
+                label={t('price_per_piece')}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -490,7 +478,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
               <RHFTextField
                 name="price_per_unit"
-                label={t("price_per_unit")}
+                label={t('price_per_unit')}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -506,7 +494,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
               <RHFTextField
                 name="price_consumers"
-                label={t("price_consumers")}
+                label={t('price_consumers')}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -522,7 +510,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
               <RHFTextField
                 name="price_cost"
-                label={t("price_cost")}
+                label={t('price_cost')}
                 placeholder="0.00"
                 type="number"
                 InputLabelProps={{ shrink: true }}
@@ -549,17 +537,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("stock_and_inventory")}
+            {t('stock_and_inventory')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("number_of__products")}
+            {t('number_of_products')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title={t("stock_and_inventory")} />}
+          {!mdUp && <CardHeader title={t('stock_and_inventory')} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -570,22 +558,30 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="overall_stock" label={t("overall_stock")} type="number" />
-              <RHFTextField name="free_stock" label={t("free_stock")} type="number" />
-              <RHFTextField name="ordered_in_progress_stock" label={t("ordered_in_progress_stock")} type="number" />
-              <RHFTextField name="work_in_progress_stock" label={t("work_in_progress_stock")} type="number" />
-              <RHFTextField name="max_stock_at_rack" label={t("max_stock_at_rack")} type="number" />
-              <RHFTextField name="min_stock_value" label={t("min_stock_value")} type="number" />
-              <RHFTextField name="stock_at_supplier" label={t("stock_at_supplier")} type="number" />
-              <RHFTextField name="location" label={t("location")} />
-              <RHFTextField name="extra_location" label={t("extra_location")} />
-              <RHFTextField name="stock_alert_value" label={t("stock_alert_value")} type="number" />
+              <RHFTextField name="overall_stock" label={t('overall_stock')} type="number" />
+              <RHFTextField name="free_stock" label={t('free_stock')} type="number" />
+              <RHFTextField
+                name="ordered_in_progress_stock"
+                label={t('ordered_in_progress_stock')}
+                type="number"
+              />
+              <RHFTextField
+                name="work_in_progress_stock"
+                label={t('work_in_progress_stock')}
+                type="number"
+              />
+              <RHFTextField name="max_stock_at_rack" label={t('max_stock_at_rack')} type="number" />
+              <RHFTextField name="min_stock_value" label={t('min_stock_value')} type="number" />
+              <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
+              <RHFTextField name="location" label={t('location')} />
+              <RHFTextField name="extra_location" label={t('extra_location')} />
+              <RHFTextField name="stock_alert_value" label={t('stock_alert_value')} type="number" />
               <RHFSwitch
                 name="stock_alert"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("stock_alert")}
+                    {t('stock_alert')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -595,7 +591,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("stock_disable_when_sold_out")}
+                    {t('stock_disable_when_sold_out')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -605,7 +601,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("stock_check")}
+                    {t('stock_check')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -623,21 +619,21 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("product_properties")}
+            {t('product_properties')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("product_attributes")}
+            {t('product_attributes')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title={t("product_properties")} />}
+          {!mdUp && <CardHeader title={t('product_properties')} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <CountrySelect
-              label={t("languages_on_item_package")}
-              placeholder={t("select_languages")}
+              label={t('languages_on_item_package')}
+              placeholder={t('select_languages')}
               fullWidth
               multiple
               limitTags={2}
@@ -647,7 +643,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               getOptionLabel={(option) => option}
             />
             <Stack spacing={1.5}>
-              <Typography variant="subtitle2">{t("important_information")}</Typography>
+              <Typography variant="subtitle2">{t('important_information')}</Typography>
               <RHFEditor simple name="important_information" />
             </Stack>
             <Box
@@ -659,7 +655,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFSelect name="delivery_time" label="delivery_time">
+              <RHFSelect name="delivery_time" label={t('delivery_time')}>
                 <MenuItem value="">None</MenuItem>
                 <Divider sx={{ borderStyle: 'dashed' }} />
                 {DELIVERY_CHOICES.map((option) => (
@@ -668,13 +664,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   </MenuItem>
                 ))}
               </RHFSelect>
-              <RHFTextField name="sell_count" label="sell_count" />
+              <RHFTextField name="sell_count" label={t("sell_count")} />
               <RHFSwitch
                 name="is_only_for_logged_in_user"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_only_for_logged_in_user")}
+                    {t('is_only_for_logged_in_user')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -684,7 +680,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_used")}
+                    {t('is_used')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -694,7 +690,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_regular")}
+                    {t('is_regular')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -704,7 +700,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_featured")}
+                    {t('is_featured')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -714,7 +710,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_visible_on_web")}
+                    {t('is_visible_on_web')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -724,7 +720,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_visible_on_mobile")}
+                    {t('is_visible_on_mobile')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -734,7 +730,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_only_for_export")}
+                    {t('is_only_for_export')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -744,7 +740,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_only_for_B2B")}
+                    {t('is_only_for_B2B')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -754,7 +750,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_listed_on_marktplaats")}
+                    {t('is_listed_on_marktplaats')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -764,24 +760,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_listed_on_2dehands")}
+                    {t('is_listed_on_2dehands')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
-
 
               <RHFSwitch
                 name="has_electronic_barcode"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("has_electronic_barcode")}
+                    {t('has_electronic_barcode')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
-
             </Box>
             <Divider sx={{ borderStyle: 'dashed' }} />
           </Stack>
@@ -790,23 +784,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </>
   );
 
-
   const renderMetrics = (
     <>
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("size_volume")}
+            {t('size_volume')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("pyhsical_attributes")}
+            {t('pyhsical_attributes')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title={t("size_volume")} />}
+          {!mdUp && <CardHeader title={t('size_volume')} />}
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -817,20 +810,20 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 md: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="size_x_value" label={t("size_x_value")} />
-              <RHFTextField name="size_y_value" label={t("size_y_value")} />
-              <RHFTextField name="size_z_value" label={t("size_z_value")} />
-              <RHFTextField name="size_unit" label={t("size_unit")} />
-              <RHFTextField name="weight" label={t("weight")} />
-              <RHFTextField name="weight_unit" label={t("weight_unit")} />
-              <RHFTextField name="volume_unit" label={t("volume_unit")} />
-              <RHFTextField name="volume" label={t("volume")} />
+              <RHFTextField name="size_x_value" label={t('size_x_value')} />
+              <RHFTextField name="size_y_value" label={t('size_y_value')} />
+              <RHFTextField name="size_z_value" label={t('size_z_value')} />
+              <RHFTextField name="size_unit" label={t('size_unit')} />
+              <RHFTextField name="weight" label={t('weight')} />
+              <RHFTextField name="weight_unit" label={t('weight_unit')} />
+              <RHFTextField name="volume_unit" label={t('volume_unit')} />
+              <RHFTextField name="volume" label={t('volume')} />
               <RHFSwitch
                 name="is_brief_box"
                 labelPlacement="start"
                 label={
                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t("is_brief_box")}
+                    {t('is_brief_box')}
                   </Typography>
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -848,22 +841,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t("meta_data")}
+            {t('meta_data')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t("data_used_for_SEO")}
+            {t('data_used_for_SEO')}
           </Typography>
         </Grid>
       )}
 
       <Grid xs={12} md={8}>
         <Card>
-          {!mdUp && <CardHeader title={t("meta_data")} />}
+          {!mdUp && <CardHeader title={t('meta_data')} />}
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="meta_title" label={t("meta_title")} />
-            <RHFTextField name="meta_description" label={t("meta_description")} />
-            <RHFTextField name="meta_keywords" label={t("meta_keywords")} />
-            <RHFTextField name="url" label={t("url")} />
+            <RHFTextField name="meta_title" label={t('meta_title')} />
+            <RHFTextField name="meta_description" label={t('meta_description')} />
+            <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
+            <RHFTextField name="url" label={t('url')} />
           </Stack>
         </Card>
       </Grid>
@@ -879,7 +872,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           labelPlacement="start"
           label={
             <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-              {t("publish")}
+              {t('publish')}
             </Typography>
           }
           sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -909,9 +902,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         {renderMeta}
 
         {renderActions}
-
       </Grid>
-      {isImageGalleryOpen ? <ImageGallery maxNumberOfSelectedImages={10} onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} /> : null}
+      {isImageGalleryOpen ? (
+        <ImageGallery
+          maxNumberOfSelectedImages={10}
+          onClose={() => setImageGalleryOpen(false)}
+          onSelect={handleSelectImage}
+        />
+      ) : null}
     </FormProvider>
   );
 }
