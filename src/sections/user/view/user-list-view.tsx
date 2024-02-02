@@ -20,11 +20,9 @@ import { RouterLink } from 'src/routes/components';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
-import { useLocales, useTranslate } from 'src/locales';
 
-import { _roles, USER_STATUS_OPTIONS } from 'src/_mock';
+import { useTranslate } from 'src/locales';
 
-import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
@@ -55,15 +53,10 @@ const USER_TYPES = [
   { value: 'admin', label: 'Admin' },
 ];
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'in_active', label: 'Inactive' }];
-
-const TABLE_HEAD = [
-  { id: 'fullname', label: 'Name/Type' },
-  { id: 'email', label: 'Email/Phone', width: 180 },
-  { id: 'company', label: 'POC', width: 220 },
-  { id: 'type', label: 'KVK/VAT', width: 180 },
-  { id: 'is_active', label: 'Active?', width: 100 },
-  { id: '', width: 88 },
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'in_active', label: 'Inactive' },
 ];
 
 const defaultFilters: IUserTableFilters = {
@@ -85,6 +78,15 @@ export default function UserListView() {
   const [tableData, setTableData] = useState<IUserItem[]>(userList);
   const [filters, setFilters] = useState(defaultFilters);
   const { t, onChangeLang } = useTranslate();
+
+  const TABLE_HEAD = [
+    { id: 'fullname', label: t('name_type') },
+    { id: 'email', label: t('email_phone'), width: 180 },
+    { id: 'company', label: t('poc'), width: 220 },
+    { id: 'type', label: t('kvk_vat'), width: 180 },
+    { id: 'is_active', label: `${t('active')}?`, width: 100 },
+    { id: '', width: 88 },
+  ];
 
   const dataFiltered = applyFilter({
     inputData: userList,
@@ -109,14 +111,15 @@ export default function UserListView() {
 
   console.log('userList', userList);
 
-
-
   const getAll = async () => {
-    const statusFilter = filters.status !== "all" ? `&is_active=${filters.status === "active"}` : ""
-    const searchFilter = filters.name ? `&search=${filters.name}` : ""
-    const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : ""
+    const statusFilter =
+      filters.status !== 'all' ? `&is_active=${filters.status === 'active'}` : '';
+    const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const { data } = await axiosInstance.get(
-      `/users/?limit=${table.rowsPerPage}&page=${table.page + 1}&offset=0${typeFilter}${searchFilter}${statusFilter}`
+      `/users/?limit=${table.rowsPerPage}&page=${
+        table.page + 1
+      }&offset=0${typeFilter}${searchFilter}${statusFilter}`
     );
     setCount(data.count);
     setUserList(data.results);
@@ -141,7 +144,7 @@ export default function UserListView() {
     async (id: string) => {
       const deleteRow = userList.filter((row) => row.id !== id);
       const { data } = await axiosInstance.delete(`/users/${id}/`);
-      enqueueSnackbar(t("delete_success"));
+      enqueueSnackbar(t('delete_success'));
 
       getAll();
       // setTableData(deleteRow);
@@ -154,8 +157,7 @@ export default function UserListView() {
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
 
-    enqueueSnackbar(t("delete_success"));
-
+    enqueueSnackbar(t('delete_success'));
 
     setTableData(deleteRows);
 
@@ -219,23 +221,23 @@ export default function UserListView() {
                 iconPosition="end"
                 value={tab.value}
                 label={tab.label}
-              // icon={
-              //   <Label
-              //     variant={
-              //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-              //     }
-              //     color={
-              //       (tab.value === 'active' && 'success') ||
-              //       (tab.value === 'pending' && 'warning') ||
-              //       (tab.value === 'banned' && 'error') ||
-              //       'default'
-              //     }
-              //   >
-              //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-              //       ? tableData.filter((user) => user.status === tab.value).length
-              //       : tableData.length}
-              //   </Label>
-              // }
+                // icon={
+                //   <Label
+                //     variant={
+                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
+                //     }
+                //     color={
+                //       (tab.value === 'active' && 'success') ||
+                //       (tab.value === 'pending' && 'warning') ||
+                //       (tab.value === 'banned' && 'error') ||
+                //       'default'
+                //     }
+                //   >
+                //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
+                //       ? tableData.filter((user) => user.status === tab.value).length
+                //       : tableData.length}
+                //   </Label>
+                // }
               />
             ))}
           </Tabs>
@@ -271,7 +273,7 @@ export default function UserListView() {
                 )
               }
               action={
-                <Tooltip title={t("delete")}>
+                <Tooltip title={t('delete')}>
                   <IconButton color="primary" onClick={confirm.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -334,8 +336,8 @@ export default function UserListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title={t("delete")}
-        content={t("sure_delete_selected_items")}
+        title={t('delete')}
+        content={t('sure_delete_selected_items')}
         action={
           <Button
             variant="contained"
@@ -345,7 +347,7 @@ export default function UserListView() {
               confirm.onFalse();
             }}
           >
-            {t("delete")}
+            {t('delete')}
           </Button>
         }
       />

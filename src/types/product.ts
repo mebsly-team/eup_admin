@@ -34,8 +34,11 @@ export type IProductReview = {
 export type IProductTableFilterValue = string | string[];
 
 export type IProductTableFilters = {
-  stock: string[];
-  publish: string[];
+  is_product_active: string | undefined;
+  name: unknown;
+  title: string;
+  description: string;
+  ean: string;
 };
 
 export interface IProductItem {
@@ -89,6 +92,7 @@ export interface IProductItem {
   is_only_for_B2B: boolean;
   is_listed_on_marktplaats: boolean;
   is_listed_on_2dehands: boolean;
+  is_product_active: boolean;
   vat: number;
   stock_alert: boolean;
   sku: string;

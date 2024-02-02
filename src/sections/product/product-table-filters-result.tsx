@@ -30,22 +30,15 @@ export default function ProductTableFiltersResult({
   results,
   ...other
 }: Props) {
-  const handleRemoveStock = useCallback(
+  const handleRemoveKeyword = useCallback(() => {
+    onFilters('name', '');
+  }, [onFilters]);
+
+  const handleRemoveActive = useCallback(
     (inputValue: string) => {
-      const newValue = filters.stock.filter((item) => item !== inputValue);
-
-      onFilters('stock', newValue);
+      onFilters('is_product_active', 'all');
     },
-    [filters.stock, onFilters]
-  );
-
-  const handleRemovePublish = useCallback(
-    (inputValue: string) => {
-      const newValue = filters.publish.filter((item) => item !== inputValue);
-
-      onFilters('publish', newValue);
-    },
-    [filters.publish, onFilters]
+    [onFilters]
   );
 
   return (
@@ -58,27 +51,16 @@ export default function ProductTableFiltersResult({
       </Box>
 
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
-        {!!filters.stock.length && (
-          <Block label="Stock:">
-            {filters.stock.map((item) => (
-              <Chip key={item} label={item} size="small" onDelete={() => handleRemoveStock(item)} />
-            ))}
+        {filters.is_product_active !== 'all' && (
+          <Block label="Status:">
+            <Chip size="small" label={filters.is_product_active} onDelete={handleRemoveActive} />
           </Block>
         )}
-
-        {!!filters.publish.length && (
-          <Block label="Publish:">
-            {filters.publish.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                size="small"
-                onDelete={() => handleRemovePublish(item)}
-              />
-            ))}
+        {!!filters.name && (
+          <Block label="Keyword:">
+            <Chip label={filters.name} size="small" onDelete={handleRemoveKeyword} />
           </Block>
         )}
-
         <Button
           color="error"
           onClick={onResetFilters}

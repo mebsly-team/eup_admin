@@ -1,97 +1,150 @@
-import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
-import Avatar from '@mui/material/Avatar';
-import { GridCellParams } from '@mui/x-data-grid';
+import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
+import TableRow from '@mui/material/TableRow';
+import Checkbox from '@mui/material/Checkbox';
+import TableCell from '@mui/material/TableCell';
+import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
-import LinearProgress from '@mui/material/LinearProgress';
 
-import { fCurrency } from 'src/utils/format-number';
-import { fTime, fDate } from 'src/utils/format-time';
+import { useBoolean } from 'src/hooks/use-boolean';
+
+import { useTranslate } from 'src/locales';
 
 import Label from 'src/components/label';
+import Image from 'src/components/image';
+import Iconify from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import CustomPopover, { usePopover } from 'src/components/custom-popover';
+
+import { IProductItem } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
-type ParamsProps = {
-  params: GridCellParams;
+type Props = {
+  selected: boolean;
+  onEditRow: VoidFunction;
+  row: IProductItem;
+  onSelectRow: VoidFunction;
+  onDeleteRow: VoidFunction;
 };
 
-export function RenderCellPrice({ params }: ParamsProps) {
-  return <>{fCurrency(params.row.price)}</>;
-}
+export default function ProductTableRow({
+  row,
+  selected,
+  onEditRow,
+  onSelectRow,
+  onDeleteRow,
+}: Props) {
+  const {
+    id,
+    image_urls,
+    title,
+    description,
+    ean,
+    is_product_active,
+    discounted_price,
+    overall_stock,
+    free_stock,
+  } = row;
+  const { t, onChangeLang } = useTranslate();
 
-export function RenderCellPublish({ params }: ParamsProps) {
+  const confirm = useBoolean();
+
+  const popover = usePopover();
+
   return (
-    <Label variant="soft" color={(params.row.publish === 'published' && 'info') || 'default'}>
-      {params.row.publish}
-    </Label>
-  );
-}
+    <>
+      <TableRow hover selected={selected}>
+        <TableCell padding="checkbox">
+          <Checkbox checked={selected} onClick={onSelectRow} />
+        </TableCell>
 
-export function RenderCellCreatedAt({ params }: ParamsProps) {
-  return (
-    <ListItemText
-      primary={fDate(params.row.createdAt)}
-      secondary={fTime(params.row.createdAt)}
-      primaryTypographyProps={{ typography: 'body2', noWrap: true }}
-      secondaryTypographyProps={{
-        mt: 0.5,
-        component: 'span',
-        typography: 'caption',
-      }}
-    />
-  );
-}
+        <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+          <Image alt={title} src={image_urls?.[0]?.url} />
+        </TableCell>
 
-export function RenderCellStock({ params }: ParamsProps) {
-  return (
-    <Stack sx={{ typography: 'caption', color: 'text.secondary' }}>
-      <LinearProgress
-        value={(params.row.available * 100) / params.row.quantity}
-        variant="determinate"
-        color={
-          (params.row.inventoryType === 'out of stock' && 'error') ||
-          (params.row.inventoryType === 'low stock' && 'warning') ||
-          'success'
-        }
-        sx={{ mb: 1, height: 6, maxWidth: 80 }}
-      />
-      {!!params.row.available && params.row.available} {params.row.inventoryType}
-    </Stack>
-  );
-}
-
-export function RenderCellProduct({ params }: ParamsProps) {
-  return (
-    <Stack direction="row" alignItems="center" sx={{ py: 2, width: 1 }}>
-      <Avatar
-        alt={params.row.name}
-        src={params.row.coverUrl}
-        variant="rounded"
-        sx={{ width: 64, height: 64, mr: 2 }}
-      />
-
-      <ListItemText
-        disableTypography
-        primary={
-          <Link
-            noWrap
-            color="inherit"
-            variant="subtitle2"
-            onClick={params.row.onViewRow}
-            sx={{ cursor: 'pointer' }}
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <ListItemText
+            primary=<a
+              target="_blank"
+              href={`http://52.28.100.129:3000/nl/product/${id}`}
+              rel="noreferrer"
+            >
+              {title}
+            </a>
+            secondary={description}
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{
+              component: 'span',
+              color: 'text.disabled',
+            }}
+          />
+        </TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{discounted_price}</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{ean}</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          {free_stock}/{overall_stock}
+        </TableCell>
+        <TableCell>
+          <Label
+            // variant="soft"
+            color={is_product_active ? 'success' : 'error'}
           >
-            {params.row.name}
-          </Link>
+            {is_product_active ? '✓' : 'x'}
+          </Label>
+        </TableCell>
+        <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
+          {/* <Tooltip title="Quick Edit" placement="top" arrow>
+            <IconButton color={quickEdit.value ? 'inherit' : 'default'} onClick={quickEdit.onTrue}>
+              <Iconify icon="solar:pen-bold" />
+            </IconButton>
+          </Tooltip> */}
+
+          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+
+      <CustomPopover
+        open={popover.open}
+        onClose={popover.onClose}
+        arrow="right-top"
+        sx={{ width: 140 }}
+      >
+        <MenuItem
+          onClick={() => {
+            confirm.onTrue();
+            popover.onClose();
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <Iconify icon="solar:trash-bin-trash-bold" />
+          {t('delete')}
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            onEditRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          {t('view_edit')}
+        </MenuItem>
+      </CustomPopover>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title={t('delete')}
+        content={t('sure_delete')}
+        action={
+          <Button variant="contained" color="error" onClick={onDeleteRow}>
+            {t('delete')}
+          </Button>
         }
-        secondary={
-          <Box component="div" sx={{ typography: 'body2', color: 'text.disabled' }}>
-            {params.row.category}
-          </Box>
-        }
-        sx={{ display: 'flex', flexDirection: 'column' }}
       />
-    </Stack>
+    </>
   );
 }
