@@ -219,6 +219,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   } = methods;
   const [multiCountry, setMultiCountry] = useState<string[]>([]);
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
+  console.log('getValues', getValues());
 
   const values = watch();
 
@@ -264,79 +265,65 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   }, []);
 
   const renderDetails = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('basic_information')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('title_short_description_image')}
-          </Typography>
-        </Grid>
-      )}
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('basic_information')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <RHFTextField name="parent_product" label={t('parent_product')} />
+          <RHFTextField name="title" label={t('product_title')} />
+          <RHFTextField name="title_long" label={t('product_title_long')} />
+          <RHFTextField name="description" label={t('product_description')} />
+          <Stack spacing={1.5}>
+            <Typography variant="subtitle2">{t('description_long')}</Typography>
+            <RHFEditor simple name="description_long" />
+          </Stack>
+          <Divider sx={{ borderStyle: 'dashed' }} />
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFTextField name="ean" label={t('ean')} />
+            <RHFTextField name="article_code" label={t('article_code')} />
+            <RHFTextField name="sku" label={t('sku')} />
+            <RHFTextField name="hs_code" label={t('hs_code')} />
+            <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
+          </Box>
+          <Divider sx={{ borderStyle: 'dashed' }} />
 
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title={t('details')} />}
-
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="parent_product" label={t('parent_product')} />
-            <RHFTextField name="title" label={t('product_title')} />
-            <RHFTextField name="title_long" label={t('product_title_long')} />
-            <RHFTextField name="description" label={t('product_description')} />
-            <Stack spacing={1.5}>
-              <Typography variant="subtitle2">{t('description_long')}</Typography>
-              <RHFEditor simple name="description_long" />
-            </Stack>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-
-            <Box
-              columnGap={2}
-              rowGap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="ean" label={t('ean')} />
-              <RHFTextField name="article_code" label={t('article_code')} />
-              <RHFTextField name="sku" label={t('sku')} />
-              <RHFTextField name="hs_code" label={t('hs_code')} />
-              <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
-            </Box>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-
-            <RHFMultiSelectCategory
-              checkbox
-              name="categories"
-              label={t('Category')}
-              options={categories}
-            />
-            <RHFAutocomplete
-              name="brand"
-              placeholder={t('Brand')}
-              options={brands.map((item) => item.id)}
-              getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
-              renderOption={(props, option) => (
-                <li {...props} key={option}>
-                  {brands.find((item) => item.id === option)?.name || ''}
-                </li>
-              )}
-            />
-            <RHFAutocomplete
-              name="supplier"
-              placeholder={t('supplier')}
-              options={suppliers.map((item) => item.id)}
-              getOptionLabel={(option) => suppliers.find((item) => item.id === option)?.name || ''}
-              renderOption={(props, option) => (
-                <li {...props} key={option}>
-                  {suppliers.find((item) => item.id === option)?.name || ''}
-                </li>
-              )}
-            />
-            {/* <RHFAutocomplete
+          <RHFMultiSelectCategory
+            checkbox
+            name="categories"
+            label={t('Category')}
+            options={categories}
+          />
+          <RHFAutocomplete
+            name="brand"
+            placeholder={t('Brand')}
+            options={brands.map((item) => item.id)}
+            getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
+            renderOption={(props, option) => (
+              <li {...props} key={option}>
+                {brands.find((item) => item.id === option)?.name || ''}
+              </li>
+            )}
+          />
+          <RHFAutocomplete
+            name="supplier"
+            placeholder={t('supplier')}
+            options={suppliers.map((item) => item.id)}
+            getOptionLabel={(option) => suppliers.find((item) => item.id === option)?.name || ''}
+            renderOption={(props, option) => (
+              <li {...props} key={option}>
+                {suppliers.find((item) => item.id === option)?.name || ''}
+              </li>
+            )}
+          />
+          {/* <RHFAutocomplete
               name="tags"
               label="Tags"
               placeholder="+ Tags"
@@ -362,10 +349,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 ))
               }
             /> */}
-          </Stack>
-        </Card>
-      </Grid>
-    </>
+        </Stack>
+      </Card>
+    </Grid>
   );
 
   const handleSelectImage = async (idList) => {
@@ -382,159 +368,133 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   };
 
   const renderImages = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('images')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('upload_images')}
-          </Typography>
-        </Grid>
-      )}
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('images')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            {/* List images with delete icon */}
+            {getValues('images')?.map((item, index) => (
+              <div key={index} style={{ position: 'relative' }}>
+                <img
+                  src={item.url}
+                  alt={`Image ${index + 1}`}
+                  style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                />
 
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title={t('pricing')} />}
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Box
-              columnGap={2}
-              rowGap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)',
-              }}
-            >
-              {/* List images with delete icon */}
-              {getValues('images')?.map((item, index) => (
-                <div key={index} style={{ position: 'relative' }}>
-                  <img
-                    src={item.url}
-                    alt={`Image ${index + 1}`}
-                    style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-                  />
-
-                  <IconButton
-                    style={{ position: 'absolute', top: 0, right: 0 }}
-                    onClick={() => handleDeleteImage(item.id)}
-                  >
-                    <Iconify icon="solar:trash-bin-trash-bold" width={24} />
-                  </IconButton>
-                </div>
-              ))}
-            </Box>
-            {/* Add Image button */}
-            <IconButton onClick={() => setImageGalleryOpen(true)}>{t('Upload Photo')}</IconButton>
-          </Stack>
-        </Card>
-      </Grid>
-    </>
+                <IconButton
+                  style={{ position: 'absolute', top: 0, right: 0 }}
+                  onClick={() => handleDeleteImage(item.id)}
+                >
+                  <Iconify icon="solar:trash-bin-trash-bold" width={24} />
+                </IconButton>
+              </div>
+            ))}
+          </Box>
+          {/* Add Image button */}
+          <IconButton onClick={() => setImageGalleryOpen(true)}>{t('Upload Photo')}</IconButton>
+        </Stack>
+      </Card>
+    </Grid>
   );
 
   const renderPricing = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('pricing')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('price_related_inputs')}
-          </Typography>
-        </Grid>
-      )}
-
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title={t('pricing')} />}
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Box
-              columnGap={2}
-              rowGap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)',
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('pricing')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFTextField
+              name="price_per_piece"
+              label={t('price_per_piece')}
+              placeholder="0.00"
+              type="number"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
               }}
-            >
-              <RHFTextField
-                name="price_per_piece"
-                label={t('price_per_piece')}
-                placeholder="0.00"
-                type="number"
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box component="span" sx={{ color: 'text.disabled' }}>
-                        €
-                      </Box>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+            />
 
-              <RHFTextField
-                name="price_per_unit"
-                label={t('price_per_unit')}
-                placeholder="0.00"
-                type="number"
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box component="span" sx={{ color: 'text.disabled' }}>
-                        €
-                      </Box>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <RHFTextField
-                name="price_consumers"
-                label={t('price_consumers')}
-                placeholder="0.00"
-                type="number"
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box component="span" sx={{ color: 'text.disabled' }}>
-                        €
-                      </Box>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <RHFTextField
-                name="price_cost"
-                label={t('price_cost')}
-                placeholder="0.00"
-                type="number"
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box component="span" sx={{ color: 'text.disabled' }}>
-                        €
-                      </Box>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <RHFTextField name="vat" label="vat" type="number" />
-            </Box>
-          </Stack>
-        </Card>
-      </Grid>
-    </>
+            <RHFTextField
+              name="price_per_unit"
+              label={t('price_per_unit')}
+              placeholder="0.00"
+              type="number"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <RHFTextField
+              name="price_consumers"
+              label={t('price_consumers')}
+              placeholder="0.00"
+              type="number"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <RHFTextField
+              name="price_cost"
+              label={t('price_cost')}
+              placeholder="0.00"
+              type="number"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <RHFTextField name="vat" label="vat" type="number" />
+          </Box>
+        </Stack>
+      </Card>
+    </Grid>
   );
 
   const renderStock = (
     <>
-      {mdUp && (
+      {/*       {mdUp && (
         <Grid md={4}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             {t('stock_and_inventory')}
@@ -544,10 +504,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           </Typography>
         </Grid>
       )}
-
-      <Grid xs={12} md={8}>
+ */}
+      <Grid xs={12}>
         <Card>
-          {!mdUp && <CardHeader title={t('stock_and_inventory')} />}
+          <CardHeader title={t('stock_and_inventory')} />
           <Stack spacing={3} sx={{ p: 3 }}>
             <Box
               columnGap={2}
@@ -615,294 +575,284 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   );
 
   const renderProperties = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('product_properties')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('product_attributes')}
-          </Typography>
-        </Grid>
-      )}
-
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title={t('product_properties')} />}
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <CountrySelect
-              label={t('languages_on_item_package')}
-              placeholder={t('select_languages')}
-              fullWidth
-              multiple
-              limitTags={2}
-              value={multiCountry}
-              onChange={(event, newValue) => setMultiCountry(newValue)}
-              options={countries.map((option) => option.label)}
-              getOptionLabel={(option) => option}
-            />
-            <Stack spacing={1.5}>
-              <Typography variant="subtitle2">{t('important_information')}</Typography>
-              <RHFEditor simple name="important_information" />
-            </Stack>
-            <Box
-              columnGap={2}
-              rowGap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFSelect name="delivery_time" label={t('delivery_time')}>
-                <MenuItem value="">None</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                {DELIVERY_CHOICES.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </RHFSelect>
-              <RHFTextField name="sell_count" label={t("sell_count")} />
-              <RHFSwitch
-                name="is_only_for_logged_in_user"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_only_for_logged_in_user')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_used"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_used')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_regular"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_regular')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_featured"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_featured')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_visible_on_web"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_visible_on_web')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_visible_on_mobile"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_visible_on_mobile')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_only_for_export"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_only_for_export')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_only_for_B2B"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_only_for_B2B')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_listed_on_marktplaats"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_listed_on_marktplaats')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_listed_on_2dehands"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_listed_on_2dehands')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-
-              <RHFSwitch
-                name="has_electronic_barcode"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('has_electronic_barcode')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-            </Box>
-            <Divider sx={{ borderStyle: 'dashed' }} />
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('product_properties')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <CountrySelect
+            label={t('languages_on_item_package')}
+            placeholder={t('select_languages')}
+            fullWidth
+            multiple
+            limitTags={2}
+            value={multiCountry}
+            onChange={(event, newValue) => setMultiCountry(newValue)}
+            options={countries.map((option) => option.label)}
+            getOptionLabel={(option) => option}
+          />
+          <Stack spacing={1.5}>
+            <Typography variant="subtitle2">{t('important_information')}</Typography>
+            <RHFEditor simple name="important_information" />
           </Stack>
-        </Card>
-      </Grid>
-    </>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFSelect name="delivery_time" label={t('delivery_time')}>
+              <MenuItem value="">None</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              {DELIVERY_CHOICES.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </RHFSelect>
+            <RHFTextField name="sell_count" label={t('sell_count')} />
+            <RHFSwitch
+              name="is_only_for_logged_in_user"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_only_for_logged_in_user')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_used"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_used')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_regular"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_regular')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_featured"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_featured')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_visible_on_web"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_visible_on_web')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_visible_on_mobile"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_visible_on_mobile')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_only_for_export"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_only_for_export')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_only_for_B2B"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_only_for_B2B')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_listed_on_marktplaats"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_listed_on_marktplaats')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_listed_on_2dehands"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_listed_on_2dehands')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+
+            <RHFSwitch
+              name="has_electronic_barcode"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('has_electronic_barcode')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+          </Box>
+          <Divider sx={{ borderStyle: 'dashed' }} />
+        </Stack>
+      </Card>
+    </Grid>
   );
 
   const renderMetrics = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('size_volume')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('pyhsical_attributes')}
-          </Typography>
-        </Grid>
-      )}
-
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title={t('size_volume')} />}
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Box
-              columnGap={2}
-              rowGap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="size_x_value" label={t('size_x_value')} />
-              <RHFTextField name="size_y_value" label={t('size_y_value')} />
-              <RHFTextField name="size_z_value" label={t('size_z_value')} />
-              <RHFTextField name="size_unit" label={t('size_unit')} />
-              <RHFTextField name="weight" label={t('weight')} />
-              <RHFTextField name="weight_unit" label={t('weight_unit')} />
-              <RHFTextField name="volume_unit" label={t('volume_unit')} />
-              <RHFTextField name="volume" label={t('volume')} />
-              <RHFSwitch
-                name="is_brief_box"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_brief_box')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-            </Box>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-          </Stack>
-        </Card>
-      </Grid>
-    </>
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('size_volume')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFTextField name="size_x_value" label={t('size_x_value')} />
+            <RHFTextField name="size_y_value" label={t('size_y_value')} />
+            <RHFTextField name="size_z_value" label={t('size_z_value')} />
+            <RHFTextField name="size_unit" label={t('size_unit')} />
+            <RHFTextField name="weight" label={t('weight')} />
+            <RHFTextField name="weight_unit" label={t('weight_unit')} />
+            <RHFTextField name="volume_unit" label={t('volume_unit')} />
+            <RHFTextField name="volume" label={t('volume')} />
+            <RHFSwitch
+              name="is_brief_box"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_brief_box')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+          </Box>
+          <Divider sx={{ borderStyle: 'dashed' }} />
+        </Stack>
+      </Card>
+    </Grid>
   );
 
   const renderMeta = (
-    <>
-      {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('meta_data')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('data_used_for_SEO')}
-          </Typography>
-        </Grid>
-      )}
-
-      <Grid xs={12} md={8}>
-        <Card>
-          {!mdUp && <CardHeader title={t('meta_data')} />}
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="meta_title" label={t('meta_title')} />
-            <RHFTextField name="meta_description" label={t('meta_description')} />
-            <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
-            <RHFTextField name="url" label={t('url')} />
-          </Stack>
-        </Card>
-      </Grid>
-    </>
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('seo_meta_data')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <RHFTextField name="meta_title" label={t('meta_title')} />
+          <RHFTextField name="meta_description" label={t('meta_description')} />
+          <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
+          <RHFTextField name="url" label={t('url')} />
+        </Stack>
+      </Card>
+    </Grid>
   );
 
   const renderActions = (
-    <>
-      {mdUp && <Grid md={4} />}
-      <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center' }}>
-        <RHFSwitch
-          name="publish"
-          labelPlacement="start"
-          label={
-            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-              {t('publish')}
-            </Typography>
-          }
-          sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-        />
-        <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
-          {!currentProduct ? t('create_product') : t('save_changes')}
-        </LoadingButton>
-      </Grid>
-    </>
+    <Grid xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
+      <RHFSwitch
+        name="publish"
+        labelPlacement="start"
+        label={
+          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+            {t('publish')}
+          </Typography>
+        }
+        sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+      />
+      <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
+        {!currentProduct ? t('create_product') : t('save_changes')}
+      </LoadingButton>
+    </Grid>
   );
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
-        {renderDetails}
+        <Grid container md={8} spacing={3}>
+          {renderDetails}
 
-        {renderImages}
+          {renderImages}
 
-        {renderPricing}
+          {renderPricing}
 
-        {renderStock}
+          {renderStock}
 
-        {renderProperties}
+          {renderProperties}
 
-        {renderMetrics}
+          {renderMetrics}
 
-        {renderMeta}
+          {renderMeta}
 
-        {renderActions}
+          {renderActions}
+        </Grid>
+        {mdUp && (
+          <Grid md={4} sx={{ display: 'flex', alignItems: 'flex-start' }}>
+            <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
+              <CardHeader title={t('preview')} />
+              <Stack>
+                <Card sx={{ padding: 3}}>
+                  <Box sx={{ position: 'unset' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
+                      <img src={getValues('images')?.[0]?.url} alt="title6773_test" />
+                      <Box sx={{ textAlign: 'left', mt: 1 }}>
+                        <Typography variant="h6" fontWeight="600" color="text.secondary">
+                          {getValues('title')}
+                        </Typography>
+                        <Typography fontSize="14px" color="text.muted">
+                          {getValues('description')}
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
+                          €{getValues('price_per_piece')}
+                        </Typography>
+                      </Box>
+
+                      {/* Actions */}
+                    </Box>
+                  </Box>
+                </Card>
+              </Stack>
+            </Card>
+          </Grid>
+        )}
       </Grid>
+
       {isImageGalleryOpen ? (
         <ImageGallery
           maxNumberOfSelectedImages={10}
