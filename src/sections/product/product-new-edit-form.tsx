@@ -1,13 +1,16 @@
+/* eslint-disable no-nested-ternary */
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, SetStateAction } from 'react';
 
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
+import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
-import { MenuItem } from '@mui/material';
 import Divider from '@mui/material/Divider';
+import { alpha, MenuItem } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
@@ -49,7 +52,7 @@ type Props = {
   currentProduct?: IProductItem;
 };
 
-export default function ProductNewEditForm({ currentProduct }: Props) {
+export default function ProductNewEditForm({ currentProduct: mainProduct }: Props) {
   const router = useRouter();
   const { items: categories } = useGetCategories();
   const { items: brands } = useGetBrands();
@@ -60,6 +63,29 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const [includeTaxes, setIncludeTaxes] = useState(false);
+  const [activeVariant, setActiveVariant] = useState(0);
+  const [currentProduct, setCurrentProduct] = useState(mainProduct);
+  console.log('currentProduct', currentProduct);
+  const [variant1, setVariant1] = useState({});
+  const [variant2, setVariant2] = useState({});
+  const [variant3, setVariant3] = useState({});
+  const currentProductVariants = currentProduct?.variants || [];
+
+  const getVariants = () => {
+    if (currentProductVariants.length) {
+      currentProductVariants.forEach(async (item) => {
+        const { data } = await axiosInstance.get(`/products/${item}/`);
+        if (data.unit === 'box') setVariant1(data);
+        if (data.unit === 'pallet_layer') setVariant2(data);
+        if (data.unit === 'pallet_full') setVariant3(data);
+      });
+    }
+  };
+
+  useEffect(() => {
+    getVariants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProduct.variants]);
 
   const DELIVERY_CHOICES = [
     { value: '0', label: t('delivery_choice_0') },
@@ -68,17 +94,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     { value: '3', label: t('delivery_choice_3') },
   ];
 
-  const UNIT_CHOICES = [
-    { value: 'piece', label: t('piece') },
-    { value: 'package', label: t('package') },
-    { value: 'box', label: t('box') },
-    { value: 'pallet_layer', label: t('pallet_layer') },
-    { value: 'pallet_full', label: t('pallet_full') },
-  ];
-
   const NewProductSchema = Yup.object().shape({
     title: Yup.string().required(t('validation.title')),
     description: Yup.string().required(t('validation.description')),
+    unit: Yup.string().required(t('validation.unit')),
     ean: Yup.string().required(t('validation.ean')),
     article_code: Yup.string().required(t('validation.articleCode')),
     // sku: Yup.string().required(t('validation.sku')),
@@ -142,12 +161,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       title_long: currentProduct?.title_long || '',
       description: currentProduct?.description || '',
       description_long: currentProduct?.description_long || '',
+      unit:
+        currentProduct?.unit ||
+        (activeVariant === 1
+          ? 'box'
+          : activeVariant === 2
+            ? 'pallet_layer'
+            : activeVariant === 3
+              ? 'pallet_full'
+              : ''),
+      parent_product: currentProduct?.parent_product || '',
       ean: currentProduct?.ean || '',
       article_code: currentProduct?.article_code || '',
       sku: currentProduct?.sku || '',
       hs_code: currentProduct?.hs_code || '',
       supplier_article_code: currentProduct?.supplier_article_code || '',
-      categories: currentProduct?.categories.map((item) => item.id) || [],
+      categories: currentProduct?.categories?.map((item) => item.id) || [],
       brand: currentProduct?.brand?.id || null,
       supplier: currentProduct?.supplier?.id || null,
       // tags: currentProduct?.tags || [],
@@ -217,6 +246,24 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
+
+  const handleVariantChange = (e: { target: { id: SetStateAction<number> } }) => {
+    const variant = Number(e.target.id);
+    setActiveVariant(variant);
+    if (variant === 0) {
+      setCurrentProduct(mainProduct);
+    }
+    if (variant === 1) {
+      setCurrentProduct(variant1);
+    }
+    if (variant === 2) {
+      setCurrentProduct(variant2);
+    }
+    if (variant === 3) {
+      setCurrentProduct(variant3);
+    }
+  };
+
   const [multiCountry, setMultiCountry] = useState<string[]>([]);
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
@@ -232,22 +279,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   useEffect(() => {
     if (currentProduct) {
       reset(defaultValues);
-      // const filtercategories = defaultValues.categories.map((item) => item.id);
-      // const findBrand = brands.find((item) => item.id === defaultValues.brand.id);
-      // const findSupplier = suppliers.find((item) => item.id === defaultValues.supplier.id);
-      // setValue('categories', filtercategories);
-      // setValue('brand', findBrand.id);
-      // setValue('supplier', findSupplier.id);
     }
   }, [currentProduct, defaultValues, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
+    console.log('handleSubmit data', data);
     try {
       const imageIds = data.images.map((item) => item.id);
       delete data.image_urls;
       data.images = imageIds;
       data.tags = [];
-      if (currentProduct) {
+      if (currentProduct?.id) {
         const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
       } else {
         const response = await axiosInstance.post('/products/', data);
@@ -264,12 +306,73 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     setIncludeTaxes(event.target.checked);
   }, []);
 
+  const renderTabs = (
+    <Tabs
+      value={activeVariant}
+      onChange={handleVariantChange}
+      sx={{
+        px: 2.5,
+        boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+      }}
+    >
+      <Tab iconPosition="end" id={0} value={0} label={t('main_product')} />
+      <Tab
+        iconPosition="end"
+        id={1}
+        value={1}
+        label={`${t('variant_1')} (${t('box')})`}
+        disabled={!currentProduct}
+      />
+      <Tab
+        iconPosition="end"
+        id={2}
+        value={2}
+        label={`${t('variant_2')} (${t('pallet_layer')})`}
+        disabled={!currentProduct}
+      />
+      <Tab
+        iconPosition="end"
+        id={3}
+        value={3}
+        label={`${t('variant_3')} (${t('pallet_full')})`}
+        disabled={!currentProduct}
+      />
+    </Tabs>
+  );
+
+  const handleImportMainProduct = () => {
+    const copyData = {
+      ...mainProduct,
+      id: '',
+      parent_product: mainProduct?.id,
+      unit:
+        activeVariant === 1
+          ? 'box'
+          : activeVariant === 2
+            ? 'pallet_layer'
+            : activeVariant === 3
+              ? 'pallet_full'
+              : '',
+    };
+    setCurrentProduct(copyData);
+  };
+
   const renderDetails = (
     <Grid xs={12}>
       <Card>
+        {activeVariant !== 0 && (
+          <Typography
+            fontSize="14px"
+            color="blue"
+            sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
+            onClick={handleImportMainProduct}
+          >
+            {t('import_data_from_main_product')}
+          </Typography>
+        )}
         <CardHeader title={t('basic_information')} />
         <Stack spacing={3} sx={{ p: 3 }}>
-          <RHFTextField name="parent_product" label={t('parent_product')} />
+          {/* <RHFTextField name="parent_product" label={t('parent_product')} /> */}
           <RHFTextField name="title" label={t('product_title')} />
           <RHFTextField name="title_long" label={t('product_title_long')} />
           <RHFTextField name="description" label={t('product_description')} />
@@ -287,6 +390,15 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
+            <RHFSelect name="unit" label={t('unit')}>
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              {activeVariant === 0 && <MenuItem value="piece">{t('piece')}</MenuItem>}
+              {activeVariant === 0 && <MenuItem value="package">{t('package')}</MenuItem>}
+              {activeVariant === 1 && <MenuItem value="box">{t('box')}</MenuItem>}
+              {activeVariant === 2 && <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>}
+              {activeVariant === 3 && <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>}
+            </RHFSelect>
             <RHFTextField name="ean" label={t('ean')} />
             <RHFTextField name="article_code" label={t('article_code')} />
             <RHFTextField name="sku" label={t('sku')} />
@@ -802,55 +914,52 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </Grid>
   );
 
+  const renderPreview = mdUp ? (
+    <Grid md={4} sx={{ display: 'flex', alignItems: 'flex-start' }}>
+      <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
+        <CardHeader title={t('preview')} />
+        <Stack>
+          <Card sx={{ padding: 3 }}>
+            <Box sx={{ position: 'unset' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
+                <img src={getValues('images')?.[0]?.url} alt="title6773_test" />
+                <Box sx={{ textAlign: 'left', mt: 1 }}>
+                  <Typography variant="h6" fontWeight="600" color="text.secondary">
+                    {getValues('title')}
+                  </Typography>
+                  <Typography fontSize="14px" color="text.muted">
+                    {getValues('description')}
+                  </Typography>
+                  <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
+                    €{getValues('price_per_piece')}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Card>
+        </Stack>
+      </Card>
+    </Grid>
+  ) : null;
+
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
+      {JSON.stringify(currentProduct.variants)}
+      {renderTabs}
+
       <Grid container spacing={3}>
         <Grid container md={8} spacing={3}>
           {renderDetails}
-
           {renderImages}
-
           {renderPricing}
-
           {renderStock}
-
           {renderProperties}
-
           {renderMetrics}
-
           {renderMeta}
-
           {renderActions}
         </Grid>
-        {mdUp && (
-          <Grid md={4} sx={{ display: 'flex', alignItems: 'flex-start' }}>
-            <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
-              <CardHeader title={t('preview')} />
-              <Stack>
-                <Card sx={{ padding: 3}}>
-                  <Box sx={{ position: 'unset' }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-                      <img src={getValues('images')?.[0]?.url} alt="title6773_test" />
-                      <Box sx={{ textAlign: 'left', mt: 1 }}>
-                        <Typography variant="h6" fontWeight="600" color="text.secondary">
-                          {getValues('title')}
-                        </Typography>
-                        <Typography fontSize="14px" color="text.muted">
-                          {getValues('description')}
-                        </Typography>
-                        <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                          €{getValues('price_per_piece')}
-                        </Typography>
-                      </Box>
 
-                      {/* Actions */}
-                    </Box>
-                  </Box>
-                </Card>
-              </Stack>
-            </Card>
-          </Grid>
-        )}
+        {renderPreview}
       </Grid>
 
       {isImageGalleryOpen ? (
