@@ -65,13 +65,13 @@ export default function ProductTableRow({
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
-            primary=<a
+            primary={<a
               target="_blank"
               href={`http://52.28.100.129:3000/nl/product/${id}`}
               rel="noreferrer"
             >
               {title}
-            </a>
+            </a>}
             secondary={description}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
