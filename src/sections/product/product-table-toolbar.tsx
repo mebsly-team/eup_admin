@@ -10,6 +10,8 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -31,6 +33,7 @@ export default function UserTableToolbar({
   roleOptions,
 }: Props) {
   const popover = usePopover();
+  const { t, onChangeLang } = useTranslate();
 
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,9 +82,9 @@ export default function UserTableToolbar({
               },
             }}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="passive">Passive</MenuItem>
+            <MenuItem value="all">{t('all')}</MenuItem>
+            <MenuItem value="active">{t('active')}</MenuItem>
+            <MenuItem value="passive">{t('inactive')}</MenuItem>
           </Select>
         </FormControl>
 
@@ -90,7 +93,7 @@ export default function UserTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search..."
+            placeholder={t('search')}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

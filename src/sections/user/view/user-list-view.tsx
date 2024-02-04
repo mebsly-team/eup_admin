@@ -45,20 +45,6 @@ import UserTableFiltersResult from '../user-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const USER_TYPES = [
-  { value: 'special', label: 'Special' },
-  { value: 'wholesaler', label: 'Wholesaler' },
-  { value: 'supermarket', label: 'Supermarket' },
-  { value: 'particular', label: 'Particular' },
-  { value: 'admin', label: 'Admin' },
-];
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'in_active', label: 'Inactive' },
-];
-
 const defaultFilters: IUserTableFilters = {
   name: '',
   role: [],
@@ -88,6 +74,19 @@ export default function UserListView() {
     { id: '', width: 88 },
   ];
 
+  const USER_TYPES = [
+    { value: 'special', label: t('special') },
+    { value: 'wholesaler', label: t('wholesaler') },
+    { value: 'supermarket', label: t('supermarket') },
+    { value: 'particular', label: t('particular') },
+    { value: 'admin', label: t('admin') },
+  ];
+
+  const STATUS_OPTIONS = [
+    { value: 'all', label: t('all') },
+    { value: 'active', label: t('active') },
+    { value: 'in_active', label: t('inactive') },
+  ];
   const dataFiltered = applyFilter({
     inputData: userList,
     comparator: getComparator(table.order, table.orderBy),

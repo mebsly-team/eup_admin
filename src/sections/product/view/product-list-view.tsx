@@ -43,11 +43,11 @@ import ProductTableFiltersResult from '../product-table-filters-result';
 // ----------------------------------------------------------------------
 
 const defaultFilters: IProductTableFilters = {
-  is_product_active: '',
+  is_product_active: 'all',
   name: undefined,
   title: '',
   description: '',
-  ean: ''
+  ean: '',
 };
 
 // ----------------------------------------------------------------------
@@ -62,6 +62,7 @@ export default function ProductListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IProductItem[]>(productList);
   const [filters, setFilters] = useState(defaultFilters);
+  console.log('filters', filters);
   const { t, onChangeLang } = useTranslate();
   const TABLE_HEAD = [
     { id: 'image', label: t('image'), width: 180 },
@@ -161,11 +162,11 @@ export default function ProductListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="List"
+          heading={t('list')}
           links={[
-            { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'Products', href: paths.dashboard.product.root },
-            { name: 'List' },
+            { name: t('dashboard'), href: paths.dashboard.root },
+            { name: t('products'), href: paths.dashboard.product.root },
+            { name: t('list') },
           ]}
           action={
             <Button
@@ -174,7 +175,7 @@ export default function ProductListView() {
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              New Product
+              {t('new_product')}
             </Button>
           }
           sx={{

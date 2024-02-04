@@ -85,7 +85,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   useEffect(() => {
     getVariants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentProduct.variants]);
+  }, [currentProduct?.variants]);
 
   const DELIVERY_CHOICES = [
     { value: '0', label: t('delivery_choice_0') },
@@ -95,64 +95,64 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   ];
 
   const NewProductSchema = Yup.object().shape({
-    title: Yup.string().required(t('validation.title')),
-    description: Yup.string().required(t('validation.description')),
-    unit: Yup.string().required(t('validation.unit')),
-    ean: Yup.string().required(t('validation.ean')),
-    article_code: Yup.string().required(t('validation.articleCode')),
-    // sku: Yup.string().required(t('validation.sku')),
-    // hs_code: Yup.string().required(t('validation.hsCode')),
-    // supplier_article_code: Yup.string().required(t('validation.supplierArticleCode')),
-    categories: Yup.array().min(1, t('validation.minCategory')),
-    brand: Yup.number().required(t('validation.brand')),
-    supplier: Yup.number().required(t('validation.supplier')),
-    // tags: Yup.array().min(2, t('validation.minTags')),
-    price_per_piece: Yup.number().moreThan(0, t('validation.moreThanZero')),
-    price_per_unit: Yup.number().moreThan(0, t('validation.moreThanZero')),
-    price_consumers: Yup.number().moreThan(0, t('validation.moreThanZero')),
-    price_cost: Yup.number().moreThan(0, t('validation.moreThanZero')),
-    vat: Yup.number().required(t('validation.vat')),
+    title: Yup.string().required(t('validation_title')),
+    description: Yup.string().required(t('validation_description')),
+    unit: Yup.string().required(t('validation_unit')),
+    ean: Yup.string().required(t('validation_ean')),
+    article_code: Yup.string().required(t('validation_articleCode')),
+    // sku: Yup.string().required(t('validation_sku')),
+    // hs_code: Yup.string().required(t('validation_hsCode')),
+    // supplier_article_code: Yup.string().required(t('validation_supplierArticleCode')),
+    categories: Yup.array().min(1, t('validation_minCategory')),
+    brand: Yup.number().required(t('validation_brand')),
+    supplier: Yup.number().required(t('validation_supplier')),
+    // tags: Yup.array().min(2, t('validation_minTags')),
+    price_per_piece: Yup.number().moreThan(0, t('validation_moreThanZero')),
+    price_per_unit: Yup.number().moreThan(0, t('validation_moreThanZero')),
+    price_consumers: Yup.number().moreThan(0, t('validation_moreThanZero')),
+    price_cost: Yup.number().moreThan(0, t('validation_moreThanZero')),
+    vat: Yup.number().required(t('validation_vat')),
 
-    overall_stock: Yup.number().required(t('validation.overallStock')),
-    free_stock: Yup.number().required(t('validation.freeStock')),
-    ordered_in_progress_stock: Yup.number().required(t('validation.orderedInProgressStock')),
-    work_in_progress_stock: Yup.number().required(t('validation.workInProgressStock')),
-    max_stock_at_rack: Yup.number().required(t('validation.maxStockAtRack')),
-    min_stock_value: Yup.number().required(t('validation.minStockValue')),
-    stock_at_supplier: Yup.number().required(t('validation.stockAtSupplier')),
+    overall_stock: Yup.number().required(t('validation_overallStock')),
+    free_stock: Yup.number().required(t('validation_freeStock')),
+    ordered_in_progress_stock: Yup.number().required(t('validation_orderedInProgressStock')),
+    work_in_progress_stock: Yup.number().required(t('validation_workInProgressStock')),
+    max_stock_at_rack: Yup.number().required(t('validation_maxStockAtRack')),
+    min_stock_value: Yup.number().required(t('validation_minStockValue')),
+    stock_at_supplier: Yup.number().required(t('validation_stockAtSupplier')),
 
-    location: Yup.string().required(t('validation.location')),
-    // extra_location: Yup.string().required(t('validation.extra_location')),
-    // stock_alert_value: Yup.number().required(t('validation.stock_alert_value')),
-    // stock_alert: Yup.boolean().required(t('validation.stock_alert')),
-    // stock_disable_when_sold_out: Yup.boolean().required(t('validation.stock_disable_when_sold_out')),
-    // stock_check: Yup.boolean().required(t('validation.stock_check')),
+    location: Yup.string().required(t('validation_location')),
+    // extra_location: Yup.string().required(t('validation_extra_location')),
+    // stock_alert_value: Yup.number().required(t('validation_stock_alert_value')),
+    // stock_alert: Yup.boolean().required(t('validation_stock_alert')),
+    // stock_disable_when_sold_out: Yup.boolean().required(t('validation_stock_disable_when_sold_out')),
+    // stock_check: Yup.boolean().required(t('validation_stock_check')),
     // important_information: Yup.string().required(t('important_information')),
-    // languages_on_item_package: Yup.string().required(t('validation.languages_on_item_package')),
-    // is_only_for_logged_in_user: Yup.boolean().required(t('validation.is_only_for_logged_in_user')),
-    // is_used: Yup.boolean().required(t('validation.is_used')),
-    // is_regular: Yup.boolean().required(t('validation.is_regular')),
-    // is_featured: Yup.boolean().required(t('validation.is_featured')),
-    // is_visible_on_web: Yup.boolean().required(t('validation.is_visible_on_web')),
-    // is_visible_on_mobile: Yup.boolean().required(t('validation.is_visible_on_mobile')),
-    // is_only_for_export: Yup.boolean().required(t('validation.is_only_for_export')),
-    // is_only_for_B2B: Yup.boolean().required(t('validation.is_only_for_B2B')),
-    // is_listed_on_marktplaats: Yup.boolean().required(t('validation.is_listed_on_marktplaats')),
-    // is_listed_on_2dehands: Yup.boolean().required(t('validation.is_listed_on_2dehands')),
-    // has_electronic_barcode: Yup.boolean().required(t('validation.has_electronic_barcode')),
-    // size_x_value: Yup.string().required(t('validation.size_x_value')),
-    // size_y_value: Yup.string().required(t('validation.size_y_value')),
-    // size_z_value: Yup.string().required(t('validation.size_z_value')),
-    // size_unit: Yup.string().required(t('validation.size_unit')),
-    // weight: Yup.string().required(t('validation.weight')),
-    // weight_unit: Yup.string().required(t('validation.weight_unit')),
-    // volume_unit: Yup.string().required(t('validation.volume_unit')),
-    // volume: Yup.string().required(t('validation.volume')),
-    // is_brief_box: Yup.boolean().required(t('validation.is_brief_box')),
-    // meta_title: Yup.string().required(t('validation.meta_title')),
-    // meta_description: Yup.string().required(t('validation.meta_description')),
-    // meta_keywords: Yup.string().required(t('validation.meta_keywords')),
-    // url: Yup.string().required(t('validation.url')),
+    // languages_on_item_package: Yup.string().required(t('validation_languages_on_item_package')),
+    // is_only_for_logged_in_user: Yup.boolean().required(t('validation_is_only_for_logged_in_user')),
+    // is_used: Yup.boolean().required(t('validation_is_used')),
+    // is_regular: Yup.boolean().required(t('validation_is_regular')),
+    // is_featured: Yup.boolean().required(t('validation_is_featured')),
+    // is_visible_on_web: Yup.boolean().required(t('validation_is_visible_on_web')),
+    // is_visible_on_mobile: Yup.boolean().required(t('validation_is_visible_on_mobile')),
+    // is_only_for_export: Yup.boolean().required(t('validation_is_only_for_export')),
+    // is_only_for_B2B: Yup.boolean().required(t('validation_is_only_for_B2B')),
+    // is_listed_on_marktplaats: Yup.boolean().required(t('validation_is_listed_on_marktplaats')),
+    // is_listed_on_2dehands: Yup.boolean().required(t('validation_is_listed_on_2dehands')),
+    // has_electronic_barcode: Yup.boolean().required(t('validation_has_electronic_barcode')),
+    // size_x_value: Yup.string().required(t('validation_size_x_value')),
+    // size_y_value: Yup.string().required(t('validation_size_y_value')),
+    // size_z_value: Yup.string().required(t('validation_size_z_value')),
+    // size_unit: Yup.string().required(t('validation_size_unit')),
+    // weight: Yup.string().required(t('validation_weight')),
+    // weight_unit: Yup.string().required(t('validation_weight_unit')),
+    // volume_unit: Yup.string().required(t('validation_volume_unit')),
+    // volume: Yup.string().required(t('validation_volume')),
+    // is_brief_box: Yup.boolean().required(t('validation_is_brief_box')),
+    // meta_title: Yup.string().required(t('validation_meta_title')),
+    // meta_description: Yup.string().required(t('validation_meta_description')),
+    // meta_keywords: Yup.string().required(t('validation_meta_keywords')),
+    // url: Yup.string().required(t('validation_url')),
   });
 
   const defaultValues = useMemo(
@@ -410,12 +410,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           <RHFMultiSelectCategory
             checkbox
             name="categories"
-            label={t('Category')}
+            label={t('category')}
             options={categories}
           />
           <RHFAutocomplete
             name="brand"
-            placeholder={t('Brand')}
+            placeholder={t('brand')}
             options={brands.map((item) => item.id)}
             getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
             renderOption={(props, option) => (
@@ -512,7 +512,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             ))}
           </Box>
           {/* Add Image button */}
-          <IconButton onClick={() => setImageGalleryOpen(true)}>{t('Upload Photo')}</IconButton>
+          <IconButton onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</IconButton>
         </Stack>
       </Card>
     </Grid>
@@ -597,7 +597,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 ),
               }}
             />
-            <RHFTextField name="vat" label="vat" type="number" />
+            <RHFTextField name="vat" label={t('vat')} type="number" />
           </Box>
         </Stack>
       </Card>
@@ -922,7 +922,9 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           <Card sx={{ padding: 3 }}>
             <Box sx={{ position: 'unset' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-                <img src={getValues('images')?.[0]?.url} alt="title6773_test" />
+                {getValues('images')?.[0]?.url && (
+                  <img src={getValues('images')?.[0]?.url} alt="" />
+                )}
                 <Box sx={{ textAlign: 'left', mt: 1 }}>
                   <Typography variant="h6" fontWeight="600" color="text.secondary">
                     {getValues('title')}
@@ -930,9 +932,11 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                   <Typography fontSize="14px" color="text.muted">
                     {getValues('description')}
                   </Typography>
-                  <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                    €{getValues('price_per_piece')}
-                  </Typography>
+                  {getValues('price_per_piece') ? (
+                    <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
+                      €{getValues('price_per_piece')}
+                    </Typography>
+                  ) : null}
                 </Box>
               </Box>
             </Box>
@@ -944,7 +948,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
-      {JSON.stringify(currentProduct.variants)}
       {renderTabs}
 
       <Grid container spacing={3}>
