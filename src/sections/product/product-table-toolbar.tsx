@@ -10,6 +10,8 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 
+import axiosInstance from 'src/utils/axios';
+
 import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
@@ -48,6 +50,24 @@ export default function UserTableToolbar({
     },
     [onFilters]
   );
+
+  const handleDownload = async () => {
+    try {
+      const response = await axiosInstance.get('export/products/', { responseType: 'blob' });
+      console.log('response', response);
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'products.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error(error);
+      // Handle errors as needed
+    }
+  };
 
   return (
     <>
@@ -135,6 +155,7 @@ export default function UserTableToolbar({
 
         <MenuItem
           onClick={() => {
+            handleDownload();
             popover.onClose();
           }}
         >
