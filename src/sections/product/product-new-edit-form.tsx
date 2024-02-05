@@ -395,6 +395,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               <Divider sx={{ borderStyle: 'dashed' }} />
               {activeVariant === 0 && <MenuItem value="piece">{t('piece')}</MenuItem>}
               {activeVariant === 0 && <MenuItem value="package">{t('package')}</MenuItem>}
+              {activeVariant === 0 && <MenuItem value="rol">{t('rol')}</MenuItem>}
               {activeVariant === 1 && <MenuItem value="box">{t('box')}</MenuItem>}
               {activeVariant === 2 && <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>}
               {activeVariant === 3 && <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>}
@@ -597,7 +598,13 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 ),
               }}
             />
-            <RHFTextField name="vat" label={t('vat')} type="number" />
+            <RHFSelect name="vat" label={t('vat')}>
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              <MenuItem value={0}>0</MenuItem>
+              <MenuItem value={9}>9</MenuItem>
+              <MenuItem value={21}>21</MenuItem>
+            </RHFSelect>
           </Box>
         </Stack>
       </Card>
