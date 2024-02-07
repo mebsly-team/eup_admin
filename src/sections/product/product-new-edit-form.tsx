@@ -184,11 +184,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       // tags: currentProduct?.tags || [],
       image_urls: currentProduct?.image_urls || [],
       images: currentProduct?.images || [],
+      quantity_per_unit: activeVariant === 0 ? 1 : currentProduct?.quantity_per_unit || 0,
       price_per_piece: currentProduct?.price_per_piece || 0,
       price_per_unit: currentProduct?.price_per_unit || 0,
       price_consumers: currentProduct?.price_consumers || 0,
       price_cost: currentProduct?.price_cost || 0,
-      vat: currentProduct?.vat || null,
+      vat: Number(currentProduct?.vat || 0),
       overall_stock: currentProduct?.overall_stock || 0,
       expiry_date: currentProduct?.expiry_date || null,
       free_stock: currentProduct?.free_stock || 0,
@@ -473,11 +474,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   );
 
   const handleSelectImage = (idList = []) => {
-    idList.forEach(async element => {
+    idList.forEach(async (element) => {
       const { data } = await axiosInstance.get(`/images/${element}/`);
       const imageList = getValues('images');
       setValue('images', [...imageList, data]);
-      
     });
     setImageGalleryOpen(false);
   };
@@ -546,6 +546,15 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               label={t('price_per_piece')}
               placeholder="0.00"
               type="number"
+              value={getValues('price_per_piece')}
+              onChange={(e) => {
+                setValue('price_per_piece', Number(e.target.value));
+                setValue('price_per_unit', Number(e.target.value) * getValues('quantity_per_unit'));
+                setValue(
+                  'price_consumers',
+                  Number(e.target.value) * getValues('quantity_per_unit') * 1.75
+                );
+              }}
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
@@ -557,8 +566,28 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 ),
               }}
             />
+            <RHFTextField
+              name="quantity_per_unit"
+              label={t('quantity_per_unit')}
+              placeholder="0.00"
+              type="number"
+              value={getValues('quantity_per_unit')}
+              onChange={(e) => {
+                setValue('quantity_per_unit', Number(e.target.value));
+                setValue(
+                  'price_per_unit',
+                  Number(e.target.value) * Number(getValues('price_per_piece'))
+                );
+                setValue(
+                  'price_consumers',
+                  Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75
+                );
+              }}
+              InputLabelProps={{ shrink: true }}
+            />
 
             <RHFTextField
+              disabled
               name="price_per_unit"
               label={t('price_per_unit')}
               placeholder="0.00"
@@ -796,7 +825,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
-      {/*       <RHFSwitch
+            {/*       <RHFSwitch
               name="is_visible_on_mobile"
               labelPlacement="start"
               label={
