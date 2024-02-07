@@ -1,5 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import * as Yup from 'yup';
+import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMemo, useState, useEffect, useCallback, SetStateAction } from 'react';
@@ -17,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -33,8 +35,8 @@ import { useGetCategories } from 'src/api/category';
 
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
+import ImageGallery from 'src/components/imageGallery';
 import CountrySelect from 'src/components/country-select';
-import ImageGallery from 'src/components/imageGallery/index.tsx';
 import FormProvider, {
   RHFEditor,
   RHFSelect,
@@ -188,6 +190,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       price_cost: currentProduct?.price_cost || 0,
       vat: currentProduct?.vat || null,
       overall_stock: currentProduct?.overall_stock || 0,
+      expiry_date: currentProduct?.expiry_date || null,
       free_stock: currentProduct?.free_stock || 0,
       ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0,
       work_in_progress_stock: currentProduct?.work_in_progress_stock || 0,
@@ -285,6 +288,8 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const onSubmit = handleSubmit(async (data) => {
     console.log('handleSubmit data', data);
     try {
+      const ex_date = format(new Date(data.expiry_date), 'yyyy-MM-dd');
+      data.expiry_date = ex_date;
       const imageIds = data.images.map((item) => item.id);
       delete data.image_urls;
       data.images = imageIds;
@@ -467,10 +472,13 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     </Grid>
   );
 
-  const handleSelectImage = async (idList) => {
-    const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
-    const imageList = getValues('images');
-    setValue('images', [...imageList, data]);
+  const handleSelectImage = (idList = []) => {
+    idList.forEach(async element => {
+      const { data } = await axiosInstance.get(`/images/${element}/`);
+      const imageList = getValues('images');
+      setValue('images', [...imageList, data]);
+      
+    });
     setImageGalleryOpen(false);
   };
   const handleDeleteImage = (index) => {
@@ -732,6 +740,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               ))}
             </RHFSelect>
             <RHFTextField name="sell_count" label={t('sell_count')} />
+            <DatePicker
+              label={t('expiry_date')}
+              value={new Date(getValues('expiry_date'))}
+              format="dd/MM/yyyy"
+              onChange={(newValue) => setValue('expiry_date', newValue)}
+            />
             <RHFSwitch
               name="is_only_for_logged_in_user"
               labelPlacement="start"
@@ -782,7 +796,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
-            <RHFSwitch
+      {/*       <RHFSwitch
               name="is_visible_on_mobile"
               labelPlacement="start"
               label={
@@ -791,7 +805,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
+            /> */}
             <RHFSwitch
               name="is_only_for_export"
               labelPlacement="start"

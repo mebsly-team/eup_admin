@@ -102,11 +102,16 @@ export default function ImageGallery({
       setUploadError(null);
 
       const formData = new FormData();
-      // formData.append("image", selectedFile);
+      // TODO: fix
+      formData.append('image', selectedFile);
       formData.append('url', selectedFile);
 
       // Make a POST request to the image upload endpoint
-      await axiosInstance.post('/images/new/', formData);
+      await axiosInstance.post('/images/new/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
 
       // If successful, you might want to refresh the image list or take other actions
       getAll();
