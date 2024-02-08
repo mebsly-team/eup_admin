@@ -85,7 +85,9 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const [variant3, setVariant3] = useState({});
   const currentProductVariants = currentProduct?.variants || [];
   const [openDialog, setOpenDialog] = useState(false);
-
+  const parent_price_per_piece = Number(
+    currentProduct?.parent_price_per_piece || mainProduct?.price_per_unit || 0
+  );
   const getVariants = () => {
     if (currentProductVariants.length) {
       currentProductVariants.forEach(async (item) => {
@@ -100,7 +102,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   useEffect(() => {
     getVariants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentProduct?.variants]);
+  }, [mainProduct?.variants, currentProduct?.variants, activeVariant]);
 
   const DELIVERY_CHOICES = [
     { value: '0', label: t('delivery_choice_0') },
@@ -198,6 +200,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       image_urls: currentProduct?.image_urls || [],
       images: currentProduct?.images || [],
       quantity_per_unit: activeVariant === 0 ? 1 : currentProduct?.quantity_per_unit || 0,
+      variant_discount: currentProduct?.variant_discount || null,
       price_per_piece: currentProduct?.price_per_piece || 0,
       price_per_unit: currentProduct?.price_per_unit || 0,
       price_consumers: currentProduct?.price_consumers || 0,
@@ -590,7 +593,51 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               md: 'repeat(2, 1fr)',
             }}
           >
+            {Number(activeVariant) > 0 ? (
+              <RHFTextField
+                name="variant_discount"
+                label={t('variant_discount')}
+                placeholder="0.00"
+                type="number"
+                value={getValues('variant_discount')}
+                onChange={(e) => {
+                  setValue('variant_discount', e.target.value);
+                  setValue(
+                    'price_per_piece',
+                    roundUp((1 - Number(e.target.value) / 100) * parent_price_per_piece)
+                  );
+                  setValue(
+                    'price_per_unit',
+                    roundUp(
+                      (1 - Number(e.target.value) / 100) *
+                        Number(getValues('quantity_per_unit')) *
+                        parent_price_per_piece
+                    )
+                  );
+                  setValue(
+                    'price_consumers',
+                    roundUp(
+                      (1 - Number(e.target.value) / 100) *
+                        Number(getValues('quantity_per_unit')) *
+                        1.75 *
+                        parent_price_per_piece
+                    )
+                  );
+                }}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box component="span" sx={{ color: 'text.disabled' }}>
+                        %
+                      </Box>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            ) : null}
             <RHFTextField
+              disabled={Number(activeVariant) > 0}
               name="price_per_piece"
               label={t('price_per_piece')}
               placeholder="0.00"
@@ -1150,3 +1197,5 @@ const findCategory = (categories, categoryId) => {
   }
   return null;
 };
+
+const roundUp = (num) => Math.round(num * 100) / 100;

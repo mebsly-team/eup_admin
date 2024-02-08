@@ -332,6 +332,7 @@
   "validation_supplier": "Leverancier is verplicht",
   "validation_supplierArticleCode": "Leveranciersartikelcode is verplicht",
   "validation_vat": "BTW is ongeldig",
+  "variant_discount": "VariantKorting",
   "vat": "BTW",
   "vat_is_required": "BTW is verplicht",
   "view_edit": "Bewerken",
