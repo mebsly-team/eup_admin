@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import { Typography } from '@mui/material';
+import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -47,7 +46,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     name: Yup.string().required(t('name_required')),
     icon: Yup.string().required(t('icon_required')),
     description: Yup.string(),
-    image: Yup.mixed<any>().nullable(),
+    image: Yup.mixed().required(t('image_required')),
   });
 
   const defaultValues = useMemo(
@@ -71,7 +70,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     control,
     setValue,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     ...rest
   } = methods;
 
@@ -96,7 +95,9 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     const finalData = {
-      ...data, image: selectedImage?.id, "parent_category": selectedParentCategory
+      ...data,
+      image: selectedImage?.id,
+      parent_category: selectedParentCategory,
     }; // Include selected parent category in the final data
     try {
       if (currentCategory) {
@@ -109,7 +110,23 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
       reset();
       router.push(paths.dashboard.category.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: t('error') });
+      if (error) {
+        console.log('error', error);
+        const errorData = error;
+        if (errorData) {
+          Object.entries(errorData).forEach(([fieldName, errors]) => {
+            errors.forEach((errorMsg) => {
+              enqueueSnackbar({
+                variant: 'error',
+                message: `${t(fieldName)}: ${errorMsg}`,
+              });
+            });
+          });
+        }
+      } else {
+        console.error('Error:', error.message);
+        enqueueSnackbar({ variant: 'error', message: t('error') });
+      }
     }
   });
 
@@ -130,7 +147,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               <RHFTextField name="name" label={t('name')} />
               <RHFTextField name="icon" label={t('icon')} />
               <RHFTextField name="description" label={t('description')} />
-       
+
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">{t('parent_category')}</Typography>
                 <Select
@@ -146,9 +163,10 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                 </Select>
               </Stack>
               <Stack spacing={1.5}>
-                <Typography variant="subtitle2">{t("image")}</Typography>
+                <Typography variant="subtitle2">{t('image')}</Typography>
                 <Image src={selectedImage?.url || currentCategory?.image} />
                 <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
+                {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
               </Stack>
             </Box>
 
