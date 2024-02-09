@@ -88,6 +88,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const parent_price_per_piece = Number(
     currentProduct?.parent_price_per_piece || mainProduct?.price_per_unit || 0
   );
+
   const getVariants = () => {
     if (currentProductVariants.length) {
       currentProductVariants.forEach(async (item) => {
@@ -266,6 +267,60 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
+
+  useEffect(() => {
+    const calculateVolume = () => {
+      const sizeX = parseFloat(watch('size_x_value') || 0);
+      const sizeY = parseFloat(watch('size_y_value') || 0);
+      const sizeZ = parseFloat(watch('size_z_value') || 0);
+      const unit = watch('size_unit');
+      const weight = parseFloat(watch('weight') || 0);
+      const weightUnit = watch('weight_unit');
+
+      let calculatedVolume = 0;
+      let calculatedVolumeUnit = '';
+      let isBriefBox = true;
+
+      if (unit === 'mm') {
+        calculatedVolume = (sizeX * sizeY * sizeZ) / 1000000; // Conversion from mm^3 to cm^3
+        calculatedVolumeUnit = 'cm^3';
+        isBriefBox =
+          sizeX <= 264 &&
+          sizeY <= 380 &&
+          sizeZ <= 32 &&
+          (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
+      } else if (unit === 'cm') {
+        calculatedVolume = sizeX * sizeY * sizeZ;
+        calculatedVolumeUnit = 'cm^3';
+        isBriefBox =
+          sizeX <= 26.4 &&
+          sizeY <= 38 &&
+          sizeZ <= 3.2 &&
+          (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
+      } else if (unit === 'm') {
+        calculatedVolume = sizeX * sizeY * sizeZ;
+        calculatedVolumeUnit = 'm^3';
+        isBriefBox =
+          sizeX <= 0.264 &&
+          sizeY <= 0.38 &&
+          sizeZ <= 0.32 &&
+          (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
+      }
+
+      setValue('volume', calculatedVolume.toFixed(2)); // Setting the calculated volume in the form
+      setValue('volume_unit', calculatedVolumeUnit); // Setting the calculated volume unit
+      setValue('is_brief_box', isBriefBox); // Setting is_brief_box based on size and weight
+    };
+
+    calculateVolume();
+  }, [
+    watch('size_unit'),
+    watch('size_x_value'),
+    watch('size_y_value'),
+    watch('size_z_value'),
+    watch('weight'),
+    watch('weight_unit'),
+  ]);
 
   const handleVariantChange = (e: { target: { id: SetStateAction<number> } }) => {
     const variant = Number(e.target.id);
@@ -1003,14 +1058,33 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               md: 'repeat(2, 1fr)',
             }}
           >
+            <RHFSelect name="size_unit" label={t('size_unit')}>
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              <MenuItem value="mm">{t('mm')}</MenuItem>
+              <MenuItem value="cm">{t('cm')}</MenuItem>
+              <MenuItem value="m">{t('m')}</MenuItem>
+            </RHFSelect>
             <RHFTextField name="size_x_value" label={t('size_x_value')} />
             <RHFTextField name="size_y_value" label={t('size_y_value')} />
             <RHFTextField name="size_z_value" label={t('size_z_value')} />
-            <RHFTextField name="size_unit" label={t('size_unit')} />
+            <RHFTextField sx={{ pointerEvents: 'none' }} name="volume" label={t('volume')} />
+            <RHFTextField
+              sx={{ pointerEvents: 'none' }}
+              name="volume_unit"
+              label={t('volume_unit')}
+            />
+            <Divider sx={{ borderStyle: 'dashed' }} />
+            <Divider sx={{ borderStyle: 'dashed' }} />
+
             <RHFTextField name="weight" label={t('weight')} />
-            <RHFTextField name="weight_unit" label={t('weight_unit')} />
-            <RHFTextField name="volume_unit" label={t('volume_unit')} />
-            <RHFTextField name="volume" label={t('volume')} />
+            <RHFSelect name="weight_unit" label={t('weight_unit')}>
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              <MenuItem value="gr">{t('gr')}</MenuItem>
+              <MenuItem value="kg">{t('kg')}</MenuItem>
+            </RHFSelect>
+
             <RHFSwitch
               name="is_brief_box"
               labelPlacement="start"
