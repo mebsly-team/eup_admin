@@ -322,6 +322,11 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     watch('weight_unit'),
   ]);
 
+  useEffect(() => {
+    setValue('meta_title', `${watch('title')} EAN:${watch('ean')}`);
+    setValue('meta_description', `${watch('title_long')} EAN:${watch('ean')}`);
+  }, [watch('title'), watch('title_long'), watch('ean')]);
+
   const handleVariantChange = (e: { target: { id: SetStateAction<number> } }) => {
     const variant = Number(e.target.id);
     setActiveVariant(variant);
@@ -619,7 +624,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 />
 
                 <IconButton
-                  style={{ position: 'absolute', top: 0, right: 0 }}
+                  style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
                   onClick={() => handleDeleteImage(item.id)}
                 >
                   <Iconify icon="solar:trash-bin-trash-bold" width={24} />
@@ -1110,7 +1115,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           <RHFTextField name="meta_title" label={t('meta_title')} />
           <RHFTextField name="meta_description" label={t('meta_description')} />
           <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
-          <RHFTextField name="url" label={t('url')} />
+          {/* <RHFTextField name="url" label={t('url')} /> */}
         </Stack>
       </Card>
     </Grid>

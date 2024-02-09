@@ -109,8 +109,8 @@ export default function ImageGallery({
       // Make a POST request to the image upload endpoint
       await axiosInstance.post('/images/new/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       // If successful, you might want to refresh the image list or take other actions
@@ -158,6 +158,7 @@ export default function ImageGallery({
                   cursor: 'pointer',
                   position: 'relative',
                 }}
+                onDoubleClick={() => onSelect([image.id])}
               >
                 <Checkbox
                   checked={selectedImages.includes(image.id)}
@@ -167,9 +168,11 @@ export default function ImageGallery({
                     top: theme.spacing(1),
                     left: theme.spacing(1),
                     zIndex: 10,
+                    background: 'black',
                     color: 'white',
+                    'mix-blend-mode': 'difference',
                     '&.Mui-checked': {
-                      color: 'white',
+                      color: 'cyan',
                     },
                   }}
                 />
