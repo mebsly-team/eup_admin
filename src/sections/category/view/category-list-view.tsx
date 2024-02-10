@@ -28,7 +28,6 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import {
   useTable,
-  getComparator,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
@@ -64,22 +63,16 @@ export default function CategoryListView() {
   const [filters, setFilters] = useState(defaultFilters);
   const { t, onChangeLang } = useTranslate();
 
-  const dataFiltered =
-    applyFilter({
-      inputData: categoryList,
-      comparator: getComparator(table.order, table.orderBy),
-      filters,
-    }) || [];
   const TABLE_HEAD = [
     { id: 'id', label: 'ID', width: 180, align: 'center' },
-    { id: 'image', label: t("image"), width: 180 },
-    { id: 'name', label: t("naam") },
+    { id: 'image', label: t('image'), width: 180 },
+    { id: 'name', label: t('naam') },
     // { id: 'parent_category', label: 'Parent' },
-    { id: 'sub_categories', label: t("subcategorieën") },
+    { id: 'sub_categories', label: t('subcategorieën') },
     // { id: 'description', label: 'Description', width: 220 },
   ];
   const dataInPage =
-    dataFiltered?.slice(
+    categoryList?.slice(
       table.page * table.rowsPerPage,
       table.page * table.rowsPerPage + table.rowsPerPage
     ) || [];
@@ -92,17 +85,20 @@ export default function CategoryListView() {
 
   useEffect(() => {
     getAll();
-  }, [filters, table.page, table.rowsPerPage]);
+  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
   console.log('categoryList', categoryList);
 
   const getAll = async () => {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const orderByParam = table.orderBy
+      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
+      : '';
     try {
       const { data } = await axiosInstance.get(
         `/categories/?limit=${table.rowsPerPage}&offset=${
           table.rowsPerPage * table.page
-        }${searchFilter}`
+        }${searchFilter}${orderByParam}`
       );
       console.log('data', data);
       setCount(data.count || 0);
@@ -280,36 +276,4 @@ export default function CategoryListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: ICategoryItem[];
-  comparator: (a: any, b: any) => number;
-  filters: ICategoryTableFilters;
-}) {
-  const { name } = filters;
-
-  const stabilizedThis = inputData?.map((el, index) => [el, index] as const);
-
-  stabilizedThis?.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis?.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData?.filter(
-      (category) => category.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }

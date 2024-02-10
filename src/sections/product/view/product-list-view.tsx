@@ -28,7 +28,6 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import {
   useTable,
-  getComparator,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
@@ -72,13 +71,8 @@ export default function ProductListView() {
     { id: 'overall_stock', label: t('free_all_stock') },
     { id: 'is_product_active', label: `${t('active')}?` },
   ];
-  const dataFiltered = applyFilter({
-    inputData: productList,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
 
-  const dataInPage = dataFiltered.slice(
+  const dataInPage = productList.slice(
     table.page * table.rowsPerPage,
     table.page * table.rowsPerPage + table.rowsPerPage
   );
@@ -91,7 +85,7 @@ export default function ProductListView() {
 
   useEffect(() => {
     getAll();
-  }, [filters, table.page, table.rowsPerPage]);
+  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
   console.log('productList', productList);
 
@@ -100,11 +94,14 @@ export default function ProductListView() {
       filters.is_product_active !== 'all'
         ? `&is_product_active=${filters.is_product_active === 'active'}`
         : '';
+    const orderByParam = table.orderBy
+      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
+      : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const { data } = await axiosInstance.get(
       `/products/?limit=${table.rowsPerPage}&offset=${
         table.page * table.rowsPerPage
-      }${searchFilter}${statusFilter}`
+      }${searchFilter}${statusFilter}${orderByParam}`
     );
     setCount(data.count);
     setProductList(data.results);
@@ -147,9 +144,9 @@ export default function ProductListView() {
 
     table.onUpdatePageDeleteRows({
       totalRowsInPage: dataInPage?.length,
-      totalRowsFiltered: dataFiltered?.length,
+      totalRowsFiltered: productList?.length,
     });
-  }, [dataFiltered?.length, dataInPage?.length, enqueueSnackbar, table, tableData]);
+  }, [productList?.length, dataInPage?.length, enqueueSnackbar, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -290,36 +287,4 @@ export default function ProductListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IProductItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IProductTableFilters;
-}) {
-  const { title, description } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (title) {
-    inputData = inputData.filter(
-      (product) => product.title.toLowerCase().indexOf(title.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }

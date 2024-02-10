@@ -28,7 +28,6 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import {
   useTable,
-  getComparator,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
@@ -65,13 +64,7 @@ export default function BrandListView() {
     // { id: 'description', label: 'Description', width: 220 },
   ];
 
-  const dataFiltered = applyFilter({
-    inputData: brandList,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
+  const dataInPage = brandList.slice(
     table.page * table.rowsPerPage,
     table.page * table.rowsPerPage + table.rowsPerPage
   );
@@ -84,14 +77,17 @@ export default function BrandListView() {
 
   useEffect(() => {
     getAll();
-  }, [filters, table.page, table.rowsPerPage]);
-
-  console.log('brandList', brandList);
+  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
   const getAll = async () => {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const orderByParam = table.orderBy
+      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
+      : '';
     const { data } = await axiosInstance.get(
-      `/brands/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage}${searchFilter}`
+      `/brands/?limit=${table.rowsPerPage}&offset=${
+        table.page * table.rowsPerPage
+      }${searchFilter}${orderByParam}`
     );
     setCount(data.count);
     setBrandList(data.results);
@@ -122,7 +118,7 @@ export default function BrandListView() {
 
       // table.onUpdatePageDeleteRow(dataInPage?.length);
     },
-    [dataInPage?.length, enqueueSnackbar, table, brandList]
+    [brandList, enqueueSnackbar, t, getAll]
   );
 
   const handleDeleteRows = useCallback(() => {
@@ -134,9 +130,9 @@ export default function BrandListView() {
 
     table.onUpdatePageDeleteRows({
       totalRowsInPage: dataInPage?.length,
-      totalRowsFiltered: dataFiltered?.length,
+      totalRowsFiltered: brandList?.length,
     });
-  }, [dataFiltered?.length, dataInPage?.length, enqueueSnackbar, table, tableData]);
+  }, [brandList?.length, dataInPage?.length, enqueueSnackbar, t, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -277,36 +273,4 @@ export default function BrandListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IBrandItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IBrandTableFilters;
-}) {
-  const { first_name } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (brand) => brand.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }

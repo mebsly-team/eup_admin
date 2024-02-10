@@ -31,7 +31,6 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import {
   useTable,
-  getComparator,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
@@ -66,7 +65,7 @@ export default function UserListView() {
   const { t, onChangeLang } = useTranslate();
 
   const TABLE_HEAD = [
-    { id: 'fullname', label: t('name_type') },
+    { id: 'name', label: t('name_type') },
     { id: 'email', label: t('email_phone'), width: 180 },
     { id: 'company', label: t('poc'), width: 220 },
     { id: 'type', label: t('kvk_vat'), width: 180 },
@@ -87,13 +86,8 @@ export default function UserListView() {
     { value: 'active', label: t('active') },
     { value: 'in_active', label: t('inactive') },
   ];
-  const dataFiltered = applyFilter({
-    inputData: userList,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
 
-  const dataInPage = dataFiltered.slice(
+  const dataInPage = userList.slice(
     table.page * table.rowsPerPage,
     table.page * table.rowsPerPage + table.rowsPerPage
   );
@@ -106,19 +100,22 @@ export default function UserListView() {
 
   useEffect(() => {
     getAll();
-  }, [filters, table.page, table.rowsPerPage]);
+  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
   console.log('userList', userList);
 
   const getAll = async () => {
     const statusFilter =
       filters.status !== 'all' ? `&is_active=${filters.status === 'active'}` : '';
+    const orderByParam = table.orderBy
+      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
+      : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const { data } = await axiosInstance.get(
       `/users/?limit=${table.rowsPerPage}&page=${
         table.page + 1
-      }&offset=0${typeFilter}${searchFilter}${statusFilter}`
+      }&offset=0${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
     );
     setCount(data.count);
     setUserList(data.results);
@@ -162,9 +159,9 @@ export default function UserListView() {
 
     table.onUpdatePageDeleteRows({
       totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: dataFiltered.length,
+      totalRowsFiltered: userList.length,
     });
-  }, [dataFiltered.length, dataInPage.length, enqueueSnackbar, table, tableData]);
+  }, [userList.length, dataInPage.length, enqueueSnackbar, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -352,44 +349,4 @@ export default function UserListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IUserItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IUserTableFilters;
-}) {
-  const { first_name, status, role } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (first_name) {
-    inputData = inputData.filter(
-      (user) => user.first_name.toLowerCase().indexOf(first_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (status !== 'all') {
-    inputData = inputData.filter((user) => user.status === status);
-  }
-
-  if (role.length) {
-    inputData = inputData.filter((user) => role.includes(user.role));
-  }
-
-  return inputData;
 }

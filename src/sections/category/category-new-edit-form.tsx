@@ -86,7 +86,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
 
   const getAllCategories = async () => {
     try {
-      const { data } = await axiosInstance.get(`/categories/`);
+      const { data } = await axiosInstance.get(`/categories/?ordering=name`);
       setParentCategories(data);
     } catch {
       enqueueSnackbar({ variant: 'error', message: t('error') });
