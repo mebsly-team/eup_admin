@@ -47,7 +47,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
       // id: currentBrand?.id || null,
       name: currentBrand?.name || '',
       description: currentBrand?.description || '',
-      logo: currentBrand?.logo || null,
+      logo: currentBrand?.logo_url || null,
     }),
     [currentBrand]
   );
@@ -62,15 +62,17 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
     control,
     setValue,
     handleSubmit,
+    getValues,
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
-  
-  console.log('errors', errors)
+
+  console.log('getValues', getValues());
   const handleSelectImage = async (idList) => {
     const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
     setSelectedImage(data);
     setImageGalleryOpen(false);
+    setValue('logo', data?.url);
   };
 
   const onSubmit = handleSubmit(async (data) => {
@@ -124,7 +126,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               <RHFTextField name="description" label={t('description')} />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Logo</Typography>
-                {selectedImage ? <Image src={selectedImage?.url} /> : null}
+                <Image src={selectedImage ? selectedImage?.url : getValues('logo')} />
                 <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
                 {errors?.logo && <Typography color="error">{errors?.logo?.message}</Typography>}
               </Stack>
