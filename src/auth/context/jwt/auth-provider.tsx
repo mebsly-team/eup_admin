@@ -2,6 +2,8 @@ import { useMemo, useEffect, useReducer, useCallback } from 'react';
 
 import axios, { endpoints } from 'src/utils/axios';
 
+import { ASSETS_API } from 'src/config-global';
+
 import { AuthContext } from './auth-context';
 import { setSession, isValidToken } from './utils';
 import { AuthUserType, ActionMapType, AuthStateType } from '../../types';
@@ -53,7 +55,7 @@ const reducer = (state: AuthStateType, action: ActionsType) => {
   if (action.type === Types.LOGIN) {
     return {
       ...state,
-      user: action.payload,
+      user: action.payload.user,
     };
   }
   if (action.type === Types.REGISTER) {
@@ -92,11 +94,13 @@ export function AuthProvider({ children }: Props) {
 
         // const { user } = res.data;
 
+        const savedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
         dispatch({
           type: Types.INITIAL,
           payload: {
             user: {
               accessToken,
+              ...savedUser,
             },
           },
         });
@@ -132,15 +136,23 @@ export function AuthProvider({ children }: Props) {
 
     const res = await axios.post(endpoints.auth.login, data);
 
-    const { access, refresh } = res.data;
+    const { access, refresh, user } = res.data;
 
     setSession(access);
+    const userData = {
+      id: user?.id,
+      photoURL: `${ASSETS_API}/assets/images/avatar/avatar_25.jpg`,
+      displayName: user?.displayName || 'Admin',
+      email: user?.email,
+      type: user?.type,
+    };
+    sessionStorage.setItem('user', JSON.stringify(userData));
 
     dispatch({
       type: Types.LOGIN,
       payload: {
         user: {
-          ...data,
+          ...userData,
           access,
         },
       },

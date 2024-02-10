@@ -1,13 +1,9 @@
-import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
-
-import { MotivationIllustration } from 'src/assets/illustrations';
+import { useAuthContext } from 'src/auth/hooks';
 import {
-  _ecommerceNewProducts,
   _ecommerceBestSalesman,
   _ecommerceSalesOverview,
   _ecommerceLatestProducts,
@@ -15,8 +11,6 @@ import {
 
 import { useSettingsContext } from 'src/components/settings';
 
-import EcommerceWelcome from '../ecommerce-welcome';
-import EcommerceNewProducts from '../ecommerce-new-products';
 import EcommerceYearlySales from '../ecommerce-yearly-sales';
 import EcommerceBestSalesman from '../ecommerce-best-salesman';
 import EcommerceSaleByGender from '../ecommerce-sale-by-gender';
@@ -28,7 +22,7 @@ import EcommerceCurrentBalance from '../ecommerce-current-balance';
 // ----------------------------------------------------------------------
 
 export default function OverviewEcommerceView() {
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
 
   const theme = useTheme();
 

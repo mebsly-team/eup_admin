@@ -7,8 +7,7 @@ import Tabs, { tabsClasses } from '@mui/material/Tabs';
 
 import { paths } from 'src/routes/paths';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
-
+import { useAuthContext } from 'src/auth/hooks';
 import { _userAbout, _userFeeds, _userFriends, _userGallery, _userFollowers } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
@@ -51,7 +50,8 @@ const TABS = [
 export default function UserProfileView() {
   const settings = useSettingsContext();
 
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
+  console.log('user', user);
 
   const [searchFriends, setSearchFriends] = useState('');
 
