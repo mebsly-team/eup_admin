@@ -178,7 +178,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       title: currentProduct?.title || '',
       title_long: currentProduct?.title_long || '',
       description: currentProduct?.description || '',
-      description_long: currentProduct?.description_long || '',
+      // description_long: currentProduct?.description_long || '',
       unit:
         currentProduct?.unit ||
         (activeVariant === 1
@@ -458,10 +458,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           <RHFTextField name="title" label={t('product_title')} />
           <RHFTextField name="title_long" label={t('product_title_long')} />
           <RHFTextField name="description" label={t('product_description')} />
-          <Stack spacing={1.5}>
+          {/* <Stack spacing={1.5}>
             <Typography variant="subtitle2">{t('description_long')}</Typography>
             <RHFEditor simple name="description_long" />
-          </Stack>
+          </Stack> */}
           <Divider sx={{ borderStyle: 'dashed' }} />
           <Box
             columnGap={2}
