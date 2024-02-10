@@ -13,6 +13,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { formHelperTextClasses } from '@mui/material/FormHelperText';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -36,6 +38,7 @@ export default function InvoiceTableToolbar({
   serviceOptions,
 }: Props) {
   const popover = usePopover();
+  const { t, onChangeLang } = useTranslate();
 
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,7 +173,7 @@ export default function InvoiceTableToolbar({
           }}
         >
           <Iconify icon="solar:printer-minimalistic-bold" />
-          Print
+          {t('print')}
         </MenuItem>
 
         <MenuItem
@@ -179,7 +182,7 @@ export default function InvoiceTableToolbar({
           }}
         >
           <Iconify icon="solar:import-bold" />
-          Import
+          {t('import')}
         </MenuItem>
 
         <MenuItem
@@ -188,7 +191,7 @@ export default function InvoiceTableToolbar({
           }}
         >
           <Iconify icon="solar:export-bold" />
-          Export
+          {t('export')}
         </MenuItem>
       </CustomPopover>
     </>

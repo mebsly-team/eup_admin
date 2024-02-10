@@ -5,6 +5,7 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { _userCards } from 'src/_mock';
+import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
@@ -16,15 +17,16 @@ import UserCardList from '../user-card-list';
 
 export default function UserCardsView() {
   const settings = useSettingsContext();
+  const { t, onChangeLang } = useTranslate();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
         heading="User Cards"
         links={[
-          { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'User', href: paths.dashboard.user.root },
-          { name: 'Cards' },
+          { name: t('dashboard'), href: paths.dashboard.root },
+          { name: t('user'), href: paths.dashboard.user.root },
+          { name: t('cards') },
         ]}
         action={
           <Button
@@ -33,7 +35,7 @@ export default function UserCardsView() {
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            New User
+            {t('new_user')}
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}

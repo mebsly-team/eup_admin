@@ -8,6 +8,8 @@ import { RouterLink } from 'src/routes/components';
 
 import { fDateTime } from 'src/utils/format-time';
 
+import { useTranslate } from 'src/locales';
+
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
@@ -35,6 +37,7 @@ export default function OrderDetailsToolbar({
   onChangeStatus,
 }: Props) {
   const popover = usePopover();
+  const { t, onChangeLang } = useTranslate();
 
   return (
     <>
@@ -94,7 +97,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
           >
-            Print
+            {t('print')}
           </Button>
 
           <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>

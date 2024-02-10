@@ -6,6 +6,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { useResponsive } from 'src/hooks/use-responsive';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
@@ -40,7 +42,7 @@ export default function MailList({
   selectedMailId,
 }: Props) {
   const mdUp = useResponsive('up', 'md');
-
+  const { t, onChangeLang } = useTranslate();
   const renderSkeleton = (
     <>
       {[...Array(8)].map((_, index) => (
@@ -69,7 +71,7 @@ export default function MailList({
       <Stack sx={{ p: 2 }}>
         {mdUp ? (
           <TextField
-            placeholder="Search..."
+            placeholder={`${t('search')}...`}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

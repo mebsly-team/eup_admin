@@ -6,23 +6,25 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import { Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { useTranslate } from 'src/locales';
+
 import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, { RHFUpload, RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 import { IBrandItem } from 'src/types/brand';
 
 type Props = {
-  currentBrand?: IBrandItem;
+  currentLanguage?: IBrandItem;
 };
 
-export default function BrandNewEditForm({ currentBrand }: Props) {
+export default function BrandNewEditForm({ currentLanguage }: Props) {
   const router = useRouter();
+  const { t, onChangeLang } = useTranslate();
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -33,11 +35,11 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
 
   const defaultValues = useMemo(
     () => ({
-      // id: currentBrand?.id || null,
-      name: currentBrand?.name || '',
-      code: currentBrand?.code || '',
+      // id: currentLanguage?.id || null,
+      name: currentLanguage?.name || '',
+      code: currentLanguage?.code || '',
     }),
-    [currentBrand]
+    [currentLanguage]
   );
 
   const methods = useForm({
@@ -55,12 +57,12 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      if (currentBrand) {
-        const response = await axiosInstance.put(`/brands/${currentBrand.id}/`, data);
+      if (currentLanguage) {
+        const response = await axiosInstance.put(`/brands/${currentLanguage.id}/`, data);
       } else {
         const response = await axiosInstance.post(`/brands/`, data);
       }
-      enqueueSnackbar(currentBrand ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentLanguage ? 'Update success!' : 'Create success!');
       reset();
       router.push(paths.dashboard.brand.root);
     } catch (error) {
@@ -107,7 +109,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentBrand ? 'Create Language' : 'Save Changes'}
+                {!currentLanguage ? 'Create Language' : 'Save Changes'}
               </LoadingButton>
             </Stack>
           </Card>

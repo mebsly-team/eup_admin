@@ -46,15 +46,6 @@ import CategoryTableFiltersResult from '../category-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const TABLE_HEAD = [
-  { id: 'id', label: 'ID', width: 180, align: 'center' },
-  { id: 'image', label: 'Image', width: 180 },
-  { id: 'name', label: 'Category Name' },
-  // { id: 'parent_category', label: 'Parent' },
-  { id: 'sub_categories', label: 'Subcategories' },
-  // { id: 'description', label: 'Description', width: 220 },
-];
-
 const defaultFilters: ICategoryTableFilters = {
   name: '',
 };
@@ -79,7 +70,14 @@ export default function CategoryListView() {
       comparator: getComparator(table.order, table.orderBy),
       filters,
     }) || [];
-
+  const TABLE_HEAD = [
+    { id: 'id', label: 'ID', width: 180, align: 'center' },
+    { id: 'image', label: t("image"), width: 180 },
+    { id: 'name', label: t("naam") },
+    // { id: 'parent_category', label: 'Parent' },
+    { id: 'sub_categories', label: t("subcategorieën") },
+    // { id: 'description', label: 'Description', width: 220 },
+  ];
   const dataInPage =
     dataFiltered?.slice(
       table.page * table.rowsPerPage,
@@ -157,11 +155,11 @@ export default function CategoryListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="List"
+          heading={t('list')}
           links={[
-            { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'Category', href: paths.dashboard.category.root },
-            { name: 'List' },
+            { name: t('dashboard'), href: paths.dashboard.root },
+            { name: t('category'), href: paths.dashboard.category.root },
+            { name: t('list') },
           ]}
           action={
             <Button
@@ -170,7 +168,7 @@ export default function CategoryListView() {
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              New Category
+              {t('new_category')}
             </Button>
           }
           sx={{

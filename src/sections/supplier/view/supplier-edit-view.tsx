@@ -6,6 +6,8 @@ import { paths } from 'src/routes/paths';
 
 import axiosInstance from 'src/utils/axios';
 
+import { useTranslate } from 'src/locales';
+
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
@@ -26,6 +28,7 @@ export default function SupplierEditView({ id }: Props) {
     const { data } = await axiosInstance.get(`/suppliers/${supplierId}/`);
     setSupplierBrand(data);
   };
+  const { t, onChangeLang } = useTranslate();
 
   useEffect(() => {
     getSupplierInfo(id);
@@ -34,14 +37,14 @@ export default function SupplierEditView({ id }: Props) {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Edit"
+        heading={t('edit')}
         links={[
           {
-            name: 'Dashboard',
+            name: t('dashboard'),
             href: paths.dashboard.root,
           },
           {
-            name: 'Supplier',
+            name: t('supplier'),
             href: paths.dashboard.supplier.root,
           },
           { name: currentSupplier?.name },

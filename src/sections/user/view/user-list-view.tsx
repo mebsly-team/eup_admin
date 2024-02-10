@@ -186,9 +186,9 @@ export default function UserListView() {
         <CustomBreadcrumbs
           heading="List"
           links={[
-            { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'User', href: paths.dashboard.user.root },
-            { name: 'List' },
+            { name: t('dashboard'), href: paths.dashboard.root },
+            { name: t('user'), href: paths.dashboard.user.root },
+            { name: t('list') },
           ]}
           action={
             <Button
@@ -197,7 +197,7 @@ export default function UserListView() {
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              New User
+              {t('new_user')}
             </Button>
           }
           sx={{

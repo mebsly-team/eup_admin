@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import ListItemButton, { listItemButtonClasses } from '@mui/material/ListItemButton';
 
+import { useTranslate } from 'src/locales';
+
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import SearchNotFound from 'src/components/search-not-found';
@@ -40,7 +42,7 @@ export default function AddressListDialog({
   onSelect,
 }: Props) {
   const [searchAddress, setSearchAddress] = useState('');
-
+  const { t, onChangeLang } = useTranslate();
   const dataFiltered = applyFilter({
     inputData: list,
     query: searchAddress,
@@ -132,7 +134,7 @@ export default function AddressListDialog({
         <TextField
           value={searchAddress}
           onChange={handleSearchAddress}
-          placeholder="Search..."
+          placeholder={`${t('search')}...`}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

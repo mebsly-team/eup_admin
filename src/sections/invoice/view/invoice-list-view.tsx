@@ -23,6 +23,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import { isAfter, isBetween } from 'src/utils/format-time';
 
+import { useTranslate } from 'src/locales';
 import { _invoices, INVOICE_SERVICE_OPTIONS } from 'src/_mock';
 
 import Label from 'src/components/label';
@@ -76,7 +77,7 @@ export default function InvoiceListView() {
   const { enqueueSnackbar } = useSnackbar();
 
   const theme = useTheme();
-
+  const { t, onChangeLang } = useTranslate();
   const settings = useSettingsContext();
 
   const router = useRouter();
@@ -219,18 +220,18 @@ export default function InvoiceListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="List"
+          heading={t('list')}
           links={[
             {
-              name: 'Dashboard',
+              name: t('dashboard'),
               href: paths.dashboard.root,
             },
             {
-              name: 'Invoice',
+              name: t('invoice'),
               href: paths.dashboard.invoice.root,
             },
             {
-              name: 'List',
+              name: t('list'),
             },
           ]}
           action={
@@ -381,7 +382,7 @@ export default function InvoiceListView() {
                     </IconButton>
                   </Tooltip>
 
-                  <Tooltip title="Print">
+                  <Tooltip title={t('print')}>
                     <IconButton color="primary">
                       <Iconify icon="solar:printer-minimalistic-bold" />
                     </IconButton>

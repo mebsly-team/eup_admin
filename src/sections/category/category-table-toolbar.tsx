@@ -2,14 +2,12 @@ import { useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
-import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
+import { SelectChangeEvent } from '@mui/material/Select';
 import InputAdornment from '@mui/material/InputAdornment';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+
+import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
@@ -32,7 +30,7 @@ export default function UserTableToolbar({
   roleOptions,
 }: Props) {
   const popover = usePopover();
-
+  const { t, onChangeLang } = useTranslate();
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onFilters('name', event.target.value);
@@ -64,14 +62,12 @@ export default function UserTableToolbar({
           pr: { xs: 2.5, md: 1 },
         }}
       >
-
-
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search..."
+            placeholder={`${t('search')}...`}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -99,7 +95,7 @@ export default function UserTableToolbar({
           }}
         >
           <Iconify icon="solar:printer-minimalistic-bold" />
-          Print
+          {t('print')}
         </MenuItem>
 
         <MenuItem
@@ -108,7 +104,7 @@ export default function UserTableToolbar({
           }}
         >
           <Iconify icon="solar:import-bold" />
-          Import
+          {t('import')}
         </MenuItem>
 
         <MenuItem
@@ -117,7 +113,7 @@ export default function UserTableToolbar({
           }}
         >
           <Iconify icon="solar:export-bold" />
-          Export
+          {t('export')}
         </MenuItem>
       </CustomPopover>
     </>

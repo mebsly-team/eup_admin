@@ -8,6 +8,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { formHelperTextClasses } from '@mui/material/FormHelperText';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -24,6 +26,7 @@ type Props = {
 
 export default function OrderTableToolbar({ filters, onFilters, dateError }: Props) {
   const popover = usePopover();
+  const { t, onChangeLang } = useTranslate();
 
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +130,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
           }}
         >
           <Iconify icon="solar:printer-minimalistic-bold" />
-          Print
+          {t('print')}
         </MenuItem>
 
         <MenuItem
@@ -136,7 +139,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
           }}
         >
           <Iconify icon="solar:import-bold" />
-          Import
+          {t('import')}
         </MenuItem>
 
         <MenuItem
@@ -145,7 +148,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
           }}
         >
           <Iconify icon="solar:export-bold" />
-          Export
+          {t('export')}
         </MenuItem>
       </CustomPopover>
     </>

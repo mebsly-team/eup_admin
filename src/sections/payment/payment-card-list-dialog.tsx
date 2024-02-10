@@ -7,6 +7,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import SearchNotFound from 'src/components/search-not-found';
 
@@ -26,7 +28,7 @@ type Props = {
 
 export default function PaymentCardListDialog({ open, list, onClose, selected, onSelect }: Props) {
   const [searchCard, setSearchCard] = useState('');
-
+  const { t, onChangeLang } = useTranslate();
   const dataFiltered = applyFilter({
     inputData: list,
     query: searchCard,
@@ -88,7 +90,7 @@ export default function PaymentCardListDialog({ open, list, onClose, selected, o
         <TextField
           value={searchCard}
           onChange={handleSearchAddress}
-          placeholder="Search..."
+          placeholder={`${t('search')}...`}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

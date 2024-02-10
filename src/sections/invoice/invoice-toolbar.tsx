@@ -17,6 +17,8 @@ import { useRouter } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 
 import { IInvoice } from 'src/types/invoice';
@@ -42,6 +44,7 @@ export default function InvoiceToolbar({
   onChangeStatus,
 }: Props) {
   const router = useRouter();
+  const { t, onChangeLang } = useTranslate();
 
   const view = useBoolean();
 
@@ -88,7 +91,7 @@ export default function InvoiceToolbar({
             )}
           </PDFDownloadLink>
 
-          <Tooltip title="Print">
+          <Tooltip title={t('print')}>
             <IconButton>
               <Iconify icon="solar:printer-minimalistic-bold" />
             </IconButton>

@@ -11,6 +11,8 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -32,7 +34,7 @@ export default function UserTableToolbar({
   roleOptions,
 }: Props) {
   const popover = usePopover();
-
+  const { t, onChangeLang } = useTranslate();
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onFilters('name', event.target.value);
@@ -77,9 +79,7 @@ export default function UserTableToolbar({
             value={filters.role}
             onChange={handleFilterRole}
             input={<OutlinedInput label="Role" />}
-            renderValue={(selected) => {
-              return selected.map((value) => value).join(', ')
-            }}
+            renderValue={(selected) => selected.map((value) => value).join(', ')}
             MenuProps={{
               PaperProps: {
                 sx: { maxHeight: 240 },
@@ -88,7 +88,11 @@ export default function UserTableToolbar({
           >
             {roleOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
-                <Checkbox disableRipple size="small" checked={filters.role.includes(option.value)} />
+                <Checkbox
+                  disableRipple
+                  size="small"
+                  checked={filters.role.includes(option.value)}
+                />
                 {option.label}
               </MenuItem>
             ))}
@@ -100,7 +104,7 @@ export default function UserTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search..."
+            placeholder={`${t('search')}...`}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -128,7 +132,7 @@ export default function UserTableToolbar({
           }}
         >
           <Iconify icon="solar:printer-minimalistic-bold" />
-          Print
+          {t('print')}
         </MenuItem>
 
         <MenuItem
@@ -137,7 +141,7 @@ export default function UserTableToolbar({
           }}
         >
           <Iconify icon="solar:import-bold" />
-          Import
+          {t('import')}
         </MenuItem>
 
         <MenuItem
@@ -146,7 +150,7 @@ export default function UserTableToolbar({
           }}
         >
           <Iconify icon="solar:export-bold" />
-          Export
+          {t('export')}
         </MenuItem>
       </CustomPopover>
     </>

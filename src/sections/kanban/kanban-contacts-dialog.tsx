@@ -14,6 +14,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 
 import { _contacts } from 'src/_mock';
+import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -33,7 +34,7 @@ type Props = {
 
 export default function KanbanContactsDialog({ assignee = [], open, onClose }: Props) {
   const [searchContact, setSearchContact] = useState('');
-
+  const { t, onChangeLang } = useTranslate();
   const handleSearchContacts = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchContact(event.target.value);
   }, []);
@@ -56,7 +57,7 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
           fullWidth
           value={searchContact}
           onChange={handleSearchContacts}
-          placeholder="Search..."
+          placeholder={`${t('search')}...`}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

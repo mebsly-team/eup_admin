@@ -17,6 +17,8 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useResponsive } from 'src/hooks/use-responsive';
 import { useEventListener } from 'src/hooks/use-event-listener';
 
+import { useTranslate } from 'src/locales';
+
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -30,7 +32,7 @@ import { applyFilter, groupedData, getAllItems } from './utils';
 
 function Searchbar() {
   const theme = useTheme();
-
+  const { t, onChangeLang } = useTranslate();
   const router = useRouter();
 
   const search = useBoolean();
@@ -145,7 +147,7 @@ function Searchbar() {
           <InputBase
             fullWidth
             autoFocus
-            placeholder="Search..."
+            placeholder={`${t('search')}...`}
             value={searchQuery}
             onChange={handleSearch}
             startAdornment={

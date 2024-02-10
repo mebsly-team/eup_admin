@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 import InputAdornment from '@mui/material/InputAdornment';
 
+import { useTranslate } from 'src/locales';
+
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import FileThumbnail from 'src/components/file-thumbnail';
@@ -43,7 +45,7 @@ export default function FileManagerFilters({
   typeOptions,
 }: Props) {
   const popover = usePopover();
-
+  const { t, onChangeLang } = useTranslate();
   const renderLabel = filters.type.length ? filters.type.slice(0, 2).join(',') : 'All type';
 
   const handleFilterName = useCallback(
@@ -86,7 +88,7 @@ export default function FileManagerFilters({
     <TextField
       value={filters.name}
       onChange={handleFilterName}
-      placeholder="Search..."
+      placeholder={`${t('search')}...`}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">

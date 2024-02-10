@@ -3,6 +3,8 @@ import IconButton from '@mui/material/IconButton';
 import Stack, { StackProps } from '@mui/material/Stack';
 import InputAdornment from '@mui/material/InputAdornment';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -13,6 +15,7 @@ type Props = StackProps & {
 };
 
 export default function MailHeader({ onOpenNav, onOpenMail, ...other }: Props) {
+  const { t, onChangeLang } = useTranslate();
   return (
     <Stack spacing={2} direction="row" alignItems="center" sx={{ py: 1 }} {...other}>
       <Stack direction="row" alignItems="center">
@@ -30,7 +33,7 @@ export default function MailHeader({ onOpenNav, onOpenMail, ...other }: Props) {
       <TextField
         fullWidth
         size="small"
-        placeholder="Search..."
+        placeholder={`${t('search')}...`}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">

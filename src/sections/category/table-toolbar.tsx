@@ -7,9 +7,10 @@ import FormControl from '@mui/material/FormControl';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
-
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -34,6 +35,7 @@ export default function TableToolbar({
   publishOptions,
 }: Props) {
   const popover = usePopover();
+  const { t, onChangeLang } = useTranslate();
 
   const [stock, setStock] = useState<string[]>(filters.stock);
 
@@ -127,7 +129,7 @@ export default function TableToolbar({
           }}
         >
           <Iconify icon="solar:printer-minimalistic-bold" />
-          Print
+          {t('print')}
         </MenuItem>
 
         <MenuItem
@@ -136,7 +138,7 @@ export default function TableToolbar({
           }}
         >
           <Iconify icon="solar:import-bold" />
-          Import
+          {t('import')}
         </MenuItem>
 
         <MenuItem
@@ -145,7 +147,7 @@ export default function TableToolbar({
           }}
         >
           <Iconify icon="solar:export-bold" />
-          Export
+          {t('export')}
         </MenuItem>
       </CustomPopover>
     </>

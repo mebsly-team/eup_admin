@@ -19,6 +19,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import { isAfter, isBetween } from 'src/utils/format-time';
 
+import { useTranslate } from 'src/locales';
 import { _orders, ORDER_STATUS_OPTIONS } from 'src/_mock';
 
 import Label from 'src/components/label';
@@ -72,6 +73,7 @@ export default function OrderListView() {
   const { enqueueSnackbar } = useSnackbar();
 
   const table = useTable({ defaultOrderBy: 'orderNumber' });
+  const { t, onChangeLang } = useTranslate();
 
   const settings = useSettingsContext();
 
@@ -163,17 +165,17 @@ export default function OrderListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="List"
+          heading={t('list')}
           links={[
             {
-              name: 'Dashboard',
+              name: t('dashboard'),
               href: paths.dashboard.root,
             },
             {
-              name: 'Order',
+              name: t('order'),
               href: paths.dashboard.order.root,
             },
-            { name: 'List' },
+            { name: t('list') },
           ]}
           sx={{
             mb: { xs: 3, md: 5 },
@@ -247,7 +249,7 @@ export default function OrderListView() {
                 )
               }
               action={
-                <Tooltip title="Delete">
+                <Tooltip title={t('delete')}>
                   <IconButton color="primary" onClick={confirm.onTrue}>
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
@@ -331,7 +333,7 @@ export default function OrderListView() {
               confirm.onFalse();
             }}
           >
-            Delete
+            {t('delete')}
           </Button>
         }
       />

@@ -6,6 +6,8 @@ import { paths } from 'src/routes/paths';
 
 import axiosInstance from 'src/utils/axios';
 
+import { useTranslate } from 'src/locales';
+
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
@@ -26,6 +28,7 @@ export default function BrandEditView({ id }: Props) {
     const { data } = await axiosInstance.get(`/brands/${brandId}/`);
     setCurrentBrand(data);
   };
+  const { t, onChangeLang } = useTranslate();
 
   useEffect(() => {
     getBrandInfo(id);
@@ -34,14 +37,14 @@ export default function BrandEditView({ id }: Props) {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Edit"
+        heading={t('edit')}
         links={[
           {
-            name: 'Dashboard',
+            name: t('dashboard'),
             href: paths.dashboard.root,
           },
           {
-            name: 'Brand',
+            name: t('brand'),
             href: paths.dashboard.brand.root,
           },
           { name: currentBrand?.name },

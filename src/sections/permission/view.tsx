@@ -10,6 +10,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { paths } from 'src/routes/paths';
 
+import { useTranslate } from 'src/locales';
 import { RoleBasedGuard } from 'src/auth/guard';
 
 import { useSettingsContext } from 'src/components/settings';
@@ -21,6 +22,7 @@ export default function PermissionDeniedView() {
   const settings = useSettingsContext();
 
   const [role, setRole] = useState('admin');
+  const { t, onChangeLang } = useTranslate();
 
   const handleChangeRole = useCallback(
     (event: React.MouseEvent<HTMLElement>, newRole: string | null) => {
@@ -37,11 +39,11 @@ export default function PermissionDeniedView() {
         heading="Permission Denied"
         links={[
           {
-            name: 'Dashboard',
+            name: t('dashboard'),
             href: paths.dashboard.root,
           },
           {
-            name: 'Permission Denied',
+            name: t('permission_denied'),
           },
         ]}
         sx={{
