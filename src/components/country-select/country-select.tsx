@@ -53,7 +53,8 @@ export default function CountrySelect<
               icon={`circle-flags:${country.code?.toLowerCase()}`}
               sx={{ mr: 1 }}
             />
-            {country.label} ({country.code}) +{country.phone}
+            {/* {country.label} ({country.code}) +{country.phone} */}
+            {country.label} ({country.code})
           </li>
         );
       }}
@@ -107,8 +108,8 @@ export default function CountrySelect<
           return (
             <Chip
               {...getTagProps({ index })}
-              key={country.label}
-              label={country.label}
+              key={country.code}
+              label={country.code}
               icon={<Iconify icon={`circle-flags:${country.code?.toLowerCase()}`} />}
               size="small"
               variant="soft"
@@ -124,7 +125,7 @@ export default function CountrySelect<
 // ----------------------------------------------------------------------
 
 export function getCountry(inputValue: string) {
-  const option = countries.filter((country) => country.label === inputValue)[0];
+  const option = countries.filter((country) => country.code === inputValue)[0];
 
   return {
     ...option,

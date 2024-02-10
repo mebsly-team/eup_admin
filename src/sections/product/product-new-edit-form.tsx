@@ -344,7 +344,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     }
   };
 
-  const [multiCountry, setMultiCountry] = useState<string[]>([]);
+
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
 
@@ -897,15 +897,11 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             fullWidth
             multiple
             limitTags={2}
-            value={multiCountry}
-            onChange={(event, newValue) => setMultiCountry(newValue)}
-            options={countries.map((option) => option.label)}
+            value={getValues("languages_on_item_package")}
+            onChange={(event, newValue) => setValue("languages_on_item_package", newValue)}
+            options={countries.map((option) => option.code)}
             getOptionLabel={(option) => option}
           />
-          <Stack spacing={1.5}>
-            <Typography variant="subtitle2">{t('important_information')}</Typography>
-            <RHFEditor simple name="important_information" />
-          </Stack>
           <Box
             columnGap={2}
             rowGap={3}
@@ -1120,6 +1116,17 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       </Card>
     </Grid>
   );
+  const renderExtra = (
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('other')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Typography variant="subtitle2">{t('important_information')}</Typography>
+          <RHFEditor simple name="important_information" />
+        </Stack>
+      </Card>
+    </Grid>
+  );
 
   const renderActions = (
     <Grid xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -1184,6 +1191,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           {renderProperties}
           {renderMetrics}
           {renderMeta}
+          {renderExtra}
           {renderActions}
         </Grid>
 
