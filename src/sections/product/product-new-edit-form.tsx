@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useMemo, useState, Fragment, useEffect, useCallback, SetStateAction } from 'react';
+import { useMemo, useState, useEffect, useCallback, SetStateAction } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -19,18 +19,9 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {
-  List,
   alpha,
-  Dialog,
   Button,
   MenuItem,
-  ListItem,
-  Checkbox,
-  DialogTitle,
-  ListItemText,
-  ListItemIcon,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
@@ -59,6 +50,8 @@ import FormProvider, {
 } from 'src/components/hook-form';
 
 import { IProductItem } from 'src/types/product';
+import { CategorySelector } from 'src/sections/category/CategorySelector';
+import { findCategory } from 'src/sections/category/findCategory';
 
 // ----------------------------------------------------------------------
 
@@ -69,6 +62,7 @@ type Props = {
 export default function ProductNewEditForm({ currentProduct: mainProduct }: Props) {
   const router = useRouter();
   const { items: categories } = useGetCategories();
+  console.log("🚀 ~ ProductNewEditForm ~ categories:", categories)
   const { items: brands } = useGetBrands();
   const { items: suppliers } = useGetSuppliers();
   const mdUp = useResponsive('up', 'md');
@@ -670,17 +664,17 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                     'price_per_unit',
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
-                        Number(getValues('quantity_per_unit')) *
-                        parent_price_per_piece
+                      Number(getValues('quantity_per_unit')) *
+                      parent_price_per_piece
                     )
                   );
                   setValue(
                     'price_consumers',
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
-                        Number(getValues('quantity_per_unit')) *
-                        1.75 *
-                        parent_price_per_piece
+                      Number(getValues('quantity_per_unit')) *
+                      1.75 *
+                      parent_price_per_piece
                     )
                   );
                 }}
@@ -1208,81 +1202,5 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     </FormProvider>
   );
 }
-
-const CategorySelector = ({ t, categories, defaultSelectedCategories, open, onClose, onSave }) => {
-  const [selectedCategories, setSelectedCategories] = useState([]);
-
-  const toggleCategory = (categoryId) => {
-    if (selectedCategories.includes(categoryId)) {
-      setSelectedCategories(selectedCategories.filter((id) => id !== categoryId));
-    } else {
-      setSelectedCategories([...selectedCategories, categoryId]);
-    }
-  };
-
-  useEffect(() => {
-    if (defaultSelectedCategories) {
-      setSelectedCategories(defaultSelectedCategories);
-    }
-  }, [defaultSelectedCategories]);
-  const renderOptions = (categories, level = 0) =>
-    categories.map((category) => (
-      <Fragment key={category.id}>
-        <ListItem dense button onClick={() => toggleCategory(category.id)}>
-          <ListItemIcon>
-            <Checkbox
-              edge="start"
-              checked={selectedCategories.includes(category.id)}
-              tabIndex={-1}
-              disableRipple
-            />
-          </ListItemIcon>
-          <ListItemText primary={category.name} />
-        </ListItem>
-        {category.sub_categories.length > 0 && (
-          <List style={{ paddingLeft: `${(level + 1) * 20}px` }}>
-            {renderOptions(category.sub_categories, level + 1)}
-          </List>
-        )}
-      </Fragment>
-    ));
-
-  const handleSave = () => {
-    onSave(selectedCategories);
-    onClose();
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{t('select_category')}</DialogTitle>
-      <DialogContent>
-        <List>{renderOptions(categories)}</List>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleSave} color="primary">
-          {t('save')}
-        </Button>
-        <Button onClick={onClose} color="primary">
-          {t('cancel')}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const findCategory = (categories, categoryId) => {
-  for (const category of categories) {
-    if (category.id === categoryId) {
-      return category;
-    }
-    if (category.sub_categories.length > 0) {
-      const foundSubCategory = findCategory(category.sub_categories, categoryId);
-      if (foundSubCategory) {
-        return foundSubCategory;
-      }
-    }
-  }
-  return null;
-};
 
 const roundUp = (num) => Math.round(num * 100) / 100;
