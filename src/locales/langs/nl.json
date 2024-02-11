@@ -26,6 +26,7 @@
   "cards": "Kaarten",
   "cart": "Winkelwagen",
   "category": "Categorie",
+  "category_is_required": "Categorie is verplicht",
   "checkout": "Afrekenen",
   "contact_person": "Contactpersoon",
   "consumer_price_should_be_greater_than_0": "Consumentenprijs moet groter zijn dan 0",

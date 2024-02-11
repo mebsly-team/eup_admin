@@ -49,11 +49,15 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
 
   const [openDialog, setOpenDialog] = useState(false);
 
+  const [radioValue, setRadioValue] = useState(currentCategory?.parent_category ? 'sub' : "parent");
+
+
   const NewCategorySchema = Yup.object().shape({
     name: Yup.string().required(t('name_required')),
     icon: Yup.string().required(t('icon_required')),
     description: Yup.string(),
-    image: Yup.mixed().required(t('image_required')),
+    parent_category: radioValue === "sub" && Yup.string().required(t('category_is_required')),
+    image: radioValue === "parent" && Yup.mixed().required(t('image_required')),
   });
 
   const defaultValues = useMemo(
@@ -82,9 +86,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
-  console.log("🚀 ~ CategoryNewEditForm ~ getValues:", getValues())
 
-  const [radioValue, setRadioValue] = useState(currentCategory?.parent_category ? 'sub' : "parent");
 
   const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRadioValue((event.target as HTMLInputElement).value);
@@ -199,7 +201,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               <RHFTextField name="description" label={t('description')} />
 
               {radioValue === "sub" ? <Stack spacing={1.5}>
-                <Typography variant="subtitle2">{t('parent_category')}</Typography>
+                <Typography variant="subtitle2">{t('parent_category')}:</Typography>
                 <CategorySelector
                   single
                   t={t}
@@ -214,19 +216,22 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                 />
                 <div>
                   <Typography variant="subtitle2">
-                    {t('parent_category')}:{findCategory(parentCategories, getValues('parent_category'))?.name}
+                    {findCategory(parentCategories, getValues('parent_category'))?.name}
                   </Typography>
                 </div>
+                {errors?.parent_category && <Typography color="error">{errors?.parent_category?.message}</Typography>}
                 <Button type="button" onClick={() => setOpenDialog(true)} color="primary">
                   {t('select_category')}
                 </Button>
               </Stack> : null}
-              <Stack spacing={1.5}>
+              {radioValue === "parent" ? <Stack spacing={1.5}>
                 <Typography variant="subtitle2">{t('image')}</Typography>
                 <Image src={selectedImage?.url || currentCategory?.image} />
                 <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
                 {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
               </Stack>
+                : null
+              }
             </Box>
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
