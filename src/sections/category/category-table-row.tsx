@@ -38,9 +38,15 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
 
   const popover = usePopover();
   const [isSubCategoriesOpen, setSubCategoriesOpen] = useState(false);
+
+  // Define a variable to determine whether the row is a subcategory
+  const isSubcategory = !!parent_category;
+
+
   return (
     <>
-      <TableRow hover selected={selected}>
+      <TableRow hover selected={selected} sx={{ background: isSubcategory ? 'rgba(145, 158, 171, 0.08)' : "none" }}>
+
         <TableCell align="center">{row.id}</TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
