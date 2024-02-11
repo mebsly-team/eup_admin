@@ -565,6 +565,9 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               })}
             </ul>
           </div>
+          <Typography typography="caption" sx={{ color: 'error.main' }}>
+            {(errors.categories as any)?.message}
+          </Typography>
           <Button type="button" onClick={() => setOpenDialog(true)} color="primary">
             {t('select_category')}
           </Button>
