@@ -261,6 +261,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
+  if (errors.length) console.log("🚀 ~ ProductNewEditForm ~ errors:", errors)
 
   useEffect(() => {
     const calculateVolume = () => {
@@ -726,7 +727,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 setValue('price_per_unit', Number(e.target.value) * getValues('quantity_per_unit'));
                 setValue(
                   'price_consumers',
-                  Number(e.target.value) * getValues('quantity_per_unit') * 1.75
+                  roundUp((Number(e.target.value) * getValues('quantity_per_unit') * 1.75))
                 );
               }}
               InputLabelProps={{ shrink: true }}
@@ -754,7 +755,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 );
                 setValue(
                   'price_consumers',
-                  Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75
+                  roundUp((Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75))
                 );
               }}
               InputLabelProps={{ shrink: true }}
