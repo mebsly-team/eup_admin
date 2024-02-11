@@ -96,15 +96,35 @@ export default function CategoryListView() {
       : '';
     try {
       const { data } = await axiosInstance.get(
-        `/categories/?limit=${table.rowsPerPage}&offset=${
-          table.rowsPerPage * table.page
+        `/categories/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page
         }${searchFilter}${orderByParam}`
       );
       console.log('data', data);
       setCount(data.count || 0);
       setCategoryList(data.results || []);
-    } catch {
-      enqueueSnackbar({ variant: 'error', message: t('error') });
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.errors) {
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        errorMessages.forEach(errorMessage => {
+          console.error(errorMessage);
+          enqueueSnackbar({ variant: 'error', message: errorMessage });
+        });
+      } else {
+        const errorMessages = Object.entries(error);
+        if (errorMessages.length) {
+          errorMessages.forEach(([fieldName, errors]) => {
+            errors.forEach((errorMsg) => {
+              enqueueSnackbar({
+                variant: 'error',
+                message: `${t(fieldName)}: ${errorMsg}`,
+              });
+            });
+          });
+        } else {
+          console.error("An unexpected error occurred:", error);
+          enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+        }
+      }
     }
   };
 
@@ -130,7 +150,17 @@ export default function CategoryListView() {
         enqueueSnackbar(t('delete_success'));
         getAll();
       } catch (error) {
-        enqueueSnackbar({ variant: 'error', message: t('error') });
+        console.log("🚀 ~ onSubmit ~ error:", error);
+        if (error.response && error.response.data && error.response.data.errors) {
+          const errorMessages = Object.values(error.response.data.errors).flat();
+          errorMessages.forEach(errorMessage => {
+            console.error(errorMessage);
+            enqueueSnackbar({ variant: 'error', message: errorMessage });
+          });
+        } else {
+          console.error("An unexpected error occurred:", error);
+          enqueueSnackbar({ variant: 'error', message: t('error') });
+        }
       }
     },
     [enqueueSnackbar, t, getAll]
@@ -213,12 +243,12 @@ export default function CategoryListView() {
                   rowCount={categoryList?.length}
                   numSelected={table.selected?.length}
                   onSort={table.onSort}
-                  // onSelectAllRows={(checked) =>
-                  //   table.onSelectAllRows(
-                  //     checked,
-                  //     categoryList.map((row) => row.id)
-                  //   )
-                  // }
+                // onSelectAllRows={(checked) =>
+                //   table.onSelectAllRows(
+                //     checked,
+                //     categoryList.map((row) => row.id)
+                //   )
+                // }
                 />
 
                 <TableBody>

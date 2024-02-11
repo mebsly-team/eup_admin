@@ -374,7 +374,28 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
       router.push(paths.dashboard.product.root);
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: t('error') });
+      if (error.response && error.response.data && error.response.data.errors) {
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        errorMessages.forEach(errorMessage => {
+          console.error(errorMessage);
+          enqueueSnackbar({ variant: 'error', message: errorMessage });
+        });
+      } else {
+        const errorMessages = Object.entries(error);
+        if (errorMessages.length) {
+          errorMessages.forEach(([fieldName, errors]) => {
+            errors.forEach((errorMsg) => {
+              enqueueSnackbar({
+                variant: 'error',
+                message: `${t(fieldName)}: ${errorMsg}`,
+              });
+            });
+          });
+        } else {
+          console.error("An unexpected error occurred:", error);
+          enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+        }
+      }
     }
   });
 
