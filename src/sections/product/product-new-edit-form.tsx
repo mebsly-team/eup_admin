@@ -196,10 +196,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       images: currentProduct?.images || [],
       quantity_per_unit: activeVariant === 0 ? 1 : currentProduct?.quantity_per_unit || 0,
       variant_discount: currentProduct?.variant_discount || null,
-      price_per_piece: currentProduct?.price_per_piece || 0,
-      price_per_unit: currentProduct?.price_per_unit || 0,
-      price_consumers: currentProduct?.price_consumers || 0,
-      price_cost: currentProduct?.price_cost || 0,
+      price_per_piece: currentProduct?.price_per_piece || null,
+      price_per_unit: currentProduct?.price_per_unit || null,
+      price_consumers: currentProduct?.price_consumers || null,
+      price_cost: currentProduct?.price_cost || null,
       vat: Number(currentProduct?.vat || 0),
       overall_stock: currentProduct?.overall_stock || 0,
       expiry_date: currentProduct?.expiry_date || null,
@@ -723,8 +723,8 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               type="number"
               value={getValues('price_per_piece')}
               onChange={(e) => {
-                setValue('price_per_piece', Number(e.target.value));
-                setValue('price_per_unit', Number(e.target.value) * getValues('quantity_per_unit'));
+                setValue('price_per_piece', e.target.value !== "" ? Number(e.target.value) : e.target.value);
+                setValue('price_per_unit', roundUp(Number(e.target.value) * getValues('quantity_per_unit')));
                 setValue(
                   'price_consumers',
                   roundUp((Number(e.target.value) * getValues('quantity_per_unit') * 1.75))
@@ -748,10 +748,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               type="number"
               value={getValues('quantity_per_unit')}
               onChange={(e) => {
-                setValue('quantity_per_unit', Number(e.target.value));
+                setValue('quantity_per_unit', e.target.value !== "" ? Number(e.target.value) : e.target.value);
                 setValue(
                   'price_per_unit',
-                  Number(e.target.value) * Number(getValues('price_per_piece'))
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
                 );
                 setValue(
                   'price_consumers',
