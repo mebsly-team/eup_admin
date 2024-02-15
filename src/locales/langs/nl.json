@@ -386,6 +386,8 @@
   "view_profile": "Profiel bekijken",
   "visible_on_mobile": "Zichtbaar op mobiel",
   "visible_on_web": "Zichtbaar op web",
+  "liter": "Liter",
+  "liter_unit": "Liter-eenheid",
   "volume": "Volume",
   "volume_unit": "Volume-eenheid",
   "web": "web",
@@ -397,5 +399,9 @@
   "weight_unit": "Gewichtseenheid",
   "wholesaler": "Groothandelaar",
   "work_in_progress_stock": "Werk in uitvoering voorraad",
-  "yellow": "Geel"
+  "yellow": "Geel",
+  "is_clearance": "Is opruiming",
+  "is_party_sale": "Is partijhandel",
+  "sell_from_supplier": "Wordt verkocht via leverancier",
+  "is_taken_from_another_package": "Wordt uit een andere verpakking gehaald"
 }

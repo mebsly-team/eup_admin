@@ -73,7 +73,9 @@ export interface IProductItem {
   size_x_value: any;
   size_y_value: any;
   size_z_value: any;
+  liter: any;
   size_unit: string;
+  liter_unit: string;
   weight: any;
   weight_unit: string;
   buy_min: any;
@@ -93,6 +95,9 @@ export interface IProductItem {
   is_listed_on_marktplaats: boolean;
   is_listed_on_2dehands: boolean;
   is_product_active: boolean;
+  is_party_sale: boolean;
+  is_clearance: boolean;
+  sell_from_supplier: boolean;
   vat: number;
   stock_alert: boolean;
   sku: string;

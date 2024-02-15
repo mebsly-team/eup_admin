@@ -16,13 +16,9 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { alpha, Button, MenuItem } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import {
-  alpha,
-  Button,
-  MenuItem,
-} from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -49,9 +45,10 @@ import FormProvider, {
   RHFAutocomplete,
 } from 'src/components/hook-form';
 
-import { IProductItem } from 'src/types/product';
-import { CategorySelector } from 'src/sections/category/CategorySelector';
 import { findCategory } from 'src/sections/category/findCategory';
+import { CategorySelector } from 'src/sections/category/CategorySelector';
+
+import { IProductItem } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
@@ -62,7 +59,7 @@ type Props = {
 export default function ProductNewEditForm({ currentProduct: mainProduct }: Props) {
   const router = useRouter();
   const { items: categories } = useGetCategories();
-  console.log("🚀 ~ ProductNewEditForm ~ categories:", categories)
+  console.log('🚀 ~ ProductNewEditForm ~ categories:', categories);
   const { items: brands } = useGetBrands();
   const { items: suppliers } = useGetSuppliers();
   const mdUp = useResponsive('up', 'md');
@@ -135,23 +132,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
     location: Yup.string().required(t('validation_location')),
     // extra_location: Yup.string().required(t('validation_extra_location')),
-    // stock_alert_value: Yup.number().required(t('validation_stock_alert_value')),
-    // stock_alert: Yup.boolean().required(t('validation_stock_alert')),
-    // stock_disable_when_sold_out: Yup.boolean().required(t('validation_stock_disable_when_sold_out')),
-    // stock_check: Yup.boolean().required(t('validation_stock_check')),
-    // important_information: Yup.string().required(t('important_information')),
     // languages_on_item_package: Yup.string().required(t('validation_languages_on_item_package')),
-    // is_only_for_logged_in_user: Yup.boolean().required(t('validation_is_only_for_logged_in_user')),
-    // is_used: Yup.boolean().required(t('validation_is_used')),
-    // is_regular: Yup.boolean().required(t('validation_is_regular')),
-    // is_featured: Yup.boolean().required(t('validation_is_featured')),
-    // is_visible_on_web: Yup.boolean().required(t('validation_is_visible_on_web')),
-    // is_visible_on_mobile: Yup.boolean().required(t('validation_is_visible_on_mobile')),
-    // is_only_for_export: Yup.boolean().required(t('validation_is_only_for_export')),
-    // is_only_for_B2B: Yup.boolean().required(t('validation_is_only_for_B2B')),
-    // is_listed_on_marktplaats: Yup.boolean().required(t('validation_is_listed_on_marktplaats')),
-    // is_listed_on_2dehands: Yup.boolean().required(t('validation_is_listed_on_2dehands')),
-    // has_electronic_barcode: Yup.boolean().required(t('validation_has_electronic_barcode')),
     // size_x_value: Yup.string().required(t('validation_size_x_value')),
     // size_y_value: Yup.string().required(t('validation_size_y_value')),
     // size_z_value: Yup.string().required(t('validation_size_z_value')),
@@ -160,7 +141,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     // weight_unit: Yup.string().required(t('validation_weight_unit')),
     // volume_unit: Yup.string().required(t('validation_volume_unit')),
     // volume: Yup.string().required(t('validation_volume')),
-    // is_brief_box: Yup.boolean().required(t('validation_is_brief_box')),
     // meta_title: Yup.string().required(t('validation_meta_title')),
     // meta_description: Yup.string().required(t('validation_meta_description')),
     // meta_keywords: Yup.string().required(t('validation_meta_keywords')),
@@ -210,10 +190,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       stock_at_supplier: currentProduct?.stock_at_supplier || 0,
       location: currentProduct?.location || '',
       extra_location: currentProduct?.extra_location || '',
-      stock_alert_value: currentProduct?.stock_alert_value || '',
+      /* stock_alert_value: currentProduct?.stock_alert_value || '',
       stock_alert: currentProduct?.stock_alert || false,
       stock_disable_when_sold_out: currentProduct?.stock_disable_when_sold_out || false,
-      stock_check: currentProduct?.stock_check || false,
+      stock_check: currentProduct?.stock_check || false, */
       delivery_time: currentProduct?.delivery_time || '',
       important_information: currentProduct?.important_information || '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
@@ -231,6 +211,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       has_electronic_barcode: currentProduct?.has_electronic_barcode || false,
       size_x_value: currentProduct?.size_x_value || '',
       size_y_value: currentProduct?.size_y_value || '',
+      liter: currentProduct?.liter || '',
+      liter_unit: currentProduct?.liter_unit || '',
+      is_clearance: currentProduct?.is_clearance || '',
+      is_party_sale: currentProduct?.is_party_sale || '',
+      sell_from_supplier: currentProduct?.sell_from_supplier || '',
+      is_taken_from_another_package: currentProduct?.is_taken_from_another_package || '',
       size_z_value: currentProduct?.size_z_value || '',
       size_unit: currentProduct?.size_unit || '',
       weight: currentProduct?.weight || '',
@@ -260,7 +246,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
-  if (errors.length) console.log("🚀 ~ ProductNewEditForm ~ errors:", errors)
+  if (errors.length) console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
   useEffect(() => {
     const calculateVolume = () => {
@@ -338,7 +324,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     }
   };
 
-
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
 
@@ -373,7 +358,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
-        errorMessages.forEach(errorMessage => {
+        errorMessages?.forEach((errorMessage) => {
           console.error(errorMessage);
           enqueueSnackbar({ variant: 'error', message: errorMessage });
         });
@@ -389,7 +374,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             });
           });
         } else {
-          console.error("An unexpected error occurred:", error);
+          console.error('An unexpected error occurred:', error);
           enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
         }
       }
@@ -603,7 +588,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const handleSelectImage = (urlList = []) => {
     const imageList = getValues('images');
 
-    urlList.forEach(element => {
+    urlList.forEach((element) => {
       if (!imageList.includes(element)) {
         setValue('images', [...imageList, element]);
       }
@@ -611,7 +596,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
     setImageGalleryOpen(false);
   };
-
 
   const handleDeleteImage = (image) => {
     // Function to delete an image from the list
@@ -690,17 +674,17 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                     'price_per_unit',
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
-                      Number(getValues('quantity_per_unit')) *
-                      parent_price_per_piece
+                        Number(getValues('quantity_per_unit')) *
+                        parent_price_per_piece
                     )
                   );
                   setValue(
                     'price_consumers',
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
-                      Number(getValues('quantity_per_unit')) *
-                      1.75 *
-                      parent_price_per_piece
+                        Number(getValues('quantity_per_unit')) *
+                        1.75 *
+                        parent_price_per_piece
                     )
                   );
                 }}
@@ -724,11 +708,17 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               type="number"
               value={getValues('price_per_piece')}
               onChange={(e) => {
-                setValue('price_per_piece', e.target.value !== "" ? Number(e.target.value) : e.target.value);
-                setValue('price_per_unit', roundUp(Number(e.target.value) * getValues('quantity_per_unit')));
+                setValue(
+                  'price_per_piece',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
+                setValue(
+                  'price_per_unit',
+                  roundUp(Number(e.target.value) * getValues('quantity_per_unit'))
+                );
                 setValue(
                   'price_consumers',
-                  roundUp((Number(e.target.value) * getValues('quantity_per_unit') * 1.75))
+                  roundUp(Number(e.target.value) * getValues('quantity_per_unit') * 1.75)
                 );
               }}
               InputLabelProps={{ shrink: true }}
@@ -749,14 +739,17 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               type="number"
               value={getValues('quantity_per_unit')}
               onChange={(e) => {
-                setValue('quantity_per_unit', e.target.value !== "" ? Number(e.target.value) : e.target.value);
+                setValue(
+                  'quantity_per_unit',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
                 setValue(
                   'price_per_unit',
                   roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
                 );
                 setValue(
                   'price_consumers',
-                  roundUp((Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75))
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
                 );
               }}
               InputLabelProps={{ shrink: true }}
@@ -862,11 +855,32 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 label={t('work_in_progress_stock')}
                 type="number"
               />
+               <RHFSwitch
+                name="is_taken_from_another_package"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('is_taken_from_another_package')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
               <RHFTextField name="max_stock_at_rack" label={t('max_stock_at_rack')} type="number" />
               <RHFTextField name="min_stock_value" label={t('min_stock_value')} type="number" />
               <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
+              <RHFSwitch
+                name="sell_from_supplier"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('sell_from_supplier')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
               <RHFTextField name="location" label={t('location')} />
               <RHFTextField name="extra_location" label={t('extra_location')} />
+              {/*   
               <RHFTextField name="stock_alert_value" label={t('stock_alert_value')} type="number" />
               <RHFSwitch
                 name="stock_alert"
@@ -898,6 +912,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 }
                 sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
+              */}
             </Box>
             <Divider sx={{ borderStyle: 'dashed' }} />
           </Stack>
@@ -917,8 +932,8 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             fullWidth
             multiple
             limitTags={2}
-            value={getValues("languages_on_item_package")}
-            onChange={(event, newValue) => setValue("languages_on_item_package", newValue)}
+            value={getValues('languages_on_item_package')}
+            onChange={(event, newValue) => setValue('languages_on_item_package', newValue)}
             options={countries.map((option) => option.code)}
             getOptionLabel={(option) => option}
           />
@@ -983,6 +998,26 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               label={
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                   {t('is_featured')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_clearance"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_clearance')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_party_sale"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_party_sale')}
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -1086,15 +1121,22 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               <MenuItem value="cm">{t('cm')}</MenuItem>
               <MenuItem value="m">{t('m')}</MenuItem>
             </RHFSelect>
-            <RHFTextField name="size_x_value" label={t('size_x_value')} />
-            <RHFTextField name="size_y_value" label={t('size_y_value')} />
-            <RHFTextField name="size_z_value" label={t('size_z_value')} />
+            <RHFTextField name="size_x_value" label={t('size_x_value')} type="number" />
+            <RHFTextField name="size_y_value" label={t('size_y_value')} type="number" />
+            <RHFTextField name="size_z_value" label={t('size_z_value')} type="number" />
             <RHFTextField sx={{ pointerEvents: 'none' }} name="volume" label={t('volume')} />
             <RHFTextField
               sx={{ pointerEvents: 'none' }}
               name="volume_unit"
               label={t('volume_unit')}
             />
+            <RHFTextField name="liter" label={t('liter')} type="number" />
+            <RHFSelect name="liter_unit" label={t('liter_unit')}>
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              <MenuItem value="l">{t('l')}</MenuItem>
+              <MenuItem value="ml">{t('ml')}</MenuItem>
+            </RHFSelect>
             <Divider sx={{ borderStyle: 'dashed' }} />
             <Divider sx={{ borderStyle: 'dashed' }} />
 
@@ -1174,9 +1216,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           <Card sx={{ padding: 3 }}>
             <Box sx={{ position: 'unset' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-                {getValues('images')?.[0] && (
-                  <img src={getValues('images')?.[0]} alt="" />
-                )}
+                {getValues('images')?.[0] && <img src={getValues('images')?.[0]} alt="" />}
                 <Box sx={{ textAlign: 'left', mt: 1 }}>
                   <Typography variant="h6" fontWeight="600" color="text.secondary">
                     {getValues('title')}
