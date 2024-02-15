@@ -5,8 +5,8 @@ import { HOST_API } from 'src/config-global';
 // ----------------------------------------------------------------------
 
 
-const axiosInstance = axios.create({ baseURL: "http://localhost:8000/api" });
-// const axiosInstance = axios.create({ baseURL: HOST_API });
+// const axiosInstance = axios.create({ baseURL: "http://localhost:8000/api" });
+const axiosInstance = axios.create({ baseURL: HOST_API });
 
 axiosInstance.interceptors.request.use((config) => {
   const accessToken = sessionStorage.getItem("accessToken");

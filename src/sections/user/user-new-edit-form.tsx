@@ -117,6 +117,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
     { value: 'blue', label: t('blue') },
     { value: 'brown', label: t('brown') },
   ];
+  const PAYMENT_METHOD_TYPES = [
+    { value: 'bank', label: t('bank') },
+    { value: 'kas', label: t('kas') },
+    { value: 'pin', label: t('pin') },
+  ];
 
   const defaultValues = useMemo(
     () => ({
@@ -158,8 +163,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
     formState: { isSubmitting, errors, ...rest2 },
     ...rest
   } = methods;
-  
-  console.log('errors', errors)
+
+  console.log('errors', errors);
   const onSubmit = handleSubmit(async (data) => {
     try {
       data.birthdate = moment.isDate(data.birthdate)
@@ -174,7 +179,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       reset();
       router.push(paths.dashboard.user.list);
     } catch (error) {
-      console.log('error', error)
+      console.log('error', error);
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
         errorMessages.forEach((errorMessage) => {
@@ -309,7 +314,16 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
                 <RHFTextField name="vat" label={t('vat')} />
                 <RHFTextField name="kvk" label={t('kvk')} />
-                <RHFTextField name="payment_method" label={t('payment_method')} />
+                <RHFSelect name="payment_method" label={t('payment_method')}>
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {PAYMENT_METHOD_TYPES.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+
                 <RHFTextField
                   name="customer_percentage"
                   label={t('customer_percentage')}
