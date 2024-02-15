@@ -37,7 +37,7 @@ export default function ProductTableRow({
 }: Props) {
   const {
     id,
-    image_urls,
+    images,
     title,
     description,
     ean,
@@ -60,7 +60,7 @@ export default function ProductTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={title} src={image_urls?.[0]?.url} />
+          <Image alt={title} src={images?.[0]} />
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>

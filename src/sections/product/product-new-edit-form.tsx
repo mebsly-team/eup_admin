@@ -192,7 +192,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       brand: currentProduct?.brand?.id || null,
       supplier: currentProduct?.supplier?.id || null,
       // tags: currentProduct?.tags || [],
-      image_urls: currentProduct?.image_urls || [],
       images: currentProduct?.images || [],
       quantity_per_unit: activeVariant === 0 ? 1 : currentProduct?.quantity_per_unit || 0,
       variant_discount: currentProduct?.variant_discount || null,
@@ -362,9 +361,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     try {
       const ex_date = format(new Date(data.expiry_date), 'yyyy-MM-dd');
       data.expiry_date = ex_date;
-      const imageIds = data.images.map((item) => item.id);
-      delete data.image_urls;
-      data.images = imageIds;
       data.tags = [];
       if (currentProduct?.id) {
         const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
@@ -604,18 +600,23 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     </Grid>
   );
 
-  const handleSelectImage = (idList = []) => {
-    idList.forEach(async (element) => {
-      const { data } = await axiosInstance.get(`/images/${element}/`);
-      const imageList = getValues('images');
-      setValue('images', [...imageList, data]);
+  const handleSelectImage = (urlList = []) => {
+    const imageList = getValues('images');
+
+    urlList.forEach(element => {
+      if (!imageList.includes(element)) {
+        setValue('images', [...imageList, element]);
+      }
     });
+
     setImageGalleryOpen(false);
   };
-  const handleDeleteImage = (index) => {
+
+
+  const handleDeleteImage = (image) => {
     // Function to delete an image from the list
     const imageList = getValues('images');
-    const updatedImageList = imageList.filter((item) => item.id !== index);
+    const updatedImageList = imageList.filter((item) => item !== image);
     setValue('images', updatedImageList);
   };
 
@@ -637,14 +638,14 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             {getValues('images')?.map((item, index) => (
               <div key={index} style={{ position: 'relative' }}>
                 <img
-                  src={item.url}
+                  src={item}
                   alt={`Image ${index + 1}`}
                   style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
                 />
 
                 <IconButton
                   style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
-                  onClick={() => handleDeleteImage(item.id)}
+                  onClick={() => handleDeleteImage(item)}
                 >
                   <Iconify icon="solar:trash-bin-trash-bold" width={24} />
                 </IconButton>
@@ -1173,8 +1174,8 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           <Card sx={{ padding: 3 }}>
             <Box sx={{ position: 'unset' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-                {getValues('images')?.[0]?.url && (
-                  <img src={getValues('images')?.[0]?.url} alt="" />
+                {getValues('images')?.[0] && (
+                  <img src={getValues('images')?.[0]} alt="" />
                 )}
                 <Box sx={{ textAlign: 'left', mt: 1 }}>
                   <Typography variant="h6" fontWeight="600" color="text.secondary">

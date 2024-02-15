@@ -37,7 +37,7 @@ export default function BrandTableRow({
   onSelectRow,
   onDeleteRow,
 }: Props) {
-  const { logo_url, name, description } = row;
+  const { logo, name, description } = row;
   const { t, onChangeLang } = useTranslate();
 
   const confirm = useBoolean();
@@ -54,7 +54,7 @@ export default function BrandTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={name} src={logo_url} />
+          <Image alt={name} src={logo} />
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>

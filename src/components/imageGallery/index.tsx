@@ -158,11 +158,11 @@ export default function ImageGallery({
                   cursor: 'pointer',
                   position: 'relative',
                 }}
-                onDoubleClick={() => onSelect([image.id])}
+                onDoubleClick={() => onSelect([image.url])}
               >
                 <Checkbox
-                  checked={selectedImages.includes(image.id)}
-                  onChange={() => handleSelect(image.id)}
+                  checked={selectedImages.includes(image.url)}
+                  onChange={() => handleSelect(image.url)}
                   sx={{
                     position: 'absolute',
                     top: theme.spacing(1),
@@ -180,7 +180,7 @@ export default function ImageGallery({
                   alt="gallery"
                   ratio="1/1"
                   src={image.url}
-                  onClick={() => handleSelect(image.id)}
+                  onClick={() => handleSelect(image.url)}
                   // onClick={() => lightbox.onOpen(image.url)}
                 />
                 <ListItemText

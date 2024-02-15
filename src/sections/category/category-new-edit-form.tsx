@@ -41,7 +41,6 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
   console.log("currentCategory", currentCategory);
   const router = useRouter();
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>('');
   const [parentCategories, setParentCategories] = useState<ICategoryItem[]>([]);
   const [selectedParentCategory, setSelectedParentCategory] = useState<string>(currentCategory?.parent_category);
   const { enqueueSnackbar } = useSnackbar();
@@ -97,9 +96,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
   }, []);
 
   const handleSelectImage = async (idList) => {
-    const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
-    setSelectedImage(data);
-    setValue("image", data?.id);
+    setValue("image", idList[0]);
     setImageGalleryOpen(false);
   };
 
@@ -135,8 +132,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     const finalData = {
-      ...data,
-      image: selectedImage?.id
+      ...data
     }; // Include selected parent category in the final data
     try {
       if (currentCategory) {
@@ -226,7 +222,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               </Stack> : null}
               {radioValue === "parent" ? <Stack spacing={1.5}>
                 <Typography variant="subtitle2">{t('image')}</Typography>
-                <Image src={selectedImage?.url || currentCategory?.image} />
+                <Image src={getValues("image")} />
                 <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
                 {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
               </Stack>

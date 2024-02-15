@@ -32,7 +32,6 @@ type Props = {
 export default function BrandNewEditForm({ currentBrand }: Props) {
   const router = useRouter();
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>('');
   const { enqueueSnackbar } = useSnackbar();
   const { t, onChangeLang } = useTranslate();
 
@@ -47,7 +46,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
       // id: currentBrand?.id || null,
       name: currentBrand?.name || '',
       description: currentBrand?.description || '',
-      logo: currentBrand?.logo_url || null,
+      logo: currentBrand?.logo || null,
     }),
     [currentBrand]
   );
@@ -68,15 +67,13 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
   } = methods;
 
   console.log('getValues', getValues());
-  const handleSelectImage = async (idList) => {
-    const { data } = await axiosInstance.get(`/images/${idList[0]}/`);
-    setSelectedImage(data);
+  const handleSelectImage = async (urlList) => {
+    setValue('logo', urlList?.[0]);
     setImageGalleryOpen(false);
-    setValue('logo', data?.url);
   };
 
   const onSubmit = handleSubmit(async (data) => {
-    const finalData = { ...data, logo_id: selectedImage?.id };
+    const finalData = { ...data };
     try {
       let response;
       if (currentBrand) {
@@ -126,7 +123,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               <RHFTextField name="description" label={t('description')} />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Logo</Typography>
-                <Image src={selectedImage ? selectedImage?.url : getValues('logo')} />
+                <Image src={getValues('logo')} />
                 <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
                 {errors?.logo && <Typography color="error">{errors?.logo?.message}</Typography>}
               </Stack>
