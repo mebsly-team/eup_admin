@@ -43,6 +43,63 @@ export default function UserNewEditForm({ currentUser }: Props) {
     last_name: !isBusiness && Yup.string().required(t('surname_required')),
     password: currentUser ? null : Yup.string().required(t('password_required')),
     email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
+    phone_number: Yup.string()
+      .required(t('phone_required'))
+      .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')),
+    mobile_number: Yup.string()
+      .required(t('mobile_required'))
+      .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')),
+    // gender: Yup.string().required(t('gender_required')),
+    birthdate: Yup.date()
+      .required(t('birthdate_required'))
+      .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years')),
+    fax: Yup.string().nullable(),
+    facebook: Yup.string().nullable().url(t('facebook_url_invalid')),
+    linkedin: Yup.string().nullable().url(t('linkedin_url_invalid')),
+    twitter: Yup.string().nullable().url(t('twitter_url_invalid')),
+    instagram: Yup.string().nullable().url(t('instagram_url_invalid')),
+    pinterest: Yup.string().nullable().url(t('pinterest_url_invalid')),
+    tiktok: Yup.string().nullable().url(t('tiktok_url_invalid')),
+    notes: Yup.string().nullable(),
+    website: Yup.string().nullable().url(t('website_url_invalid')),
+    is_active: Yup.boolean().required(),
+    is_staff: Yup.boolean().required(),
+    business_name: Yup.string().required(t('business_name_required')),
+    contact_person_name: Yup.string().required(t('contact_person_name_required')),
+    contact_person_phone_number: Yup.string()
+      .required(t('contact_person_phone_required'))
+      .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')),
+    contact_person_email: Yup.string()
+      .required(t('contact_person_email_required'))
+      .email(t('contact_person_email_invalid')),
+    department: Yup.string().required(t('department_required')),
+    classification: Yup.string().required(t('classification_required')),
+    branch: Yup.string().required(t('branch_required')),
+    iban: Yup.string().required(t('iban_required')),
+    bic: Yup.string().required(t('bic_required')),
+    account_holder_name: Yup.string().required(t('account_holder_name_required')),
+    account_holder_city: Yup.string().required(t('account_holder_city_required')),
+    vat: Yup.string().required(t('vat_required')),
+    kvk: Yup.string().required(t('kvk_required')),
+    payment_method: Yup.string().required(t('payment_method_required')),
+    customer_percentage: Yup.number().required(t('customer_percentage_required')),
+    invoice_discount: Yup.number().required(t('invoice_discount_required')),
+    payment_termin: Yup.string().required(t('payment_termin_required')),
+    credit_limit: Yup.number().required(t('credit_limit_required')),
+    invoice_address: Yup.string().required(t('invoice_address_required')),
+    invoice_language: Yup.string().required(t('invoice_language_required')),
+    discount_group: Yup.string().required(t('discount_group_required')),
+    inform_via: Yup.string().required(t('inform_via_required')),
+    customer_color: Yup.string().required(t('customer_color_required')),
+    relation_type: Yup.string().required(t('relation_type_required')),
+    relation_via: Yup.string().required(t('relation_via_required')),
+    days_closed: Yup.string().required(t('days_closed_required')),
+    days_no_delivery: Yup.string().required(t('days_no_delivery_required')),
+    incasseren: Yup.boolean().required(),
+    is_payment_termin_active: Yup.boolean().required(),
+    is_eligible_to_work_with: Yup.boolean().required(),
+    inform_when_new_products: Yup.boolean().required(),
+    notify: Yup.boolean().required(),
   });
 
   const USER_TYPES = [
@@ -69,7 +126,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       email: currentUser?.email || '',
       phone_number: currentUser?.phone_number || '',
       mobile_number: currentUser?.mobile_number || '',
-      gender: currentUser?.gender || '',
+      // gender: currentUser?.gender || '',
       type: currentUser?.type || '',
       birthdate: currentUser?.birthdate || '',
       fax: currentUser?.fax || null,
@@ -98,10 +155,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
     handleSubmit,
     getValues,
     setValue,
-    formState: { isSubmitting, ...rest2 },
+    formState: { isSubmitting, errors, ...rest2 },
     ...rest
   } = methods;
-
+  
+  console.log('errors', errors)
   const onSubmit = handleSubmit(async (data) => {
     try {
       data.birthdate = moment.isDate(data.birthdate)
@@ -116,9 +174,10 @@ export default function UserNewEditForm({ currentUser }: Props) {
       reset();
       router.push(paths.dashboard.user.list);
     } catch (error) {
+      console.log('error', error)
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
-        errorMessages.forEach(errorMessage => {
+        errorMessages.forEach((errorMessage) => {
           console.error(errorMessage);
           enqueueSnackbar({ variant: 'error', message: errorMessage });
         });
@@ -126,7 +185,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
         const errorMessages = Object.entries(error);
         if (errorMessages.length) {
           errorMessages.forEach(([fieldName, errors]) => {
-            errors.forEach((errorMsg) => {
+            errors?.forEach((errorMsg) => {
               enqueueSnackbar({
                 variant: 'error',
                 message: `${t(fieldName)}: ${errorMsg}`,
@@ -134,7 +193,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
             });
           });
         } else {
-          console.error("An unexpected error occurred:", error);
+          console.error('An unexpected error occurred:', error);
           enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
         }
       }
@@ -259,7 +318,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
                 <RHFTextField name="payment_termin" label={t('payment_termin')} />
                 <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
-                <RHFTextField name="payment_method" label={t('payment_method')} />
                 <RHFTextField name="invoice_address" label={t('invoice_address')} />
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
                 <RHFTextField name="discount_group" label={t('discount_group')} />
