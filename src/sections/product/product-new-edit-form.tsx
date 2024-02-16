@@ -109,9 +109,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     unit: Yup.string().required(t('validation_unit')),
     ean: Yup.string().required(t('validation_ean')),
     article_code: Yup.string().required(t('validation_articleCode')),
-    // sku: Yup.string().required(t('validation_sku')),
-    // hs_code: Yup.string().required(t('validation_hsCode')),
-    // supplier_article_code: Yup.string().required(t('validation_supplierArticleCode')),
+    sku: Yup.string().required(t('validation_sku')),
     categories: Yup.array().min(1, t('validation_minCategory')),
     brand: Yup.number().required(t('validation_brand')),
     supplier: Yup.number().required(t('validation_supplier')),
@@ -122,29 +120,14 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     price_cost: Yup.number().moreThan(0, t('validation_moreThanZero')),
     vat: Yup.number().required(t('validation_vat')),
 
-    overall_stock: Yup.number().required(t('validation_overallStock')),
-    free_stock: Yup.number().required(t('validation_freeStock')),
-    ordered_in_progress_stock: Yup.number().required(t('validation_orderedInProgressStock')),
-    work_in_progress_stock: Yup.number().required(t('validation_workInProgressStock')),
-    max_stock_at_rack: Yup.number().required(t('validation_maxStockAtRack')),
-    min_stock_value: Yup.number().required(t('validation_minStockValue')),
-    stock_at_supplier: Yup.number().required(t('validation_stockAtSupplier')),
-
     location: Yup.string().required(t('validation_location')),
-    // extra_location: Yup.string().required(t('validation_extra_location')),
-    // languages_on_item_package: Yup.string().required(t('validation_languages_on_item_package')),
-    // size_x_value: Yup.string().required(t('validation_size_x_value')),
-    // size_y_value: Yup.string().required(t('validation_size_y_value')),
-    // size_z_value: Yup.string().required(t('validation_size_z_value')),
-    // size_unit: Yup.string().required(t('validation_size_unit')),
-    // weight: Yup.string().required(t('validation_weight')),
-    // weight_unit: Yup.string().required(t('validation_weight_unit')),
-    // volume_unit: Yup.string().required(t('validation_volume_unit')),
-    // volume: Yup.string().required(t('validation_volume')),
-    // meta_title: Yup.string().required(t('validation_meta_title')),
-    // meta_description: Yup.string().required(t('validation_meta_description')),
-    // meta_keywords: Yup.string().required(t('validation_meta_keywords')),
-    // url: Yup.string().required(t('validation_url')),
+    languages_on_item_package: Yup.array().required(t('validation_languages_on_item_package')),
+    size_x_value: Yup.string().required(t('validation_size_x_value')),
+    size_y_value: Yup.string().required(t('validation_size_y_value')),
+    size_z_value: Yup.string().required(t('validation_size_z_value')),
+    size_unit: Yup.string().required(t('validation_size_unit')),
+    weight: Yup.string().required(t('validation_weight')),
+    weight_unit: Yup.string().required(t('validation_weight_unit')),
   });
 
   const defaultValues = useMemo(
@@ -180,20 +163,34 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       price_consumers: currentProduct?.price_consumers || null,
       price_cost: currentProduct?.price_cost || null,
       vat: Number(currentProduct?.vat || 0),
-      overall_stock: currentProduct?.overall_stock || 0,
       expiry_date: currentProduct?.expiry_date || null,
-      free_stock: currentProduct?.free_stock || 0,
-      ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0,
-      work_in_progress_stock: currentProduct?.work_in_progress_stock || 0,
-      max_stock_at_rack: currentProduct?.max_stock_at_rack || 0,
-      min_stock_value: currentProduct?.min_stock_value || 0,
+
+      overall_stock: currentProduct?.overall_stock || 0, // # Huidege Voorraad
+      free_stock: currentProduct?.free_stock || 0, // # Vrije Voorraad
+      ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0, // # Voorraad Aantal in bestelling
+
+      number_in_order: currentProduct?.number_in_order || 0, // Aantal in order
+      number_in_offer: currentProduct?.number_in_offer || 0, // Aantal in offerte
+      number_in_pakbon: currentProduct?.number_in_pakbon || 0, // Aantal in pakbon
+      number_in_confirmation: currentProduct?.number_in_confirmation || 0, // Aantal in bevestiging
+      number_in_werkbon: currentProduct?.number_in_werkbon || 0, //  Aantal in werkbon
+      number_in_other: currentProduct?.number_in_other || 0, // Aantal in anders
+
+      order_unit_amount: currentProduct?.order_unit_amount || 0, // Bestellenheid
+      min_order_amount: currentProduct?.min_order_amount || 0, //  Minimum bestelaantal
+      min_stock_value: currentProduct?.min_stock_value || 0, // minimumvoorraad
+      max_stock_at_rack: currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
+      stock_check: currentProduct?.stock_check || false, // voorraadcontrole
+
       stock_at_supplier: currentProduct?.stock_at_supplier || 0,
       location: currentProduct?.location || '',
       extra_location: currentProduct?.extra_location || '',
       /* stock_alert_value: currentProduct?.stock_alert_value || '',
       stock_alert: currentProduct?.stock_alert || false,
       stock_disable_when_sold_out: currentProduct?.stock_disable_when_sold_out || false,
-      stock_check: currentProduct?.stock_check || false, */
+      */
+
+      max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
       delivery_time: currentProduct?.delivery_time || '',
       important_information: currentProduct?.important_information || '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
@@ -246,7 +243,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     formState: { isSubmitting, errors },
     ...rest
   } = methods;
-  if (errors.length) console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
+  console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
   useEffect(() => {
     const calculateVolume = () => {
@@ -495,16 +492,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
-            <RHFSelect name="unit" label={t('unit')}>
-              <MenuItem value="">--</MenuItem>
-              <Divider sx={{ borderStyle: 'dashed' }} />
-              {activeVariant === 0 && <MenuItem value="piece">{t('piece')}</MenuItem>}
-              {activeVariant === 0 && <MenuItem value="package">{t('package')}</MenuItem>}
-              {activeVariant === 0 && <MenuItem value="rol">{t('rol')}</MenuItem>}
-              {activeVariant === 1 && <MenuItem value="box">{t('box')}</MenuItem>}
-              {activeVariant === 2 && <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>}
-              {activeVariant === 3 && <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>}
-            </RHFSelect>
             <RHFSwitch
               name="is_only_for_logged_in_user"
               labelPlacement="start"
@@ -515,6 +502,16 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
+            <RHFSelect name="unit" label={t('unit')}>
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              {activeVariant === 0 && <MenuItem value="piece">{t('piece')}</MenuItem>}
+              {activeVariant === 0 && <MenuItem value="package">{t('package')}</MenuItem>}
+              {activeVariant === 0 && <MenuItem value="rol">{t('rol')}</MenuItem>}
+              {activeVariant === 1 && <MenuItem value="box">{t('box')}</MenuItem>}
+              {activeVariant === 2 && <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>}
+              {activeVariant === 3 && <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>}
+            </RHFSelect>
             <RHFSelect
               name="comm_channel_after_out_of_stock"
               label={t('comm_channel_after_out_of_stock')}
@@ -552,6 +549,35 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               value={getValues('expiry_date') ? new Date(getValues('expiry_date')) : new Date()}
               format="dd/MM/yyyy"
               onChange={(newValue) => setValue('expiry_date', newValue)}
+            />
+            <RHFTextField
+              name="max_order_allowed_per_unit"
+              label={t('max_order_allowed_per_unit')}
+              type="number"
+            />
+            <RHFSwitch
+              name="is_taken_from_another_package"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_taken_from_another_package')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFTextField name="order_unit_amount" label={t('order_unit_amount')} type="number" />
+            <RHFTextField name="min_order_amount" label={t('min_order_amount')} type="number" />
+            <RHFTextField name="min_stock_value" label={t('min_stock_value')} type="number" />
+            <RHFTextField name="max_stock_at_rack" label={t('max_stock_at_rack')} type="number" />
+            <RHFSwitch
+              name="stock_check"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('stock_check')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
           </Box>
 
@@ -885,103 +911,11 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
+            <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
           </Box>
         </Stack>
       </Card>
     </Grid>
-  );
-
-  const renderStock = (
-    <>
-      {/*       {mdUp && (
-        <Grid md={4}>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
-            {t('stock_and_inventory')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('number_of_products')}
-          </Typography>
-        </Grid>
-      )}
- */}
-      <Grid xs={12}>
-        <Card>
-          <CardHeader title={t('stock_and_inventory')} />
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Box
-              columnGap={2}
-              rowGap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="overall_stock" label={t('overall_stock')} type="number" />
-              <RHFTextField name="free_stock" label={t('free_stock')} type="number" />
-              <RHFTextField
-                name="ordered_in_progress_stock"
-                label={t('ordered_in_progress_stock')}
-                type="number"
-              />
-              <RHFTextField
-                name="work_in_progress_stock"
-                label={t('work_in_progress_stock')}
-                type="number"
-              />
-              <RHFSwitch
-                name="is_taken_from_another_package"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_taken_from_another_package')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFTextField name="max_stock_at_rack" label={t('max_stock_at_rack')} type="number" />
-              <RHFTextField name="min_stock_value" label={t('min_stock_value')} type="number" />
-              <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
-
-              {/*   
-              <RHFTextField name="stock_alert_value" label={t('stock_alert_value')} type="number" />
-              <RHFSwitch
-                name="stock_alert"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('stock_alert')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="stock_disable_when_sold_out"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('stock_disable_when_sold_out')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="stock_check"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('stock_check')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              */}
-            </Box>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-          </Stack>
-        </Card>
-      </Grid>
-    </>
   );
 
   const renderProperties = (
@@ -1249,34 +1183,85 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   );
 
   const renderPreview = mdUp ? (
-    <Grid md={4} sx={{ display: 'flex', alignItems: 'flex-start' }}>
-      <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
-        <CardHeader title={t('preview')} />
-        <Stack>
-          <Card sx={{ padding: 3 }}>
-            <Box sx={{ position: 'unset' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-                {getValues('images')?.[0] && <img src={getValues('images')?.[0]} alt="" />}
-                <Box sx={{ textAlign: 'left', mt: 1 }}>
-                  <Typography variant="h6" fontWeight="600" color="text.secondary">
-                    {getValues('title')}
+    <Card id="my-card">
+      <CardHeader title={t('preview')} />
+      <Stack>
+        <Card sx={{ padding: 3 }}>
+          <Box sx={{ position: 'unset' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
+              {getValues('images')?.[0] && <img src={getValues('images')?.[0]} alt="" />}
+              <Box sx={{ textAlign: 'left', mt: 1 }}>
+                <Typography variant="h6" fontWeight="600" color="text.secondary">
+                  {getValues('title')}
+                </Typography>
+                <Typography fontSize="14px" color="text.muted">
+                  {getValues('description')}
+                </Typography>
+                {getValues('price_per_piece') ? (
+                  <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
+                    €{getValues('price_per_piece')}
                   </Typography>
-                  <Typography fontSize="14px" color="text.muted">
-                    {getValues('description')}
-                  </Typography>
-                  {getValues('price_per_piece') ? (
-                    <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                      €{getValues('price_per_piece')}
-                    </Typography>
-                  ) : null}
-                </Box>
+                ) : null}
               </Box>
             </Box>
-          </Card>
+          </Box>
+        </Card>
+      </Stack>
+    </Card>
+  ) : null;
+
+  const renderStock = (
+    <Grid xs={12} sx={{ pointerEvents: 'none' }}>
+      <Card>
+        <CardHeader title={t('stock')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFTextField name="overall_stock" label={t('overall_stock')} type="number" />
+            <RHFTextField name="free_stock" label={t('free_stock')} type="number" />
+            <RHFTextField
+              name="ordered_in_progress_stock"
+              label={t('ordered_in_progress_stock')}
+              type="number"
+            />
+          </Box>
+        </Stack>
+      </Card>
+      <Divider sx={{ borderStyle: 'dashed' }} />
+      <Card>
+        <CardHeader title={t('inventory')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFTextField name="number_in_order" label={t('number_in_order')} type="number" />
+            <RHFTextField name="number_in_offer" label={t('number_in_offer')} type="number" />
+            <RHFTextField name="number_in_pakbon" label={t('number_in_pakbon')} type="number" />
+            <RHFTextField
+              name="number_in_confirmation"
+              label={t('number_in_confirmation')}
+              type="number"
+            />
+            <RHFTextField name="number_in_werkbon" label={t('number_in_werkbon')} type="number" />
+            <RHFTextField name="number_in_other" label={t('number_in_other')} type="number" />
+          </Box>
         </Stack>
       </Card>
     </Grid>
-  ) : null;
+  );
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -1292,11 +1277,14 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           {renderPricing}
           {renderCategories}
           {renderImages}
-          {renderStock}
           {renderActions}
         </Grid>
-
-        {renderPreview}
+        <Grid md={4}>
+          <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
+            {renderPreview}
+            {renderStock}
+          </Card>
+        </Grid>
       </Grid>
 
       {isImageGalleryOpen ? (
