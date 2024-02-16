@@ -737,7 +737,9 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             </Typography>
           </Box>
           {/* Add Image button */}
-          <IconButton onClick={() => setImageGalleryOpen(true)}>{t('select_category')}</IconButton>
+          <IconButton onClick={() => setOpenDialog(true)}>
+            {t('select_category')}
+          </IconButton>
         </Stack>
       </Card>
     </Grid>
