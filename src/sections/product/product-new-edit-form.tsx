@@ -12,11 +12,11 @@ import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Unstable_Grid2';
+import { alpha, MenuItem } from '@mui/material';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { alpha, Button, MenuItem } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
@@ -452,14 +452,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
         <CardHeader title={t('basic_information')} />
         <Stack spacing={3} sx={{ p: 3 }}>
           {/* <RHFTextField name="parent_product" label={t('parent_product')} /> */}
-          <RHFTextField name="title" label={t('product_title')} />
-          <RHFTextField name="title_long" label={t('product_title_long')} />
-          <RHFTextField name="description" label={t('product_description')} />
-          {/* <Stack spacing={1.5}>
-            <Typography variant="subtitle2">{t('description_long')}</Typography>
-            <RHFEditor simple name="description_long" />
-          </Stack> */}
-          <Divider sx={{ borderStyle: 'dashed' }} />
           <Box
             columnGap={2}
             rowGap={3}
@@ -469,6 +461,40 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               md: 'repeat(2, 1fr)',
             }}
           >
+            <RHFTextField name="article_code" label={t('article_code')} />
+            <RHFTextField name="ean" label={t('ean')} />
+            <RHFTextField name="sku" label={t('sku')} />
+            <RHFTextField name="hs_code" label={t('hs_code')} />
+            <RHFSwitch
+              name="has_electronic_barcode"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('has_electronic_barcode')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_used"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_used')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="is_regular"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_regular')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
             <RHFSelect name="unit" label={t('unit')}>
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
@@ -479,80 +505,64 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               {activeVariant === 2 && <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>}
               {activeVariant === 3 && <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>}
             </RHFSelect>
-            <RHFTextField name="ean" label={t('ean')} />
-            <RHFTextField name="article_code" label={t('article_code')} />
-            <RHFTextField name="sku" label={t('sku')} />
-            <RHFTextField name="hs_code" label={t('hs_code')} />
-            <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
+            <RHFSwitch
+              name="is_only_for_logged_in_user"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_only_for_logged_in_user')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSelect
+              name="comm_channel_after_out_of_stock"
+              label={t('comm_channel_after_out_of_stock')}
+            >
+              <MenuItem value="">--</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              <MenuItem value="email">{t('email_only')}</MenuItem>
+              <MenuItem value="whatsapp">{t('whatsapp_only')}</MenuItem>
+              <MenuItem value="all">{t('all')}</MenuItem>
+            </RHFSelect>
+            <RHFTextField
+              name="quantity_per_unit"
+              label={t('quantity_per_unit')}
+              placeholder="0.00"
+              type="number"
+              value={getValues('quantity_per_unit')}
+              onChange={(e) => {
+                setValue(
+                  'quantity_per_unit',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
+                setValue(
+                  'price_per_unit',
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
+                );
+                setValue(
+                  'price_consumers',
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
+                );
+              }}
+              InputLabelProps={{ shrink: true }}
+            />
+            <DatePicker
+              label={t('expiry_date')}
+              value={getValues('expiry_date') ? new Date(getValues('expiry_date')) : new Date()}
+              format="dd/MM/yyyy"
+              onChange={(newValue) => setValue('expiry_date', newValue)}
+            />
           </Box>
 
-          <RHFAutocomplete
-            name="brand"
-            placeholder={t('brand')}
-            options={brands.map((item) => item.id)}
-            getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
-            renderOption={(props, option) => (
-              <li {...props} key={option}>
-                {brands.find((item) => item.id === option)?.name || ''}
-              </li>
-            )}
-          />
-          <RHFAutocomplete
-            name="supplier"
-            placeholder={t('supplier')}
-            options={suppliers.map((item) => item.id)}
-            getOptionLabel={(option) => suppliers.find((item) => item.id === option)?.name || ''}
-            renderOption={(props, option) => (
-              <li {...props} key={option}>
-                {suppliers.find((item) => item.id === option)?.name || ''}
-              </li>
-            )}
-          />
-          <CategorySelector
-            t={t}
-            categories={categories}
-            defaultSelectedCategories={getValues('categories')}
-            open={openDialog}
-            onClose={() => setOpenDialog(false)}
-            onSave={(ct) => {
-              setValue('categories', ct);
-              setOpenDialog(false); // Close the dialog after saving
-            }}
-          />
-          <div>
-            <Typography variant="subtitle2" onClick={handleImportMainProduct}>
-              {t('selected_categories')}:
-            </Typography>
-            <ul>
-              {getValues('categories').map((categoryId) => {
-                const category = findCategory(categories, categoryId);
-                return (
-                  <li key={categoryId}>
-                    {category ? (
-                      <>
-                        <strong>{category.name}</strong>
-                        {category.sub_categories.length > 0 && (
-                          <ul>
-                            {category.sub_categories.map((subCategory) => (
-                              <li key={subCategory.id}>{subCategory.name}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </>
-                    ) : (
-                      `Category Not Found: ${categoryId}`
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <Typography typography="caption" sx={{ color: 'error.main' }}>
-            {(errors.categories as any)?.message}
-          </Typography>
-          <Button type="button" onClick={() => setOpenDialog(true)} color="primary">
-            {t('select_category')}
-          </Button>
+          <Divider sx={{ borderStyle: 'dashed' }} />
+          <RHFTextField name="title" label={t('product_title')} />
+          <RHFTextField name="title_long" label={t('product_title_long')} />
+          <RHFTextField name="description" label={t('product_description')} />
+          {/* <Stack spacing={1.5}>
+            <Typography variant="subtitle2">{t('description_long')}</Typography>
+            <RHFEditor simple name="description_long" />
+          </Stack> */}
 
           {/* <RHFAutocomplete
               name="tags"
@@ -638,6 +648,70 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           </Box>
           {/* Add Image button */}
           <IconButton onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</IconButton>
+        </Stack>
+      </Card>
+    </Grid>
+  );
+
+  const renderCategories = (
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('categories')} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <CategorySelector
+              t={t}
+              categories={categories}
+              defaultSelectedCategories={getValues('categories')}
+              open={openDialog}
+              onClose={() => setOpenDialog(false)}
+              onSave={(ct) => {
+                setValue('categories', ct);
+                setOpenDialog(false); // Close the dialog after saving
+              }}
+            />
+            <div>
+              <Typography variant="subtitle2" onClick={handleImportMainProduct}>
+                {t('selected_categories')}:
+              </Typography>
+              <ul>
+                {getValues('categories').map((categoryId) => {
+                  const category = findCategory(categories, categoryId);
+                  return (
+                    <li key={categoryId}>
+                      {category ? (
+                        <>
+                          <strong>{category.name}</strong>
+                          {category.sub_categories.length > 0 && (
+                            <ul>
+                              {category.sub_categories.map((subCategory) => (
+                                <li key={subCategory.id}>{subCategory.name}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      ) : (
+                        `Category Not Found: ${categoryId}`
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <Typography typography="caption" sx={{ color: 'error.main' }}>
+              {(errors.categories as any)?.message}
+            </Typography>
+          </Box>
+          {/* Add Image button */}
+          <IconButton onClick={() => setImageGalleryOpen(true)}>{t('select_category')}</IconButton>
         </Stack>
       </Card>
     </Grid>
@@ -732,28 +806,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 ),
               }}
             />
-            <RHFTextField
-              name="quantity_per_unit"
-              label={t('quantity_per_unit')}
-              placeholder="0.00"
-              type="number"
-              value={getValues('quantity_per_unit')}
-              onChange={(e) => {
-                setValue(
-                  'quantity_per_unit',
-                  e.target.value !== '' ? Number(e.target.value) : e.target.value
-                );
-                setValue(
-                  'price_per_unit',
-                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
-                );
-                setValue(
-                  'price_consumers',
-                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
-                );
-              }}
-              InputLabelProps={{ shrink: true }}
-            />
 
             <RHFTextField
               disabled
@@ -811,6 +863,28 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               <MenuItem value={9}>9</MenuItem>
               <MenuItem value={21}>21</MenuItem>
             </RHFSelect>
+            <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
+            <RHFAutocomplete
+              name="supplier"
+              placeholder={t('supplier')}
+              options={suppliers.map((item) => item.id)}
+              getOptionLabel={(option) => suppliers.find((item) => item.id === option)?.name || ''}
+              renderOption={(props, option) => (
+                <li {...props} key={option}>
+                  {suppliers.find((item) => item.id === option)?.name || ''}
+                </li>
+              )}
+            />
+            <RHFSwitch
+              name="sell_from_supplier"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('sell_from_supplier')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
           </Box>
         </Stack>
       </Card>
@@ -855,7 +929,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
                 label={t('work_in_progress_stock')}
                 type="number"
               />
-               <RHFSwitch
+              <RHFSwitch
                 name="is_taken_from_another_package"
                 labelPlacement="start"
                 label={
@@ -868,18 +942,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               <RHFTextField name="max_stock_at_rack" label={t('max_stock_at_rack')} type="number" />
               <RHFTextField name="min_stock_value" label={t('min_stock_value')} type="number" />
               <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
-              <RHFSwitch
-                name="sell_from_supplier"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('sell_from_supplier')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFTextField name="location" label={t('location')} />
-              <RHFTextField name="extra_location" label={t('extra_location')} />
+
               {/*   
               <RHFTextField name="stock_alert_value" label={t('stock_alert_value')} type="number" />
               <RHFSwitch
@@ -926,6 +989,36 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       <Card>
         <CardHeader title={t('product_properties')} />
         <Stack spacing={3} sx={{ p: 3 }}>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFSelect name="delivery_time" label={t('delivery_time')}>
+              <MenuItem value="">None</MenuItem>
+              <Divider sx={{ borderStyle: 'dashed' }} />
+              {DELIVERY_CHOICES.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </RHFSelect>
+            <RHFAutocomplete
+              name="brand"
+              placeholder={t('brand')}
+              options={brands.map((item) => item.id)}
+              getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
+              renderOption={(props, option) => (
+                <li {...props} key={option}>
+                  {brands.find((item) => item.id === option)?.name || ''}
+                </li>
+              )}
+            />
+          </Box>
           <CountrySelect
             label={t('languages_on_item_package')}
             placeholder={t('select_languages')}
@@ -946,48 +1039,14 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               md: 'repeat(2, 1fr)',
             }}
           >
-            <RHFSelect name="delivery_time" label={t('delivery_time')}>
-              <MenuItem value="">None</MenuItem>
-              <Divider sx={{ borderStyle: 'dashed' }} />
-              {DELIVERY_CHOICES.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </RHFSelect>
-            <RHFTextField name="sell_count" label={t('sell_count')} />
-            <DatePicker
-              label={t('expiry_date')}
-              value={new Date(getValues('expiry_date'))}
-              format="dd/MM/yyyy"
-              onChange={(newValue) => setValue('expiry_date', newValue)}
-            />
+            <RHFTextField name="location" label={t('location')} />
+            <RHFTextField name="extra_location" label={t('extra_location')} />
             <RHFSwitch
-              name="is_only_for_logged_in_user"
+              name="is_only_for_export"
               labelPlacement="start"
               label={
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_only_for_logged_in_user')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_used"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_used')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_regular"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_regular')}
+                  {t('is_only_for_export')}
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -1003,16 +1062,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
             <RHFSwitch
-              name="is_clearance"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_clearance')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
               name="is_party_sale"
               labelPlacement="start"
               label={
@@ -1022,6 +1071,17 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
+            <RHFSwitch
+              name="is_clearance"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_clearance')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+
             <RHFSwitch
               name="is_visible_on_web"
               labelPlacement="start"
@@ -1042,16 +1102,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             /> */}
-            <RHFSwitch
-              name="is_only_for_export"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_only_for_export')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
+
             <RHFSwitch
               name="is_only_for_B2B"
               labelPlacement="start"
@@ -1078,17 +1129,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               label={
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                   {t('is_listed_on_2dehands')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-
-            <RHFSwitch
-              name="has_electronic_barcode"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('has_electronic_barcode')}
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -1192,7 +1232,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
   const renderActions = (
     <Grid xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
-      <RHFSwitch
+      {/* <RHFSwitch
         name="publish"
         labelPlacement="start"
         label={
@@ -1201,7 +1241,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           </Typography>
         }
         sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-      />
+      /> */}
       <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
         {!currentProduct ? t('create_product') : t('save_changes')}
       </LoadingButton>
@@ -1245,13 +1285,14 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       <Grid container spacing={3}>
         <Grid container md={8} spacing={3}>
           {renderDetails}
-          {renderImages}
-          {renderPricing}
-          {renderStock}
-          {renderProperties}
-          {renderMetrics}
           {renderMeta}
+          {renderMetrics}
           {renderExtra}
+          {renderProperties}
+          {renderPricing}
+          {renderCategories}
+          {renderImages}
+          {renderStock}
           {renderActions}
         </Grid>
 

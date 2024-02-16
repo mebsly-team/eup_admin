@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import Button from '@mui/material/Button';
+import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
@@ -8,9 +11,10 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
+import axiosInstance from 'src/utils/axios';
+
 import { useTranslate } from 'src/locales';
 
-import Label from 'src/components/label';
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -46,12 +50,19 @@ export default function ProductTableRow({
     overall_stock,
     free_stock,
   } = row;
+  const [isActive, setIsActive] = useState(is_product_active);
+
   const { t, onChangeLang } = useTranslate();
 
   const confirm = useBoolean();
 
   const popover = usePopover();
-
+  const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
+    const response = await axiosInstance.patch(`/products/${id}/`, {
+      is_product_active: e.target.checked,
+    });
+    setIsActive(response?.data?.is_product_active ?? isActive);
+  };
   return (
     <>
       <TableRow hover selected={selected}>
@@ -65,13 +76,15 @@ export default function ProductTableRow({
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
-            primary={<a
-              target="_blank"
-              href={`http://52.28.100.129:3000/nl/product/${id}`}
-              rel="noreferrer"
-            >
-              {title}
-            </a>}
+            primary={
+              <a
+                target="_blank"
+                href={`http://52.28.100.129:3000/nl/product/${id}`}
+                rel="noreferrer"
+              >
+                {title}
+              </a>
+            }
             secondary={description}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
@@ -86,12 +99,7 @@ export default function ProductTableRow({
           {free_stock}/{overall_stock}
         </TableCell>
         <TableCell>
-          <Label
-            // variant="soft"
-            color={is_product_active ? 'success' : 'error'}
-          >
-            {is_product_active ? '✓' : 'x'}
-          </Label>
+          <Switch name="is_product_active" checked={isActive} onChange={handleActiveSwitchChange} />
         </TableCell>
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
           {/* <Tooltip title="Quick Edit" placement="top" arrow>

@@ -1,35 +1,39 @@
 import merge from 'lodash/merge';
 // date fns
 import {
-  fr as frFRAdapter,
-  vi as viVNAdapter,
+  tr as trTRAdapter,
+  nl as nlNLAdapter,
   enUS as enUSAdapter,
-  zhCN as zhCNAdapter,
-  arSA as arSAAdapter,
 } from 'date-fns/locale';
 
 // date pickers (MUI)
 import {
   enUS as enUSDate,
-  frFR as frFRDate,
-  viVN as viVNDate,
-  zhCN as zhCNDate,
+  nlNL as nlNLDate,
+  trTR as trTRDate,
+  // frFR as frFRDate,
+  // viVN as viVNDate,
+  // zhCN as zhCNDate,
 } from '@mui/x-date-pickers/locales';
 // core (MUI)
 import {
   enUS as enUSCore,
-  frFR as frFRCore,
-  viVN as viVNCore,
-  zhCN as zhCNCore,
-  arSA as arSACore,
+  nlNL as nlNLCore,
+  trTR as trTRCore,
+  // frFR as frFRCore,
+  // viVN as viVNCore,
+  // zhCN as zhCNCore,
+  // arSA as arSACore,
 } from '@mui/material/locale';
 // data grid (MUI)
 import {
   enUS as enUSDataGrid,
-  frFR as frFRDataGrid,
-  viVN as viVNDataGrid,
-  zhCN as zhCNDataGrid,
-  arSD as arSDDataGrid,
+  trTR as trTRDataGrid,
+  nlNL as nlNLDataGrid,
+  // frFR as frFRDataGrid,
+  // viVN as viVNDataGrid,
+  // zhCN as zhCNDataGrid,
+  // arSD as arSDDataGrid,
 } from '@mui/x-data-grid';
 
 // PLEASE REMOVE `LOCAL STORAGE` WHEN YOU CHANGE SETTINGS.
@@ -39,8 +43,8 @@ export const allLangs = [
   {
     label: 'Nederland',
     value: 'nl',
-    systemValue: merge(frFRDate, frFRDataGrid, frFRCore),
-    adapterLocale: frFRAdapter,
+    systemValue: merge(nlNLDate, nlNLDataGrid, nlNLCore),
+    adapterLocale: nlNLAdapter,
     icon: 'flagpack:nl',
     numberFormat: {
       code: 'nl-Nl',
@@ -61,8 +65,8 @@ export const allLangs = [
   {
     label: 'Turkce',
     value: 'tr',
-    systemValue: merge(frFRDate, frFRDataGrid, frFRCore),
-    adapterLocale: frFRAdapter,
+    systemValue: merge(trTRDate, trTRDataGrid, trTRCore),
+    adapterLocale: trTRAdapter,
     icon: 'flagpack:tr',
     numberFormat: {
       code: 'tr-Tr',
