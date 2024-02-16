@@ -5,6 +5,7 @@ import ReactQuill from 'react-quill';
 
 import { alpha } from '@mui/material/styles';
 
+import { useTranslation } from 'react-i18next';
 import { EditorProps } from './types';
 import { StyledEditor } from './styles';
 import Toolbar, { formats } from './toolbar';
@@ -19,6 +20,8 @@ export default function Editor({
   sx,
   ...other
 }: EditorProps) {
+  const { t, i18n, ready } = useTranslation();
+
   const modules = {
     toolbar: {
       container: `#${id}`,
@@ -49,12 +52,7 @@ export default function Editor({
       >
         <Toolbar id={id} simple={simple} />
 
-        <ReactQuill
-          modules={modules}
-          formats={formats}
-          placeholder="Write something awesome..."
-          {...other}
-        />
+        <ReactQuill modules={modules} formats={formats} placeholder={t('write_here')} {...other} />
       </StyledEditor>
 
       {helperText && helperText}

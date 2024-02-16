@@ -128,6 +128,21 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     size_unit: Yup.string().required(t('validation_size_unit')),
     weight: Yup.string().required(t('validation_weight')),
     weight_unit: Yup.string().required(t('validation_weight_unit')),
+
+    extra_etiket_nl: Yup.string().test(
+      'conditional-required',
+      'Extra etiket NL is required when NL is not included',
+      function (value) {
+        const languages = this.resolve(Yup.ref('languages_on_item_package'));
+        if (!languages.includes('NL') && !value) {
+          return this.createError({
+            path: 'extra_etiket_nl',
+            message: 'Extra etiket NL is required when NL is not included',
+          });
+        }
+        return true;
+      }
+    ),
   });
 
   const defaultValues = useMemo(
@@ -193,6 +208,8 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
       delivery_time: currentProduct?.delivery_time || '',
       important_information: currentProduct?.important_information || '',
+      extra_etiket_nl: currentProduct?.extra_etiket_nl || '',
+      extra_etiket_fr: currentProduct?.extra_etiket_fr || '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
       sell_count: currentProduct?.sell_count || 0,
       is_only_for_logged_in_user: currentProduct?.is_only_for_logged_in_user || false,
@@ -737,9 +754,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             </Typography>
           </Box>
           {/* Add Image button */}
-          <IconButton onClick={() => setOpenDialog(true)}>
-            {t('select_category')}
-          </IconButton>
+          <IconButton onClick={() => setOpenDialog(true)}>{t('select_category')}</IconButton>
         </Stack>
       </Card>
     </Grid>
@@ -955,17 +970,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               )}
             />
           </Box>
-          <CountrySelect
-            label={t('languages_on_item_package')}
-            placeholder={t('select_languages')}
-            fullWidth
-            multiple
-            limitTags={2}
-            value={getValues('languages_on_item_package')}
-            onChange={(event, newValue) => setValue('languages_on_item_package', newValue)}
-            options={countries.map((option) => option.code)}
-            getOptionLabel={(option) => option}
-          />
           <Box
             columnGap={2}
             rowGap={3}
@@ -1071,6 +1075,38 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
             />
           </Box>
           <Divider sx={{ borderStyle: 'dashed' }} />
+          <Box
+            columnGap={2}
+            rowGap={1}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+            }}
+          >
+            <CountrySelect
+              label={t('languages_on_item_package')}
+              placeholder={t('select_languages')}
+              fullWidth
+              multiple
+              limitTags={2}
+              value={getValues('languages_on_item_package')}
+              onChange={(event, newValue) => setValue('languages_on_item_package', newValue)}
+              options={countries.map((option) => option.code)}
+              getOptionLabel={(option) => option}
+            />
+            {!getValues('languages_on_item_package')?.includes('NL') && (
+              <>
+                <Typography variant="subtitle2">{t('extra_etiket_nl')}:</Typography>
+                <RHFEditor simple name="extra_etiket_nl" />
+              </>
+            )}
+            {!getValues('languages_on_item_package')?.includes('FR') && (
+              <>
+                <Typography variant="subtitle2">{t('extra_etiket_fr')}:</Typography>
+                <RHFEditor simple name="extra_etiket_fr" />
+              </>
+            )}
+          </Box>
         </Stack>
       </Card>
     </Grid>

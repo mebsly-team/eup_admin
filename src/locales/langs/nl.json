@@ -417,5 +417,9 @@
   "inventory": "Aantal",
   "max_order_allowed_per_unit": "Max verkoopaantal",
   "order_unit_amount": "Bestellenheid",
-  "min_order_amount": "Minimum bestelaantal"
+  "min_order_amount": "Minimum bestelaantal",
+  "write_here": "Schrijf hier",
+  "extra_etiket_nl": "Extra etiket (Nederland)",
+  "extra_etiket_fr": "Extra etiket (Frans)",
+  "validation_extra_etiket": "Extra etiket verplicht"
 }
