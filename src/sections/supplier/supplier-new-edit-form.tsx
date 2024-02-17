@@ -49,10 +49,10 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
     phone: Yup.string().required(t('phone_required')),
     mobile_phone: Yup.string().required(t('phone_required')),
     // gender: Yup.string().required(t('gender_required')),
-    address: Yup.string().required(t('address_required')),
-    city: Yup.string().required(t('city_required')),
-    country: Yup.string().required(t('country_required')),
-    postal_code: Yup.string().required(t('postal_code_required')),
+    // address: Yup.string().required(t('address_required')),
+    // city: Yup.string().required(t('city_required')),
+    // country: Yup.string().required(t('country_required')),
+    // postal_code: Yup.string().required(t('postal_code_required')),
     contact_person: Yup.string().required(t('contact_person_required')),
     iban: Yup.string().required(t('iban_required')),
     bic: Yup.string().required(t('bic_required')),
@@ -111,8 +111,9 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
     control,
     setValue,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = methods;
+  console.log('errors', errors)
 
   const onSubmit = handleSubmit(async (data) => {
     try {
