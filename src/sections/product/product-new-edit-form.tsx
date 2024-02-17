@@ -257,10 +257,22 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     setValue,
     handleSubmit,
     getValues,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, isDirty, errors },
     ...rest
   } = methods;
+  const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
+
+  useEffect(() => {
+    if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
+  }, [isDirty, values]);
+
+  useEffect(() => {
+    const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
+    if (savedData) {
+      methods.reset(savedData); // Reset form with saved data
+    }
+  }, [methods]);
 
   useEffect(() => {
     const calculateVolume = () => {
@@ -341,8 +353,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
 
-  const values = watch();
-
   const [selectedItems, setSelectedItems] = useState([]);
 
   const handleCheck = (checkedItems) => {
@@ -367,6 +377,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
         const response = await axiosInstance.post('/products/', data);
       }
       reset();
+      localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
       router.push(paths.dashboard.product.root);
     } catch (error) {

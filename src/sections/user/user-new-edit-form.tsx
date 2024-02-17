@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import moment from 'moment';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -156,13 +156,28 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   const {
     reset,
+    watch,
     control,
+    setValue,
     handleSubmit,
     getValues,
-    setValue,
-    formState: { isSubmitting, errors, ...rest2 },
+    formState: { isSubmitting, isDirty, errors },
     ...rest
   } = methods;
+  const values = watch();
+  console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
+
+  useEffect(() => {
+    if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
+  }, [isDirty, values]);
+
+  useEffect(() => {
+    console.log('useEffect');
+    const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
+    if (savedData) {
+      methods.reset(savedData); // Reset form with saved data
+    }
+  }, [methods]);
 
   console.log('errors', errors);
   const onSubmit = handleSubmit(async (data) => {
@@ -175,6 +190,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
       } else {
         const response = await axiosInstance.post('/users/', data);
       }
+      localStorage.removeItem('formData');
+
       enqueueSnackbar(currentUser ? t('update_success') : t('create_success'));
       reset();
       router.push(paths.dashboard.user.list);

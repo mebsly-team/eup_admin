@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
-import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useMemo, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import Box from '@mui/material/Box';
@@ -108,13 +108,26 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
 
   const {
     reset,
-    control,
+    watch,
     setValue,
     handleSubmit,
-    formState: { isSubmitting, errors },
+    getValues,
+    formState: { isSubmitting, isDirty, errors },
+    ...rest
   } = methods;
-  console.log('errors', errors)
+  const values = watch();
+  console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
+  useEffect(() => {
+    if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
+  }, [isDirty, values]);
+
+  useEffect(() => {
+    const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
+    if (savedData) {
+      methods.reset(savedData); // Reset form with saved data
+    }
+  }, [methods]);
   const onSubmit = handleSubmit(async (data) => {
     try {
       if (currentSupplier) {
@@ -122,6 +135,8 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       } else {
         const response = await axiosInstance.post(`/suppliers/`, data);
       }
+      localStorage.removeItem('formData');
+
       enqueueSnackbar(currentSupplier ? t('update_success') : t('create_success'));
       reset();
       router.push(paths.dashboard.supplier.root);
