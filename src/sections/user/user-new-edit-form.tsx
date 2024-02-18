@@ -43,12 +43,16 @@ export default function UserNewEditForm({ currentUser }: Props) {
     last_name: !isBusiness && Yup.string().required(t('surname_required')),
     password: currentUser ? null : Yup.string().required(t('password_required')),
     email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
-    phone_number: Yup.string()
-      .required(t('phone_required'))
-      .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')),
-    mobile_number: Yup.string()
-      .required(t('mobile_required'))
-      .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')),
+    phone_number:
+      isBusiness &&
+      Yup.string()
+        .required(t('phone_required'))
+        .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')),
+    mobile_number:
+      isBusiness &&
+      Yup.string()
+        .required(t('mobile_required'))
+        .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')),
     // gender: Yup.string().required(t('gender_required')),
     birthdate: Yup.date()
       .required(t('birthdate_required'))
@@ -64,42 +68,46 @@ export default function UserNewEditForm({ currentUser }: Props) {
     website: Yup.string().nullable().url(t('website_url_invalid')),
     is_active: Yup.boolean().required(),
     is_staff: Yup.boolean().required(),
-    business_name: Yup.string().required(t('business_name_required')),
-    contact_person_name: Yup.string().required(t('contact_person_name_required')),
-    contact_person_phone_number: Yup.string()
-      .required(t('contact_person_phone_required'))
-      .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')),
-    contact_person_email: Yup.string()
-      .required(t('contact_person_email_required'))
-      .email(t('contact_person_email_invalid')),
-    department: Yup.string().required(t('department_required')),
-    classification: Yup.string().required(t('classification_required')),
-    branch: Yup.string().required(t('branch_required')),
-    iban: Yup.string().required(t('iban_required')),
-    bic: Yup.string().required(t('bic_required')),
-    account_holder_name: Yup.string().required(t('account_holder_name_required')),
-    account_holder_city: Yup.string().required(t('account_holder_city_required')),
-    vat: Yup.string().required(t('vat_required')),
-    kvk: Yup.string().required(t('kvk_required')),
-    payment_method: Yup.string().required(t('payment_method_required')),
-    customer_percentage: Yup.number().required(t('customer_percentage_required')),
-    invoice_discount: Yup.number().required(t('invoice_discount_required')),
-    payment_termin: Yup.string().required(t('payment_termin_required')),
-    credit_limit: Yup.number().required(t('credit_limit_required')),
-    invoice_address: Yup.string().required(t('invoice_address_required')),
-    invoice_language: Yup.string().required(t('invoice_language_required')),
-    discount_group: Yup.string().required(t('discount_group_required')),
-    inform_via: Yup.string().required(t('inform_via_required')),
-    customer_color: Yup.string().required(t('customer_color_required')),
-    relation_type: Yup.string().required(t('relation_type_required')),
-    relation_via: Yup.string().required(t('relation_via_required')),
-    days_closed: Yup.string().required(t('days_closed_required')),
-    days_no_delivery: Yup.string().required(t('days_no_delivery_required')),
-    incasseren: Yup.boolean().required(),
-    is_payment_termin_active: Yup.boolean().required(),
-    is_eligible_to_work_with: Yup.boolean().required(),
-    inform_when_new_products: Yup.boolean().required(),
-    notify: Yup.boolean().required(),
+    business_name: isBusiness && Yup.string().required(t('business_name_required')),
+    contact_person_name: isBusiness && Yup.string().required(t('contact_person_name_required')),
+    contact_person_phone_number:
+      isBusiness &&
+      Yup.string()
+        .required(t('contact_person_phone_required'))
+        .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')),
+    contact_person_email:
+      isBusiness &&
+      Yup.string()
+        .required(t('contact_person_email_required'))
+        .email(t('contact_person_email_invalid')),
+    department: isBusiness && Yup.string().required(t('department_required')),
+    classification: isBusiness && Yup.string().required(t('classification_required')),
+    branch: isBusiness && Yup.string().required(t('branch_required')),
+    iban: isBusiness && Yup.string().required(t('iban_required')),
+    bic: isBusiness && Yup.string().required(t('bic_required')),
+    account_holder_name: isBusiness && Yup.string().required(t('account_holder_name_required')),
+    account_holder_city: isBusiness && Yup.string().required(t('account_holder_city_required')),
+    vat: isBusiness && Yup.string().required(t('vat_required')),
+    kvk: isBusiness && Yup.string().required(t('kvk_required')),
+    payment_method: isBusiness && Yup.string().required(t('payment_method_required')),
+    customer_percentage: isBusiness && Yup.number().required(t('customer_percentage_required')),
+    invoice_discount: isBusiness && Yup.number().required(t('invoice_discount_required')),
+    payment_termin: isBusiness && Yup.string().required(t('payment_termin_required')),
+    credit_limit: isBusiness && Yup.number().required(t('credit_limit_required')),
+    invoice_address: isBusiness && Yup.string().required(t('invoice_address_required')),
+    invoice_language: isBusiness && Yup.string().required(t('invoice_language_required')),
+    discount_group: isBusiness && Yup.string().required(t('discount_group_required')),
+    inform_via: isBusiness && Yup.string().required(t('inform_via_required')),
+    customer_color: isBusiness && Yup.string().required(t('customer_color_required')),
+    relation_type: isBusiness && Yup.string().required(t('relation_type_required')),
+    relation_via: isBusiness && Yup.string().required(t('relation_via_required')),
+    days_closed: isBusiness && Yup.string().required(t('days_closed_required')),
+    days_no_delivery: isBusiness && Yup.string().required(t('days_no_delivery_required')),
+    incasseren: isBusiness && Yup.boolean().required(),
+    is_payment_termin_active: isBusiness && Yup.boolean().required(),
+    is_eligible_to_work_with: isBusiness && Yup.boolean().required(),
+    inform_when_new_products: isBusiness && Yup.boolean().required(),
+    notify: isBusiness && Yup.boolean().required(),
   });
 
   const USER_TYPES = [
