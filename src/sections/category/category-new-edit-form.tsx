@@ -6,18 +6,17 @@ import React, { useMemo, useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import { Typography } from '@mui/material';
-import MenuItem from '@mui/material/MenuItem';
-import Grid from '@mui/material/Unstable_Grid2';
-import LoadingButton from '@mui/lab/LoadingButton';
 import Radio from '@mui/material/Radio';
+import Button from '@mui/material/Button';
+import { Typography } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import RadioGroup from '@mui/material/RadioGroup';
+import LoadingButton from '@mui/lab/LoadingButton';
+import FormControlLabel from '@mui/material/FormControlLabel';
+
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
-import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
+
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
@@ -29,34 +28,31 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 import { ICategoryItem } from 'src/types/category';
 
-import { CategorySelector } from './CategorySelector';
 import { findCategory } from './findCategory';
-
+import { CategorySelector } from './CategorySelector';
 
 type Props = {
   currentCategory?: ICategoryItem;
 };
 
 export default function CategoryNewEditForm({ currentCategory }: Props) {
-  console.log("currentCategory", currentCategory);
+  console.log('currentCategory', currentCategory);
   const router = useRouter();
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   const [parentCategories, setParentCategories] = useState<ICategoryItem[]>([]);
-  const [selectedParentCategory, setSelectedParentCategory] = useState<string>(currentCategory?.parent_category);
   const { enqueueSnackbar } = useSnackbar();
   const { t, onChangeLang } = useTranslate();
 
   const [openDialog, setOpenDialog] = useState(false);
 
-  const [radioValue, setRadioValue] = useState(currentCategory?.parent_category ? 'sub' : "parent");
-
+  const [radioValue, setRadioValue] = useState(currentCategory?.parent_category ? 'sub' : 'parent');
 
   const NewCategorySchema = Yup.object().shape({
     name: Yup.string().required(t('name_required')),
-    icon: Yup.string().required(t('icon_required')),
+    icon: radioValue === 'parent' && Yup.string().required(t('icon_required')),
     description: Yup.string(),
-    parent_category: radioValue === "sub" && Yup.string().required(t('category_is_required')),
-    image: radioValue === "parent" && Yup.mixed().required(t('image_required')),
+    parent_category: radioValue === 'sub' && Yup.string().required(t('category_is_required')),
+    image: radioValue === 'parent' && Yup.mixed().required(t('image_required')),
   });
 
   const defaultValues = useMemo(
@@ -86,7 +82,6 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     ...rest
   } = methods;
 
-
   const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRadioValue((event.target as HTMLInputElement).value);
   };
@@ -96,7 +91,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
   }, []);
 
   const handleSelectImage = async (idList) => {
-    setValue("image", idList[0]);
+    setValue('image', idList[0]);
     setImageGalleryOpen(false);
   };
 
@@ -107,7 +102,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
-        errorMessages.forEach(errorMessage => {
+        errorMessages.forEach((errorMessage) => {
           console.error(errorMessage);
           enqueueSnackbar({ variant: 'error', message: errorMessage });
         });
@@ -123,7 +118,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
             });
           });
         } else {
-          console.error("An unexpected error occurred:", error);
+          console.error('An unexpected error occurred:', error);
           enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
         }
       }
@@ -132,7 +127,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     const finalData = {
-      ...data
+      ...data,
     }; // Include selected parent category in the final data
     try {
       if (currentCategory) {
@@ -181,7 +176,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
             >
               <RadioGroup value={radioValue} onChange={handleRadioChange}>
                 <FormControlLabel
-                  value={"parent"}
+                  value="parent"
                   control={<Radio size="medium" />}
                   label={t('parent_category')}
                   sx={{ textTransform: 'capitalize' }}
@@ -193,41 +188,45 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                 />
               </RadioGroup>
               <RHFTextField name="name" label={t('name')} />
-              <RHFTextField name="icon" label={t('icon')} />
+              {radioValue === 'parent' ? <RHFTextField name="icon" label={t('icon')} /> : null}
               <RHFTextField name="description" label={t('description')} />
 
-              {radioValue === "sub" ? <Stack spacing={1.5}>
-                <Typography variant="subtitle2">{t('parent_category')}:</Typography>
-                <CategorySelector
-                  single
-                  t={t}
-                  categories={parentCategories}
-                  defaultSelectedCategories={[getValues('parent_category')]}
-                  open={openDialog}
-                  onClose={() => setOpenDialog(false)}
-                  onSave={(ct) => {
-                    setValue('parent_category', ct);
-                    setOpenDialog(false);
-                  }}
-                />
-                <div>
-                  <Typography variant="subtitle2">
-                    {findCategory(parentCategories, getValues('parent_category'))?.name}
-                  </Typography>
-                </div>
-                {errors?.parent_category && <Typography color="error">{errors?.parent_category?.message}</Typography>}
-                <Button type="button" onClick={() => setOpenDialog(true)} color="primary">
-                  {t('select_category')}
-                </Button>
-              </Stack> : null}
-              {radioValue === "parent" ? <Stack spacing={1.5}>
-                <Typography variant="subtitle2">{t('image')}</Typography>
-                <Image src={getValues("image")} />
-                <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
-                {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
-              </Stack>
-                : null
-              }
+              {radioValue === 'sub' ? (
+                <Stack spacing={1.5}>
+                  <Typography variant="subtitle2">{t('parent_category')}:</Typography>
+                  <CategorySelector
+                    single
+                    t={t}
+                    categories={parentCategories}
+                    defaultSelectedCategories={[getValues('parent_category')]}
+                    open={openDialog}
+                    onClose={() => setOpenDialog(false)}
+                    onSave={(ct) => {
+                      setValue('parent_category', ct);
+                      setOpenDialog(false);
+                    }}
+                  />
+                  <div>
+                    <Typography variant="subtitle2">
+                      {findCategory(parentCategories, getValues('parent_category'))?.name}
+                    </Typography>
+                  </div>
+                  {errors?.parent_category && (
+                    <Typography color="error">{errors?.parent_category?.message}</Typography>
+                  )}
+                  <Button type="button" onClick={() => setOpenDialog(true)} color="primary">
+                    {t('select_category')}
+                  </Button>
+                </Stack>
+              ) : null}
+              {radioValue === 'parent' ? (
+                <Stack spacing={1.5}>
+                  <Typography variant="subtitle2">{t('image')}</Typography>
+                  <Image src={getValues('image')} />
+                  <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
+                  {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
+                </Stack>
+              ) : null}
             </Box>
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
