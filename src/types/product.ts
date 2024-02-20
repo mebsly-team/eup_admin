@@ -52,7 +52,7 @@ export interface IProductItem {
   title_long: string;
   description: string;
   description_long: string;
-  price_per_piece: string;
+  price_per_piece: string | number;
   price_per_unit: number;
   price_consumers: number;
   price_cost: any;
@@ -60,10 +60,13 @@ export interface IProductItem {
   quantity_per_unit: number;
   quantity_total_content: number;
   max_order_allowed_per_unit: number;
+  pallet_layer_total_number: number;
+  pallet_full_total_number: number;
   overall_stock: number;
   free_stock: number;
   ordered_in_progress_stock: number;
   work_in_progress_stock: number;
+  parent_price_per_piece: number;
   stock_disable_when_sold_out: boolean;
   ean: string;
   article_code: string;
@@ -105,7 +108,6 @@ export interface IProductItem {
   hs_code: string;
   has_electronic_barcode: boolean;
   is_brief_box: boolean;
-  volume_value: any;
   volume_unit: string;
   volume: string;
   created_at: string;

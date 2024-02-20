@@ -125,7 +125,7 @@ export default function CountrySelect<
 // ----------------------------------------------------------------------
 
 export function getCountry(inputValue: string) {
-  const option = countries.filter((country) => country.code === inputValue)[0];
+  const option = countries?.filter((country) => country.code === inputValue)[0];
 
   return {
     ...option,

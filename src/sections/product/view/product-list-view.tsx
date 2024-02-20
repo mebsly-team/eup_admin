@@ -7,8 +7,20 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
+import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
+import {
+  Box,
+  Dialog,
+  Select,
+  MenuItem,
+  TextField,
+  Typography,
+  InputLabel,
+  FormControl,
+  DialogActions,
+} from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -60,9 +72,12 @@ export default function ProductListView() {
   const [productList, setProductList] = useState<IProductItem[]>([]);
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IProductItem[]>(productList);
+  const [isStockUpdateDialogOpen, setStockUpdateDialogOpen] = useState(false);
+  const [selectedSingleRow, setSelectedSingleRow] = useState();
   const [filters, setFilters] = useState(defaultFilters);
   console.log('filters', filters);
   const { t, onChangeLang } = useTranslate();
+
   const TABLE_HEAD = [
     { id: 'image', label: t('image'), width: 180 },
     { id: 'title', label: t('title') },
@@ -71,6 +86,7 @@ export default function ProductListView() {
     { id: 'overall_stock', label: t('free_all_stock') },
     { id: 'is_product_active', label: `${t('active')}?` },
   ];
+  const theme = useTheme();
 
   const dataInPage = productList.slice(
     table.page * table.rowsPerPage,
@@ -129,7 +145,6 @@ export default function ProductListView() {
       enqueueSnackbar(t('delete_success'));
       getAll();
       // setTableData(deleteRow);
-
       // table.onUpdatePageDeleteRow(dataInPage?.length);
     },
     [dataInPage?.length, enqueueSnackbar, table, productList]
@@ -137,11 +152,8 @@ export default function ProductListView() {
 
   const handleDeleteRows = useCallback(() => {
     const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
     enqueueSnackbar(t('delete_success'));
-
     setTableData(deleteRows);
-
     table.onUpdatePageDeleteRows({
       totalRowsInPage: dataInPage?.length,
       totalRowsFiltered: productList?.length,
@@ -154,6 +166,16 @@ export default function ProductListView() {
     },
     [router]
   );
+
+  const updateStock = useCallback(() => {
+    // TODO:
+    setStockUpdateDialogOpen(false);
+  }, []);
+
+  const handleUpdateStock = useCallback((row) => {
+    setSelectedSingleRow(row);
+    setStockUpdateDialogOpen(true);
+  }, []);
 
   return (
     <>
@@ -241,6 +263,7 @@ export default function ProductListView() {
                       onSelectRow={() => table.onSelectRow(row.id)}
                       onDeleteRow={() => handleDeleteRow(row.id)}
                       onEditRow={() => handleEditRow(row.id)}
+                      onEditStock={() => handleUpdateStock(row)}
                     />
                   ))}
 
@@ -285,6 +308,54 @@ export default function ProductListView() {
           </Button>
         }
       />
+
+      {isStockUpdateDialogOpen ? (
+        <Dialog
+          fullWidth
+          maxWidth="sm"
+          open={isStockUpdateDialogOpen}
+          onClose={() => setStockUpdateDialogOpen(false)}
+          transitionDuration={{
+            enter: theme.transitions.duration.shortest,
+            exit: 0,
+          }}
+          PaperProps={{
+            sx: {
+              mt: 15,
+              overflow: 'unset',
+            },
+          }}
+        >
+          <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
+            <Typography sx={{ mb: 2 }}>{selectedSingleRow?.title}</Typography>
+
+            <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+              {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
+            </Typography>
+            <TextField name="aantal" label={t('aantal')} sx={{ width: 100 }} type="number" />
+            <FormControl sx={{ minWidth: 300 }}>
+              <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
+              <Select labelId="demo-select-small-label" id="demo-select-small">
+                <MenuItem value="stock_update_choice_0">{t('stock_update_choice_0')}</MenuItem>
+                <MenuItem value="stock_update_choice_1">{t('stock_update_choice_1')}</MenuItem>
+                <MenuItem value="stock_update_choice_2">{t('stock_update_choice_2')}</MenuItem>
+                <MenuItem value="stock_update_choice_3">{t('stock_update_choice_3')}</MenuItem>
+                <MenuItem value="stock_update_choice_4">{t('stock_update_choice_4')}</MenuItem>
+                <MenuItem value="stock_update_choice_5">{t('stock_update_choice_5')}</MenuItem>
+                <MenuItem value="stock_update_choice_6">{t('stock_update_choice_6')}</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <DialogActions>
+            <Button onClick={() => setStockUpdateDialogOpen(false)} color="primary">
+              {t('cancel')}
+            </Button>
+            <Button onClick={updateStock} color="primary">
+              {t('save')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      ) : null}
     </>
   );
 }

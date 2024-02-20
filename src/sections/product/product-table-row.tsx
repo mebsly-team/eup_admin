@@ -30,6 +30,7 @@ type Props = {
   row: IProductItem;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
+  onEditStock: VoidFunction;
 };
 
 export default function ProductTableRow({
@@ -38,6 +39,7 @@ export default function ProductTableRow({
   onEditRow,
   onSelectRow,
   onDeleteRow,
+  onEditStock,
 }: Props) {
   const {
     id,
@@ -118,8 +120,26 @@ export default function ProductTableRow({
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
-        sx={{ width: 140 }}
+        // sx={{ width: 140 }}
       >
+        <MenuItem
+          onClick={() => {
+            onEditRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          {t('view_edit')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            onEditStock();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="eva:cube-fill" />
+          {t('stock_update_choices')}
+        </MenuItem>
         <MenuItem
           onClick={() => {
             confirm.onTrue();
@@ -129,16 +149,6 @@ export default function ProductTableRow({
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
           {t('delete')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            onEditRow();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:pen-bold" />
-          {t('view_edit')}
         </MenuItem>
       </CustomPopover>
 

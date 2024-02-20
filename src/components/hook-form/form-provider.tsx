@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import { UseFormReturn, FormProvider as Form } from 'react-hook-form';
 
 // ----------------------------------------------------------------------
@@ -9,9 +10,16 @@ type Props = {
 };
 
 export default function FormProvider({ children, onSubmit, methods }: Props) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLFormElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent form submission on Enter key press
+    }
+  };
   return (
     <Form {...methods}>
-      <form onSubmit={onSubmit}>{children}</form>
+      <form onSubmit={onSubmit} onKeyDown={handleKeyDown}>
+        {children}
+      </form>
     </Form>
   );
 }
