@@ -22,20 +22,20 @@ export default function UserCardsView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading={t('users')}
+        heading={t('employees')}
         links={[
           { name: t('dashboard'), href: paths.dashboard.root },
-          { name: t('user'), href: paths.dashboard.user.root },
+          { name: t('employee'), href: paths.dashboard.employee.root },
           { name: t('cards') },
         ]}
         action={
           <Button
             component={RouterLink}
-            href={paths.dashboard.user.new}
+            href={paths.dashboard.employee.new}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            {t('new_user')}
+            {t('new_employee')}
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}

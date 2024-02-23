@@ -1,15 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import MainLayout from 'src/layouts/main';
-import SimpleLayout from 'src/layouts/simple';
-import CompactLayout from 'src/layouts/compact';
-
-import { SplashScreen } from 'src/components/loading-screen';
 import { AuthGuard } from 'src/auth/guard';
+import CompactLayout from 'src/layouts/compact';
 import DashboardLayout from 'src/layouts/dashboard';
 
-import { LoadingScreen } from 'src/components/loading-screen';
+import { SplashScreen, LoadingScreen } from 'src/components/loading-screen';
+
 // ----------------------------------------------------------------------
 
 export const HomePage = lazy(() => import('src/pages/dashboard/ecommerce'));
@@ -58,6 +55,13 @@ const UserListPage = lazy(() => import('src/pages/dashboard/user/list'));
 const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account'));
 const UserCreatePage = lazy(() => import('src/pages/dashboard/user/new'));
 const UserEditPage = lazy(() => import('src/pages/dashboard/user/edit'));
+// EMPLOYEE
+const EmployeeProfilePage = lazy(() => import('src/pages/dashboard/employee/profile'));
+const EmployeeCardsPage = lazy(() => import('src/pages/dashboard/employee/cards'));
+const EmployeeListPage = lazy(() => import('src/pages/dashboard/employee/list'));
+const EmployeeAccountPage = lazy(() => import('src/pages/dashboard/employee/account'));
+const EmployeeCreatePage = lazy(() => import('src/pages/dashboard/employee/new'));
+const EmployeeEditPage = lazy(() => import('src/pages/dashboard/employee/edit'));
 
 // FILE MANAGER
 const FileManagerPage = lazy(() => import('src/pages/dashboard/file-manager'));
@@ -70,7 +74,6 @@ const KanbanPage = lazy(() => import('src/pages/dashboard/kanban'));
 const PermissionDeniedPage = lazy(() => import('src/pages/dashboard/permission'));
 // BLANK PAGE
 const BlankPage = lazy(() => import('src/pages/dashboard/blank'));
-
 
 // ----------------------------------------------------------------------
 
@@ -89,7 +92,8 @@ export const mainRoutes = [
       { path: '404', element: <Page404 /> },
       { path: '403', element: <Page403 /> },
     ],
-  }, {
+  },
+  {
     path: 'dashboard',
     element: (
       <AuthGuard>
@@ -113,6 +117,18 @@ export const mainRoutes = [
           { path: 'new', element: <UserCreatePage /> },
           { path: ':id/edit', element: <UserEditPage /> },
           { path: 'account', element: <UserAccountPage /> },
+        ],
+      },
+      {
+        path: 'employee',
+        children: [
+          { element: <EmployeeProfilePage />, index: true },
+          { path: 'profile', element: <EmployeeProfilePage /> },
+          { path: 'cards', element: <EmployeeCardsPage /> },
+          { path: 'list', element: <EmployeeListPage /> },
+          { path: 'new', element: <EmployeeCreatePage /> },
+          { path: ':id/edit', element: <EmployeeEditPage /> },
+          { path: 'account', element: <EmployeeAccountPage /> },
         ],
       },
       {
@@ -168,7 +184,8 @@ export const mainRoutes = [
           { path: ':id/edit', element: <InvoiceEditPage /> },
           { path: 'new', element: <InvoiceCreatePage /> },
         ],
-      }, {
+      },
+      {
         path: 'language',
         children: [
           { element: <LanguageListPage />, index: true },

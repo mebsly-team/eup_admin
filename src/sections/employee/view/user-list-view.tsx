@@ -66,19 +66,10 @@ export default function UserListView() {
 
   const TABLE_HEAD = [
     { id: 'name', label: t('name_type') },
-    { id: 'email', label: t('email_phone'), width: 180 },
-    { id: 'company', label: t('poc'), width: 220 },
-    { id: 'type', label: t('kvk_vat'), width: 180 },
+    { id: 'email', label: t('email'), width: 180 },
+    { id: 'phone_number', label: t('phone_number'), width: 180 },
     { id: 'is_active', label: `${t('active')}?`, width: 100 },
     { id: '', width: 88 },
-  ];
-
-  const USER_TYPES = [
-    { value: 'special', label: t('special') },
-    { value: 'wholesaler', label: t('wholesaler') },
-    { value: 'supermarket', label: t('supermarket') },
-    { value: 'particular', label: t('particular') },
-    // { value: 'admin', label: t('admin') },
   ];
 
   const STATUS_OPTIONS = [
@@ -165,7 +156,7 @@ export default function UserListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.user.edit(id));
+      router.push(paths.dashboard.employee.edit(id));
     },
     [router]
   );
@@ -184,17 +175,17 @@ export default function UserListView() {
           heading="List"
           links={[
             { name: t('dashboard'), href: paths.dashboard.root },
-            { name: t('user'), href: paths.dashboard.user.root },
+            { name: t('employee'), href: paths.dashboard.employee.root },
             { name: t('list') },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.user.new}
+              href={paths.dashboard.employee.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              {t('new_user')}
+              {t('new_employee')}
             </Button>
           }
           sx={{
@@ -217,33 +208,15 @@ export default function UserListView() {
                 iconPosition="end"
                 value={tab.value}
                 label={tab.label}
-                // icon={
-                //   <Label
-                //     variant={
-                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                //     }
-                //     color={
-                //       (tab.value === 'active' && 'success') ||
-                //       (tab.value === 'pending' && 'warning') ||
-                //       (tab.value === 'banned' && 'error') ||
-                //       'default'
-                //     }
-                //   >
-                //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                //       ? tableData.filter((user) => user.status === tab.value).length
-                //       : tableData.length}
-                //   </Label>
-                // }
               />
             ))}
           </Tabs>
 
-          <UserTableToolbar
+          {/* <UserTableToolbar
             filters={filters}
             onFilters={handleFilters}
-            //
             roleOptions={USER_TYPES}
-          />
+          /> */}
 
           {canReset && (
             <UserTableFiltersResult
