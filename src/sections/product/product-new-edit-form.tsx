@@ -2,8 +2,8 @@
 import * as Yup from 'yup';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
+import { useMemo, useState, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useMemo, useState, useEffect, useCallback, SetStateAction } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -12,11 +12,12 @@ import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Unstable_Grid2';
-import { alpha, MenuItem } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { Link, alpha, MenuItem } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
@@ -50,13 +51,16 @@ import { CategorySelector } from 'src/sections/category/CategorySelector';
 
 import { IProductItem } from 'src/types/product';
 
+import ProductVariantForm from './product-variant-form';
+
 // ----------------------------------------------------------------------
 
 type Props = {
   currentProduct?: IProductItem;
 };
 
-export default function ProductNewEditForm({ currentProduct: mainProduct }: Props) {
+export default function ProductNewEditForm({ currentProduct }: Props) {
+  console.log('currentProduct', currentProduct);
   const router = useRouter();
   const { items: categories } = useGetCategories();
   console.log('🚀 ~ ProductNewEditForm ~ categories:', categories);
@@ -64,38 +68,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const { items: suppliers } = useGetSuppliers();
   const mdUp = useResponsive('up', 'md');
   const { t, onChangeLang } = useTranslate();
+  const theme = useTheme();
 
   const { enqueueSnackbar } = useSnackbar();
-
-  const [includeTaxes, setIncludeTaxes] = useState(false);
-  const [activeVariant, setActiveVariant] = useState(0);
-  const [currentProduct, setCurrentProduct] = useState(mainProduct);
-  console.log('currentProduct', currentProduct);
-  const [variant1, setVariant1] = useState({});
-  const [variant2, setVariant2] = useState({});
-  const [variant3, setVariant3] = useState({});
-  const currentProductVariants = currentProduct?.variants || [];
+  const [activeTab, setActiveTab] = useState(0);
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
-  const [openDialogStockEdit, setOpenDialogStockEdit] = useState(false);
-  const parent_price_per_piece = Number(
-    currentProduct?.parent_price_per_piece || mainProduct?.price_per_unit || 0
-  );
-
-  const getVariants = () => {
-    if (currentProductVariants.length) {
-      currentProductVariants.forEach(async (item) => {
-        const { data } = await axiosInstance.get(`/products/${item}/`);
-        if (data.unit === 'box') setVariant1(data);
-        if (data.unit === 'pallet_layer') setVariant2(data);
-        if (data.unit === 'pallet_full') setVariant3(data);
-      });
-    }
-  };
-
-  useEffect(() => {
-    getVariants();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mainProduct?.variants, currentProduct?.variants, activeVariant]);
+  const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
 
   const DELIVERY_CHOICES = [
     { value: '0', label: t('delivery_choice_0') },
@@ -107,13 +85,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   const NewProductSchema = Yup.object().shape({
     title: Yup.string().required(t('validation_title')),
     description: Yup.string().required(t('validation_description')),
-    unit: Yup.string().required(t('validation_unit')),
     ean: Yup.string().required(t('validation_ean')),
     article_code: Yup.string().required(t('validation_articleCode')),
     sku: Yup.string().required(t('validation_sku')),
     categories: Yup.array().min(1, t('validation_minCategory')),
     brand: Yup.number().required(t('validation_brand')),
-    supplier: Yup.number().required(t('validation_supplier')),
+    supplier: Yup.number().required(t('validation_supplier')).nullable(),
     // tags: Yup.array().min(2, t('validation_minTags')),
     price_per_piece: Yup.number().moreThan(0, t('validation_moreThanZero')),
     price_per_unit: Yup.number().moreThan(0, t('validation_moreThanZero')),
@@ -135,7 +112,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       'Extra etiket NL is required when NL is not included',
       function (value) {
         const languages = this.resolve(Yup.ref('languages_on_item_package'));
-        if (!languages.includes('NL') && !value) {
+        if (!languages?.includes('NL') && !value) {
           return this.createError({
             path: 'extra_etiket_nl',
             message: 'Extra etiket NL is required when NL is not included',
@@ -148,19 +125,11 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
   const defaultValues = useMemo(
     () => ({
+      is_variant: currentProduct?.is_variant,
+      variants: currentProduct?.variants,
       title: currentProduct?.title || '',
       title_long: currentProduct?.title_long || '',
       description: currentProduct?.description || '',
-      // description_long: currentProduct?.description_long || '',
-      unit:
-        currentProduct?.unit ||
-        (activeVariant === 1
-          ? 'box'
-          : activeVariant === 2
-            ? 'pallet_layer'
-            : activeVariant === 3
-              ? 'pallet_full'
-              : ''),
       parent_product: currentProduct?.parent_product || '',
       ean: currentProduct?.ean || '',
       article_code: currentProduct?.article_code || '',
@@ -172,7 +141,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       supplier: currentProduct?.supplier?.id || null,
       // tags: currentProduct?.tags || [],
       images: currentProduct?.images || [],
-      quantity_per_unit: activeVariant === 0 ? 1 : currentProduct?.quantity_per_unit || 0,
+      quantity_per_unit: currentProduct?.quantity_per_unit || 0,
       variant_discount: currentProduct?.variant_discount || null,
       price_per_piece: currentProduct?.price_per_piece || null,
       price_per_unit: currentProduct?.price_per_unit || null,
@@ -259,10 +228,12 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     watch,
     setValue,
     handleSubmit,
-    getValues,
+    getValues, 
     formState: { isSubmitting, isDirty, errors },
     ...rest
   } = methods;
+  console.log('methods', methods)
+  
   const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
@@ -282,7 +253,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       const sizeX = parseFloat(watch('size_x_value') || 0);
       const sizeY = parseFloat(watch('size_y_value') || 0);
       const sizeZ = parseFloat(watch('size_z_value') || 0);
-      const unit = watch('size_unit');
+      const size_unit = watch('size_unit');
       const weight = parseFloat(watch('weight') || 0);
       const weightUnit = watch('weight_unit');
 
@@ -290,7 +261,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
       let calculatedVolumeUnit = '';
       let isBriefBox = true;
 
-      if (unit === 'mm') {
+      if (size_unit === 'mm') {
         calculatedVolume = (sizeX * sizeY * sizeZ) / 1000000; // Conversion from mm^3 to cm^3
         calculatedVolumeUnit = 'cm^3';
         isBriefBox =
@@ -298,7 +269,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           sizeY <= 380 &&
           sizeZ <= 32 &&
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
-      } else if (unit === 'cm') {
+      } else if (size_unit === 'cm') {
         calculatedVolume = sizeX * sizeY * sizeZ;
         calculatedVolumeUnit = 'cm^3';
         isBriefBox =
@@ -306,7 +277,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
           sizeY <= 38 &&
           sizeZ <= 3.2 &&
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
-      } else if (unit === 'm') {
+      } else if (size_unit === 'm') {
         calculatedVolume = sizeX * sizeY * sizeZ;
         calculatedVolumeUnit = 'm^3';
         isBriefBox =
@@ -336,32 +307,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     setValue('meta_description', `${watch('title_long')} EAN:${watch('ean')}`);
   }, [watch('title'), watch('title_long'), watch('ean')]);
 
-  const handleVariantChange = (e: { target: { id: SetStateAction<number> } }) => {
-    const variant = Number(e.target.id);
-    setActiveVariant(variant);
-    if (variant === 0) {
-      setCurrentProduct(mainProduct);
-    }
-    if (variant === 1) {
-      setCurrentProduct(variant1);
-    }
-    if (variant === 2) {
-      setCurrentProduct(variant2);
-    }
-    if (variant === 3) {
-      setCurrentProduct(variant3);
-    }
-  };
-
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
 
-  const [selectedItems, setSelectedItems] = useState([]);
-
-  const handleCheck = (checkedItems) => {
-    setSelectedItems(checkedItems);
-  };
-
+  
   useEffect(() => {
     if (currentProduct) {
       reset(defaultValues);
@@ -409,14 +358,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     }
   });
 
-  const handleChangeIncludeTaxes = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setIncludeTaxes(event.target.checked);
-  }, []);
-
   const renderTabs = (
     <Tabs
-      value={activeVariant}
-      onChange={handleVariantChange}
+      value={activeTab}
+      onChange={(e) => setActiveTab(Number(e.target.id))}
       sx={{
         px: 2.5,
         boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
@@ -427,47 +372,29 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
         iconPosition="end"
         id={1}
         value={1}
-        label={`${t('variant_1')} (${t('box')})`}
-        disabled={!currentProduct}
-      />
-      <Tab
-        iconPosition="end"
-        id={2}
-        value={2}
-        label={`${t('variant_2')} (${t('pallet_layer')})`}
-        disabled={!currentProduct}
-      />
-      <Tab
-        iconPosition="end"
-        id={3}
-        value={3}
-        label={`${t('variant_3')} (${t('pallet_full')})`}
+        label={`${t('variants')}`}
         disabled={!currentProduct}
       />
     </Tabs>
   );
 
-  const handleImportMainProduct = () => {
-    const copyData = {
-      ...mainProduct,
-      id: '',
-      parent_product: mainProduct?.id,
-      unit:
-        activeVariant === 1
-          ? 'box'
-          : activeVariant === 2
-            ? 'pallet_layer'
-            : activeVariant === 3
-              ? 'pallet_full'
-              : '',
-    };
-    setCurrentProduct(copyData);
+  const handleImportMainProduct = async () => {
+    if (currentProduct?.parent_product) {
+      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
+      const {title, ean, article_code, hs_code, sku, brand, supplier, categories, ...copyData} = {...response?.data};
+      reset({title: getValues("title"), ean: getValues("ean"), article_code: getValues("article_code"), hs_code: getValues("hs_code"), 
+      sku: getValues("sku"), 
+      supplier: supplier?.id,
+    brand: brand?.id,
+      categories: categories?.map((item) => item.id) || [],
+      ...copyData});
+    }
   };
 
   const renderDetails = (
     <Grid xs={12}>
       <Card>
-        {activeVariant !== 0 && (
+      {currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
             color="blue"
@@ -533,16 +460,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
-            <RHFSelect name="unit" label={t('unit')}>
-              <MenuItem value="">--</MenuItem>
-              <Divider sx={{ borderStyle: 'dashed' }} />
-              {activeVariant === 0 && <MenuItem value="piece">{t('piece')}</MenuItem>}
-              {activeVariant === 0 && <MenuItem value="package">{t('package')}</MenuItem>}
-              {activeVariant === 0 && <MenuItem value="rol">{t('rol')}</MenuItem>}
-              {activeVariant === 1 && <MenuItem value="box">{t('box')}</MenuItem>}
-              {activeVariant === 2 && <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>}
-              {activeVariant === 3 && <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>}
-            </RHFSelect>
             <RHFSelect
               name="comm_channel_after_out_of_stock"
               label={t('comm_channel_after_out_of_stock')}
@@ -681,10 +598,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   );
 
   const handleSelectImage = (urlList = []) => {
-    const imageList = getValues('images');
+    const imageList = getValues('images') || [];
 
     urlList.forEach((element) => {
-      if (!imageList.includes(element)) {
+      if (!imageList?.includes(element)) {
         setValue('images', [...imageList, element]);
       }
     });
@@ -692,10 +609,10 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
     setImageGalleryOpen(false);
   };
 
-  const handleDeleteImage = (image) => {
+  const handleDeleteImage = (image: string) => {
     // Function to delete an image from the list
     const imageList = getValues('images');
-    const updatedImageList = imageList.filter((item) => item !== image);
+    const updatedImageList = imageList?.filter((item) => item !== image);
     setValue('images', updatedImageList);
   };
 
@@ -764,9 +681,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               }}
             />
             <div>
-              <Typography variant="subtitle2" onClick={handleImportMainProduct}>
-                {t('selected_categories')}:
-              </Typography>
+              <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
               <ul>
                 {getValues('categories')?.map((categoryId) => {
                   const category = findCategory(categories, categoryId);
@@ -818,7 +733,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               md: 'repeat(2, 1fr)',
             }}
           >
-            {Number(activeVariant) > 0 ? (
+            {getValues('is_variant') ? (
               <RHFTextField
                 name="variant_discount"
                 label={t('variant_discount')}
@@ -862,7 +777,6 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               />
             ) : null}
             <RHFTextField
-              disabled={Number(activeVariant) > 0}
               name="price_per_piece"
               label={t('price_per_piece')}
               placeholder="0.00"
@@ -1139,7 +1053,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
               fullWidth
               multiple
               limitTags={2}
-              value={getValues('languages_on_item_package')}
+              value={getValues('languages_on_item_package') || []}
               onChange={(event, newValue) => setValue('languages_on_item_package', newValue)}
               options={countries?.map((option) => option.code) || []}
               getOptionLabel={(option) => option}
@@ -1260,17 +1174,7 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
   );
 
   const renderActions = (
-    <Grid xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
-      {/* <RHFSwitch
-        name="publish"
-        labelPlacement="start"
-        label={
-          <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-            {t('publish')}
-          </Typography>
-        }
-        sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-      /> */}
+    <Grid xs={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
       <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
         {!currentProduct ? t('create_product') : t('save_changes')}
       </LoadingButton>
@@ -1279,6 +1183,25 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
   const renderPreview = mdUp ? (
     <Card id="my-card">
+     {currentProduct?.parent_product ? (
+     <Link
+        href={paths.dashboard.product.edit(currentProduct?.parent_product)}
+        color="blue"
+        sx={{
+          alignItems: 'center',
+          typography: '',
+          display: 'inline-flex',
+          alignSelf: 'flex-end',
+          fontWeight: 'fontWeightBold',
+          textDecoration: 'underline',
+          cursor: "pointer"
+        }}
+      >
+        {t('main_product')}
+      </Link>
+      )
+      :null
+      }
       <CardHeader title={t('preview')} />
       <Stack>
         <Card sx={{ padding: 3 }}>
@@ -1377,27 +1300,32 @@ export default function ProductNewEditForm({ currentProduct: mainProduct }: Prop
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
-      {renderTabs}
+      {!currentProduct?.is_variant ? renderTabs : null}
 
-      <Grid container spacing={3}>
-        <Grid container md={8} spacing={3}>
-          {renderDetails}
-          {renderMeta}
-          {renderMetrics}
-          {renderExtra}
-          {renderProperties}
-          {renderPricing}
-          {renderCategories}
-          {renderImages}
-          {renderActions}
+      
+      {activeTab === 0 ? (
+        <Grid container spacing={3}>
+          <Grid container md={8} spacing={3}>
+            {renderDetails}
+            {renderMeta}
+            {renderMetrics}
+            {renderExtra}
+            {renderProperties}
+            {renderPricing}
+            {renderCategories}
+            {renderImages}
+            {renderActions}
+          </Grid>
+          <Grid md={4}>
+            <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
+              {renderPreview}
+              {renderStock}
+            </Card>
+          </Grid>
         </Grid>
-        <Grid md={4}>
-          <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
-            {renderPreview}
-            {renderStock}
-          </Card>
-        </Grid>
-      </Grid>
+      ) : (
+        <ProductVariantForm currentProduct={currentProduct} />
+      )}
 
       {isImageGalleryOpen ? (
         <ImageGallery

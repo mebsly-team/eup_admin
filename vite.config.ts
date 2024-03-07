@@ -6,8 +6,18 @@ import checker from 'vite-plugin-checker';
 // ----------------------------------------------------------------------
 
 export default defineConfig({
+  optimizeDeps: {
+    include: [
+      '@emotion/react', 
+      '@emotion/styled', 
+      '@mui/material/Tooltip'
+    ],
+  },
   plugins: [
-    react(),
+    react({
+      jsxImportSource: '@emotion/react',
+
+    }),
     // checker({
     //   typescript: true,
     //   eslint: {

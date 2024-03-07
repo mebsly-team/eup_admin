@@ -73,10 +73,27 @@ export default function ProductListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IProductItem[]>(productList);
   const [isStockUpdateDialogOpen, setStockUpdateDialogOpen] = useState(false);
+  const [isCreateVariantDialogOpen, setSCreateVariantDialogOpen] = useState(false);
   const [selectedSingleRow, setSelectedSingleRow] = useState();
   const [filters, setFilters] = useState(defaultFilters);
   console.log('filters', filters);
   const { t, onChangeLang } = useTranslate();
+
+  const [selectedValues1, setSelectedValues1] = useState([]);
+  const [selectedValues2, setSelectedValues2] = useState([]);
+  const [selectedUnitValues, setSelectedUnitValues] = useState([]);
+
+  const handleSelectChange1 = (event) => {
+    setSelectedValues1(event.target.value);
+  };
+
+  const handleSelectChange2 = (event) => {
+    setSelectedValues2(event.target.value);
+  };
+
+  const handleUnitSelectChange = (event) => {
+    setSelectedUnitValues(event.target.value);
+  };
 
   const TABLE_HEAD = [
     { id: 'image', label: t('image'), width: 180 },
@@ -172,9 +189,46 @@ export default function ProductListView() {
     setStockUpdateDialogOpen(false);
   }, []);
 
+  const createVariantsCall = async (value1, value2, unitValue) => {
+    const title = `${selectedSingleRow?.title}${value1 ? `-${value1}` : ''}${
+      value2 ? `-${value2}` : ''
+    }-${unitValue}`;
+    try {
+      const response = await axiosInstance.post('/products/', {
+        title,
+        is_variant: true,
+        parent_product: selectedSingleRow?.id,
+      });
+      console.log('response', response);
+    } catch (error) {
+      console.error('Error creating variant:', title);
+      console.error('Error:', error);
+    }
+  };
+
+  const createVariants = () => {
+    const values1 = selectedValues1.length > 0 ? selectedValues1 : [null];
+    const values2 = selectedValues2.length > 0 ? selectedValues2 : [null];
+
+    values1.forEach((value1) => {
+      values2.forEach((value2) => {
+        selectedUnitValues.forEach((unitValue) => {
+          createVariantsCall(value1, value2, unitValue);
+        });
+      });
+    });
+
+    setSCreateVariantDialogOpen(false);
+  };
+
   const handleUpdateStock = useCallback((row) => {
     setSelectedSingleRow(row);
     setStockUpdateDialogOpen(true);
+  }, []);
+
+  const handleCreateVariants = useCallback((row) => {
+    setSelectedSingleRow(row);
+    setSCreateVariantDialogOpen(true);
   }, []);
 
   return (
@@ -264,6 +318,7 @@ export default function ProductListView() {
                       onDeleteRow={() => handleDeleteRow(row.id)}
                       onEditRow={() => handleEditRow(row.id)}
                       onEditStock={() => handleUpdateStock(row)}
+                      onCreateVariants={() => handleCreateVariants(row)}
                     />
                   ))}
 

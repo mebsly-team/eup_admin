@@ -31,6 +31,7 @@ type Props = {
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
   onEditStock: VoidFunction;
+  onCreateVariants: VoidFunction;
 };
 
 export default function ProductTableRow({
@@ -40,6 +41,7 @@ export default function ProductTableRow({
   onSelectRow,
   onDeleteRow,
   onEditStock,
+  onCreateVariants,
 }: Props) {
   const {
     id,
@@ -139,6 +141,15 @@ export default function ProductTableRow({
         >
           <Iconify icon="eva:cube-fill" />
           {t('stock_update_choices')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            onCreateVariants();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="eva:folder-add-fill" />
+          {t('variant_management')}
         </MenuItem>
         <MenuItem
           onClick={() => {
