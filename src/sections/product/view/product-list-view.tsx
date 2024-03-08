@@ -387,7 +387,7 @@ export default function ProductListView() {
             <Typography sx={{ color: 'text.secondary', mb: 3 }}>
               {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
             </Typography>
-            <TextField name="aantal" label={t('aantal')} sx={{ width: 100 }} type="number" />
+            <TextField name="amount" label={t('amount')} sx={{ width: 100 }} type="number" />
             <FormControl sx={{ minWidth: 300 }}>
               <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
               <Select labelId="demo-select-small-label" id="demo-select-small">

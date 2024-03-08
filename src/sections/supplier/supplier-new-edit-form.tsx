@@ -249,6 +249,16 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 type="number"
               />
               <RHFTextField name="percentage_to_add" label={t('percentage_to_add')} type="number" />
+              <RHFSwitch
+                name="is_no_payment"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('is_no_payment')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
             </Box>
           </Card>
 

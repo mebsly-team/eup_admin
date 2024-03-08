@@ -74,10 +74,11 @@ export default function UserListView() {
   ];
 
   const USER_TYPES = [
-    { value: 'special', label: t('special') },
+    { value: 'particular', label: t('particular') },
+    { value: 'standard_business', label: t('standard_business') },
     { value: 'wholesaler', label: t('wholesaler') },
     { value: 'supermarket', label: t('supermarket') },
-    { value: 'particular', label: t('particular') },
+    { value: 'special', label: t('special') },
     // { value: 'admin', label: t('admin') },
   ];
 

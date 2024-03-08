@@ -459,5 +459,8 @@
   "stock_update_choice_5": "Voorraadmutatie(toename)",
   "stock_update_choice_6": "Incourant (toename)",
   "stock_update_choices": "Voorraad invoeren",
-  "stats": "Statistieken"
+  "stats": "Statistieken",
+  "amount": "Aantal",
+  "is_no_payment": "Geen betaling/Alleen factuur",
+  "standard_business": "Standaard Zakelijk"
 }

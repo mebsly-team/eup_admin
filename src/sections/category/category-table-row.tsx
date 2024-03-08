@@ -6,6 +6,9 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { useTranslate } from 'src/locales';
@@ -33,6 +36,7 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
   const selected = table?.selected?.includes(row.id);
   const onSelectRow = () => table?.onSelectRow(row.id);
   const confirm = useBoolean();
+  const router = useRouter();
 
   const quickEdit = useBoolean();
 
@@ -42,15 +46,17 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
   // Define a variable to determine whether the row is a subcategory
   const isSubcategory = !!parent_category;
 
-
   return (
     <>
-      <TableRow hover selected={selected} sx={{ background: isSubcategory ? 'rgba(145, 158, 171, 0.08)' : "none" }}>
-
+      <TableRow
+        hover
+        selected={selected}
+        sx={{ background: isSubcategory ? 'rgba(145, 158, 171, 0.08)' : 'none' }}
+      >
         <TableCell align="center">{row.id}</TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={name} src={image} maxWidth={100} />
+          {image ? <Image alt={name} src={image} maxWidth={100} /> : '-'}
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{name}</TableCell>
@@ -59,6 +65,7 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
           {sub_categories?.length || 0}{' '}
           {sub_categories?.length ? (
             <Iconify
+              sx={{ cursor: 'pointer' }}
               width={16}
               className="arrow"
               icon="eva:arrow-ios-downward-fill"
@@ -89,6 +96,15 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
       >
         <MenuItem
           onClick={() => {
+            onEditRow(row.id);
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          {t('view_edit')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             confirm.onTrue();
             popover.onClose();
           }}
@@ -96,16 +112,6 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
           {t('delete')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            onEditRow(row.id);
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:pen-bold" />
-          {t('view_edit')}
         </MenuItem>
       </CustomPopover>
 
@@ -121,16 +127,26 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
         }
       />
 
-      {isSubCategoriesOpen &&
-        sub_categories.map((row) => (
-          <CategoryTableRow
-            key={row.id}
-            row={row}
-            table={table}
-            onDeleteRow={onDeleteRow}
-            onEditRow={onEditRow}
-          />
-        ))}
+      {isSubCategoriesOpen && (
+        <>
+          {sub_categories.map((row) => (
+            <CategoryTableRow
+              key={row.id}
+              row={row}
+              table={table}
+              onDeleteRow={onDeleteRow}
+              onEditRow={onEditRow}
+            />
+          ))}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => router.push(paths.dashboard.category.new)}
+          >
+            {t('add')}
+          </Button>
+        </>
+      )}
     </>
   );
 }
