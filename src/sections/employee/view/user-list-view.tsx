@@ -39,7 +39,6 @@ import {
 import { IUserItem, IUserTableFilters, IUserTableFilterValue } from 'src/types/user';
 
 import UserTableRow from '../user-table-row';
-import UserTableToolbar from '../user-table-toolbar';
 import UserTableFiltersResult from '../user-table-filters-result';
 
 // ----------------------------------------------------------------------
@@ -102,7 +101,7 @@ export default function UserListView() {
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
-    const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
+    const typeFilter = `&type=admin`;
     const { data } = await axiosInstance.get(
       `/users/?limit=${table.rowsPerPage}&page=${
         table.page + 1
@@ -203,12 +202,7 @@ export default function UserListView() {
             }}
           >
             {STATUS_OPTIONS.map((tab) => (
-              <Tab
-                key={tab.value}
-                iconPosition="end"
-                value={tab.value}
-                label={tab.label}
-              />
+              <Tab key={tab.value} iconPosition="end" value={tab.value} label={tab.label} />
             ))}
           </Tabs>
 

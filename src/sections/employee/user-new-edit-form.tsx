@@ -292,7 +292,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
           </Card>
           <Stack alignItems="flex-end" sx={{ mt: 3 }}>
             <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-              {!currentUser ? t('create_user') : t('save')}
+              {!currentUser ? t('create_employee') : t('save')}
             </LoadingButton>
           </Stack>
         </Grid>
