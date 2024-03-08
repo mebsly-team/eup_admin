@@ -1,3 +1,6 @@
+import { useState } from 'react';
+
+import { Switch } from '@mui/material';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -8,9 +11,10 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
+import axiosInstance from 'src/utils/axios';
+
 import { useTranslate } from 'src/locales';
 
-import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
@@ -37,6 +41,7 @@ export default function UserTableRow({
   onDeleteRow,
 }: Props) {
   const {
+    id,
     fullname,
     business_name,
     last_login,
@@ -51,13 +56,19 @@ export default function UserTableRow({
     contact_person_email,
   } = row;
   const { t, onChangeLang } = useTranslate();
+  const [isActive, setIsActive] = useState(is_active);
 
   const confirm = useBoolean();
 
   const quickEdit = useBoolean();
 
   const popover = usePopover();
-
+  const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
+    const response = await axiosInstance.patch(`/users/${id}/`, {
+      is_active: e.target.checked,
+    });
+    setIsActive(response?.data?.is_active ?? isActive);
+  };
   return (
     <>
       <TableRow hover selected={selected}>
@@ -86,12 +97,7 @@ export default function UserTableRow({
           <ListItemText primary={phone_number} primaryTypographyProps={{ typography: 'body2' }} />
         </TableCell>
         <TableCell>
-          <Label
-            // variant="soft"
-            color={is_active ? 'success' : 'error'}
-          >
-            {is_active ? '✓' : 'x'}
-          </Label>
+          <Switch name="is_active" checked={isActive} onChange={handleActiveSwitchChange} />
         </TableCell>
 
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>

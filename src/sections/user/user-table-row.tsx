@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -8,7 +10,10 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import Label from 'src/components/label';
+import axiosInstance from 'src/utils/axios';
+
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
@@ -16,7 +21,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { IUserItem } from 'src/types/user';
 
 import UserQuickEditForm from './user-quick-edit-form';
-import { useLocales, useTranslate } from 'src/locales';
+import { Switch } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -35,14 +40,35 @@ export default function UserTableRow({
   onSelectRow,
   onDeleteRow,
 }: Props) {
-  const { fullname, business_name, last_login, kvk, vat, type, is_active, email, phone_number, contact_person_phone_number, contact_person_name, contact_person_email } = row;
+  const {
+    id,
+    fullname,
+    business_name,
+    last_login,
+    kvk,
+    vat,
+    type,
+    is_active,
+    email,
+    phone_number,
+    contact_person_phone_number,
+    contact_person_name,
+    contact_person_email,
+  } = row;
   const { t, onChangeLang } = useTranslate();
+  const [isActive, setIsActive] = useState(is_active);
 
   const confirm = useBoolean();
 
   const quickEdit = useBoolean();
 
   const popover = usePopover();
+  const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
+    const response = await axiosInstance.patch(`/users/${id}/`, {
+      is_active: e.target.checked,
+    });
+    setIsActive(response?.data?.is_active ?? isActive);
+  };
 
   return (
     <>
@@ -75,39 +101,34 @@ export default function UserTableRow({
               color: 'text.disabled',
             }}
           />
-
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
-            primary={contact_person_name || "-"}
+            primary={contact_person_name || '-'}
             secondary={contact_person_phone_number}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
               component: 'span',
               color: 'text.disabled',
             }}
-          /></TableCell>
+          />
+        </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}><ListItemText
-          primary={kvk || "-"}
-          secondary={vat}
-          primaryTypographyProps={{ typography: 'body2' }}
-          secondaryTypographyProps={{
-            component: 'span',
-            color: 'text.disabled',
-          }}
-        /></TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <ListItemText
+            primary={kvk || '-'}
+            secondary={vat}
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{
+              component: 'span',
+              color: 'text.disabled',
+            }}
+          />
+        </TableCell>
 
         <TableCell>
-          <Label
-            // variant="soft"
-            color={
-              is_active ? 'success' : 'error'
-            }
-          >
-            {is_active ? "✓" : "x"}
-          </Label>
+          <Switch name="is_active" checked={isActive} onChange={handleActiveSwitchChange} />
         </TableCell>
 
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
@@ -121,7 +142,7 @@ export default function UserTableRow({
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
-      </TableRow >
+      </TableRow>
 
       <UserQuickEditForm currentUser={row} open={quickEdit.value} onClose={quickEdit.onFalse} />
 
@@ -139,7 +160,7 @@ export default function UserTableRow({
           sx={{ color: 'error.main' }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          {t("delete")}
+          {t('delete')}
         </MenuItem>
 
         <MenuItem
@@ -149,18 +170,18 @@ export default function UserTableRow({
           }}
         >
           <Iconify icon="solar:pen-bold" />
-          {t("view_edit")}
+          {t('view_edit')}
         </MenuItem>
       </CustomPopover>
 
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title={t("delete")}
-        content={t("sure_delete")}
+        title={t('delete')}
+        content={t('sure_delete')}
         action={
           <Button variant="contained" color="error" onClick={onDeleteRow}>
-            {t("delete")}
+            {t('delete')}
           </Button>
         }
       />
