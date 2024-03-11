@@ -68,6 +68,8 @@ export interface IProductItem {
   work_in_progress_stock: number;
   parent_price_per_piece: number;
   stock_disable_when_sold_out: boolean;
+  variant_discount: number;
+  is_variant: boolean;
   ean: string;
   article_code: string;
   delivery_time: string;

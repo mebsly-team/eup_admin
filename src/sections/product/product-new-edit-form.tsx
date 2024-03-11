@@ -149,6 +149,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       price_cost: currentProduct?.price_cost || null,
       vat: Number(currentProduct?.vat || 0),
       expiry_date: currentProduct?.expiry_date || null,
+      has_no_expiry_date: !currentProduct?.expiry_date,
+      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || null,
 
       overall_stock: currentProduct?.overall_stock || 0, // # Huidege Voorraad
       free_stock: currentProduct?.free_stock || 0, // # Vrije Voorraad
