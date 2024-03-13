@@ -87,7 +87,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     description: Yup.string().required(t('validation_description')),
     ean: Yup.string().required(t('validation_ean')),
     article_code: Yup.string().required(t('validation_articleCode')),
-    sku: Yup.string().required(t('validation_sku')),
+    // sku: Yup.string().required(t('validation_sku')),
     categories: Yup.array().min(1, t('validation_minCategory')),
     brand: Yup.number().required(t('validation_brand')),
     supplier: Yup.number().required(t('validation_supplier')).nullable(),
@@ -126,6 +126,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const defaultValues = useMemo(
     () => ({
       is_variant: currentProduct?.is_variant,
+      unit: currentProduct?.unit,
+      color: currentProduct?.color,
+      size: currentProduct?.size,
       variants: currentProduct?.variants,
       title: currentProduct?.title || '',
       title_long: currentProduct?.title_long || '',
@@ -230,12 +233,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     watch,
     setValue,
     handleSubmit,
-    getValues, 
+    getValues,
     formState: { isSubmitting, isDirty, errors },
     ...rest
   } = methods;
-  console.log('methods', methods)
-  
+  console.log('methods', methods);
+
   const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
@@ -312,7 +315,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
 
-  
   useEffect(() => {
     if (currentProduct) {
       reset(defaultValues);
@@ -383,20 +385,27 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const handleImportMainProduct = async () => {
     if (currentProduct?.parent_product) {
       const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
-      const {title, ean, article_code, hs_code, sku, brand, supplier, categories, ...copyData} = {...response?.data};
-      reset({title: getValues("title"), ean: getValues("ean"), article_code: getValues("article_code"), hs_code: getValues("hs_code"), 
-      sku: getValues("sku"), 
-      supplier: supplier?.id,
-    brand: brand?.id,
-      categories: categories?.map((item) => item.id) || [],
-      ...copyData});
+      const { title, ean, article_code, hs_code, sku, brand, supplier, categories, ...copyData } = {
+        ...response?.data,
+      };
+      reset({
+        title: getValues('title'),
+        ean: getValues('ean'),
+        article_code: getValues('article_code'),
+        hs_code: getValues('hs_code'),
+        sku: getValues('sku'),
+        supplier: supplier?.id,
+        brand: brand?.id,
+        categories: categories?.map((item) => item.id) || [],
+        ...copyData,
+      });
     }
   };
 
   const renderDetails = (
     <Grid xs={12}>
       <Card>
-      {currentProduct?.is_variant && (
+        {currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
             color="blue"
@@ -418,6 +427,33 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
+            <RHFSelect name="unit" label={t('unit')}>
+              <MenuItem value="piece">{t('piece')}</MenuItem>
+              <MenuItem value="package">{t('package')}</MenuItem>
+              <MenuItem value="rol">{t('rol')}</MenuItem>
+            </RHFSelect>
+            <RHFSelect name="color" label={t('color')}>
+              <MenuItem value="red">{t('red')}</MenuItem>
+              <MenuItem value="blue">{t('blue')}</MenuItem>
+              <MenuItem value="green">{t('green')}</MenuItem>
+              <MenuItem value="yellow">{t('yellow')}</MenuItem>
+              <MenuItem value="brown">{t('brown')}</MenuItem>
+              <MenuItem value="pink">{t('pink')}</MenuItem>
+              <MenuItem value="purple">{t('purple')}</MenuItem>
+              <MenuItem value="black">{t('black')}</MenuItem>
+              <MenuItem value="white">{t('white')}</MenuItem>
+              <MenuItem value="orange">{t('orange')}</MenuItem>
+              <MenuItem value="gray">{t('gray')}</MenuItem>
+            </RHFSelect>
+            <RHFSelect name="size" label={t('size')}>
+              <MenuItem value="XS">XS</MenuItem>
+              <MenuItem value="S">S</MenuItem>
+              <MenuItem value="M">M</MenuItem>
+              <MenuItem value="L">L</MenuItem>
+              <MenuItem value="XL">XL</MenuItem>
+              <MenuItem value="XXL">XXL</MenuItem>
+              <MenuItem value="XS">XS</MenuItem>
+            </RHFSelect>
             <RHFTextField name="article_code" label={t('article_code')} />
             <RHFTextField name="ean" label={t('ean')} />
             <RHFTextField name="sku" label={t('sku')} />
@@ -1185,25 +1221,23 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
   const renderPreview = mdUp ? (
     <Card id="my-card">
-     {currentProduct?.parent_product ? (
-     <Link
-        href={paths.dashboard.product.edit(currentProduct?.parent_product)}
-        color="blue"
-        sx={{
-          alignItems: 'center',
-          typography: '',
-          display: 'inline-flex',
-          alignSelf: 'flex-end',
-          fontWeight: 'fontWeightBold',
-          textDecoration: 'underline',
-          cursor: "pointer"
-        }}
-      >
-        {t('main_product')}
-      </Link>
-      )
-      :null
-      }
+      {currentProduct?.parent_product ? (
+        <Link
+          href={paths.dashboard.product.edit(currentProduct?.parent_product)}
+          color="blue"
+          sx={{
+            alignItems: 'center',
+            typography: '',
+            display: 'inline-flex',
+            alignSelf: 'flex-end',
+            fontWeight: 'fontWeightBold',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+          }}
+        >
+          {t('main_product')}
+        </Link>
+      ) : null}
       <CardHeader title={t('preview')} />
       <Stack>
         <Card sx={{ padding: 3 }}>
@@ -1304,7 +1338,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     <FormProvider methods={methods} onSubmit={onSubmit}>
       {!currentProduct?.is_variant ? renderTabs : null}
 
-      
       {activeTab === 0 ? (
         <Grid container spacing={3}>
           <Grid container md={8} spacing={3}>

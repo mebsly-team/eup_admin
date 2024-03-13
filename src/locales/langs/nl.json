@@ -400,6 +400,8 @@
   "variant_management": "Variantbeheer",
   "vat": "BTW",
   "vat_is_required": "BTW is verplicht",
+  "supplier_code_required": "Leverancierscode is verplicht",
+  "supplier_code": "Leverancierscode",
   "vat_number": "BTW",
   "view_cart": "Winkelwagen bekijken",
   "view_details": "Details bekijken",

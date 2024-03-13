@@ -165,7 +165,34 @@ export default function ProductVariantForm({ currentProduct }: Props) {
   };
 
   const columns: GridColDef[] = [
-    { field: 'title', headerName: 'Title', width: 500, editable: false },
+    { field: 'title', headerName: 'Title', width: 400, editable: false },
+    {
+      field: 'color',
+      headerName: t('color'),
+      // type: 'number',
+      width: 80,
+      align: 'left',
+      headerAlign: 'left',
+      editable: true,
+    },
+    {
+      field: 'size',
+      headerName: t('size'),
+      // type: 'number',
+      width: 80,
+      align: 'left',
+      headerAlign: 'left',
+      editable: true,
+    },
+    {
+      field: 'unit',
+      headerName: t('unit'),
+      // type: 'number',
+      width: 100,
+      align: 'left',
+      headerAlign: 'left',
+      editable: true,
+    },
     {
       field: 'ean',
       headerName: 'EAN',
@@ -177,9 +204,9 @@ export default function ProductVariantForm({ currentProduct }: Props) {
     },
     {
       field: 'price_per_piece',
-      headerName: 'price_per_piece',
+      headerName: t('price_per_piece'),
       // type: 'date',
-      width: 180,
+      width: 100,
       editable: true,
     },
     // {
@@ -193,7 +220,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
     {
       field: 'is_product_active',
       type: 'actions',
-      headerName: t('is_product_active'),
+      headerName: `${t('active')}?`,
       width: 100,
       cellClassName: 'actions',
       getActions: ({ id, row }) => {
