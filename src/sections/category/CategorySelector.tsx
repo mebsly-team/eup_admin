@@ -1,5 +1,5 @@
 import { useState, Fragment, useEffect } from 'react';
-
+import { TreeView, TreeItem } from '@mui/x-tree-view';
 import {
   List,
   Dialog,
@@ -39,27 +39,19 @@ export const CategorySelector = ({
       setSelectedCategories(defaultSelectedCategories);
     }
   }, [defaultSelectedCategories]);
-  const renderOptions = (categories, level = 0) =>
-    categories?.map((category) => (
-      <Fragment key={category.id}>
-        <ListItem dense button onClick={() => toggleCategory(category.id)}>
-          <ListItemIcon>
-            <Checkbox
-              edge="start"
-              checked={selectedCategories.includes(category.id)}
-              tabIndex={-1}
-              disableRipple
-            />
-          </ListItemIcon>
-          <ListItemText primary={category.name} />
-        </ListItem>
-        {category.sub_categories.length > 0 && (
-          <List style={{ paddingLeft: `${(level + 1) * 20}px` }}>
-            {renderOptions(category.sub_categories, level + 1)}
-          </List>
-        )}
-      </Fragment>
-    ));
+
+  const renderTree = (nodes) => (
+    <TreeItem
+      key={nodes.id}
+      nodeId={nodes.id.toString()}
+      label={nodes.name}
+      onClick={() => toggleCategory(nodes.id)}
+    >
+      {Array.isArray(nodes.sub_categories)
+        ? nodes.sub_categories.map((node) => renderTree(node))
+        : null}
+    </TreeItem>
+  );
 
   const handleSave = () => {
     onSave(single ? selectedCategories[0] : selectedCategories);
@@ -70,7 +62,9 @@ export const CategorySelector = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{t('select_category')}</DialogTitle>
       <DialogContent>
-        <List>{renderOptions(categories)}</List>
+        <TreeView selected={selectedCategories.map((id) => id.toString())}>
+          {categories.map((category) => renderTree(category))}
+        </TreeView>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">
@@ -83,3 +77,4 @@ export const CategorySelector = ({
     </Dialog>
   );
 };
+
