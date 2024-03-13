@@ -45,6 +45,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
 
   const NewSchema = Yup.object().shape({
     name: Yup.string().required(t('name_required')),
+    supplier_code: Yup.string().required(t('supplier_code_required')),
     email_general: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
     phone: Yup.string().required(t('phone_required')),
     mobile_phone: Yup.string().required(t('phone_required')),
@@ -69,6 +70,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
   const defaultValues = useMemo(
     () => ({
       name: currentSupplier?.name || null,
+      supplier_code: currentSupplier?.supplier_code || null,
       email_general: currentSupplier?.email_general || null,
       phone: currentSupplier?.phone || null,
       mobile_phone: currentSupplier?.mobile_phone || null,
@@ -181,6 +183,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               }}
             >
               <RHFTextField name="name" label={t('name')} />
+              <RHFTextField name="supplier_code" label={t('supplier_code')} />
               <RHFTextField name="contact_person" label={t('contact_person')} />
               <RHFTextField name="email_general" label={t('email')} />
               <RHFTextField name="phone" label={t('phone')} />
