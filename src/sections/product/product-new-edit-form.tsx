@@ -452,7 +452,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="L">L</MenuItem>
               <MenuItem value="XL">XL</MenuItem>
               <MenuItem value="XXL">XXL</MenuItem>
-              <MenuItem value="XS">XS</MenuItem>
             </RHFSelect>
             <RHFTextField name="article_code" label={t('article_code')} />
             <RHFTextField name="ean" label={t('ean')} />

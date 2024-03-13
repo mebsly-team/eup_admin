@@ -86,6 +86,8 @@ export default function ProductVariantForm({ currentProduct }: Props) {
   }, [currentProductVariantIdList?.length]);
 
   const createVariantsCall = async (value1, value2, unitValue) => {
+    setIsLoading(true); // Show the spinner
+
     const title = `${currentProduct?.title}${value1 ? `-${value1}` : ''}${
       value2 ? `-${value2}` : ''
     }-${unitValue}`;
@@ -96,10 +98,13 @@ export default function ProductVariantForm({ currentProduct }: Props) {
         parent_product: currentProduct?.id,
       });
       console.log('response', response);
+      if (response?.data?.id)
+        setCurrentProductVariantRows([...currentProductVariantRows, response.data]);
     } catch (error) {
       console.error('Error creating variant:', title);
       console.error('Error:', error);
     }
+    setIsLoading(false); // Hide the spinner when done
   };
 
   const createVariants = () => {
@@ -331,7 +336,6 @@ export default function ProductVariantForm({ currentProduct }: Props) {
               <MenuItem value="L">L</MenuItem>
               <MenuItem value="XL">XL</MenuItem>
               <MenuItem value="XXL">XXL</MenuItem>
-              <MenuItem value="XS">XS</MenuItem>
             </Select>
           </FormControl>
           <Typography sx={{ mb: 2 }}>{t('unit')}</Typography>
@@ -351,9 +355,11 @@ export default function ProductVariantForm({ currentProduct }: Props) {
             </Select>
           </FormControl>
         </Box>
-        <IconButton onClick={createVariants} color="primary">
-          {t('generate')}
-        </IconButton>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <IconButton onClick={createVariants} color="primary">
+            {t('generate')}
+          </IconButton>
+        </Box>
       </Box>
       <Box
         sx={{

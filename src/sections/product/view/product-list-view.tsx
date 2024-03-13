@@ -78,6 +78,7 @@ export default function ProductListView() {
   const [filters, setFilters] = useState(defaultFilters);
   console.log('filters', filters);
   const { t, onChangeLang } = useTranslate();
+  const [isLoading, setIsLoading] = useState(false); // State for the spinner
 
   const [selectedValues1, setSelectedValues1] = useState([]);
   const [selectedValues2, setSelectedValues2] = useState([]);
@@ -123,6 +124,7 @@ export default function ProductListView() {
   console.log('productList', productList);
 
   const getAll = async () => {
+    setIsLoading(true);
     const statusFilter =
       filters.is_product_active !== 'all'
         ? `&is_product_active=${filters.is_product_active === 'active'}`
@@ -138,6 +140,7 @@ export default function ProductListView() {
     );
     setCount(data.count);
     setProductList(data.results);
+    setIsLoading(false);
   };
 
   const handleFilters = useCallback(
@@ -307,27 +310,34 @@ export default function ProductListView() {
                     )
                   }
                 />
-
                 <TableBody>
-                  {productList.map((row) => (
-                    <ProductTableRow
-                      key={row.id}
-                      row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
-                      onEditRow={() => handleEditRow(row.id)}
-                      onEditStock={() => handleUpdateStock(row)}
-                      onCreateVariants={() => handleCreateVariants(row)}
-                    />
-                  ))}
+                  {isLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <Iconify icon="svg-spinners:8-dots-rotate" sx={{ mr: -3 }} />
+                    </Box>
+                  ) : (
+                    <>
+                      {productList.map((row) => (
+                        <ProductTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onDeleteRow={() => handleDeleteRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onEditStock={() => handleUpdateStock(row)}
+                          onCreateVariants={() => handleCreateVariants(row)}
+                        />
+                      ))}
 
-                  {/* <TableEmptyRows
+                      {/* <TableEmptyRows
                     height={denseHeight}
                     emptyRows={emptyRows(table.page, table.rowsPerPage, productList?.length)}
                   />
 
                   <TableNoData notFound={notFound} /> */}
+                    </>
+                  )}{' '}
                 </TableBody>
               </Table>
             </Scrollbar>
