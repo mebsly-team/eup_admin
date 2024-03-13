@@ -398,6 +398,7 @@
   "validation_vat": "BTW is ongeldig",
   "variant_discount": "VariantKorting",
   "variant_management": "Variantbeheer",
+  "import_data_from_local_storage": "Niet-opgeslagen gegevens gevonden. Wilt u laden?",
   "vat": "BTW",
   "vat_is_required": "BTW is verplicht",
   "supplier_code_required": "Leverancierscode is verplicht",

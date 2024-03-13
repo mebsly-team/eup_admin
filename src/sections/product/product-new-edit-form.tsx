@@ -246,12 +246,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
   }, [isDirty, values]);
 
-  useEffect(() => {
+  const getLocalSavedData = () => {
     const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
     if (savedData) {
       methods.reset(savedData); // Reset form with saved data
     }
-  }, [methods]);
+  };
 
   useEffect(() => {
     const calculateVolume = () => {
@@ -405,7 +405,19 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const renderDetails = (
     <Grid xs={12}>
       <Card>
-        {currentProduct?.is_variant && (
+        <Box>
+          {localStorage.getItem('formData') && (
+            <Typography
+              fontSize="14px"
+              color="blue"
+              sx={{ px: 3, pt: 2, cursor: 'pointer', display: 'block' }}
+              onClick={getLocalSavedData}
+            >
+              {t('import_data_from_local_storage')}
+            </Typography>
+          )}
+        </Box>
+        {!currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
             color="blue"
@@ -416,6 +428,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           </Typography>
         )}
         <CardHeader title={t('basic_information')} />
+
         <Stack spacing={3} sx={{ p: 3 }}>
           {/* <RHFTextField name="parent_product" label={t('parent_product')} /> */}
           <Box
