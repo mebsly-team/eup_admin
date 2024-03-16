@@ -385,7 +385,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const handleImportMainProduct = async () => {
     if (currentProduct?.parent_product) {
       const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
-      const { title, ean, article_code, hs_code, sku, brand, supplier, categories, ...copyData } = {
+      const { title, images, ean, article_code, hs_code, sku, brand, supplier, categories, ...copyData } = {
         ...response?.data,
       };
       reset({
@@ -417,7 +417,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             </Typography>
           )}
         </Box>
-        {!currentProduct?.is_variant && (
+        {currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
             color="blue"
