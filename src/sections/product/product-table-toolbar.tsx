@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { useSnackbar } from 'notistack';
+import { useState, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
@@ -36,6 +37,7 @@ export default function UserTableToolbar({
 }: Props) {
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +53,23 @@ export default function UserTableToolbar({
     [onFilters]
   );
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files[0];
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await axiosInstance.post('import/products/', formData);
+      enqueueSnackbar(t('update_success'), {
+        variant: 'success',
+      });
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar(t('error'), {
+        variant: 'error',
+      });
+    }
+  };
+
   const handleDownload = async () => {
     try {
       const response = await axiosInstance.get('export/products/', { responseType: 'blob' });
@@ -59,7 +78,7 @@ export default function UserTableToolbar({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'products.xlsx';
+      a.download = 'products.csv';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -74,33 +93,16 @@ export default function UserTableToolbar({
       <Stack
         spacing={2}
         alignItems={{ xs: 'flex-end', md: 'center' }}
-        direction={{
-          xs: 'column',
-          md: 'row',
-        }}
-        sx={{
-          p: 2.5,
-          pr: { xs: 2.5, md: 1 },
-        }}
+        direction={{ xs: 'column', md: 'row' }}
+        sx={{ p: 2.5, pr: { xs: 2.5, md: 1 } }}
       >
-        <FormControl
-          sx={{
-            flexShrink: 0,
-            width: { xs: 1, md: 200 },
-          }}
-        >
+        <FormControl sx={{ flexShrink: 0, width: { xs: 1, md: 200 } }}>
           <InputLabel>Active?</InputLabel>
-
           <Select
-            // multiple
             value={filters.is_product_active}
             onChange={handleFilterActive}
             input={<OutlinedInput label="Active?" />}
-            MenuProps={{
-              PaperProps: {
-                sx: { maxHeight: 240 },
-              },
-            }}
+            MenuProps={{ PaperProps: { sx: { maxHeight: 240 } } }}
           >
             <MenuItem value="all">{t('all')}</MenuItem>
             <MenuItem value="active">{t('active')}</MenuItem>
@@ -135,30 +137,21 @@ export default function UserTableToolbar({
         arrow="right-top"
         sx={{ width: 140 }}
       >
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:printer-minimalistic-bold" />
-          {t('print')}
-        </MenuItem>
+        <MenuItem>
+          <input
+            type="file"
+            accept=".csv"
+            id="upload-file"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
 
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:import-bold" />
-          {t('import')}
+          <label htmlFor="upload-file">
+              <Iconify icon="solar:import-bold" />
+              {t('import')}
+          </label>
         </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            handleDownload();
-            popover.onClose();
-          }}
-        >
+        <MenuItem onClick={handleDownload}>
           <Iconify icon="solar:export-bold" />
           {t('export')}
         </MenuItem>
