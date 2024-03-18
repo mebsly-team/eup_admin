@@ -783,16 +783,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   return (
                     <li key={categoryId}>
                       {category ? (
-                        <>
-                          <strong>{category.name}</strong>
-                          {category.sub_categories?.length > 0 && (
-                            <ul>
-                              {category.sub_categories?.map((subCategory) => (
-                                <li key={subCategory.id}>{subCategory.name}</li>
-                              ))}
-                            </ul>
-                          )}
-                        </>
+                        <strong>{category.name}</strong>
                       ) : (
                         `Category Not Found: ${categoryId}`
                       )}
