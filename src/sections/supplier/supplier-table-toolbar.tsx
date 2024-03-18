@@ -56,7 +56,7 @@ export default function UserTableToolbar({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      await axiosInstance.post('import/products/', formData);
+      await axiosInstance.post('import/suppliers/', formData);
       enqueueSnackbar(t('update_success'), {
         variant: 'success',
       });
@@ -70,7 +70,7 @@ export default function UserTableToolbar({
 
   const handleDownload = async () => {
     try {
-      const response = await axiosInstance.get('export/products/', { responseType: 'blob' });
+      const response = await axiosInstance.get('export/suppliers/', { responseType: 'blob' });
       console.log('response', response);
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
