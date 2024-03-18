@@ -393,7 +393,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         sku,
         brand,
         supplier,
-        categories,
         is_only_for_logged_in_user,
         is_used,
         location,
@@ -401,7 +400,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       } = {
         ...response?.data,
       };
-      if (["box",'pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
+      if (['box', 'pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
         delete copyData.quantity_per_unit;
         delete copyData.price_per_unit;
         delete copyData.max_order_allowed_per_unit;
@@ -422,7 +421,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         delete copyData.weight;
         delete copyData.pallet_full_total_number;
         delete copyData.is_brief_box;
-      } 
+      }
       if (!['pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
         delete copyData.ean;
         delete copyData.article_code;
@@ -483,6 +482,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
               <MenuItem value="rol">{t('rol')}</MenuItem>
+              {currentProduct?.is_variant && <MenuItem value="box">{t('box')}</MenuItem>}
+              {currentProduct?.is_variant && (
+                <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
+              )}
+              {currentProduct?.is_variant && (
+                <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+              )}
             </RHFSelect>
             <RHFSelect name="color" label={t('color')}>
               <MenuItem value="red">{t('red')}</MenuItem>
@@ -1284,6 +1290,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             fontWeight: 'fontWeightBold',
             textDecoration: 'underline',
             cursor: 'pointer',
+            marginLeft: 3,
           }}
         >
           {t('main_product')}
