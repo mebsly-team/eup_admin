@@ -152,6 +152,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       website: currentUser?.website || null,
       is_active: currentUser?.is_active || true,
       is_staff: currentUser?.is_staff || false,
+      is_no_payment: currentUser?.is_no_payment || false,
     }),
     [currentUser]
   );
@@ -402,6 +403,16 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   label={
                     <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                       {t('is_eligible_to_work_with')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="is_no_payment"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_no_payment')}
                     </Typography>
                   }
                   sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}

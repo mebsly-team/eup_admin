@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { useMemo, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -7,6 +8,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Unstable_Grid2';
+import { DatePicker } from '@mui/x-date-pickers';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Divider, MenuItem, Typography } from '@mui/material';
 
@@ -46,7 +48,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
   const NewSchema = Yup.object().shape({
     name: Yup.string().required(t('name_required')),
     supplier_code: Yup.string().required(t('supplier_code_required')),
-    email_general: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
+    email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
     phone: Yup.string().required(t('phone_required')),
     mobile_phone: Yup.string().required(t('phone_required')),
     // gender: Yup.string().required(t('gender_required')),
@@ -54,7 +56,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
     // city: Yup.string().required(t('city_required')),
     // country: Yup.string().required(t('country_required')),
     // postal_code: Yup.string().required(t('postal_code_required')),
-    contact_person: Yup.string().required(t('contact_person_required')),
+    contact_person_name: Yup.string().required(t('contact_person_required')),
     iban: Yup.string().required(t('iban_required')),
     bic: Yup.string().required(t('bic_required')),
     debtor_number: Yup.string().required(t('debtor_number_required')),
@@ -71,26 +73,50 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
     () => ({
       name: currentSupplier?.name || null,
       supplier_code: currentSupplier?.supplier_code || null,
-      email_general: currentSupplier?.email_general || null,
+      owner_fullname: currentSupplier?.owner_fullname || null,
+      owner_birthday: currentSupplier?.owner_birthday || null,
+      email: currentSupplier?.email || null,
+      email_extra: currentSupplier?.email_extra || null,
       phone: currentSupplier?.phone || null,
       mobile_phone: currentSupplier?.mobile_phone || null,
+      fax: currentSupplier?.fax || null,
       // gender: currentSupplier?.gender || null,
       address: currentSupplier?.address || null,
+      postcode: currentSupplier?.postcode || null,
       city: currentSupplier?.city || null,
       country: currentSupplier?.country || null,
-      postal_code: currentSupplier?.postal_code || null,
-      contact_person: currentSupplier?.contact_person || null,
+
+      contact_person_name: currentSupplier?.contact_person_name || null,
+      contact_person_email: currentSupplier?.contact_person_email || null,
+      contact_person_phone: currentSupplier?.contact_person_phone || null,
+      contact_person_branch: currentSupplier?.contact_person_branch || null,
+      contact_person_department: currentSupplier?.contact_person_department || null,
+      contact_person_address: currentSupplier?.contact_person_address || null,
+      contact_person_postcode: currentSupplier?.contact_person_postcode || null,
+      contact_person_city: currentSupplier?.contact_person_city || null,
+      contact_person_country: currentSupplier?.contact_person_country || null,
+      contact_person_nationality: currentSupplier?.contact_person_nationality || null,
+      classification: currentSupplier?.classification || null,
+
+      bank_account_number: currentSupplier?.bank_account_number || null,
       iban: currentSupplier?.iban || null,
       bic: currentSupplier?.bic || null,
-      debtor_number: currentSupplier?.debtor_number || null,
-      payment_terms: currentSupplier?.payment_terms || null,
-      payment_instruction: currentSupplier?.payment_instruction || null,
-      payment_method: currentSupplier?.payment_method || null,
-      minimum_order_amount: currentSupplier?.minimum_order_amount || null,
       account_holder_name: currentSupplier?.account_holder_name || null,
       account_holder_city: currentSupplier?.account_holder_city || null,
       vat_number: currentSupplier?.vat_number || null,
       kvk_number: currentSupplier?.kvk_number || null,
+      debtor_number: currentSupplier?.debtor_number || null,
+
+      payment_terms: currentSupplier?.payment_terms || null,
+      payment_instruction: currentSupplier?.payment_instruction || null,
+      payment_method: currentSupplier?.payment_method || null,
+      order_method: currentSupplier?.order_method || null,
+      delivery_time_of_order: currentSupplier?.delivery_time_of_order || null,
+      minimum_order_amount: currentSupplier?.minimum_order_amount || null,
+      percentage_to_add: currentSupplier?.percentage_to_add || null,
+      invoice_discount: currentSupplier?.invoice_discount || null,
+      closed_days: currentSupplier?.closed_days || [],
+
       facebook: currentSupplier?.facebook || null,
       linkedin: currentSupplier?.linkedin || null,
       twitter: currentSupplier?.twitter || null,
@@ -99,6 +125,10 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       tiktok: currentSupplier?.tiktok || null,
       website: currentSupplier?.website || null,
       memo: currentSupplier?.memo || null,
+      supplier_extra_info: currentSupplier?.supplier_extra_info || null,
+      is_active: currentSupplier?.is_active || null,
+      hasGivenPaymentAuth: currentSupplier?.hasGivenPaymentAuth,
+      has_connection_with_supplier_system: currentSupplier?.has_connection_with_supplier_system,
     }),
     [currentSupplier]
   );
@@ -132,6 +162,10 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
   }, [methods]);
   const onSubmit = handleSubmit(async (data) => {
     try {
+      const ex_date = data.owner_birthday
+        ? format(new Date(data.owner_birthday), 'yyyy-MM-dd')
+        : null;
+      data.owner_birthday = ex_date;
       if (currentSupplier) {
         const response = await axiosInstance.put(`/suppliers/${currentSupplier.id}/`, data);
       } else {
@@ -182,15 +216,28 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="name" label={t('name')} />
+              <RHFTextField name="name" label={t('business_name')} />
               <RHFTextField name="supplier_code" label={t('supplier_code')} />
-              <RHFTextField name="contact_person" label={t('contact_person')} />
-              <RHFTextField name="email_general" label={t('email')} />
+              <RHFTextField name="owner_fullname" label={t('owner_fullname')} />
+              <DatePicker
+                label={t('owner_birthday')}
+                value={
+                  getValues('owner_birthday') ? new Date(getValues('owner_birthday')) : new Date()
+                }
+                format="dd/MM/yyyy"
+                onChange={(newValue) => setValue('owner_birthday', newValue)}
+              />
+              <RHFTextField name="email" label={t('email')} />
+              <RHFTextField name="email_extra" label={t('email_extra')} />
               <RHFTextField name="phone" label={t('phone')} />
               <RHFTextField name="mobile_phone" label={t('mobile')} />
+              <RHFTextField name="fax" label={t('fax')} />
+              <RHFTextField name="address" label={t('address')} />
+              <RHFTextField name="postcode" label={t('postcode')} />
+              <RHFTextField name="city" label={t('city')} />
+              <RHFTextField name="country" label={t('country')} />
             </Box>
           </Card>
-
           <Card sx={{ p: 3, mt: 5 }}>
             <Box
               rowGap={3}
@@ -201,6 +248,36 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
+              <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
+              <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
+              <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
+              <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
+              <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
+              <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
+              <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
+              <RHFTextField
+                name="contact_person_department"
+                label={t('contact_person_department')}
+              />
+              <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
+              <RHFTextField name="classification" label={t('classification')} />
+              <RHFTextField
+                name="contact_person_nationality"
+                label={t('contact_person_nationality')}
+              />
+            </Box>
+          </Card>
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <RHFTextField name="bank_account_number" label={t('bank_account_number')} />
               <RHFTextField name="iban" label={t('iban')} />
               <RHFTextField name="bic" label={t('bic')} />
               <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
@@ -252,16 +329,8 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
                 type="number"
               />
               <RHFTextField name="percentage_to_add" label={t('percentage_to_add')} type="number" />
-              <RHFSwitch
-                name="is_no_payment"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_no_payment')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
+              <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
+              <RHFTextField name="closed_days" label={t('closed_days')} />
             </Box>
           </Card>
 
