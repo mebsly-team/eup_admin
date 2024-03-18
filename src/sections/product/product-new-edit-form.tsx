@@ -127,7 +127,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     () => ({
       is_variant: currentProduct?.is_variant,
       unit: currentProduct?.unit,
-      color: currentProduct?.color,
+      color: currentProduct?.color || "",
       size: currentProduct?.size,
       variants: currentProduct?.variants,
       title: currentProduct?.title || '',
@@ -153,7 +153,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       vat: Number(currentProduct?.vat || 0),
       expiry_date: currentProduct?.expiry_date || null,
       has_no_expiry_date: !currentProduct?.expiry_date,
-      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || null,
+      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || "",
 
       overall_stock: currentProduct?.overall_stock || 0, // # Huidege Voorraad
       free_stock: currentProduct?.free_stock || 0, // # Vrije Voorraad
