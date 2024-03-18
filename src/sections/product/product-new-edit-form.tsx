@@ -84,7 +84,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
   const NewProductSchema = Yup.object().shape({
     title: Yup.string().required(t('validation_title')),
-    description: Yup.string().required(t('validation_description')),
+    // description: Yup.string().required(t('validation_description')),
     ean: Yup.string().required(t('validation_ean')),
     article_code: Yup.string().required(t('validation_articleCode')),
     // sku: Yup.string().required(t('validation_sku')),
@@ -132,7 +132,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       variants: currentProduct?.variants,
       title: currentProduct?.title || '',
       title_long: currentProduct?.title_long || '',
-      description: currentProduct?.description || '',
+      // description: currentProduct?.description || '',
       parent_product: currentProduct?.parent_product || '',
       ean: currentProduct?.ean || '',
       article_code: currentProduct?.article_code || '',
@@ -655,7 +655,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           <Divider sx={{ borderStyle: 'dashed' }} />
           <RHFTextField name="title" label={t('product_title')} />
           <RHFTextField name="title_long" label={t('product_title_long')} />
-          <RHFTextField name="description" label={t('product_description')} />
+          {/* <RHFTextField name="description" label={t('product_description')} /> */}
           {/* <Stack spacing={1.5}>
             <Typography variant="subtitle2">{t('description_long')}</Typography>
             <RHFEditor simple name="description_long" />
@@ -1305,9 +1305,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <Box sx={{ textAlign: 'left', mt: 1 }}>
                 <Typography variant="h6" fontWeight="600" color="text.secondary">
                   {getValues('title')}
-                </Typography>
-                <Typography fontSize="14px" color="text.muted">
-                  {getValues('description')}
                 </Typography>
                 {getValues('price_per_piece') ? (
                   <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
