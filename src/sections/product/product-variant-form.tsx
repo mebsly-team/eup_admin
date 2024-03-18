@@ -88,14 +88,17 @@ export default function ProductVariantForm({ currentProduct }: Props) {
   const createVariantsCall = async (value1, value2, unitValue) => {
     setIsLoading(true); // Show the spinner
 
-    const title = `${currentProduct?.title}${value1 ? `-${value1}` : ''}${
-      value2 ? `-${value2}` : ''
-    }-${unitValue}`;
+    const title = `${currentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
+      value2 ? `-${t(value2)}` : ''
+    }-${t(unitValue)}`;
     try {
       const response = await axiosInstance.post('/products/', {
         title,
         is_variant: true,
         parent_product: currentProduct?.id,
+        color: value1,
+        size: value2,
+        unit: unitValue,
       });
       console.log('response', response);
       if (response?.data?.id)

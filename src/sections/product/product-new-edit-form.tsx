@@ -127,7 +127,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     () => ({
       is_variant: currentProduct?.is_variant,
       unit: currentProduct?.unit,
-      color: currentProduct?.color || "",
+      color: currentProduct?.color || '',
       size: currentProduct?.size,
       variants: currentProduct?.variants,
       title: currentProduct?.title || '',
@@ -153,7 +153,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       vat: Number(currentProduct?.vat || 0),
       expiry_date: currentProduct?.expiry_date || null,
       has_no_expiry_date: !currentProduct?.expiry_date,
-      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || "",
+      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || '',
 
       overall_stock: currentProduct?.overall_stock || 0, // # Huidege Voorraad
       free_stock: currentProduct?.free_stock || 0, // # Vrije Voorraad
@@ -345,7 +345,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         });
       } else {
         const errorMessages = Object.entries(error);
-        if (errorMessages.length) {
+        if (errorMessages?.length) {
           errorMessages.forEach(([fieldName, errors]) => {
             errors.forEach((errorMsg) => {
               enqueueSnackbar({
@@ -385,9 +385,48 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const handleImportMainProduct = async () => {
     if (currentProduct?.parent_product) {
       const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
-      const { title, images, ean, article_code, hs_code, sku, brand, supplier, categories, ...copyData } = {
+      const {
+        title,
+        images,
+        hs_code,
+        has_electronic_barcode,
+        sku,
+        brand,
+        supplier,
+        categories,
+        is_only_for_logged_in_user,
+        is_used,
+        location,
+        ...copyData
+      } = {
         ...response?.data,
       };
+      if (["box",'pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
+        delete copyData.quantity_per_unit;
+        delete copyData.price_per_unit;
+        delete copyData.max_order_allowed_per_unit;
+        delete copyData.order_unit_amount;
+        delete copyData.min_order_amount;
+        delete copyData.min_stock_value;
+        delete copyData.max_stock_at_rack;
+        delete copyData.price_per_piece;
+        delete copyData.price_consumers;
+        delete copyData.price_cost;
+        delete copyData.size_unit;
+        delete copyData.size_x_value;
+        delete copyData.size_y_value;
+        delete copyData.size_z_value;
+        delete copyData.volume_unit;
+        delete copyData.liter;
+        delete copyData.pallet_layer_total_number;
+        delete copyData.weight;
+        delete copyData.pallet_full_total_number;
+        delete copyData.is_brief_box;
+      } 
+      if (!['pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
+        delete copyData.ean;
+        delete copyData.article_code;
+      }
       reset({
         title: getValues('title'),
         ean: getValues('ean'),

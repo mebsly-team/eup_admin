@@ -76,7 +76,6 @@ export default function ProductListView() {
   const [isCreateVariantDialogOpen, setSCreateVariantDialogOpen] = useState(false);
   const [selectedSingleRow, setSelectedSingleRow] = useState();
   const [filters, setFilters] = useState(defaultFilters);
-  console.log('filters', filters);
   const { t, onChangeLang } = useTranslate();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
 
@@ -193,14 +192,17 @@ export default function ProductListView() {
   }, []);
 
   const createVariantsCall = async (value1, value2, unitValue) => {
-    const title = `${selectedSingleRow?.title}${value1 ? `-${value1}` : ''}${
-      value2 ? `-${value2}` : ''
-    }-${unitValue}`;
+    const title = `${selectedSingleRow?.title}${value1 ? `-${t(value1)}` : ''}${
+      value2 ? `-${t(value2)}` : ''
+    }-${t(unitValue)}`;
     try {
       const response = await axiosInstance.post('/products/', {
         title,
         is_variant: true,
         parent_product: selectedSingleRow?.id,
+        color: value1,
+        size: value2,
+        unit: unitValue,
       });
       console.log('response', response);
     } catch (error) {
