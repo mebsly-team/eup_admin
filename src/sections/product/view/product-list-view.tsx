@@ -238,7 +238,7 @@ export default function ProductListView() {
 
   return (
     <>
-      <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+      <Container maxWidth={false}>
         <CustomBreadcrumbs
           heading={t('list')}
           links={[

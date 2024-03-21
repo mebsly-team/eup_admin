@@ -904,7 +904,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                    <Box
+                      component="span"
+                      sx={{ color: 'text.disabled', backgroundColor: '#f5f3f3' }}
+                    >
                       €
                     </Box>
                   </InputAdornment>
@@ -1186,9 +1189,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <RHFTextField name="size_x_value" label={t('size_x_value')} type="number" />
             <RHFTextField name="size_y_value" label={t('size_y_value')} type="number" />
             <RHFTextField name="size_z_value" label={t('size_z_value')} type="number" />
-            <RHFTextField sx={{ pointerEvents: 'none' }} name="volume" label={t('volume')} />
             <RHFTextField
-              sx={{ pointerEvents: 'none' }}
+              sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
+              name="volume"
+              label={t('volume')}
+            />
+            <RHFTextField
+              sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
               name="volume_unit"
               label={t('volume_unit')}
             />
