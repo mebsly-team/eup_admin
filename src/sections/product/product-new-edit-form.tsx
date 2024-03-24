@@ -93,6 +93,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     categories: Yup.array().min(1, t('validation_minCategory')),
     images: Yup.array().min(1, t('validation_images')),
     brand: Yup.number().required(t('validation_brand')),
+    quantity_per_unit: Yup.number().required(t('validation_quantity_per_unit')),
     supplier: Yup.number().required(t('validation_supplier')).nullable(),
     // tags: Yup.array().min(2, t('validation_minTags')),
     price_per_piece: Yup.number().moreThan(0, t('validation_moreThanZero')),
@@ -156,7 +157,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       vat: Number(currentProduct?.vat || 0),
       expiry_date: currentProduct?.expiry_date || null,
       has_no_expiry_date: !currentProduct?.expiry_date,
-      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || '',
+      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || 'all',
 
       overall_stock: currentProduct?.overall_stock || 0, // # Huidege Voorraad
       free_stock: currentProduct?.free_stock || 0, // # Vrije Voorraad
@@ -571,7 +572,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <RHFTextField
               name="quantity_per_unit"
               label={t('quantity_per_unit')}
-              placeholder="0.00"
+              placeholder="0"
               type="number"
               value={getValues('quantity_per_unit')}
               onChange={(e) => {

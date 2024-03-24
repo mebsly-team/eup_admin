@@ -278,6 +278,7 @@
   "purchase_orders": "Inkooporders",
   "quantity": "Hoeveelheid",
   "quantity_per_unit": "Aantal per verpakking",
+  "validation_quantity_per_unit": "Aantal per verpakking is verplicht",
   "rack": "Rek",
   "red": "Rood",
   "register": "Registreren",
