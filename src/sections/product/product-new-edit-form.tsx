@@ -10,6 +10,7 @@ import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useTheme } from '@mui/material/styles';
@@ -84,11 +85,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
   const NewProductSchema = Yup.object().shape({
     title: Yup.string().required(t('validation_title')),
+    unit: Yup.string().required(t('validation_unit')),
     // description: Yup.string().required(t('validation_description')),
     ean: Yup.string().required(t('validation_ean')),
     article_code: Yup.string().required(t('validation_articleCode')),
     // sku: Yup.string().required(t('validation_sku')),
     categories: Yup.array().min(1, t('validation_minCategory')),
+    images: Yup.array().min(1, t('validation_images')),
     brand: Yup.number().required(t('validation_brand')),
     supplier: Yup.number().required(t('validation_supplier')).nullable(),
     // tags: Yup.array().min(2, t('validation_minTags')),
@@ -100,22 +103,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
     location: Yup.string().required(t('validation_location')),
     languages_on_item_package: Yup.array().required(t('validation_languages_on_item_package')),
-    size_x_value: Yup.string().required(t('validation_size_x_value')),
-    size_y_value: Yup.string().required(t('validation_size_y_value')),
-    size_z_value: Yup.string().required(t('validation_size_z_value')),
-    size_unit: Yup.string().required(t('validation_size_unit')),
-    weight: Yup.string().required(t('validation_weight')),
-    weight_unit: Yup.string().required(t('validation_weight_unit')),
+    // size_x_value: Yup.string().required(t('validation_size_x_value')),
+    // size_y_value: Yup.string().required(t('validation_size_y_value')),
+    // size_z_value: Yup.string().required(t('validation_size_z_value')),
+    // size_unit: Yup.string().required(t('validation_size_unit')),
+    // weight: Yup.string().required(t('validation_weight')),
+    // weight_unit: Yup.string().required(t('validation_weight_unit')),
 
     extra_etiket_nl: Yup.string().test(
       'conditional-required',
-      'Extra etiket NL is required when NL is not included',
+      'Extra etiket NL is vereist als NL niet is inbegrepen',
       function (value) {
         const languages = this.resolve(Yup.ref('languages_on_item_package'));
         if (!languages?.includes('NL') && !value) {
           return this.createError({
             path: 'extra_etiket_nl',
-            message: 'Extra etiket NL is required when NL is not included',
+            message: 'Extra etiket NL is vereist als NL niet is inbegrepen',
           });
         }
         return true;
@@ -212,8 +215,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       weight_unit: currentProduct?.weight_unit || '',
       volume_unit: currentProduct?.volume_unit || '',
       volume: currentProduct?.volume || '',
-      pallet_full_total_number: currentProduct?.pallet_full_total_number || '',
-      pallet_layer_total_number: currentProduct?.pallet_layer_total_number || '',
+      pallet_full_total_number: currentProduct?.pallet_full_total_number || 0,
+      pallet_layer_total_number: currentProduct?.pallet_layer_total_number || 0,
       is_brief_box: currentProduct?.is_brief_box || false,
       meta_title: currentProduct?.meta_title || '',
       meta_description: currentProduct?.meta_description || '',
@@ -744,7 +747,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             ))}
           </Box>
           {/* Add Image button */}
-          <IconButton onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</IconButton>
+          <Typography typography="caption" sx={{ color: 'error.main' }}>
+            {(errors.images as any)?.message}
+          </Typography>
+          <Button onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</Button>
         </Stack>
       </Card>
     </Grid>
@@ -797,9 +803,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             </Typography>
           </Box>
           {/* Add Image button */}
-          <IconButton onClick={() => setOpenDialogCategory(true)}>
-            {t('select_category')}
-          </IconButton>
+          <Button onClick={() => setOpenDialogCategory(true)}>{t('select_category')}</Button>
         </Stack>
       </Card>
     </Grid>

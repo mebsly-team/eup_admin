@@ -6,10 +6,9 @@ import { useTheme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { Select, Switch, MenuItem, FormControl } from '@mui/material';
+import { Select, Switch, Button, MenuItem, FormControl } from '@mui/material';
 import {
   DataGrid,
   GridRowId,
@@ -359,9 +358,9 @@ export default function ProductVariantForm({ currentProduct }: Props) {
           </FormControl>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <IconButton onClick={createVariants} color="primary">
+          <Button onClick={createVariants} color="primary">
             {t('generate')}
-          </IconButton>
+          </Button>
         </Box>
       </Box>
       <Box
