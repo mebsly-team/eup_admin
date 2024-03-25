@@ -491,5 +491,6 @@
   "stats": "Statistieken",
   "amount": "Aantal",
   "is_no_payment": "Geen betaling/Alleen factuur",
-  "standard_business": "Standaard Zakelijk"
+  "standard_business": "Standaard Zakelijk",
+  "number_of_variants": "Aantal Varianten"
 }

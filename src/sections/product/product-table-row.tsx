@@ -51,6 +51,7 @@ export default function ProductTableRow({
     discounted_price,
     overall_stock,
     free_stock,
+    variants,
   } = row;
   const [isActive, setIsActive] = useState(is_product_active);
 
@@ -96,6 +97,7 @@ export default function ProductTableRow({
           />
         </TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{discounted_price}</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{variants?.length || '-'}</TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{ean}</TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           {free_stock}/{overall_stock}
