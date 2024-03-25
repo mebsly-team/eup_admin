@@ -400,6 +400,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         is_only_for_logged_in_user,
         is_used,
         location,
+        categories,
         ...copyData
       } = {
         ...response?.data,

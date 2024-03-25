@@ -99,6 +99,9 @@ export default function ProductVariantForm({ currentProduct }: Props) {
         color: value1,
         size: value2,
         unit: unitValue,
+        categories: currentProduct?.categories?.map((item) => item.id) || [],
+        supplier: currentProduct?.supplier?.supplier_code || null,
+        brand: currentProduct?.brand?.id || null,
       });
       console.log('response', response);
       if (response?.data?.id)
