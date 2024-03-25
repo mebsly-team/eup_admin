@@ -15,6 +15,7 @@ import {
   GridColDef,
   GridRowModes,
   GridRowModel,
+  GridCellParams,
   GridRowModesModel,
   GridEventListener,
   GridActionsCellItem,
@@ -181,6 +182,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
       align: 'left',
       headerAlign: 'left',
       editable: true,
+      renderCell: (params: GridCellParams) => t(params.value),
     },
     {
       field: 'size',
@@ -199,6 +201,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
       align: 'left',
       headerAlign: 'left',
       editable: true,
+      renderCell: (params: GridCellParams) => t(params.value),
     },
     {
       field: 'ean',
