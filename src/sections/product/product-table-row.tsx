@@ -60,6 +60,10 @@ export default function ProductTableRow({
   const confirm = useBoolean();
 
   const popover = usePopover();
+  const popoverClick = (e: any) => {
+    e.stopPropagation();
+    popover.onOpen(e);
+  };
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
     const response = await axiosInstance.patch(`/products/${id}/`, {
       is_product_active: e.target.checked,
@@ -68,7 +72,7 @@ export default function ProductTableRow({
   };
   return (
     <>
-      <TableRow hover selected={selected}>
+      <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
         <TableCell padding="checkbox">
           <Checkbox checked={selected} onClick={onSelectRow} />
         </TableCell>
@@ -84,6 +88,7 @@ export default function ProductTableRow({
                 target="_blank"
                 href={`http://52.28.100.129:3000/nl/product/${id}`}
                 rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
               >
                 {title}
               </a>
@@ -112,7 +117,7 @@ export default function ProductTableRow({
             </IconButton>
           </Tooltip> */}
 
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popoverClick}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
