@@ -1,5 +1,6 @@
 import { useSnackbar } from 'notistack';
 import { useState, useCallback } from 'react';
+import debounce from 'lodash.debounce'; // Import debounce function
 
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
@@ -39,12 +40,23 @@ export default function UserTableToolbar({
   const { t, onChangeLang } = useTranslate();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-  const handleFilterName = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onFilters('name', event.target.value);
-    },
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Debounce the search filter function
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      onFilters('name', value);
+    }, 500), // Adjust the debounce delay as needed
     [onFilters]
   );
+
+  // Handle changes in the search field
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setSearchQuery(value);
+    debouncedSearch(value); // Apply debounce for filtering
+  };
 
   const handleFilterActive = useCallback(
     (event: SelectChangeEvent<string[]>) => {
@@ -113,8 +125,8 @@ export default function UserTableToolbar({
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
-            value={filters.name}
-            onChange={handleFilterName}
+            value={searchQuery}
+            onChange={handleSearchChange} // Change to the debounced handler
             placeholder={t('search')}
             InputProps={{
               startAdornment: (
