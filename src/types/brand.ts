@@ -1,4 +1,5 @@
 export type IBrandItem = {
+  extension: any;
   id?: number;
   name: string;
   description: string;

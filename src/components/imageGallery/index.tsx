@@ -64,7 +64,9 @@ export default function ImageGallery({
   };
 
   const slides = imageList.map((slide) => ({
-    src: slide.url,
+    src:
+      slide.url ||
+      `https://eup-images.s3.amazonaws.com/eup/uploads/${slide.name}.${slide.extension}`,
   }));
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -158,11 +160,24 @@ export default function ImageGallery({
                   cursor: 'pointer',
                   position: 'relative',
                 }}
-                onDoubleClick={() => onSelect([image.url])}
+                onDoubleClick={() =>
+                  onSelect([
+                    image.url ||
+                      `https://eup-images.s3.amazonaws.com/eup/uploads/${image.name}.${image.extension}`,
+                  ])
+                }
               >
                 <Checkbox
-                  checked={selectedImages.includes(image.url)}
-                  onChange={() => handleSelect(image.url)}
+                  checked={selectedImages.includes(
+                    image.url ||
+                      `https://eup-images.s3.amazonaws.com/eup/uploads/${image.name}.${image.extension}`
+                  )}
+                  onChange={() =>
+                    handleSelect(
+                      image.url ||
+                        `https://eup-images.s3.amazonaws.com/eup/uploads/${image.name}.${image.extension}`
+                    )
+                  }
                   sx={{
                     position: 'absolute',
                     top: theme.spacing(1),
@@ -179,8 +194,16 @@ export default function ImageGallery({
                 <Image
                   alt="gallery"
                   ratio="1/1"
-                  src={image.url}
-                  onClick={() => handleSelect(image.url)}
+                  src={
+                    image.url ||
+                    `https://eup-images.s3.amazonaws.com/eup/uploads/${image.name}.${image.extension}`
+                  }
+                  onClick={() =>
+                    handleSelect(
+                      image.url ||
+                        `https://eup-images.s3.amazonaws.com/eup/uploads/${image.name}.${image.extension}`
+                    )
+                  }
                   // onClick={() => lightbox.onOpen(image.url)}
                 />
                 <ListItemText
