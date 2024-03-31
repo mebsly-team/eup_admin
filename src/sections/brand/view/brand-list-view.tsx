@@ -89,8 +89,8 @@ export default function BrandListView() {
         table.page * table.rowsPerPage
       }${searchFilter}${orderByParam}`
     );
-    setCount(data.count);
-    setBrandList(data.results);
+    setCount(data.count || 0);
+    setBrandList(data.results || []);
   };
 
   const handleFilters = useCallback(

@@ -121,8 +121,8 @@ export default function ProductListView() {
         table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}`
     );
-    setCount(data.count);
-    setProductList(data.results);
+    setCount(data.count || 0);
+    setProductList(data.results || []);
     setIsLoading(false);
   };
 

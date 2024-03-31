@@ -107,8 +107,8 @@ export default function UserListView() {
         table.page + 1
       }&offset=0${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
     );
-    setCount(data.count);
-    setUserList(data.results);
+    setCount(data.count || 0);
+    setUserList(data.results || []);
   };
 
   const handleFilters = useCallback(

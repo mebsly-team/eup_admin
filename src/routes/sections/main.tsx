@@ -24,6 +24,10 @@ const OverviewFilePage = lazy(() => import('src/pages/dashboard/file'));
 const ProductListPage = lazy(() => import('src/pages/dashboard/product/list'));
 const ProductCreatePage = lazy(() => import('src/pages/dashboard/product/new'));
 const ProductEditPage = lazy(() => import('src/pages/dashboard/product/edit'));
+// Campaign
+const CampaignListPage = lazy(() => import('src/pages/dashboard/campaign/list'));
+const CampaignCreatePage = lazy(() => import('src/pages/dashboard/campaign/new'));
+const CampaignEditPage = lazy(() => import('src/pages/dashboard/campaign/edit'));
 // BRAND
 const BrandListPage = lazy(() => import('src/pages/dashboard/brand/list'));
 const BrandCreatePage = lazy(() => import('src/pages/dashboard/brand/new'));
@@ -36,7 +40,7 @@ const LanguageEditPage = lazy(() => import('src/pages/dashboard/language/edit'))
 const CategoryListPage = lazy(() => import('src/pages/dashboard/category/list'));
 const CategoryCreatePage = lazy(() => import('src/pages/dashboard/category/new'));
 const CategoryEditPage = lazy(() => import('src/pages/dashboard/category/edit'));
-// CATEGORY
+// supplier
 const SupplierListPage = lazy(() => import('src/pages/dashboard/supplier/list'));
 const SupplierCreatePage = lazy(() => import('src/pages/dashboard/supplier/new'));
 const SupplierEditPage = lazy(() => import('src/pages/dashboard/supplier/edit'));
@@ -147,6 +151,15 @@ export const mainRoutes = [
           { path: 'list', element: <CategoryListPage /> },
           { path: 'new', element: <CategoryCreatePage /> },
           { path: ':id/edit', element: <CategoryEditPage /> },
+        ],
+      },
+      {
+        path: 'campaign',
+        children: [
+          { element: <CampaignListPage />, index: true },
+          { path: 'list', element: <CampaignListPage /> },
+          { path: 'new', element: <CampaignCreatePage /> },
+          { path: ':id/edit', element: <CampaignEditPage /> },
         ],
       },
       {

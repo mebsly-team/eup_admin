@@ -122,8 +122,8 @@ export default function SupplierListView() {
         table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}`
     );
-    setCount(data.count);
-    setSupplierList(data.results);
+    setCount(data.count || 0);
+    setSupplierList(data.results || []);
     setIsLoading(false);
   };
 

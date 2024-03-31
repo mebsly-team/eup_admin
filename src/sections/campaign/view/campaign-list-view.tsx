@@ -1,13 +1,10 @@
 import isEqual from 'lodash/isEqual';
 import { useState, useEffect, useCallback } from 'react';
 
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import { alpha } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
@@ -36,59 +33,44 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { IUserItem, IUserTableFilters, IUserTableFilterValue } from 'src/types/user';
+import {
+  ICampaignItem,
+  ICampaignTableFilters,
+  ICampaignTableFilterValue,
+} from 'src/types/campaign';
 
-import UserTableRow from '../user-table-row';
-import UserTableToolbar from '../user-table-toolbar';
-import UserTableFiltersResult from '../user-table-filters-result';
+import CampaignTableRow from '../campaign-table-row';
+import CampaignTableToolbar from '../campaign-table-toolbar';
+import CampaignTableFiltersResult from '../campaign-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const defaultFilters: IUserTableFilters = {
+const defaultFilters: ICampaignTableFilters = {
   name: '',
-  role: [],
-  status: 'all',
 };
 
 // ----------------------------------------------------------------------
 
-export default function UserListView() {
+export default function CampaignListView() {
   const { enqueueSnackbar } = useSnackbar();
   const table = useTable();
   const settings = useSettingsContext();
   const router = useRouter();
   const confirm = useBoolean();
-  const [userList, setUserList] = useState<IUserItem[]>([]);
+  const [campaignList, setCampaignList] = useState<ICampaignItem[]>([]);
   const [count, setCount] = useState(0);
-  const [tableData, setTableData] = useState<IUserItem[]>(userList);
+  const [tableData, setTableData] = useState<ICampaignItem[]>(campaignList);
   const [filters, setFilters] = useState(defaultFilters);
   const { t, onChangeLang } = useTranslate();
-
   const TABLE_HEAD = [
-    { id: 'name', label: t('name_type') },
-    { id: 'email', label: t('email_phone'), width: 180 },
-    { id: 'company', label: t('poc'), width: 220 },
-    { id: 'type', label: t('kvk_vat'), width: 180 },
-    { id: 'is_active', label: `${t('active')}?`, width: 100 },
-    { id: '', width: 88 },
+    { id: 'image', label: t('image') },
+    { id: 'name', label: `${t('name')}/${t('description')}` },
+    { id: 'discount_percentage', label: t('discount_percentage'), width: 180 },
+    { id: 'start_date', label: `${t('start_date')}/${t('end_date')}`, width: 180 },
+    { id: 'is_active', label: t('is_active'), width: 180 },
   ];
 
-  const USER_TYPES = [
-    { value: 'particular', label: t('particular') },
-    { value: 'standard_business', label: t('standard_business') },
-    { value: 'wholesaler', label: t('wholesaler') },
-    { value: 'supermarket', label: t('supermarket') },
-    { value: 'special', label: t('special') },
-    // { value: 'admin', label: t('admin') },
-  ];
-
-  const STATUS_OPTIONS = [
-    { value: 'all', label: t('all') },
-    { value: 'active', label: t('active') },
-    { value: 'in_active', label: t('inactive') },
-  ];
-
-  const dataInPage = userList.slice(
+  const dataInPage = campaignList.slice(
     table.page * table.rowsPerPage,
     table.page * table.rowsPerPage + table.rowsPerPage
   );
@@ -97,33 +79,29 @@ export default function UserListView() {
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!userList.length && canReset) || !userList.length;
+  const notFound = (!campaignList?.length && canReset) || !campaignList?.length;
 
   useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
-  console.log('userList', userList);
-
   const getAll = async () => {
-    const statusFilter =
-      filters.status !== 'all' ? `&is_active=${filters.status === 'active'}` : '';
+    const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const orderByParam = table.orderBy
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
-    const searchFilter = filters.name ? `&search=${filters.name}` : '';
-    const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const { data } = await axiosInstance.get(
-      `/users/?limit=${table.rowsPerPage}&page=${
-        table.page + 1
-      }&offset=0${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
+      `/campaigns/?limit=${table.rowsPerPage}&offset=${
+        table.page * table.rowsPerPage
+      }${searchFilter}${orderByParam}`
     );
-    setCount(data.count || 0);
-    setUserList(data.results || []);
+    console.log('data', data);
+    setCount(data.length || 0);
+    setCampaignList(data || []);
   };
 
   const handleFilters = useCallback(
-    (name: string, value: IUserTableFilterValue) => {
+    (name: string, value: ICampaignTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -139,16 +117,15 @@ export default function UserListView() {
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
-      const deleteRow = userList.filter((row) => row.id !== id);
-      const { data } = await axiosInstance.delete(`/users/${id}/`);
+      const deleteRow = campaignList.filter((row) => row.id !== id);
+      const { data } = await axiosInstance.delete(`/campaigns/${id}/`);
       enqueueSnackbar(t('delete_success'));
-
       getAll();
       // setTableData(deleteRow);
 
-      // table.onUpdatePageDeleteRow(dataInPage.length);
+      // table.onUpdatePageDeleteRow(dataInPage?.length);
     },
-    [dataInPage.length, enqueueSnackbar, table, userList]
+    [campaignList, enqueueSnackbar, t, getAll]
   );
 
   const handleDeleteRows = useCallback(() => {
@@ -159,43 +136,36 @@ export default function UserListView() {
     setTableData(deleteRows);
 
     table.onUpdatePageDeleteRows({
-      totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: userList.length,
+      totalRowsInPage: dataInPage?.length,
+      totalRowsFiltered: campaignList?.length,
     });
-  }, [userList.length, dataInPage.length, enqueueSnackbar, table, tableData]);
+  }, [campaignList?.length, dataInPage?.length, enqueueSnackbar, t, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.user.edit(id));
+      router.push(paths.dashboard.campaign.edit(id));
     },
     [router]
-  );
-
-  const handleFilterStatus = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
-      handleFilters('status', newValue);
-    },
-    [handleFilters]
   );
 
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading="List"
+          heading={t('list')}
           links={[
             { name: t('dashboard'), href: paths.dashboard.root },
-            { name: t('user'), href: paths.dashboard.user.root },
+            { name: t('campaign'), href: paths.dashboard.campaign.root },
             { name: t('list') },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.user.new}
+              href={paths.dashboard.campaign.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              {t('new_user')}
+              {t('new_campaign')}
             </Button>
           }
           sx={{
@@ -204,56 +174,16 @@ export default function UserListView() {
         />
 
         <Card>
-          <Tabs
-            value={filters.status}
-            onChange={handleFilterStatus}
-            sx={{
-              px: 2.5,
-              boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
-            }}
-          >
-            {STATUS_OPTIONS.map((tab) => (
-              <Tab
-                key={tab.value}
-                iconPosition="end"
-                value={tab.value}
-                label={tab.label}
-                // icon={
-                //   <Label
-                //     variant={
-                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                //     }
-                //     color={
-                //       (tab.value === 'active' && 'success') ||
-                //       (tab.value === 'pending' && 'warning') ||
-                //       (tab.value === 'banned' && 'error') ||
-                //       'default'
-                //     }
-                //   >
-                //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                //       ? tableData.filter((user) => user.status === tab.value).length
-                //       : tableData.length}
-                //   </Label>
-                // }
-              />
-            ))}
-          </Tabs>
-
-          <UserTableToolbar
-            filters={filters}
-            onFilters={handleFilters}
-            //
-            roleOptions={USER_TYPES}
-          />
+          <CampaignTableToolbar filters={filters} onFilters={handleFilters} />
 
           {canReset && (
-            <UserTableFiltersResult
+            <CampaignTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
               onResetFilters={handleResetFilters}
               //
-              results={userList.length}
+              results={campaignList?.length}
               sx={{ p: 2.5, pt: 0 }}
             />
           )}
@@ -261,12 +191,12 @@ export default function UserListView() {
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
               dense={table.dense}
-              numSelected={table.selected.length}
-              rowCount={userList.length}
+              numSelected={table.selected?.length}
+              rowCount={campaignList?.length}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
-                  userList.map((row) => row.id)
+                  campaignList.map((row) => row.id)
                 )
               }
               action={
@@ -284,20 +214,20 @@ export default function UserListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={userList.length}
-                  numSelected={table.selected.length}
+                  rowCount={campaignList?.length}
+                  numSelected={table.selected?.length}
                   onSort={table.onSort}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
-                      userList.map((row) => row.id)
+                      campaignList.map((row) => row.id)
                     )
                   }
                 />
 
                 <TableBody>
-                  {userList.map((row) => (
-                    <UserTableRow
+                  {campaignList.map((row) => (
+                    <CampaignTableRow
                       key={row.id}
                       row={row}
                       selected={table.selected.includes(row.id)}
@@ -309,7 +239,7 @@ export default function UserListView() {
 
                   {/* <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, userList.length)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, campaignList?.length)}
                   />
 
                   <TableNoData notFound={notFound} /> */}

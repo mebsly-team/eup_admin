@@ -1,3 +1,6 @@
+import { useState } from 'react';
+
+import { Switch } from '@mui/material';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -8,6 +11,8 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
+import axiosInstance from 'src/utils/axios';
+
 import { useTranslate } from 'src/locales';
 
 import Image from 'src/components/image';
@@ -15,36 +20,52 @@ import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
-import { IBrandItem } from 'src/types/brand';
+import { ICampaignItem } from 'src/types/campaign';
 
-import BrandQuickEditForm from './brand-quick-edit-form';
+import CampaignQuickEditForm from './campaign-quick-edit-form';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   selected: boolean;
   onEditRow: VoidFunction;
-  row: IBrandItem;
+  row: ICampaignItem;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
 };
 
-export default function BrandTableRow({
+export default function CampaignTableRow({
   row,
   selected,
   onEditRow,
   onSelectRow,
   onDeleteRow,
 }: Props) {
-  const { logo, name, description } = row;
+  const {
+    id,
+    is_active,
+    name,
+    description,
+    discount_percentage,
+    start_date,
+    end_date,
+    images,
+    products,
+  } = row;
   const { t, onChangeLang } = useTranslate();
+  const [isActive, setIsActive] = useState(is_active);
 
   const confirm = useBoolean();
 
   const quickEdit = useBoolean();
 
   const popover = usePopover();
-
+  const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
+    const response = await axiosInstance.patch(`/campaigns/${id}/`, {
+      is_active: e.target.checked,
+    });
+    setIsActive(response?.data?.is_active ?? isActive);
+  };
   return (
     <>
       <TableRow hover selected={selected}>
@@ -53,9 +74,8 @@ export default function BrandTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={name} src={logo} />
+          <Image alt={name} src={images?.[0]} />
         </TableCell>
-
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
             primary={name}
@@ -67,7 +87,22 @@ export default function BrandTableRow({
             }}
           />
         </TableCell>
+        <TableCell sx={{ display: 'flex', alignItems: 'center' }}>{discount_percentage}</TableCell>
 
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <ListItemText
+            primary={start_date}
+            secondary={end_date}
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{
+              component: 'span',
+              color: 'text.disabled',
+            }}
+          />
+        </TableCell>
+        <TableCell>
+          <Switch name="is_active" checked={is_active} onChange={handleActiveSwitchChange} />
+        </TableCell>
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
           {/* <Tooltip title="Quick Edit" placement="top" arrow>
             <IconButton color={quickEdit.value ? 'inherit' : 'default'} onClick={quickEdit.onTrue}>
@@ -81,7 +116,11 @@ export default function BrandTableRow({
         </TableCell>
       </TableRow>
 
-      <BrandQuickEditForm currentBrand={row} open={quickEdit.value} onClose={quickEdit.onFalse} />
+      <CampaignQuickEditForm
+        currentCampaign={row}
+        open={quickEdit.value}
+        onClose={quickEdit.onFalse}
+      />
 
       <CustomPopover
         open={popover.open}

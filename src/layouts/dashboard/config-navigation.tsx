@@ -90,6 +90,16 @@ export function useNavData() {
               // { title: t('edit'), path: paths.dashboard.product.demo.edit },
             ],
           },
+          // Campaign
+          {
+            title: t('acties'),
+            path: paths.dashboard.campaign.root,
+            icon: ICONS.order,
+            children: [
+              { title: t('list'), path: paths.dashboard.campaign.root },
+              { title: t('create'), path: paths.dashboard.campaign.new },
+            ],
+          },
           // Brand
           {
             title: t('brand'),
