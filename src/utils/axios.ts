@@ -4,19 +4,17 @@ import { HOST_API } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 
-
 // const axiosInstance = axios.create({ baseURL: "http://localhost:8000/api" });
 const axiosInstance = axios.create({ baseURL: HOST_API });
 
-axiosInstance.interceptors.request.use((config) => {
-  const accessToken = sessionStorage.getItem("accessToken");
-  config.headers.Authorization = `Bearer ${accessToken}`
-  return config
-}
-  , (error) =>
-    Promise.reject(error)
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const accessToken = sessionStorage.getItem('accessToken');
+    config.headers.Authorization = `Bearer ${accessToken}`;
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
-
 
 axiosInstance.interceptors.response.use(
   (res) => res,
