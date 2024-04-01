@@ -48,6 +48,7 @@ export interface IProductItem {
   chips: string[];
   variants: number[];
   image_urls: string[];
+  slug: string;
   title: string;
   title_long: string;
   description: string;

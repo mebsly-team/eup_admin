@@ -52,6 +52,7 @@ export default function ProductTableRow({
     overall_stock,
     free_stock,
     variants,
+    slug,
   } = row;
   const [isActive, setIsActive] = useState(is_product_active);
 
@@ -86,7 +87,7 @@ export default function ProductTableRow({
             primary={
               <a
                 target="_blank"
-                href={`http://52.28.100.129:3000/nl/product/${id}`}
+                href={`http://52.28.100.129:3000/nl/product/${id}/${slug}`}
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
               >
