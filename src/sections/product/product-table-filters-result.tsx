@@ -61,6 +61,15 @@ export default function ProductTableFiltersResult({
             <Chip label={filters.name} size="small" onDelete={handleRemoveKeyword} />
           </Block>
         )}
+        {!!filters.category && (
+          <Block label="Keyword:">
+            <Chip
+              label={`Categorie id: ${filters.category}`}
+              size="small"
+              onDelete={() => onFilters('category', '')}
+            />
+          </Block>
+        )}
         <Button
           color="error"
           onClick={onResetFilters}

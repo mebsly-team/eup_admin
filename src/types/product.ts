@@ -34,6 +34,7 @@ export type IProductReview = {
 export type IProductTableFilterValue = string | string[];
 
 export type IProductTableFilters = {
+  category: any;
   is_product_active: string | undefined;
   name: unknown;
   title: string;

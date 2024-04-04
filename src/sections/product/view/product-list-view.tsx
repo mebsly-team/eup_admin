@@ -116,10 +116,11 @@ export default function ProductListView() {
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const categoryFilter = filters.category ? `&category=${filters.category}` : '';
     const { data } = await axiosInstance.get(
       `/products/?limit=${table.rowsPerPage}&offset=${
         table.page * table.rowsPerPage
-      }${searchFilter}${statusFilter}${orderByParam}`
+      }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
     );
     setCount(data.count || 0);
     setProductList(data.results || []);

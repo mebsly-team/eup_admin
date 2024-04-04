@@ -1,8 +1,9 @@
+import debounce from 'lodash.debounce';
 import { useSnackbar } from 'notistack';
-import { useState, useCallback } from 'react';
-import debounce from 'lodash.debounce'; // Import debounce function
+import { useState, useEffect, useCallback } from 'react'; // Import debounce function
 
 import Stack from '@mui/material/Stack';
+import { Autocomplete } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
@@ -19,7 +20,7 @@ import { useTranslate } from 'src/locales';
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
-import { IProductTableFilters, IProductTableFilterValue } from 'src/types/product';
+import { IProductItem, IProductTableFilters, IProductTableFilterValue } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
@@ -39,9 +40,23 @@ export default function UserTableToolbar({
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const [categoryList, setCategoryList] = useState<IProductItem[]>([]);
+  const [value, setValue] = useState<string | null>();
+  console.log('value', value);
+
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false); // State for the spinner
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+  useEffect(() => {
+    getAllCategories();
+  }, []);
 
+  const getAllCategories = async () => {
+    setIsCategoriesLoading(true);
+    const { data } = await axiosInstance.get(`/categories/`);
+    setCategoryList(data || []);
+    setIsCategoriesLoading(false);
+  };
   // Debounce the search filter function
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
@@ -61,6 +76,12 @@ export default function UserTableToolbar({
   const handleFilterActive = useCallback(
     (event: SelectChangeEvent<string[]>) => {
       onFilters('is_product_active', event.target.value);
+    },
+    [onFilters]
+  );
+  const handleFilterCategory = useCallback(
+    (selected: { id: IProductTableFilterValue }) => {
+      onFilters('category', selected?.id);
     },
     [onFilters]
   );
@@ -121,7 +142,24 @@ export default function UserTableToolbar({
             <MenuItem value="passive">{t('inactive')}</MenuItem>
           </Select>
         </FormControl>
-
+        {categoryList?.length > 0 && (
+          <Autocomplete
+            fullWidth
+            options={categoryList}
+            getOptionLabel={(option) => option.name}
+            renderInput={(params) => <TextField {...params} label={t('category')} margin="none" />}
+            renderOption={(props, option) => (
+              <li {...props} key={option.name}>
+                {option.name}
+              </li>
+            )}
+            onChange={(event: any, newValue: any) => {
+              console.log('newValue', newValue);
+              setValue(newValue);
+              handleFilterCategory(newValue);
+            }}
+          />
+        )}
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
@@ -159,8 +197,8 @@ export default function UserTableToolbar({
           />
 
           <label htmlFor="upload-file">
-              <Iconify icon="solar:import-bold" />
-              {t('import')}
+            <Iconify icon="solar:import-bold" />
+            {t('import')}
           </label>
         </MenuItem>
         <MenuItem onClick={handleDownload}>
