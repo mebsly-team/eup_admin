@@ -124,7 +124,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Logo</Typography>
                 <Image src={getValues('logo')} />
-                <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
+                <Button onClick={() => setImageGalleryOpen(true)}>{t('select')}</Button>
                 {errors?.logo && <Typography color="error">{errors?.logo?.message}</Typography>}
               </Stack>
             </Box>
