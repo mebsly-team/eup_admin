@@ -87,8 +87,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     title: Yup.string().required(t('validation_title')),
     // unit: Yup.string().required(t('validation_unit')),
     // // description: Yup.string().required(t('validation_description')),
-    ean: Yup.string().required(t('validation_ean')),
-    article_code: Yup.string().required(t('validation_articleCode')),
+    // ean: Yup.string().required(t('validation_ean')),
+    // article_code: Yup.string().required(t('validation_articleCode')),
     // // sku: Yup.string().required(t('validation_sku')),
     // categories: Yup.array().min(1, t('validation_minCategory')),
     // images: Yup.array().min(1, t('validation_images')),
@@ -111,20 +111,20 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     // weight: Yup.string().required(t('validation_weight')),
     // weight_unit: Yup.string().required(t('validation_weight_unit')),
 
-    extra_etiket_nl: Yup.string().test(
-      'conditional-required',
-      'Extra etiket NL is vereist als NL niet is inbegrepen',
-      function (value) {
-        const languages = this.resolve(Yup.ref('languages_on_item_package'));
-        if (!languages?.includes('NL') && !value) {
-          return this.createError({
-            path: 'extra_etiket_nl',
-            message: 'Extra etiket NL is vereist als NL niet is inbegrepen',
-          });
-        }
-        return true;
-      }
-    ),
+    // extra_etiket_nl: Yup.string().test(
+    //   'conditional-required',
+    //   'Extra etiket NL is vereist als NL niet is inbegrepen',
+    //   function (value) {
+    //     const languages = this.resolve(Yup.ref('languages_on_item_package'));
+    //     if (!languages?.includes('NL') && !value) {
+    //       return this.createError({
+    //         path: 'extra_etiket_nl',
+    //         message: 'Extra etiket NL is vereist als NL niet is inbegrepen',
+    //       });
+    //     }
+    //     return true;
+    //   }
+    // ),
   });
 
   const defaultValues = useMemo(
