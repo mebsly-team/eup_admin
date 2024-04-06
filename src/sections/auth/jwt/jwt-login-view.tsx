@@ -44,8 +44,8 @@ export default function JwtLoginView() {
   });
 
   const defaultValues = {
-    email: 'm.sahin@europowerbv.nl',
-    password: 'Test123456!',
+    email: '',
+    password: '',
   };
 
   const methods = useForm({
