@@ -327,6 +327,31 @@ export default function ProductVariantForm({ currentProduct }: Props) {
               <MenuItem value="white">{t('white')}</MenuItem>
               <MenuItem value="orange">{t('orange')}</MenuItem>
               <MenuItem value="gray">{t('gray')}</MenuItem>
+              <MenuItem value="cyan">{t('cyan')}</MenuItem>
+              <MenuItem value="magenta">{t('magenta')}</MenuItem>
+              <MenuItem value="turquoise">{t('turquoise')}</MenuItem>
+              <MenuItem value="gold">{t('gold')}</MenuItem>
+              <MenuItem value="silver">{t('silver')}</MenuItem>
+              <MenuItem value="lavender">{t('lavender')}</MenuItem>
+              <MenuItem value="maroon">{t('maroon')}</MenuItem>
+              <MenuItem value="teal">{t('teal')}</MenuItem>
+              <MenuItem value="navy">{t('navy')}</MenuItem>
+              <MenuItem value="indigo">{t('indigo')}</MenuItem>
+              <MenuItem value="olive">{t('olive')}</MenuItem>
+              <MenuItem value="salmon">{t('salmon')}</MenuItem>
+              <MenuItem value="peach">{t('peach')}</MenuItem>
+              <MenuItem value="violet">{t('violet')}</MenuItem>
+              <MenuItem value="coral">{t('coral')}</MenuItem>
+              <MenuItem value="lime">{t('lime')}</MenuItem>
+              <MenuItem value="beige">{t('beige')}</MenuItem>
+              <MenuItem value="khaki">{t('khaki')}</MenuItem>
+              <MenuItem value="azure">{t('azure')}</MenuItem>
+              <MenuItem value="orchid">{t('orchid')}</MenuItem>
+              <MenuItem value="crimson">{t('crimson')}</MenuItem>
+              <MenuItem value="fuchsia">{t('fuchsia')}</MenuItem>
+              <MenuItem value="ivory">{t('ivory')}</MenuItem>
+              <MenuItem value="tan">{t('tan')}</MenuItem>
+              <MenuItem value="mint">{t('mint')}</MenuItem>
             </Select>
           </FormControl>
           <Typography sx={{ mb: 2 }}>{t('size')}</Typography>
