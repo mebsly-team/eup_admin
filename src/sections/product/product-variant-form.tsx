@@ -49,7 +49,8 @@ export default function ProductVariantForm({ currentProduct }: Props) {
   const [selectedUnitValues, setSelectedUnitValues] = useState([]);
   const [currentProductVariantRows, setCurrentProductVariantRows] = useState([]);
   console.log('currentProductVariantRows', currentProductVariantRows);
-  const currentProductVariantIdList = currentProduct?.variants || [];
+  const currentProductVariantIdList =
+    currentProduct?.variants.map((item: { id: any }) => item.id) || [];
   console.log('currentProductVariantIdList', currentProductVariantIdList);
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
@@ -58,7 +59,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
     try {
       setIsLoading(true); // Show the spinner
       if (currentProductVariantIdList?.length) {
-        const variantPromises = currentProductVariantIdList.map(async (item) => {
+        const variantPromises = currentProductVariantIdList.map(async (item: any) => {
           try {
             const { data } = await axiosInstance.get(`/products/${item}/`);
             return data;

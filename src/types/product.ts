@@ -47,7 +47,7 @@ export interface IProductItem {
   campaigns: Campaign[];
   discounted_price: number;
   chips: string[];
-  variants: number[];
+  variants: any;
   image_urls: string[];
   slug: string;
   title: string;
