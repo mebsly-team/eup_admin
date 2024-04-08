@@ -1,5 +1,14 @@
 import isEqual from 'lodash/isEqual';
-import { useState, useEffect, useCallback, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
+import {
+  Key,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+  ReactPortal,
+  ReactElement,
+  JSXElementConstructor,
+} from 'react';
 
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -35,6 +44,7 @@ const defaultFilters: IUserTableFilters = {
   role: [],
   status: 'all',
 };
+const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 
 // ----------------------------------------------------------------------
 
@@ -150,16 +160,32 @@ export default function UserListView() {
                 <Table sx={{ minWidth: 800 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>{log?.[0]}</TableCell>
+                      <TableCell>
+                        {log?.[0]} ({log?.[1]?.length} Log)
+                      </TableCell>
                     </TableRow>
                   </TableHead>
 
                   <TableBody>
-                    {log?.[1].map((item: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined, i: Key | null | undefined) => (
-                      <TableRow key={i}>
-                        <TableCell>{item}</TableCell>
-                      </TableRow>
-                    ))}
+                    {log?.[1].map(
+                      (
+                        item:
+                          | string
+                          | number
+                          | boolean
+                          | ReactElement<any, string | JSXElementConstructor<any>>
+                          | Iterable<ReactNode>
+                          | ReactPortal
+                          | null
+                          | undefined,
+                        i: Key | null | undefined
+                      ) =>
+                        item.match(emailPattern) ? (
+                          <TableRow key={i}>
+                            <TableCell>{item}</TableCell>
+                          </TableRow>
+                        ) : null
+                    )}
                   </TableBody>
                 </Table>
               </Scrollbar>
