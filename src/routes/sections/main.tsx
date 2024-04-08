@@ -66,6 +66,13 @@ const EmployeeListPage = lazy(() => import('src/pages/dashboard/employee/list'))
 const EmployeeAccountPage = lazy(() => import('src/pages/dashboard/employee/account'));
 const EmployeeCreatePage = lazy(() => import('src/pages/dashboard/employee/new'));
 const EmployeeEditPage = lazy(() => import('src/pages/dashboard/employee/edit'));
+// LOGS
+const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile'));
+const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards'));
+const LogsListPage = lazy(() => import('src/pages/dashboard/logs/list'));
+const LogsAccountPage = lazy(() => import('src/pages/dashboard/logs/account'));
+const LogsCreatePage = lazy(() => import('src/pages/dashboard/logs/new'));
+const LogsEditPage = lazy(() => import('src/pages/dashboard/logs/edit'));
 
 // FILE MANAGER
 const FileManagerPage = lazy(() => import('src/pages/dashboard/file-manager'));
@@ -133,6 +140,18 @@ export const mainRoutes = [
           { path: 'new', element: <EmployeeCreatePage /> },
           { path: ':id/edit', element: <EmployeeEditPage /> },
           { path: 'account', element: <EmployeeAccountPage /> },
+        ],
+      },
+      {
+        path: 'logs',
+        children: [
+          { element: <LogsProfilePage />, index: true },
+          { path: 'profile', element: <LogsProfilePage /> },
+          { path: 'cards', element: <LogsCardsPage /> },
+          { path: 'list', element: <LogsListPage /> },
+          { path: 'new', element: <LogsCreatePage /> },
+          { path: ':id/edit', element: <LogsEditPage /> },
+          { path: 'account', element: <LogsAccountPage /> },
         ],
       },
       {
