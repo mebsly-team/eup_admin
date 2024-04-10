@@ -966,13 +966,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               options={suppliers?.map((item) => item.id)}
               getOptionLabel={(option) => {
                 const supp = suppliers.find((item) => item.id === option);
-                return `${supp?.id} - ${supp?.name}`;
+                return `${supp?.supplier_code} - ${supp?.name}`;
               }}
               renderOption={(props, option) => {
                 const supp = suppliers.find((item) => item.id === option);
                 return (
                   <li {...props} key={option}>
-                    {`${supp?.id}-${supp?.name}`}
+                    {`${supp?.supplier_code}-${supp?.name}`}
                   </li>
                 );
               }}

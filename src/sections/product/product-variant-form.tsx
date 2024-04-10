@@ -101,7 +101,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
         size: value2,
         unit: unitValue,
         categories: currentProduct?.categories?.map((item) => item.id) || [],
-        supplier: currentProduct?.supplier?.supplier_code || null,
+        supplier: currentProduct?.supplier?.id || null,
         brand: currentProduct?.brand?.id || null,
       });
       console.log('response', response);

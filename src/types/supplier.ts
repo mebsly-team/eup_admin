@@ -1,4 +1,6 @@
 export type ISupplierItem = {
+  id: string;
+  supplier_code: string;
   name: string;
   gender: any;
   contact_person: any;

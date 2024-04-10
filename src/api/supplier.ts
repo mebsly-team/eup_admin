@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { fetcher, endpoints } from 'src/utils/axios';
 
 import { IBrandItem } from 'src/types/brand';
+import { ISupplierItem } from 'src/types/supplier';
 
 // ----------------------------------------------------------------------
 
@@ -14,7 +15,7 @@ export function useGetSuppliers() {
 
   const memoizedValue = useMemo(
     () => ({
-      items: (data as IBrandItem[]) || [],
+      items: (data as ISupplierItem[]) || [],
       itemsLoading: isLoading,
       itemsError: error,
       itemsValidating: isValidating,

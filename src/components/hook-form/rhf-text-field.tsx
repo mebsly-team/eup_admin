@@ -22,7 +22,7 @@ export default function RHFTextField({ name, helperText, type, ...other }: Props
           type={type}
           value={field.value}
           onChange={(event) => {
-            if (type === 'number' && event.target.value !== "") {
+            if (type === 'number' && event.target.value !== '') {
               field.onChange(Number(event.target.value));
             } else {
               field.onChange(event.target.value);
@@ -30,6 +30,19 @@ export default function RHFTextField({ name, helperText, type, ...other }: Props
           }}
           error={!!error}
           helperText={error ? error?.message : helperText}
+          // autoComplete="off"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          InputProps={{
+            style: {
+              // Inline styles for TextField component
+              '& input:-webkit-autofill': {
+                // Styling when autofill is triggered
+                transitionDelay: '9999s', // Example transition delay
+              },
+            } as any, // Casting to 'any' to bypass TypeScript's type checking
+          }}
           {...other}
         />
       )}
