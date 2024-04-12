@@ -1300,7 +1300,26 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           {t('main_product')}
         </Link>
       ) : null}
+      {currentProduct?.id ? (
+        <Link
+          target="_blank"
+          href={`http://52.28.100.129:3000/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            typography: '',
+            float: 'right',
+            fontWeight: 'fontWeightBold',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            marginRight: 3,
+          }}
+        >
+          WEB
+        </Link>
+      ) : null}
       <CardHeader title={t('preview')} />
+
       <Stack>
         <Card sx={{ padding: 3 }}>
           <Box sx={{ position: 'unset' }}>
