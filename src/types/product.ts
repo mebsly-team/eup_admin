@@ -72,6 +72,7 @@ export interface IProductItem {
   stock_disable_when_sold_out: boolean;
   variant_discount: number;
   is_variant: boolean;
+  is_taken_from_another_package: boolean;
   ean: string;
   article_code: string;
   delivery_time: string;
