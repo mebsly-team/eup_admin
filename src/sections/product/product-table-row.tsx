@@ -65,6 +65,10 @@ export default function ProductTableRow({
     e.stopPropagation();
     popover.onOpen(e);
   };
+  const onSelectRowClick = (e: any) => {
+    e.stopPropagation();
+    onSelectRow();
+  };
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
     const response = await axiosInstance.patch(`/products/${id}/`, {
       is_product_active: e.target.checked,
@@ -75,7 +79,7 @@ export default function ProductTableRow({
     <>
       <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
         <TableCell padding="checkbox">
-          <Checkbox checked={selected} onClick={onSelectRow} />
+          <Checkbox checked={selected} onClick={onSelectRowClick} />
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
