@@ -212,7 +212,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
       field: 'ean',
       headerName: 'EAN',
       // type: 'number',
-      width: 120,
+      width: 140,
       align: 'left',
       headerAlign: 'left',
       editable: true,

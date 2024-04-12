@@ -880,6 +880,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   e.target.value !== '' ? Number(e.target.value) : e.target.value
                 );
                 setValue(
+                  'variant_discount',
+                  roundUp(
+                    100 *
+                      ((parent_price_per_piece - Number(e.target.value)) / parent_price_per_piece)
+                  )
+                );
+                setValue(
                   'price_per_unit',
                   roundUp(Number(e.target.value) * getValues('quantity_per_unit'))
                 );
