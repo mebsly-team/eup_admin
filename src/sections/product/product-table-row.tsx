@@ -49,6 +49,7 @@ export default function ProductTableRow({
     ean,
     is_product_active,
     discounted_price,
+    price_per_piece,
     overall_stock,
     free_stock,
     variants,
@@ -106,7 +107,7 @@ export default function ProductTableRow({
             }}
           />
         </TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{discounted_price}</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{variants?.length || '-'}</TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{ean}</TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>

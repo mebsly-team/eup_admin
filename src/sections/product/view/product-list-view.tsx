@@ -81,7 +81,7 @@ export default function ProductListView() {
   const TABLE_HEAD = [
     { id: 'image', label: t('image'), width: 180 },
     { id: 'title', label: t('title') },
-    { id: 'discounted_price', label: t('price') },
+    { id: 'price_per_piece', label: t('price') },
     { id: 'variants', label: t('number_of_variants') },
     { id: 'ean', label: t('ean') },
     { id: 'overall_stock', label: t('free_all_stock') },
