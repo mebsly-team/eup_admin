@@ -795,28 +795,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     <Grid xs={12}>
       <Card>
         <CardHeader title={t('pricing')} />
-        <RHFTextField
-          name="quantity_per_unit"
-          label={t('quantity_per_unit')}
-          placeholder="0"
-          type="number"
-          value={getValues('quantity_per_unit')}
-          onChange={(e) => {
-            setValue(
-              'quantity_per_unit',
-              e.target.value !== '' ? Number(e.target.value) : e.target.value
-            );
-            setValue(
-              'price_per_unit',
-              roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
-            );
-            setValue(
-              'price_consumers',
-              roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
-            );
-          }}
-          InputLabelProps={{ shrink: true }}
-        />
+
         <Stack spacing={3} sx={{ p: 3 }}>
           <Box
             columnGap={2}
@@ -870,6 +849,28 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 }}
               />
             ) : null}
+            <RHFTextField
+              name="quantity_per_unit"
+              label={t('quantity_per_unit')}
+              placeholder="0"
+              type="number"
+              value={getValues('quantity_per_unit')}
+              onChange={(e) => {
+                setValue(
+                  'quantity_per_unit',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
+                setValue(
+                  'price_per_unit',
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
+                );
+                setValue(
+                  'price_consumers',
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
+                );
+              }}
+              InputLabelProps={{ shrink: true }}
+            />
             <RHFTextField
               name="price_per_piece"
               label={t('price_per_piece')}
