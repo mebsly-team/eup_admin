@@ -1452,6 +1452,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           maxNumberOfSelectedImages={10}
           onClose={() => setImageGalleryOpen(false)}
           onSelect={handleSelectImage}
+          name={getValues('ean')}
         />
       ) : null}
     </FormProvider>

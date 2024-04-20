@@ -38,6 +38,7 @@ export default function ImageGallery({
   onlyPreviewOneImage = true,
   onSelect = () => {},
   itemsPerPage = 9,
+  name = '',
 }: Props) {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,9 +105,10 @@ export default function ImageGallery({
       setUploadError(null);
 
       const formData = new FormData();
-      // TODO: fix
       formData.append('image', selectedFile);
       formData.append('url', selectedFile);
+      // Append the ean value as the image name
+      formData.append('name', name);
 
       // Make a POST request to the image upload endpoint
       await axiosInstance.post('/images/new/', formData, {
