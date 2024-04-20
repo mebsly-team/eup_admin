@@ -118,7 +118,7 @@ export default function ProductListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
     const { data } = await axiosInstance.get(
-      `/products/?limit=${table.rowsPerPage}&offset=${
+      `/products/?short=true&limit=${table.rowsPerPage}&offset=${
         table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
     );
