@@ -1,21 +1,12 @@
-import { useState, Fragment, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
 import { TreeView, TreeItem } from '@mui/x-tree-view';
-import {
-  List,
-  Dialog,
-  Button,
-  ListItem,
-  Checkbox,
-  DialogTitle,
-  ListItemText,
-  ListItemIcon,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
+import { Dialog, Button, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+
+import { useGetCategories } from 'src/api/category';
 
 export const CategorySelector = ({
   t,
-  categories,
   defaultSelectedCategories,
   open,
   onClose,
@@ -23,14 +14,15 @@ export const CategorySelector = ({
   single,
 }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const { items: categories } = useGetCategories();
 
-  const toggleCategory = (categoryId) => {
+  const toggleCategory = (category: { id: any; }) => {
     if (single) {
-      setSelectedCategories([categoryId]);
-    } else if (selectedCategories.includes(categoryId)) {
-      setSelectedCategories(selectedCategories.filter((id) => id !== categoryId));
+      setSelectedCategories([category]);
+    } else if (selectedCategories.find((item) => item.id === category.id)) {
+      setSelectedCategories(selectedCategories.filter((id) => id !== category.id));
     } else {
-      setSelectedCategories([...selectedCategories, categoryId]);
+      setSelectedCategories([...selectedCategories, category]);
     }
   };
 
@@ -45,7 +37,7 @@ export const CategorySelector = ({
       key={nodes.id}
       nodeId={nodes.id.toString()}
       label={nodes.name}
-      onClick={() => toggleCategory(nodes.id)}
+      onClick={() => toggleCategory(nodes)}
     >
       {Array.isArray(nodes.sub_categories)
         ? nodes.sub_categories.map((node) => renderTree(node))
@@ -62,7 +54,7 @@ export const CategorySelector = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{t('select_category')}</DialogTitle>
       <DialogContent>
-        <TreeView selected={selectedCategories.map((id) => id.toString())}>
+        <TreeView selected={selectedCategories}>
           {categories.map((category) => renderTree(category))}
         </TreeView>
       </DialogContent>
@@ -77,4 +69,3 @@ export const CategorySelector = ({
     </Dialog>
   );
 };
-

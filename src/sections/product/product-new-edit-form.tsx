@@ -31,9 +31,6 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { countries } from 'src/assets/data';
-import { useGetBrands } from 'src/api/brand';
-import { useGetSuppliers } from 'src/api/supplier';
-import { useGetCategories } from 'src/api/category';
 
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
@@ -47,7 +44,6 @@ import FormProvider, {
   RHFAutocomplete,
 } from 'src/components/hook-form';
 
-import { findCategory } from 'src/sections/category/findCategory';
 import { CategorySelector } from 'src/sections/category/CategorySelector';
 
 import { IProductItem } from 'src/types/product';
@@ -63,10 +59,7 @@ type Props = {
 export default function ProductNewEditForm({ currentProduct }: Props) {
   console.log('currentProduct', currentProduct);
   const router = useRouter();
-  const { items: categories } = useGetCategories();
-  console.log('🚀 ~ ProductNewEditForm ~ categories:', categories);
-  const { items: brands } = useGetBrands();
-  const { items: suppliers } = useGetSuppliers();
+
   const mdUp = useResponsive('up', 'md');
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -74,7 +67,20 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const [activeTab, setActiveTab] = useState(0);
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
+  const [isBrandEdit, setBrandEdit] = useState(false);
+  const [brandList, setBrandList] = useState([]);
+  const [supplierList, setSupplierList] = useState([]);
+  const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
+
+  const getAllSuppliers = async () => {
+    const { data } = await axiosInstance.get(`/suppliers/`);
+    setSupplierList(data || []);
+  };
+  const getAllBrands = async () => {
+    const { data } = await axiosInstance.get(`/brands/`);
+    setBrandList(data || []);
+  };
 
   const DELIVERY_CHOICES = [
     { value: '0', label: t('delivery_choice_0') },
@@ -144,9 +150,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       hs_code: currentProduct?.hs_code || '',
       chip: currentProduct?.chip || '',
       supplier_article_code: currentProduct?.supplier_article_code || '',
-      categories: currentProduct?.categories?.map((item) => item.id) || [],
-      brand: currentProduct?.brand?.id || null,
-      supplier: currentProduct?.supplier?.id || null,
+      categories: currentProduct?.categories || [],
+      brand: currentProduct?.brand || null,
+      supplier: currentProduct?.supplier || null,
       // tags: currentProduct?.tags || [],
       images: currentProduct?.images || [],
       quantity_per_unit: currentProduct?.quantity_per_unit || 0,
@@ -332,6 +338,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       const ex_date = data.expiry_date ? format(new Date(data.expiry_date), 'yyyy-MM-dd') : null;
       data.expiry_date = ex_date;
       data.tags = [];
+      data.brand = data.brand.id;
+      data.supplier = data.supplier.id;
+      data.categories = data.categories.map((item) => item.id);
       if (currentProduct?.id) {
         const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
       } else {
@@ -438,9 +447,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         article_code: getValues('article_code'),
         hs_code: getValues('hs_code'),
         sku: getValues('sku'),
-        supplier: supplier?.id,
-        brand: brand?.id,
-        categories: categories?.map((item) => item.id) || [],
+        supplier,
+        brand,
+        categories: categories || [],
         ...copyData,
       });
     }
@@ -752,29 +761,27 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
-            <CategorySelector
-              t={t}
-              categories={categories}
-              defaultSelectedCategories={getValues('categories')}
-              open={openDialogCategory}
-              onClose={() => setOpenDialogCategory(false)}
-              onSave={(ct) => {
-                setValue('categories', ct);
-                setOpenDialogCategory(false); // Close the dialog after saving
-              }}
-            />
+            {openDialogCategory && (
+              <CategorySelector
+                t={t}
+                defaultSelectedCategories={getValues('categories')}
+                open={openDialogCategory}
+                onClose={() => setOpenDialogCategory(false)}
+                onSave={(ct) => {
+                  console.log('ct', ct);
+                  setValue('categories', ct);
+                  setOpenDialogCategory(false); // Close the dialog after saving
+                }}
+              />
+            )}
             <div>
               <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
               <ul>
-                {getValues('categories')?.map((categoryId) => {
-                  const category = findCategory(categories, categoryId);
+                {getValues('categories')?.map((category) => {
+                  console.log('category', category);
                   return (
-                    <li key={categoryId}>
-                      {category ? (
-                        <strong>{category.name}</strong>
-                      ) : (
-                        `Category Not Found: ${categoryId}`
-                      )}
+                    <li key={category.id}>
+                      {category ? <strong>{category.name}</strong> : `Category: ${category.id}`}
                     </li>
                   );
                 })}
@@ -790,6 +797,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       </Card>
     </Grid>
   );
+
+  const handleSupplierEditClick = () => {
+    getAllSuppliers();
+    setSupplierEdit(true);
+  };
 
   const renderPricing = (
     <Grid xs={12}>
@@ -971,23 +983,33 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             </RHFSelect>
             <RHFTextField name="chip" label={t('chip')} />
             <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
-            <RHFAutocomplete
-              name="supplier"
-              placeholder={t('supplier')}
-              options={suppliers?.map((item) => item.id)}
-              getOptionLabel={(option) => {
-                const supp = suppliers.find((item) => item.id === option);
-                return `${supp?.supplier_code} - ${supp?.name}`;
-              }}
-              renderOption={(props, option) => {
-                const supp = suppliers.find((item) => item.id === option);
-                return (
+            {isSupplierEdit ? (
+              <RHFAutocomplete
+                name="supplier"
+                placeholder={t('supplier')}
+                options={supplierList?.map((item) => item.id)}
+                getOptionLabel={(option) =>
+                  supplierList.find((item) => item.id === option)?.name || ''
+                }
+                renderOption={(props, option) => (
                   <li {...props} key={option}>
-                    {`${supp?.supplier_code}-${supp?.name}`}
+                    {supplierList.find((item) => item.id === option)?.name || ''}
                   </li>
-                );
-              }}
-            />
+                )}
+              />
+            ) : (
+              <Box>
+                <Typography sx={{ alignSelf: 'center' }}>{`${t('supplier')}: ${
+                  getValues('supplier').supplier_code
+                }-${getValues('supplier').name}`}</Typography>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  onClick={handleSupplierEditClick}
+                >{`${t('edit')}`}</Typography>
+              </Box>
+            )}
+
             <RHFSwitch
               name="sell_from_supplier"
               labelPlacement="start"
@@ -1005,6 +1027,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </Grid>
   );
 
+  const handleBrandEditClick = () => {
+    getAllBrands();
+    setBrandEdit(true);
+  };
   const renderProperties = (
     <Grid xs={12}>
       <Card>
@@ -1028,17 +1054,32 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 </MenuItem>
               ))}
             </RHFSelect>
-            <RHFAutocomplete
-              name="brand"
-              placeholder={t('brand')}
-              options={brands?.map((item) => item.id)}
-              getOptionLabel={(option) => brands.find((item) => item.id === option)?.name || ''}
-              renderOption={(props, option) => (
-                <li {...props} key={option}>
-                  {brands.find((item) => item.id === option)?.name || ''}
-                </li>
-              )}
-            />
+            {isBrandEdit ? (
+              <RHFAutocomplete
+                name="brand"
+                placeholder={t('brand')}
+                options={brandList?.map((item) => item.id)}
+                getOptionLabel={(option) =>
+                  brandList.find((item) => item.id === option)?.name || ''
+                }
+                renderOption={(props, option) => (
+                  <li {...props} key={option}>
+                    {brandList.find((item) => item.id === option)?.name || ''}
+                  </li>
+                )}
+              />
+            ) : (
+              <Box>
+                <Typography sx={{ alignSelf: 'center' }}>{`${t('brand')}: ${
+                  getValues('brand').name
+                }`}</Typography>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  onClick={handleBrandEditClick}
+                >{`${t('edit')}`}</Typography>
+              </Box>
+            )}
           </Box>
           <Box
             columnGap={2}
