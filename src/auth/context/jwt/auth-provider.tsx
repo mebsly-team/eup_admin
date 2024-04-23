@@ -86,7 +86,7 @@ export function AuthProvider({ children }: Props) {
 
   const initialize = useCallback(async () => {
     try {
-      const accessToken = sessionStorage.getItem(STORAGE_KEY);
+      const accessToken = localStorage.getItem(STORAGE_KEY);
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: Props) {
 
         // const { user } = res.data;
 
-        const savedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+        const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
         dispatch({
           type: Types.INITIAL,
           payload: {
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: Props) {
       email: user?.email,
       type: user?.type,
     };
-    sessionStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(userData));
 
     dispatch({
       type: Types.LOGIN,
@@ -173,7 +173,7 @@ export function AuthProvider({ children }: Props) {
 
       const { accessToken, user } = res.data;
 
-      sessionStorage.setItem(STORAGE_KEY, accessToken);
+      localStorage.setItem(STORAGE_KEY, accessToken);
 
       dispatch({
         type: Types.REGISTER,
