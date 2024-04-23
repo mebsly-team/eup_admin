@@ -349,7 +349,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       reset();
       localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
-      router.push(paths.dashboard.product.root);
+      // router.push(paths.dashboard.product.root);
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
