@@ -6,6 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
+import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 
@@ -56,7 +57,19 @@ export default function ProductTableRow({
     slug,
   } = row;
   const [isActive, setIsActive] = useState(is_product_active);
-
+  const theme = useTheme();
+  const styles = {
+    hideOnSm: {
+      [theme.breakpoints.down('sm')]: {
+        display: 'none',
+      },
+    },
+    hideOnMd: {
+      [theme.breakpoints.down('md')]: {
+        display: 'none',
+      },
+    },
+  };
   const { t, onChangeLang } = useTranslate();
 
   const confirm = useBoolean();
@@ -79,15 +92,15 @@ export default function ProductTableRow({
   return (
     <>
       <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
-        <TableCell padding="checkbox">
+        <TableCell padding="checkbox" sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
           <Checkbox checked={selected} onClick={onSelectRowClick} />
         </TableCell>
 
-        <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+        <TableCell sx={{ p: 1, display: 'flex', alignItems: 'center' }}>
           <Image alt={title} src={images?.[0]} />
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
           <ListItemText
             primary={
               <a
@@ -107,13 +120,15 @@ export default function ProductTableRow({
             }}
           />
         </TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{variants?.length || '-'}</TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{ean}</TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
+        <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
+          {variants?.length || '-'}
+        </TableCell>
+        <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>{ean}</TableCell>
+        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
           {free_stock}/{overall_stock}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>
           <Switch name="is_product_active" checked={isActive} onChange={handleActiveSwitchChange} />
         </TableCell>
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>

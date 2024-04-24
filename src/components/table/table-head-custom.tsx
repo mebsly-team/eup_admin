@@ -3,8 +3,8 @@ import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableHead from '@mui/material/TableHead';
 import TableCell from '@mui/material/TableCell';
-import { Theme, SxProps } from '@mui/material/styles';
 import TableSortLabel from '@mui/material/TableSortLabel';
+import { Theme, SxProps, useTheme } from '@mui/material/styles';
 
 // ----------------------------------------------------------------------
 
@@ -43,11 +43,24 @@ export default function TableHeadCustom({
   onSelectAllRows,
   sx,
 }: Props) {
+  const theme = useTheme();
+  const styles = {
+    hideOnSm: {
+      [theme.breakpoints.down('sm')]: {
+        display: 'none',
+      },
+    },
+    hideOnMd: {
+      [theme.breakpoints.down('md')]: {
+        display: 'none',
+      },
+    },
+  };
   return (
     <TableHead sx={sx}>
       <TableRow>
         {onSelectAllRows && (
-          <TableCell padding="checkbox">
+          <TableCell padding="checkbox" sx={styles.hideOnMd}>
             <Checkbox
               indeterminate={!!numSelected && numSelected < rowCount}
               checked={!!rowCount && numSelected === rowCount}
@@ -63,7 +76,7 @@ export default function TableHeadCustom({
             key={headCell.id}
             align={headCell.align || 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
-            sx={{ width: headCell.width, minWidth: headCell.minWidth }}
+            sx={headCell.hideOnSm ? styles.hideOnSm : headCell.hideOnMd ? styles.hideOnMd : ''}
           >
             {onSort ? (
               <TableSortLabel

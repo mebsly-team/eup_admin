@@ -79,12 +79,12 @@ export default function ProductListView() {
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
 
   const TABLE_HEAD = [
-    { id: 'image', label: t('image'), width: 180 },
-    { id: 'title', label: t('title') },
+    { id: 'image', label: t('image') },
+    { id: 'title', label: t('title'), hideOnMd: true },
     { id: 'price_per_piece', label: t('price') },
-    { id: 'variants', label: t('number_of_variants') },
-    { id: 'ean', label: t('ean') },
-    { id: 'overall_stock', label: t('free_all_stock') },
+    { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
+    { id: 'ean', label: t('ean'), hideOnSm: true },
+    { id: 'overall_stock', label: t('free_all_stock'), hideOnMd: true },
     { id: 'is_product_active', label: `${t('active')}?` },
   ];
   const theme = useTheme();
@@ -94,6 +94,13 @@ export default function ProductListView() {
     table.page * table.rowsPerPage + table.rowsPerPage
   );
 
+  const styles = {
+    tableCell: {
+      [theme.breakpoints.down('sm')]: {
+        display: 'none', // Hide the cell on small screens
+      },
+    },
+  };
   const denseHeight = table.dense ? 56 : 56 + 20;
 
   const canReset = !isEqual(defaultFilters, filters);
@@ -242,7 +249,7 @@ export default function ProductListView() {
             />
 
             <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
+              <Table size={table.dense ? 'small' : 'medium'}>
                 <TableHeadCustom
                   order={table.order}
                   orderBy={table.orderBy}
