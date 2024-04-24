@@ -9,6 +9,7 @@ import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Pagination from '@mui/material/Pagination';
+import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import ListItemText from '@mui/material/ListItemText';
 import { alpha, useTheme } from '@mui/material/styles';
@@ -20,6 +21,7 @@ import axiosInstance from 'src/utils/axios';
 import { useTranslate } from 'src/locales';
 
 import Image from 'src/components/image';
+import Iconify from 'src/components/iconify';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
 
 import { IBrandItem } from 'src/types/brand';
@@ -126,6 +128,15 @@ export default function ImageGallery({
     }
   };
 
+  const handleDeleteImage = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/images/${id}/`);
+      getAll();
+    } catch (error) {
+      setUploadError(t('image_delete_error'));
+    }
+  };
+
   return (
     <Dialog
       fullWidth
@@ -208,6 +219,14 @@ export default function ImageGallery({
                   }
                   // onClick={() => lightbox.onOpen(image.url)}
                 />
+                <IconButton
+                  style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
+                  onClick={() => handleDeleteImage(image.id)}
+                  label=""
+                  icon="symbol"
+                >
+                  <Iconify icon="solar:trash-bin-trash-bold" width={24} />
+                </IconButton>
                 <ListItemText
                   sx={{
                     p: 2,

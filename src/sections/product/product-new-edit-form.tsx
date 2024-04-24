@@ -721,7 +721,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           >
             {/* List images with delete icon */}
             {getValues('images')?.map((item, index) => (
-              <div key={index} style={{ position: 'relative' }}>
+              <div key={index} style={{ position: 'relative', border: '1px solid whitesmoke' }}>
                 <img
                   src={item}
                   alt={`Image ${index + 1}`}
