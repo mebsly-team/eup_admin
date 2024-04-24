@@ -7,37 +7,40 @@ import { useGetCategories } from 'src/api/category';
 
 export const CategorySelector = ({
   t,
-  defaultSelectedCategories,
+  defaultSelectedCategories = [],
   open,
   onClose,
   onSave,
   single,
 }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const { items: categories } = useGetCategories();
+  console.log('selectedCategories', selectedCategories);
 
-  const toggleCategory = (category: { id: any; }) => {
-    if (single) {
-      setSelectedCategories([category]);
-    } else if (selectedCategories.find((item) => item.id === category.id)) {
-      setSelectedCategories(selectedCategories.filter((id) => id !== category.id));
-    } else {
-      setSelectedCategories([...selectedCategories, category]);
-    }
-  };
+  const { items: categories } = useGetCategories();
 
   useEffect(() => {
     if (defaultSelectedCategories) {
-      setSelectedCategories(defaultSelectedCategories);
+      const selectedIds = defaultSelectedCategories.map((item) => item.id);
+      setSelectedCategories(selectedIds);
     }
   }, [defaultSelectedCategories]);
+
+  const toggleCategory = (categoryId) => {
+    if (single) {
+      setSelectedCategories([categoryId]);
+    } else if (selectedCategories.includes(categoryId)) {
+      setSelectedCategories(selectedCategories.filter((id) => id !== categoryId));
+    } else {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
+  };
 
   const renderTree = (nodes) => (
     <TreeItem
       key={nodes.id}
       nodeId={nodes.id.toString()}
       label={nodes.name}
-      onClick={() => toggleCategory(nodes)}
+      onClick={() => toggleCategory(nodes.id)}
     >
       {Array.isArray(nodes.sub_categories)
         ? nodes.sub_categories.map((node) => renderTree(node))
@@ -46,7 +49,10 @@ export const CategorySelector = ({
   );
 
   const handleSave = () => {
-    onSave(single ? selectedCategories[0] : selectedCategories);
+    const sc = flattenCategories(categories).filter((category) =>
+      selectedCategories.includes(category.id)
+    );
+    onSave(single ? sc[0] : sc);
     onClose();
   };
 
@@ -54,7 +60,7 @@ export const CategorySelector = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{t('select_category')}</DialogTitle>
       <DialogContent>
-        <TreeView selected={selectedCategories}>
+        <TreeView selected={selectedCategories.map((id) => id.toString())}>
           {categories.map((category) => renderTree(category))}
         </TreeView>
       </DialogContent>
@@ -68,4 +74,32 @@ export const CategorySelector = ({
       </DialogActions>
     </Dialog>
   );
+};
+
+function flattenCategories(categories) {
+  let flattenedCategories = [];
+
+  categories.forEach((category) => {
+    flattenedCategories.push(category);
+    if (category.sub_categories && category.sub_categories.length > 0) {
+      flattenedCategories = flattenedCategories.concat(flattenCategories(category.sub_categories));
+    }
+  });
+
+  return flattenedCategories;
+}
+
+const findCategoryById = (categories, id) => {
+  for (let i = 0; i < categories.length; i++) {
+    if (categories[i].id === id) {
+      return categories[i];
+    }
+    if (categories[i].sub_categories && categories[i].sub_categories.length > 0) {
+      const found = findCategoryById(categories[i].sub_categories, id);
+      if (found) {
+        return found;
+      }
+    }
+  }
+  return null;
 };

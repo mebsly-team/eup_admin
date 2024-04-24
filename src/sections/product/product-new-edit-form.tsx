@@ -349,7 +349,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       reset();
       localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
-      // router.push(paths.dashboard.product.root);
+      router.push(paths.dashboard.product.root);
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
@@ -768,7 +768,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}
                 onSave={(ct) => {
-                  console.log('ct', ct);
                   setValue('categories', ct);
                   setOpenDialogCategory(false); // Close the dialog after saving
                 }}
@@ -777,14 +776,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <div>
               <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
               <ul>
-                {getValues('categories')?.map((category) => {
-                  console.log('category', category);
-                  return (
-                    <li key={category.id}>
-                      {category ? <strong>{category.name}</strong> : `Category: ${category.id}`}
-                    </li>
-                  );
-                })}
+                {getValues('categories')?.map((category, index) => (
+                  <li key={index}>
+                    {category ? <strong>{category.name}</strong> : `Category: ${category.id}`}
+                  </li>
+                ))}
               </ul>
             </div>
             <Typography typography="caption" sx={{ color: 'error.main' }}>
