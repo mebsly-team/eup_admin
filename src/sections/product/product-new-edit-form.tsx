@@ -929,6 +929,16 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   )
                 );
                 setValue(
+                  'price_consumers',
+                  roundUp(
+                    Number(getValues('quantity_per_unit')) *
+                      (Number(e.target.value) +
+                        (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                          100) *
+                      1.75
+                  )
+                );
+                setValue(
                   'inhoud_price',
                   roundUp(
                     (Number(getValues('quantity_per_unit')) *
@@ -1039,6 +1049,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                       component="span"
                       sx={{ color: 'text.disabled', backgroundColor: '#f5f3f3' }}
                     >
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <RHFTextField
+              name="price_consumers"
+              label={t('price_consumers')}
+              placeholder="0.00"
+              type="number"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
                       €
                     </Box>
                   </InputAdornment>
