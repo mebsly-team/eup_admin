@@ -66,6 +66,13 @@ const EmployeeListPage = lazy(() => import('src/pages/dashboard/employee/list'))
 const EmployeeAccountPage = lazy(() => import('src/pages/dashboard/employee/account'));
 const EmployeeCreatePage = lazy(() => import('src/pages/dashboard/employee/new'));
 const EmployeeEditPage = lazy(() => import('src/pages/dashboard/employee/edit'));
+// STATICS
+const StaticsProfilePage = lazy(() => import('src/pages/dashboard/statics/profile'));
+const StaticsCardsPage = lazy(() => import('src/pages/dashboard/statics/cards'));
+const StaticsListPage = lazy(() => import('src/pages/dashboard/statics/list'));
+const StaticsAccountPage = lazy(() => import('src/pages/dashboard/statics/account'));
+const StaticsCreatePage = lazy(() => import('src/pages/dashboard/statics/new'));
+const StaticsEditPage = lazy(() => import('src/pages/dashboard/statics/edit'));
 // LOGS
 const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile'));
 const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards'));
@@ -140,6 +147,18 @@ export const mainRoutes = [
           { path: 'new', element: <EmployeeCreatePage /> },
           { path: ':id/edit', element: <EmployeeEditPage /> },
           { path: 'account', element: <EmployeeAccountPage /> },
+        ],
+      },
+      {
+        path: 'statics',
+        children: [
+          { element: <StaticsProfilePage />, index: true },
+          { path: 'profile', element: <StaticsProfilePage /> },
+          { path: 'cards', element: <StaticsCardsPage /> },
+          { path: 'list', element: <StaticsListPage /> },
+          { path: 'new', element: <StaticsCreatePage /> },
+          { path: ':id/edit', element: <StaticsEditPage /> },
+          { path: 'account', element: <StaticsAccountPage /> },
         ],
       },
       {

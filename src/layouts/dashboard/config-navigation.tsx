@@ -158,6 +158,20 @@ export function useNavData() {
               // { title: t('account'), path: paths.dashboard.employee.account },
             ],
           },
+          // STATICS
+          {
+            title: t('statics'),
+            path: paths.dashboard.statics.root,
+            icon: ICONS.user,
+            children: [
+              // { title: t('profile'), path: paths.dashboard.statics.root },
+              // { title: t('cards'), path: paths.dashboard.statics.cards },
+              { title: t('list'), path: paths.dashboard.statics.list },
+              // { title: t('create'), path: paths.dashboard.statics.new },
+              // { title: t('edit'), path: paths.dashboard.statics.demo.edit },
+              // { title: t('account'), path: paths.dashboard.statics.account },
+            ],
+          },
           // LOGS
           {
             title: t('logs'),

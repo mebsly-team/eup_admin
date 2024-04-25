@@ -108,6 +108,15 @@ export const paths = {
       account: `${ROOTS.DASHBOARD}/employee/account`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/employee/${id}/edit`,
     },
+    statics: {
+      root: `${ROOTS.DASHBOARD}/statics`,
+      new: `${ROOTS.DASHBOARD}/statics/new`,
+      list: `${ROOTS.DASHBOARD}/statics/list`,
+      cards: `${ROOTS.DASHBOARD}/statics/cards`,
+      profile: `${ROOTS.DASHBOARD}/statics/profile`,
+      account: `${ROOTS.DASHBOARD}/statics/account`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/statics/${id}/edit`,
+    },
     logs: {
       root: `${ROOTS.DASHBOARD}/logs`,
       new: `${ROOTS.DASHBOARD}/logs/new`,
