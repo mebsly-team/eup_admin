@@ -230,6 +230,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       meta_description: currentProduct?.meta_description || '',
       meta_keywords: currentProduct?.meta_keywords || '',
       url: currentProduct?.url || '',
+
+      inhoud_number: currentProduct?.inhoud_number || '',
+      inhoud_unit: currentProduct?.inhoud_unit || '',
+      inhoud_price: currentProduct?.inhoud_price || '',
     }),
     [currentProduct]
   );
@@ -915,6 +919,25 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                         100
                   )
                 );
+                setValue(
+                  'price_per_unit',
+                  roundUp(
+                    Number(getValues('quantity_per_unit')) *
+                      (Number(e.target.value) +
+                        (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                          100)
+                  )
+                );
+                setValue(
+                  'inhoud_price',
+                  roundUp(
+                    (Number(getValues('quantity_per_unit')) *
+                      (Number(e.target.value) +
+                        (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                          100)) /
+                      Number(getValues('inhoud_number'))
+                  )
+                );
               }}
               InputLabelProps={{ shrink: true }}
               InputProps={{
@@ -941,6 +964,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 setValue(
                   'price_per_unit',
                   roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
+                );
+                setValue(
+                  'inhoud_price',
+                  roundUp(
+                    (Number(e.target.value) * Number(getValues('price_per_piece'))) /
+                      Number(getValues('inhoud_number'))
+                  )
                 );
                 setValue(
                   'price_consumers',
@@ -970,6 +1000,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 setValue(
                   'price_per_unit',
                   roundUp(Number(e.target.value) * getValues('quantity_per_unit'))
+                );
+                setValue(
+                  'inhoud_price',
+                  roundUp(
+                    (Number(e.target.value) * Number(getValues('quantity_per_unit'))) /
+                      Number(getValues('inhoud_number'))
+                  )
                 );
                 setValue(
                   'price_consumers',
@@ -1027,7 +1064,23 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(3, 1fr)',
             }}
           >
-            <RHFTextField name="inhoud_number" label={t('inhoud_number')} type="number" />
+            <RHFTextField
+              name="inhoud_number"
+              label={t('inhoud_number')}
+              type="number"
+              value={getValues('inhoud_number')}
+              onChange={(e) => {
+                setValue(
+                  'inhoud_number',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
+
+                setValue(
+                  'inhoud_price',
+                  roundUp(Number(getValues('price_per_unit')) / Number(e.target.value))
+                );
+              }}
+            />
             <RHFSelect name="inhoud_unit" label={t('inhoud_unit')}>
               <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
