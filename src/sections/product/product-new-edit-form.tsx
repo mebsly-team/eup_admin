@@ -814,6 +814,45 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
+            {isSupplierEdit ? (
+              <RHFAutocomplete
+                name="supplier"
+                placeholder={t('supplier')}
+                options={supplierList?.map((item) => item.id)}
+                getOptionLabel={(option) =>
+                  supplierList.find((item) => item.id === option)?.name || ''
+                }
+                renderOption={(props, option) => (
+                  <li {...props} key={option}>
+                    {supplierList.find((item) => item.id === option)?.name || ''}
+                  </li>
+                )}
+              />
+            ) : (
+              <Box>
+                <Typography sx={{ alignSelf: 'center' }}>{`${t('supplier')}: ${
+                  getValues('supplier').supplier_code
+                }-${getValues('supplier').name}`}</Typography>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  onClick={handleSupplierEditClick}
+                >{`${t('edit')}`}</Typography>
+              </Box>
+            )}
+            <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
+
+            <RHFSwitch
+              name="sell_from_supplier"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('sell_from_supplier')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
             {getValues('is_variant') ? (
               <RHFTextField
                 name="variant_discount"
@@ -857,6 +896,37 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 }}
               />
             ) : null}
+            <RHFTextField
+              name="price_cost"
+              label={t('price_cost')}
+              placeholder="0.00"
+              type="number"
+              value={getValues('price_cost')}
+              onChange={(e) => {
+                setValue(
+                  'price_cost',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
+                setValue(
+                  'price_per_piece',
+                  roundUp(
+                    Number(e.target.value) +
+                      (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                        100
+                  )
+                );
+              }}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+            />
             <RHFTextField
               name="quantity_per_unit"
               label={t('quantity_per_unit')}
@@ -919,9 +989,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             />
 
             <RHFTextField
-              disabled
               name="price_per_unit"
-              label={t('price_per_unit')}
+              disabled
+              label={`${t('price_per')} ${getValues('unit')}`}
               placeholder="0.00"
               type="number"
               InputLabelProps={{ shrink: true }}
@@ -938,38 +1008,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 ),
               }}
             />
-            <RHFTextField
-              name="price_consumers"
-              label={t('price_consumers')}
-              placeholder="0.00"
-              type="number"
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      €
-                    </Box>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <RHFTextField
-              name="price_cost"
-              label={t('price_cost')}
-              placeholder="0.00"
-              type="number"
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      €
-                    </Box>
-                  </InputAdornment>
-                ),
-              }}
-            />
             <RHFSelect name="vat" label={t('vat')}>
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
@@ -978,45 +1016,40 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value={21}>21</MenuItem>
             </RHFSelect>
             <RHFTextField name="chip" label={t('chip')} />
-            <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
-            {isSupplierEdit ? (
-              <RHFAutocomplete
-                name="supplier"
-                placeholder={t('supplier')}
-                options={supplierList?.map((item) => item.id)}
-                getOptionLabel={(option) =>
-                  supplierList.find((item) => item.id === option)?.name || ''
-                }
-                renderOption={(props, option) => (
-                  <li {...props} key={option}>
-                    {supplierList.find((item) => item.id === option)?.name || ''}
-                  </li>
-                )}
-              />
-            ) : (
-              <Box>
-                <Typography sx={{ alignSelf: 'center' }}>{`${t('supplier')}: ${
-                  getValues('supplier').supplier_code
-                }-${getValues('supplier').name}`}</Typography>
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
-                  onClick={handleSupplierEditClick}
-                >{`${t('edit')}`}</Typography>
-              </Box>
-            )}
+          </Box>
 
-            <RHFSwitch
-              name="sell_from_supplier"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('sell_from_supplier')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(3, 1fr)',
+            }}
+          >
+            <RHFTextField name="inhoud_number" label={t('inhoud_number')} type="number" />
+            <RHFSelect name="inhoud_unit" label={t('inhoud_unit')}>
+              <MenuItem value="piece">{t('piece')}</MenuItem>
+              <MenuItem value="package">{t('package')}</MenuItem>
+              <MenuItem value="rol">{t('rol')}</MenuItem>
+            </RHFSelect>
+            <RHFTextField
+              disabled
+              name="inhoud_price"
+              label={t('inhoud_price')}
+              placeholder="0.00"
+              type="number"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      €
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
             />
-            <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
           </Box>
         </Stack>
       </Card>
