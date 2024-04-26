@@ -90,6 +90,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       data.birthdate = moment.isDate(data.birthdate)
         ? moment(data.birthdate).format('YYYY-MM-DD')
         : null;
+      data.type = 'admin';
       if (currentUser) {
         const response = await axiosInstance.put(`/users/${currentUser.id}/`, data);
       } else {
@@ -99,7 +100,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
       enqueueSnackbar(currentUser ? t('update_success') : t('create_success'));
       reset();
-      router.push(paths.dashboard.user.list);
+      router.push(paths.dashboard.employee.list);
     } catch (error) {
       console.log('error', error);
       if (error.response && error.response.data && error.response.data.errors) {
