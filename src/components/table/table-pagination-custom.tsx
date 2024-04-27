@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box';
-import Switch from '@mui/material/Switch';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Pagination from '@mui/material/Pagination';
 import { Theme, SxProps } from '@mui/material/styles';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import TablePagination, { TablePaginationProps } from '@mui/material/TablePagination';
-
+import { TablePaginationProps } from '@mui/material/TablePagination';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -15,35 +15,48 @@ type Props = {
 export default function TablePaginationCustom({
   dense,
   onChangeDense,
-  rowsPerPageOptions = [5, 10, 25],
+  page,
+  count,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+  rowsPerPageOptions = [25, 50, 100],
   sx,
   ...other
 }: Props & TablePaginationProps) {
+  const handleChangeRowsPerPage = (event) => {
+    onRowsPerPageChange(event);
+  };
   return (
-    <Box sx={{ position: 'relative', ...sx }}>
-      <TablePagination
-        rowsPerPageOptions={rowsPerPageOptions}
-        component="div"
-        {...other}
-        sx={{
-          borderTopColor: 'transparent',
-        }}
+    <Box
+      sx={{
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '1rem',
+        ...sx,
+      }}
+    >
+      <Pagination
+        count={Math.floor(count / rowsPerPage) + (count % rowsPerPage !== 0 ? 1 : 0)}
+        defaultPage={page + 1}
+        boundaryCount={2}
+        onChange={(e, n) => onPageChange(e, n - 1)}
       />
-
-      {onChangeDense && (
-        <FormControlLabel
-          label="Gespannen" // Dense
-          control={<Switch checked={dense} onChange={onChangeDense} />}
-          sx={{
-            pl: 2,
-            py: 1.5,
-            top: 0,
-            position: {
-              sm: 'absolute',
-            },
-          }}
-        />
-      )}
+      <Select
+        value={rowsPerPage}
+        onChange={handleChangeRowsPerPage}
+        inputProps={{
+          'aria-label': 'rows per page',
+        }}
+        sx={{ height: '30px' }}
+      >
+        {/* Define the rows per page options */}
+        <MenuItem value={25}>25</MenuItem>
+        <MenuItem value={50}>50</MenuItem>
+        <MenuItem value={100}>100</MenuItem>
+      </Select>
     </Box>
   );
 }

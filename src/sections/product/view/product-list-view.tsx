@@ -162,7 +162,7 @@ export default function ProductListView() {
   );
 
   const handleDeleteRows = useCallback(async () => {
-    const selectedIds = table.selected
+    const selectedIds = table.selected;
     const promises = selectedIds.map(async (id) => {
       try {
         await axiosInstance.delete(`/products/${id}/`);
@@ -306,7 +306,6 @@ export default function ProductListView() {
               </Table>
             </Scrollbar>
           </TableContainer>
-
           <TablePaginationCustom
             count={count}
             page={table.page}
