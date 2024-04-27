@@ -158,6 +158,7 @@ export const paths = {
     },
     supplier: {
       root: `${ROOTS.DASHBOARD}/supplier`,
+      list: `${ROOTS.DASHBOARD}/supplier`,
       new: `${ROOTS.DASHBOARD}/supplier/new`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/supplier/${id}/edit`,
     },

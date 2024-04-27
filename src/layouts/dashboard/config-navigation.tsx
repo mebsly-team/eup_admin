@@ -123,17 +123,17 @@ export function useNavData() {
           // Supplier
           {
             title: t('supplier'),
-            path: paths.dashboard.supplier.root,
+            path: paths.dashboard.supplier.list,
             icon: ICONS.order,
             children: [
-              { title: t('list'), path: paths.dashboard.supplier.root },
+              { title: t('list'), path: paths.dashboard.supplier.list },
               { title: t('create'), path: paths.dashboard.supplier.new },
             ],
           },
           // USER
           {
             title: t('user'),
-            path: paths.dashboard.user.root,
+            path: paths.dashboard.user.list,
             icon: ICONS.user,
             children: [
               // { title: t('profile'), path: paths.dashboard.user.root },
@@ -147,7 +147,7 @@ export function useNavData() {
           // EMPLOYEE
           {
             title: t('employee'),
-            path: paths.dashboard.employee.root,
+            path: paths.dashboard.employee.list,
             icon: ICONS.user,
             children: [
               // { title: t('profile'), path: paths.dashboard.employee.root },
@@ -161,7 +161,7 @@ export function useNavData() {
           // STATICS
           {
             title: t('statics'),
-            path: paths.dashboard.statics.root,
+            path: paths.dashboard.statics.list,
             icon: ICONS.user,
             children: [
               // { title: t('profile'), path: paths.dashboard.statics.root },
@@ -175,7 +175,7 @@ export function useNavData() {
           // LOGS
           {
             title: t('logs'),
-            path: paths.dashboard.logs.root,
+            path: paths.dashboard.logs.list,
             icon: ICONS.user,
             children: [
               // { title: t('profile'), path: paths.dashboard.logs.root },
