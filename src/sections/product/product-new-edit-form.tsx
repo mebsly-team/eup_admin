@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { useMemo, useState, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Droppable, Draggable, DragDropContext } from 'react-beautiful-dnd';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -16,11 +17,10 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { useTheme } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { Link, alpha, MenuItem } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { Link, alpha, MenuItem, IconButton } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -710,46 +710,74 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     setValue('images', updatedImageList);
   };
 
-  const renderImages = (
-    <Grid xs={12}>
-      <Card>
-        <CardHeader title={t('images')} />
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Box
-            columnGap={2}
-            rowGap={3}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-          >
-            {/* List images with delete icon */}
-            {getValues('images')?.map((item, index) => (
-              <div key={index} style={{ position: 'relative', border: '1px solid whitesmoke' }}>
-                <img
-                  src={item}
-                  alt={`Image ${index + 1}`}
-                  style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-                />
+  const handleDragEnd = (result) => {
+    if (!result.destination) return; // dropped outside the list
 
-                <IconButton
-                  style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
-                  onClick={() => handleDeleteImage(item)}
-                >
-                  <Iconify icon="solar:trash-bin-trash-bold" width={24} />
-                </IconButton>
-              </div>
-            ))}
-          </Box>
-          {/* Add Image button */}
-          <Typography typography="caption" sx={{ color: 'error.main' }}>
-            {(errors.images as any)?.message}
-          </Typography>
-          <Button onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</Button>
-        </Stack>
-      </Card>
-    </Grid>
+    const items = Array.from(getValues('images'));
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setValue('images', items);
+  };
+  const renderImages = (
+    <>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="images" direction="horizontal">
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              style={{
+                display: 'flex',
+                padding: '8px',
+                background: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey',
+                overflowX: 'auto',
+              }}
+              {...provided.droppableProps}
+            >
+              {getValues('images')?.map((item, index) => (
+                <Draggable key={item} draggableId={item} index={index}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={{
+                        padding: '8px',
+                        margin: '0 8px 0 0',
+                        userSelect: 'none',
+                        background: snapshot.isDragging ? 'lightgreen' : 'none',
+                        ...provided.draggableProps.style,
+                      }}
+                    >
+                      <div style={{ position: 'relative', border: '1px solid whitesmoke' }}>
+                        <img
+                          src={item}
+                          alt={`Image ${index + 1}`}
+                          style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                        />
+
+                        <IconButton
+                          style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
+                          onClick={() => handleDeleteImage(item)}
+                        >
+                          <Iconify icon="solar:trash-bin-trash-bold" width={24} />
+                        </IconButton>
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+      {/* Add Image button */}
+      <Typography typography="caption" sx={{ color: 'error.main' }}>
+        {(errors.images as any)?.message}
+      </Typography>
+      <Button onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</Button>
+    </>
   );
 
   const renderCategories = (
@@ -1176,9 +1204,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
             ) : (
               <Box>
-                <Typography sx={{ alignSelf: 'center' }}>{`${t('brand')}: ${
-                  getValues('brand')?.name
-                }`}</Typography>
+                <Typography sx={{ alignSelf: 'center' }}>{`${t('brand')}: ${getValues('brand')
+                  ?.name}`}</Typography>
                 <Typography
                   typography="caption"
                   sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
