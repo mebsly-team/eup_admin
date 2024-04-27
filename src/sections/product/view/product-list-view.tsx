@@ -65,7 +65,7 @@ const defaultFilters: IProductTableFilters = {
 
 export default function ProductListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable();
+  const table = useTable({ defaultCurrentPage: Number(localStorage?.getItem('pageNo')) });
   const settings = useSettingsContext();
   const router = useRouter();
   const confirm = useBoolean();
@@ -198,6 +198,10 @@ export default function ProductListView() {
     setSelectedSingleRow(row);
     setStockUpdateDialogOpen(true);
   }, []);
+  const handleTablePageChange = useCallback((e, pageNo) => {
+    localStorage.setItem('pageNo', pageNo);
+    table.onChangePage(e, pageNo);
+  }, []);
 
   return (
     <>
@@ -310,7 +314,7 @@ export default function ProductListView() {
             count={count}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
+            onPageChange={handleTablePageChange}
             onRowsPerPageChange={table.onChangeRowsPerPage}
             dense={table.dense}
             onChangeDense={table.onChangeDense}
