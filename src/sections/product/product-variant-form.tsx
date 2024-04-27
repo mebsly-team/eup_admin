@@ -104,6 +104,8 @@ export default function ProductVariantForm({ currentProduct }: Props) {
         supplier: currentProduct?.supplier?.id || null,
         brand: currentProduct?.brand?.id || null,
         delivery_time: currentProduct?.delivery_time || null,
+        hs_code: currentProduct?.hs_code || null,
+        is_regular: currentProduct?.is_regular || false,
       });
       console.log('response', response);
       if (response?.data?.id)

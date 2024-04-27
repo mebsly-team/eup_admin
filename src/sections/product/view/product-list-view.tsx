@@ -161,15 +161,26 @@ export default function ProductListView() {
     [dataInPage?.length, enqueueSnackbar, table, productList]
   );
 
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-    enqueueSnackbar(t('delete_success'));
-    setTableData(deleteRows);
-    table.onUpdatePageDeleteRows({
-      totalRowsInPage: dataInPage?.length,
-      totalRowsFiltered: productList?.length,
+  const handleDeleteRows = useCallback(async () => {
+    const selectedIds = table.selected
+    const promises = selectedIds.map(async (id) => {
+      try {
+        await axiosInstance.delete(`/products/${id}/`);
+      } catch (error) {
+        console.error(`Error deleting product with ID ${id}:`, error);
+      }
     });
-  }, [productList?.length, dataInPage?.length, enqueueSnackbar, table, tableData]);
+
+    try {
+      await Promise.all(promises); // Wait for all delete requests to complete
+      const remainingRows = tableData.filter((row) => !selectedIds.includes(row.id));
+      setTableData(remainingRows); // Update tableData state with remaining rows
+      enqueueSnackbar(t('delete_success'));
+      getAll(); // Refresh data if needed
+    } catch (error) {
+      console.error('Error deleting rows:', error);
+    }
+  }, [tableData, table.selected, enqueueSnackbar, getAll, t]);
 
   const handleEditRow = useCallback(
     (id: string) => {

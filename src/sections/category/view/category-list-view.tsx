@@ -96,7 +96,8 @@ export default function CategoryListView() {
       : '';
     try {
       const { data } = await axiosInstance.get(
-        `/categories/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page
+        `/categories/?limit=${table.rowsPerPage}&offset=${
+          table.rowsPerPage * table.page
         }${searchFilter}${orderByParam}`
       );
       console.log('data', data);
@@ -105,7 +106,7 @@ export default function CategoryListView() {
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
-        errorMessages.forEach(errorMessage => {
+        errorMessages.forEach((errorMessage) => {
           console.error(errorMessage);
           enqueueSnackbar({ variant: 'error', message: errorMessage });
         });
@@ -121,7 +122,7 @@ export default function CategoryListView() {
             });
           });
         } else {
-          console.error("An unexpected error occurred:", error);
+          console.error('An unexpected error occurred:', error);
           enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
         }
       }
@@ -150,15 +151,15 @@ export default function CategoryListView() {
         enqueueSnackbar(t('delete_success'));
         getAll();
       } catch (error) {
-        console.log("🚀 ~ onSubmit ~ error:", error);
+        console.log('🚀 ~ onSubmit ~ error:', error);
         if (error.response && error.response.data && error.response.data.errors) {
           const errorMessages = Object.values(error.response.data.errors).flat();
-          errorMessages.forEach(errorMessage => {
+          errorMessages.forEach((errorMessage) => {
             console.error(errorMessage);
             enqueueSnackbar({ variant: 'error', message: errorMessage });
           });
         } else {
-          console.error("An unexpected error occurred:", error);
+          console.error('An unexpected error occurred:', error);
           enqueueSnackbar({ variant: 'error', message: t('error') });
         }
       }
@@ -166,9 +167,26 @@ export default function CategoryListView() {
     [enqueueSnackbar, t, getAll]
   );
 
-  const handleDeleteRows = useCallback(() => {
-    // pass
-  }, []);
+  const handleDeleteRows = useCallback(async () => {
+    const selectedIds = table.selected;
+    const promises = selectedIds.map(async (id) => {
+      try {
+        await axiosInstance.delete(`/categories/${id}/`);
+      } catch (error) {
+        console.error(`Error deleting ID ${id}:`, error);
+      }
+    });
+
+    try {
+      await Promise.all(promises); // Wait for all delete requests to complete
+      const remainingRows = tableData.filter((row) => !selectedIds.includes(row.id));
+      setTableData(remainingRows); // Update tableData state with remaining rows
+      enqueueSnackbar(t('delete_success'));
+      getAll(); // Refresh data if needed
+    } catch (error) {
+      console.error('Error deleting rows:', error);
+    }
+  }, [tableData, table.selected, enqueueSnackbar, getAll, t]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -243,12 +261,12 @@ export default function CategoryListView() {
                   rowCount={categoryList?.length}
                   numSelected={table.selected?.length}
                   onSort={table.onSort}
-                // onSelectAllRows={(checked) =>
-                //   table.onSelectAllRows(
-                //     checked,
-                //     categoryList.map((row) => row.id)
-                //   )
-                // }
+                  // onSelectAllRows={(checked) =>
+                  //   table.onSelectAllRows(
+                  //     checked,
+                  //     categoryList.map((row) => row.id)
+                  //   )
+                  // }
                 />
 
                 <TableBody>

@@ -98,7 +98,7 @@ export default function UserListView() {
   const handleDeleteRow = useCallback(
     async (id: string) => {
       const deleteRow = userList.filter((row) => row.id !== id);
-      const { data } = await axiosInstance.delete(`/users/${id}/`);
+      const { data } = await axiosInstance.delete(`/logs/${id}/`);
       enqueueSnackbar(t('delete_success'));
 
       getAll();
