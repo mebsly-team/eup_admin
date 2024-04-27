@@ -232,9 +232,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       meta_keywords: currentProduct?.meta_keywords || '',
       url: currentProduct?.url || '',
 
-      inhoud_number: currentProduct?.inhoud_number || '',
+      inhoud_number: currentProduct?.inhoud_number || 0,
       inhoud_unit: currentProduct?.inhoud_unit || '',
-      inhoud_price: currentProduct?.inhoud_price || '',
+      inhoud_price: currentProduct?.inhoud_price || 0,
     }),
     [currentProduct]
   );
@@ -783,7 +783,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <ul>
                 {getValues('categories')?.map((category, index) => (
                   <li key={index}>
-                    {category ? <strong>{category.name}</strong> : `Category: ${category.id}`}
+                    {category ? <strong>{category?.name}</strong> : `Category: ${category.id}`}
                   </li>
                 ))}
               </ul>
@@ -837,7 +837,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <Box>
                 <Typography sx={{ alignSelf: 'center' }}>{`${t('supplier')}: ${
                   getValues('supplier').supplier_code
-                }-${getValues('supplier').name}`}</Typography>
+                }-${getValues('supplier')?.name}`}</Typography>
                 <Typography
                   typography="caption"
                   sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
@@ -1177,7 +1177,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             ) : (
               <Box>
                 <Typography sx={{ alignSelf: 'center' }}>{`${t('brand')}: ${
-                  getValues('brand').name
+                  getValues('brand')?.name
                 }`}</Typography>
                 <Typography
                   typography="caption"
