@@ -48,6 +48,7 @@ import { CategorySelector } from 'src/sections/category/CategorySelector';
 
 import { IProductItem } from 'src/types/product';
 
+import Rating from './Rating';
 import ProductVariantForm from './product-variant-form';
 
 // ----------------------------------------------------------------------
@@ -1489,11 +1490,42 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 <Typography variant="h6" fontWeight="600" color="text.secondary">
                   {getValues('title')}
                 </Typography>
-                {getValues('price_per_piece') ? (
-                  <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                    €{getValues('price_per_piece')}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {getValues('price_per_piece') ? (
+                      <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
+                        €{getValues('price_per_piece')}
+                      </Typography>
+                    ) : null}
+                    <Typography
+                      variant="subtitle2"
+                      ml={1}
+                      sx={{ color: 'grey', textDecoration: 'line-through' }}
+                    >
+                      {getValues('price_consumers')}
+                    </Typography>
+                  </Box>
+                  <Typography variant="subtitle2" sx={{ color: 'grey' }}>
+                    {getValues('sell_count')} verkocht
                   </Typography>
-                ) : null}
+                </Box>
+                <Rating
+                  defaultValue={parseFloat(getValues('average_rating')) || 4.55}
+                  onChange={undefined}
+                />
               </Box>
             </Box>
           </Box>
