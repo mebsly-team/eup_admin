@@ -343,9 +343,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       const ex_date = data.expiry_date ? format(new Date(data.expiry_date), 'yyyy-MM-dd') : null;
       data.expiry_date = ex_date;
       data.tags = [];
-      data.brand = data.brand.id;
-      data.supplier = data.supplier.id;
-      data.categories = data.categories.map((item) => item.id);
+      data.brand = data.brand?.id;
+      data.supplier = data.supplier?.id;
+      data.categories = data.categories.map((item) => item?.id);
       if (currentProduct?.id) {
         const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
       } else {
@@ -863,9 +863,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
             ) : (
               <Box>
-                <Typography sx={{ alignSelf: 'center' }}>{`${t('supplier')}: ${
-                  getValues('supplier').supplier_code
-                }-${getValues('supplier')?.name}`}</Typography>
+                <Typography sx={{ alignSelf: 'center' }}>{`${t('supplier')}: ${getValues('supplier')
+                  ?.supplier_code}-${getValues('supplier')?.name}`}</Typography>
                 <Typography
                   typography="caption"
                   sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
