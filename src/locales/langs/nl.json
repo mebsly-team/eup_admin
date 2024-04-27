@@ -531,5 +531,8 @@
   "discount_percentage": "Kortingspercentage",
   "is_active": "Actief?",
   "number_of_variants": "Aantal Varianten",
-  "number_of_variants": "Aantal Varianten"
+  "number_of_variants": "Aantal Varianten",
+  "inhoud_number": "Inhoud Aantal",
+  "inhoud_unit": "Inhoud Unit",
+  "inhoud_price": "Inhoud Prijs"
 }

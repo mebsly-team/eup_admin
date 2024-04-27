@@ -475,7 +475,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             </Typography>
           )}
         </Box>
-        {currentProduct?.is_variant && (
+        {/* {currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
             color="blue"
@@ -484,7 +484,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           >
             {t('import_data_from_main_product')}
           </Typography>
-        )}
+        )} */}
         <CardHeader title={t('basic_information')} />
 
         <Stack spacing={3} sx={{ p: 3 }}>
@@ -1039,17 +1039,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <RHFTextField
               name="price_per_unit"
               disabled
-              label={`${t('price_per')} ${getValues('unit')}`}
+              label={`${t('price_per')} ${t(getValues('unit'))}`}
               placeholder="0.00"
               type="number"
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Box
-                      component="span"
-                      sx={{ color: 'text.disabled', backgroundColor: '#f5f3f3' }}
-                    >
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
                       €
                     </Box>
                   </InputAdornment>
