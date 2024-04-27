@@ -52,7 +52,7 @@ export default function BrandTableRow({
           <Checkbox checked={selected} onClick={onSelectRow} />
         </TableCell>
 
-        <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+        <TableCell sx={{ display: 'flex', alignItems: 'center', maxWidth: '200px' }}>
           <Image alt={name} src={logo} />
         </TableCell>
 
