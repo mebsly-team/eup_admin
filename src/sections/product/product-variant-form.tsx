@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react';
 
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
@@ -8,7 +8,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { Select, Switch, Button, MenuItem, FormControl } from '@mui/material';
+import { Chip, Select, Switch, Button, MenuItem, TextField, FormControl } from '@mui/material';
 import {
   DataGrid,
   GridRowId,
@@ -38,6 +38,31 @@ type Props = {
   currentProduct?: IProductItem;
 };
 
+const styles = {
+  formControlRoot: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '300px',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    border: '2px solid lightgray',
+    padding: 4,
+    borderRadius: '4px',
+    '&> div.container': {
+      gap: '6px',
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    '& > div.container > span': {
+      backgroundColor: 'gray',
+      padding: '1px 3px',
+      borderRadius: '4px',
+    },
+  },
+};
+
 export default function ProductVariantForm({ currentProduct }: Props) {
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
@@ -45,7 +70,8 @@ export default function ProductVariantForm({ currentProduct }: Props) {
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
   const [selectedValues1, setSelectedValues1] = useState([]);
-  const [selectedValues2, setSelectedValues2] = useState([]);
+  const [colorValues, setColorValues] = useState([]);
+  const [currentColorValue, setCurrentColorValue] = useState('');
   const [selectedUnitValues, setSelectedUnitValues] = useState([]);
   const [currentProductVariantRows, setCurrentProductVariantRows] = useState([]);
   console.log('currentProductVariantRows', currentProductVariantRows);
@@ -55,6 +81,22 @@ export default function ProductVariantForm({ currentProduct }: Props) {
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
+  const handleKeyUp = (e: { keyCode: number; target: { value: any } }) => {
+    console.log(e.keyCode);
+    if (e.keyCode === 13) {
+      setColorValues((oldState) => [...oldState, e.target.value]);
+      setCurrentColorValue('');
+    }
+  };
+  const handleChange = (e: { target: { value: SetStateAction<string> } }) => {
+    setCurrentColorValue(e.target.value);
+  };
+  const handleDelete = (item: never, index: number) => {
+    const arr = [...colorValues];
+    arr.splice(index, 1);
+    console.log(item);
+    setColorValues(arr);
+  };
   const getVariants = async () => {
     try {
       setIsLoading(true); // Show the spinner
@@ -92,34 +134,39 @@ export default function ProductVariantForm({ currentProduct }: Props) {
     const title = `${currentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
       value2 ? `-${t(value2)}` : ''
     }-${t(unitValue)}`;
+    const data = {
+      title,
+      is_variant: true,
+      parent_product: currentProduct?.id,
+      color: value1?.replace(/\s+/g, '%'),
+      size: value2?.replace(/\s+/g, '%'),
+      unit: unitValue,
+      categories: currentProduct?.categories?.map((item) => item.id) || [],
+    };
+    if (currentProduct?.supplier?.id) data.supplier = currentProduct?.supplier?.id;
+    if (currentProduct?.brand?.id) data.brand = currentProduct?.brand?.id;
+    if (currentProduct?.delivery_time) data.delivery_time = currentProduct?.delivery_time;
+    if (currentProduct?.hs_code) data.hs_code = currentProduct?.hs_code;
+    if (currentProduct?.is_regular !== null) data.is_regular = currentProduct?.is_regular;
     try {
-      const response = await axiosInstance.post('/products/', {
-        title,
-        is_variant: true,
-        parent_product: currentProduct?.id,
-        color: value1,
-        size: value2,
-        unit: unitValue,
-        categories: currentProduct?.categories?.map((item) => item.id) || [],
-        supplier: currentProduct?.supplier?.id || null,
-        brand: currentProduct?.brand?.id || null,
-        delivery_time: currentProduct?.delivery_time || null,
-        hs_code: currentProduct?.hs_code || null,
-        is_regular: currentProduct?.is_regular || false,
-      });
-      console.log('response', response);
-      if (response?.data?.id)
-        setCurrentProductVariantRows([...currentProductVariantRows, response.data]);
+      const response = await axiosInstance.post('/products/', data);
+
+      if (response?.data?.id) {
+        const newVariant = response.data;
+        setCurrentProductVariantRows((prevRows) => [...prevRows, newVariant]);
+      }
     } catch (error) {
       console.error('Error creating variant:', title);
       console.error('Error:', error);
+      // Handle error here if needed
+    } finally {
+      setIsLoading(false); // Hide the spinner when done
     }
-    setIsLoading(false); // Hide the spinner when done
   };
 
   const createVariants = () => {
     const values1 = selectedValues1.length > 0 ? selectedValues1 : [null];
-    const values2 = selectedValues2.length > 0 ? selectedValues2 : [null];
+    const values2 = colorValues.length > 0 ? colorValues : [null];
 
     values1.forEach((value1) => {
       values2.forEach((value2) => {
@@ -306,7 +353,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: '100px auto',
+            gridTemplateColumns: '100px 1fr',
             gap: '1rem',
             p: 3,
             borderBottom: `solid 1px ${theme.palette.divider}`,
@@ -358,23 +405,26 @@ export default function ProductVariantForm({ currentProduct }: Props) {
             </Select>
           </FormControl>
           <Typography sx={{ mb: 2 }}>{t('size')}</Typography>
-
-          <FormControl sx={{ minWidth: 300 }}>
-            <Select
-              labelId="id-label"
-              id="demo-select-small"
-              multiple
-              value={selectedValues2}
-              onChange={(e) => setSelectedValues2(e.target.value)}
-            >
-              <MenuItem value="XS">XS</MenuItem>
-              <MenuItem value="S">S</MenuItem>
-              <MenuItem value="M">M</MenuItem>
-              <MenuItem value="L">L</MenuItem>
-              <MenuItem value="XL">XL</MenuItem>
-              <MenuItem value="XXL">XXL</MenuItem>
-            </Select>
-          </FormControl>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: '0.2rem',
+            }}
+          >
+            <FormControl sx={styles}>
+              <TextField
+                value={currentColorValue}
+                onChange={handleChange}
+                onKeyDown={handleKeyUp}
+              />
+            </FormControl>{' '}
+            <div className="container">
+              {colorValues.map((item, index) => (
+                <Chip size="small" onDelete={() => handleDelete(item, index)} label={item} />
+              ))}
+            </div>
+          </Box>
           <Typography sx={{ mb: 2 }}>{t('unit')}</Typography>
           <FormControl sx={{ minWidth: 300 }}>
             <Select
