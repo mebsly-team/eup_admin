@@ -198,7 +198,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
       enqueueSnackbar(t('delete_success'));
       setCurrentProductVariantRows(currentProductVariantRows.filter((row) => row.id !== id));
     } catch (error) {
-      enqueueSnackbar(t('error'));
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     }
   };
 

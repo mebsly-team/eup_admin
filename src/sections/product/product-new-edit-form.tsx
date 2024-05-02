@@ -749,11 +749,23 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                         ...provided.draggableProps.style,
                       }}
                     >
-                      <div style={{ position: 'relative', border: '1px solid whitesmoke' }}>
+                      <div
+                        style={{
+                          position: 'relative',
+                          border: '1px solid whitesmoke',
+                          minWidth: '150px',
+                          textAlign: 'center',
+                        }}
+                      >
                         <img
                           src={item}
-                          alt={`Image ${index + 1}`}
-                          style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                          alt={`Preview ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: 'auto',
+                            objectFit: 'cover',
+                            maxHeight: '200px',
+                          }}
                         />
 
                         <IconButton
@@ -1508,7 +1520,19 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         <Card sx={{ padding: 3 }}>
           <Box sx={{ position: 'unset' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-              {getValues('images')?.[0] && <img src={getValues('images')?.[0]} alt="" />}
+              {getValues('images')?.[0] && (
+                <img
+                  src={getValues('images')?.[0]}
+                  alt=""
+                  style={{
+                    width: 'auto',
+                    height: 'auto',
+                    maxHeight: '250px',
+                    maxWidth: 'fit-content',
+                    alignSelf: 'center',
+                  }}
+                />
+              )}
               <Box sx={{ textAlign: 'left', mt: 1 }}>
                 <Typography variant="h6" fontWeight="600" color="text.secondary">
                   {getValues('title')}
