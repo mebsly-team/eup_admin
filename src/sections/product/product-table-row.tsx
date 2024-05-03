@@ -84,7 +84,7 @@ export default function ProductTableRow({
     onSelectRow();
   };
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
-    const response = await axiosInstance.patch(`/products/${id}/`, {
+    const response = await axiosInstance.put(`/products/${id}/`, {
       is_product_active: e.target.checked,
     });
     setIsActive(response?.data?.is_product_active ?? isActive);

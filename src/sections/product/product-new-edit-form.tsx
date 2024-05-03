@@ -486,7 +486,21 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           </Typography>
         )} */}
         <CardHeader title={t('basic_information')} />
-
+        {getValues('article_code') ? (
+          <a
+            href={`https://www.google.com/search?q=${getValues('article_code')}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              display: 'block',
+              marginLeft: '1.5rem',
+            }}
+          >
+            Zoek op Google
+          </a>
+        ) : null}
         <Stack spacing={3} sx={{ p: 3 }}>
           {/* <RHFTextField name="parent_product" label={t('parent_product')} /> */}
           <Box
@@ -1672,6 +1686,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
               {renderPreview}
               {renderStock}
+              {getValues('article_code') ? (
+                <a
+                  href={`https://www.google.com/search?q=${getValues('article_code')}&tbm=isch`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    float: 'left',
+                    fontWeight: 'fontWeightBold',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    marginLeft: '1rem',
+                  }}
+                >
+                  Zoek afbeeldingen op Google
+                </a>
+              ) : null}
             </Card>
           </Grid>
         </Grid>
