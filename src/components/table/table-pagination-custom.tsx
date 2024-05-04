@@ -1,5 +1,8 @@
+import React, { useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Select from '@mui/material/Select';
+import { Input, Button } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Pagination from '@mui/material/Pagination';
 import { Theme, SxProps } from '@mui/material/styles';
@@ -24,9 +27,31 @@ export default function TablePaginationCustom({
   sx,
   ...other
 }: Props & TablePaginationProps) {
+  console.log('page', page);
+  const [goToPage, setGoToPage] = useState();
+  console.log('goToPage', goToPage);
+  useEffect(() => {
+    setGoToPage(page + 1);
+  }, [page]);
   const handleChangeRowsPerPage = (event) => {
     onRowsPerPageChange(event);
   };
+
+  const handleGoToPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value);
+    if (event.key === 'Enter') {
+      if (!isNaN(value) && value > 0 && value <= Math.ceil(count / rowsPerPage)) {
+        onPageChange(null, value - 1);
+      }
+    } else if (!isNaN(value) && value > 0 && value <= Math.ceil(count / rowsPerPage)) {
+      setGoToPage(value);
+    }
+  };
+
+  const handleGoToPage = (e) => {
+    onPageChange(e, goToPage - 1);
+  };
+
   return (
     <Box
       sx={{
@@ -38,12 +63,27 @@ export default function TablePaginationCustom({
         ...sx,
       }}
     >
-      <Pagination
-        count={Math.floor(count / rowsPerPage) + (count % rowsPerPage !== 0 ? 1 : 0)}
-        defaultPage={page + 1}
-        boundaryCount={2}
-        onChange={(e, n) => onPageChange(e, n - 1)}
-      />
+      {page + 1 ? (
+        <Pagination
+          count={Math.floor(count / rowsPerPage) + (count % rowsPerPage !== 0 ? 1 : 0)}
+          page={page + 1}
+          boundaryCount={2}
+          onChange={(e, n) => onPageChange(e, n - 1)}
+        />
+      ) : null}
+
+      <Box>
+        <Input
+          type="number"
+          value={goToPage}
+          onChange={handleGoToPageChange}
+          onKeyDown={handleGoToPageChange}
+          sx={{ width: '25px', textAlign: 'right' }}
+        />
+        <Button variant="text" onClick={handleGoToPage} sx={{ minWidth: 0, width: '40px', p: 0 }}>
+          Ga
+        </Button>
+      </Box>
       <Select
         value={rowsPerPage}
         onChange={handleChangeRowsPerPage}
@@ -53,9 +93,11 @@ export default function TablePaginationCustom({
         sx={{ height: '30px' }}
       >
         {/* Define the rows per page options */}
-        <MenuItem value={25}>25</MenuItem>
-        <MenuItem value={50}>50</MenuItem>
-        <MenuItem value={100}>100</MenuItem>
+        {rowsPerPageOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
       </Select>
     </Box>
   );
