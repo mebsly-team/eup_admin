@@ -27,9 +27,7 @@ export default function TablePaginationCustom({
   sx,
   ...other
 }: Props & TablePaginationProps) {
-  console.log('page', page);
   const [goToPage, setGoToPage] = useState();
-  console.log('goToPage', goToPage);
   useEffect(() => {
     setGoToPage(page + 1);
   }, [page]);

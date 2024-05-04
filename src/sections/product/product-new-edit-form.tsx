@@ -253,8 +253,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     formState: { isSubmitting, isDirty, errors },
     ...rest
   } = methods;
-  console.log('methods', methods);
-
   const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
@@ -343,8 +341,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       const ex_date = data.expiry_date ? format(new Date(data.expiry_date), 'yyyy-MM-dd') : null;
       data.expiry_date = ex_date;
       data.tags = [];
-      data.brand = data.brand?.id;
-      data.supplier = data.supplier?.id;
+      data.brand = typeof data.brand === 'object' ? data.brand?.id : data.brand;
+      data.supplier = typeof data.supplier === 'object' ? data.supplier?.id : data.supplier;
       data.categories = data.categories.map((item) => item?.id);
       if (currentProduct?.id) {
         const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
@@ -401,64 +399,64 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </Tabs>
   );
 
-  const handleImportMainProduct = async () => {
-    if (currentProduct?.parent_product) {
-      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
-      const {
-        title,
-        images,
-        hs_code,
-        has_electronic_barcode,
-        sku,
-        brand,
-        supplier,
-        is_only_for_logged_in_user,
-        is_used,
-        location,
-        categories,
-        ...copyData
-      } = {
-        ...response?.data,
-      };
-      if (['box', 'pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
-        delete copyData.quantity_per_unit;
-        delete copyData.price_per_unit;
-        delete copyData.max_order_allowed_per_unit;
-        delete copyData.order_unit_amount;
-        delete copyData.min_order_amount;
-        delete copyData.min_stock_value;
-        delete copyData.max_stock_at_rack;
-        delete copyData.price_per_piece;
-        delete copyData.price_consumers;
-        delete copyData.price_cost;
-        delete copyData.size_unit;
-        delete copyData.size_x_value;
-        delete copyData.size_y_value;
-        delete copyData.size_z_value;
-        delete copyData.volume_unit;
-        delete copyData.liter;
-        delete copyData.pallet_layer_total_number;
-        delete copyData.weight;
-        delete copyData.pallet_full_total_number;
-        delete copyData.is_brief_box;
-      }
-      if (!['pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
-        delete copyData.ean;
-        delete copyData.article_code;
-      }
-      reset({
-        title: getValues('title'),
-        ean: getValues('ean'),
-        article_code: getValues('article_code'),
-        hs_code: getValues('hs_code'),
-        sku: getValues('sku'),
-        supplier,
-        brand,
-        categories: categories || [],
-        ...copyData,
-      });
-    }
-  };
+  // const handleImportMainProduct = async () => {
+  //   if (currentProduct?.parent_product) {
+  //     const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
+  //     const {
+  //       title,
+  //       images,
+  //       hs_code,
+  //       has_electronic_barcode,
+  //       sku,
+  //       brand,
+  //       supplier,
+  //       is_only_for_logged_in_user,
+  //       is_used,
+  //       location,
+  //       categories,
+  //       ...copyData
+  //     } = {
+  //       ...response?.data,
+  //     };
+  //     if (['box', 'pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
+  //       delete copyData.quantity_per_unit;
+  //       delete copyData.price_per_unit;
+  //       delete copyData.max_order_allowed_per_unit;
+  //       delete copyData.order_unit_amount;
+  //       delete copyData.min_order_amount;
+  //       delete copyData.min_stock_value;
+  //       delete copyData.max_stock_at_rack;
+  //       delete copyData.price_per_piece;
+  //       delete copyData.price_consumers;
+  //       delete copyData.price_cost;
+  //       delete copyData.size_unit;
+  //       delete copyData.size_x_value;
+  //       delete copyData.size_y_value;
+  //       delete copyData.size_z_value;
+  //       delete copyData.volume_unit;
+  //       delete copyData.liter;
+  //       delete copyData.pallet_layer_total_number;
+  //       delete copyData.weight;
+  //       delete copyData.pallet_full_total_number;
+  //       delete copyData.is_brief_box;
+  //     }
+  //     if (!['pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
+  //       delete copyData.ean;
+  //       delete copyData.article_code;
+  //     }
+  //     reset({
+  //       title: getValues('title'),
+  //       ean: getValues('ean'),
+  //       article_code: getValues('article_code'),
+  //       hs_code: getValues('hs_code'),
+  //       sku: getValues('sku'),
+  //       supplier,
+  //       brand,
+  //       categories: categories || [],
+  //       ...copyData,
+  //     });
+  //   }
+  // };
 
   const renderDetails = (
     <Grid xs={12}>
