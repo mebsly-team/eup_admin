@@ -54,6 +54,7 @@ export default function ProductTableRow({
     overall_stock,
     free_stock,
     variants,
+    variants_count,
     slug,
   } = row;
   const [isActive, setIsActive] = useState(is_product_active);
@@ -122,7 +123,7 @@ export default function ProductTableRow({
         </TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
-          {variants?.length || '-'}
+          {variants_count || '-'}
         </TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>{ean}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
