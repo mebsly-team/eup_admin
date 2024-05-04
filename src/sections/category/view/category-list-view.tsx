@@ -194,6 +194,12 @@ export default function CategoryListView() {
     },
     [router]
   );
+  const handleAddSubCategoryRow = useCallback(
+    (parent: string) => {
+      router.push(`${paths.dashboard.category.new}?parent=${parent}`);
+    },
+    [router]
+  );
 
   return (
     <>
@@ -278,6 +284,7 @@ export default function CategoryListView() {
                       onSelectRow={() => table.onSelectRow(row.id)}
                       onDeleteRow={handleDeleteRow}
                       onEditRow={handleEditRow}
+                      onAddSubCategoryRow={handleAddSubCategoryRow}
                     />
                   ))}
 

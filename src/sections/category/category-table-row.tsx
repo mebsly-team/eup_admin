@@ -6,7 +6,6 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 
-import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -28,9 +27,17 @@ type Props = {
   row: ICategoryItem;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
+  onAddSubCategoryRow: VoidFunction;
 };
 
-export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }: Props) {
+export default function CategoryTableRow({
+  row,
+  onEditRow,
+  onDeleteRow,
+  onAddSubCategoryRow,
+  table,
+  color = 'rgba(145, 158, 171, 0.08)',
+}: Props) {
   const { name, image, parent_category, sub_categories } = row;
   const { t, onChangeLang } = useTranslate();
   const selected = table?.selected?.includes(row.id);
@@ -46,12 +53,19 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
   // Define a variable to determine whether the row is a subcategory
   const isSubcategory = !!parent_category;
 
+  // Generate a random color for subcategory rows
+  const randomColor = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(
+    Math.random() * 256
+  )},${Math.floor(Math.random() * 256)},0.08)`;
+
+  // <TableRow key={row.id} sx={{ marginLeft: '20px' }}>
+
   return (
     <>
       <TableRow
         hover
         selected={selected}
-        sx={{ background: isSubcategory ? 'rgba(145, 158, 171, 0.08)' : 'none' }}
+        sx={{ background: isSubcategory ? color : 'none' }}
       >
         <TableCell align="center">{row.id}</TableCell>
 
@@ -105,6 +119,15 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
         </MenuItem>
         <MenuItem
           onClick={() => {
+            onAddSubCategoryRow(row.id);
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:import-bold" />
+          {t('add_new')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             confirm.onTrue();
             popover.onClose();
           }}
@@ -136,15 +159,10 @@ export default function CategoryTableRow({ row, onEditRow, onDeleteRow, table }:
               table={table}
               onDeleteRow={onDeleteRow}
               onEditRow={onEditRow}
+              onAddSubCategoryRow={onAddSubCategoryRow}
+              color={randomColor}
             />
           ))}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => router.push(paths.dashboard.category.new)}
-          >
-            {t('add')}
-          </Button>
         </>
       )}
     </>

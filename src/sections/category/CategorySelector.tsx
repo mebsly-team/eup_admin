@@ -20,7 +20,7 @@ export const CategorySelector = ({
 
   useEffect(() => {
     if (defaultSelectedCategories) {
-      const selectedIds = defaultSelectedCategories.map((item) => item.id);
+      const selectedIds = defaultSelectedCategories.map((item) => item?.id).filter((item) => item);
       setSelectedCategories(selectedIds);
     }
   }, [defaultSelectedCategories]);
