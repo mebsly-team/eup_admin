@@ -227,16 +227,22 @@ export default function BrandListView() {
                 />
 
                 <TableBody>
-                  {brandList.map((row) => (
-                    <BrandTableRow
-                      key={row.id}
-                      row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
-                      onEditRow={() => handleEditRow(row.id)}
-                    />
-                  ))}
+                  {!brandList?.length ? (
+                    <tr style={{ textAlign: 'center' }}>
+                      <Iconify icon="svg-spinners:8-dots-rotate" />
+                    </tr>
+                  ) : (
+                    brandList.map((row) => (
+                      <BrandTableRow
+                        key={row.id}
+                        row={row}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
+                        onDeleteRow={() => handleDeleteRow(row.id)}
+                        onEditRow={() => handleEditRow(row.id)}
+                      />
+                    ))
+                  )}
 
                   {/* <TableEmptyRows
                     height={denseHeight}

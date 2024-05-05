@@ -200,7 +200,6 @@ export default function CategoryListView() {
     },
     [router]
   );
-
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -276,17 +275,23 @@ export default function CategoryListView() {
                 />
 
                 <TableBody>
-                  {categoryList?.map((row) => (
-                    <CategoryTableRow
-                      key={row.id}
-                      row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={handleDeleteRow}
-                      onEditRow={handleEditRow}
-                      onAddSubCategoryRow={handleAddSubCategoryRow}
-                    />
-                  ))}
+                  {!categoryList?.length ? (
+                    <tr style={{ textAlign: 'center' }}>
+                      <Iconify icon="svg-spinners:8-dots-rotate" />
+                    </tr>
+                  ) : (
+                    categoryList?.map((row) => (
+                      <CategoryTableRow
+                        key={row.id}
+                        row={row}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
+                        onDeleteRow={handleDeleteRow}
+                        onEditRow={handleEditRow}
+                        onAddSubCategoryRow={handleAddSubCategoryRow}
+                      />
+                    ))
+                  )}
 
                   {/* <TableEmptyRows
                     height={denseHeight}
