@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Switch } from '@mui/material';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -21,7 +22,6 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { IUserItem } from 'src/types/user';
 
 import UserQuickEditForm from './user-quick-edit-form';
-import { Switch } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -154,6 +154,15 @@ export default function UserTableRow({
       >
         <MenuItem
           onClick={() => {
+            onEditRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          {t('view_edit')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             confirm.onTrue();
             popover.onClose();
           }}
@@ -161,16 +170,6 @@ export default function UserTableRow({
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
           {t('delete')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            onEditRow();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:pen-bold" />
-          {t('view_edit')}
         </MenuItem>
       </CustomPopover>
 

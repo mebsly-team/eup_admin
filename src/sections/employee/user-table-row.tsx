@@ -123,6 +123,15 @@ export default function UserTableRow({
       >
         <MenuItem
           onClick={() => {
+            onEditRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          {t('view_edit')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             confirm.onTrue();
             popover.onClose();
           }}
@@ -130,16 +139,6 @@ export default function UserTableRow({
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
           {t('delete')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            onEditRow();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:pen-bold" />
-          {t('view_edit')}
         </MenuItem>
       </CustomPopover>
 
