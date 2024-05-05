@@ -1,5 +1,7 @@
 {
   "account": "Account",
+  "save_back": "Opslaan & Terug",
+  "save_stay": "Opslaan & Blijven",
   "account_holder_city": "Rekeninghouder stad",
   "account_holder_name": "Naam rekeninghouder",
   "active": "Actief",

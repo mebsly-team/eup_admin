@@ -41,7 +41,7 @@ export default function TablePaginationCustom({
       if (!isNaN(value) && value > 0 && value <= Math.ceil(count / rowsPerPage)) {
         onPageChange(null, value - 1);
       }
-    } else if (!isNaN(value) && value > 0 && value <= Math.ceil(count / rowsPerPage)) {
+    } else {
       setGoToPage(value);
     }
   };

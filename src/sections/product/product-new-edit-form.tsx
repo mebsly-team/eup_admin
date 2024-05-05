@@ -62,6 +62,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   console.log('currentProduct', currentProduct);
   const router = useRouter();
   const location = useLocation();
+  let activeAction = '';
 
   // Now you can access query parameters from the location object
   const queryParams = new URLSearchParams(location.search);
@@ -350,17 +351,24 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       data.brand = typeof data.brand === 'object' ? data.brand?.id : data.brand;
       data.supplier = typeof data.supplier === 'object' ? data.supplier?.id : data.supplier;
       data.categories = data.categories.map((item) => item?.id);
+      let response;
       if (currentProduct?.id) {
-        const response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
+        response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
       } else {
-        const response = await axiosInstance.post('/products/', data);
+        response = await axiosInstance.post('/products/', data);
       }
-      reset();
+      const responseData = response.data; // Assuming the response contains updated data
+      // Update the form data with the new data
+      methods.reset(responseData); // Assuming methods.reset updates the form data
       localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
 
-      if (currentProduct?.is_variant) setActiveTab(1);
-      else router.push(paths.dashboard.product.root);
+      if (activeAction === 'save_stay') {
+        // Do nothing, stay on the same page
+      } else if (activeAction === 'save_back') {
+        if (currentProduct?.is_variant) setActiveTab(1);
+        else router.push(paths.dashboard.product.root);
+      }
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
@@ -1488,11 +1496,47 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </Grid>
   );
 
+  const handleActionClick = (action) => {
+    activeAction = action;
+    onSubmit();
+  };
   const renderActions = (
-    <Grid xs={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-      <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
-        {!currentProduct ? t('create_product') : t('save_changes')}
-      </LoadingButton>
+    <Grid
+      xs={12}
+      sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', gap: '1rem' }}
+    >
+      {!currentProduct ? (
+        <LoadingButton
+          type="button"
+          variant="contained"
+          size="large"
+          loading={isSubmitting}
+          onClick={() => handleActionClick('save_stay')}
+        >
+          {t('create_product')}
+        </LoadingButton>
+      ) : (
+        <>
+          <LoadingButton
+            type="button"
+            variant="contained"
+            size="large"
+            loading={isSubmitting}
+            onClick={() => handleActionClick('save_stay')}
+          >
+            {t('save_stay')}
+          </LoadingButton>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            size="large"
+            loading={isSubmitting}
+            onClick={() => handleActionClick('save_back')}
+          >
+            {t('save_back')}
+          </LoadingButton>
+        </>
+      )}
     </Grid>
   );
 
