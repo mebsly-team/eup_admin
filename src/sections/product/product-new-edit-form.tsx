@@ -2,6 +2,7 @@
 import * as Yup from 'yup';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'react-router-dom';
 import { useMemo, useState, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Droppable, Draggable, DragDropContext } from 'react-beautiful-dnd';
@@ -60,13 +61,18 @@ type Props = {
 export default function ProductNewEditForm({ currentProduct }: Props) {
   console.log('currentProduct', currentProduct);
   const router = useRouter();
+  const location = useLocation();
+
+  // Now you can access query parameters from the location object
+  const queryParams = new URLSearchParams(location.search);
+  const tab = queryParams.get('tab');
 
   const mdUp = useResponsive('up', 'md');
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
 
   const { enqueueSnackbar } = useSnackbar();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(tab || 0);
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
   const [isBrandEdit, setBrandEdit] = useState(false);
   const [brandList, setBrandList] = useState([]);
@@ -352,7 +358,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       reset();
       localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
-      router.push(paths.dashboard.product.root);
+
+      if (currentProduct?.is_variant) setActiveTab(1);
+      else router.push(paths.dashboard.product.root);
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
@@ -1663,6 +1671,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </Grid>
   );
 
+  if (!currentProduct)
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <Iconify icon="svg-spinners:8-dots-rotate" />
+      </div>
+    );
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       {!currentProduct?.is_variant ? renderTabs : null}
