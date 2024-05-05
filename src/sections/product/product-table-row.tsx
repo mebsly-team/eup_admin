@@ -18,6 +18,7 @@ import { useTranslate } from 'src/locales';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
+import { useSnackbar } from 'src/components/snackbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -57,6 +58,8 @@ export default function ProductTableRow({
     variants_count,
     slug,
   } = row;
+  const { enqueueSnackbar } = useSnackbar();
+
   const [isActive, setIsActive] = useState(is_product_active);
   const theme = useTheme();
   const styles = {
@@ -84,11 +87,21 @@ export default function ProductTableRow({
     e.stopPropagation();
     onSelectRow();
   };
-  const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
-    const response = await axiosInstance.put(`/products/${id}/`, {
-      is_product_active: e.target.checked,
-    });
-    setIsActive(response?.data?.is_product_active ?? isActive);
+  const handleActiveSwitchChange = async (e) => {
+    e.stopPropagation(); // Stop event propagation
+
+    try {
+      const response = await axiosInstance.put(`/products/${id}/`, {
+        is_product_active: e.target.checked,
+      });
+      setIsActive(response?.data?.is_product_active ?? isActive);
+    } catch (error) {
+      console.error('Missing Fields:', error);
+      const missingFields = Object.values(error)?.[0] || [];
+      missingFields.forEach((element) => {
+        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+      });
+    }
   };
   return (
     <>
@@ -130,7 +143,13 @@ export default function ProductTableRow({
           {free_stock}/{overall_stock}
         </TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>
-          <Switch name="is_product_active" checked={isActive} onChange={handleActiveSwitchChange} />
+          <div onClick={(e) => e.stopPropagation()} tabIndex={0}>
+            <Switch
+              name="is_product_active"
+              checked={isActive}
+              onChange={handleActiveSwitchChange}
+            />
+          </div>
         </TableCell>
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
           {/* <Tooltip title="Quick Edit" placement="top" arrow>
