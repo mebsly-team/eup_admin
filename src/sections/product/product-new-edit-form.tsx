@@ -1578,6 +1578,24 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           WEB
         </Link>
       ) : null}
+      {currentProduct?.parent_product ? (
+        <Link
+          href={`${paths.dashboard.product.edit(currentProduct?.parent_product)}?tab=1`}
+          color="blue"
+          sx={{
+            alignItems: 'center',
+            typography: '',
+            display: 'inline-flex',
+            alignSelf: 'flex-end',
+            fontWeight: 'fontWeightBold',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            marginLeft: 3,
+          }}
+        >
+          {t('variants')}
+        </Link>
+      ) : null}
       <CardHeader title={t('preview')} />
 
       <Stack>
@@ -1762,7 +1780,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           </Grid>
         </Grid>
       ) : (
-        <ProductVariantForm currentProduct={currentProduct} />
+        <ProductVariantForm currentProduct={currentProduct} setActiveTab={setActiveTab} />
       )}
 
       {isImageGalleryOpen ? (

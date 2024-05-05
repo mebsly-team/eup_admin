@@ -36,6 +36,7 @@ import { IProductItem } from 'src/types/product';
 
 type Props = {
   currentProduct?: IProductItem;
+  setActiveTab?: () => void;
 };
 
 const styles = {
@@ -63,7 +64,7 @@ const styles = {
   },
 };
 
-export default function ProductVariantForm({ currentProduct }: Props) {
+export default function ProductVariantForm({ currentProduct, setActiveTab }: Props) {
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -184,6 +185,7 @@ export default function ProductVariantForm({ currentProduct }: Props) {
   };
 
   const handleEditClick = (id: GridRowId) => () => {
+    setActiveTab(0);
     router.push(paths.dashboard.product.edit(id));
   };
 
