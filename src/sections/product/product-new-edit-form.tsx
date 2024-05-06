@@ -1795,4 +1795,4 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   );
 }
 
-const roundUp = (num) => Math.round(num * 100) / 100;
+const roundUp = (num) => num.toFixed(4);
