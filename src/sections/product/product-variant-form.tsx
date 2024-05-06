@@ -75,15 +75,12 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
   const [currentColorValue, setCurrentColorValue] = useState('');
   const [selectedUnitValues, setSelectedUnitValues] = useState([]);
   const [currentProductVariantRows, setCurrentProductVariantRows] = useState([]);
-  console.log('currentProductVariantRows', currentProductVariantRows);
   const currentProductVariantIdList =
     currentProduct?.variants.map((item: { id: any }) => item.id) || [];
-  console.log('currentProductVariantIdList', currentProductVariantIdList);
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
   const handleKeyUp = (e: { keyCode: number; target: { value: any } }) => {
-    console.log(e.keyCode);
     if (e.keyCode === 13) {
       setColorValues((oldState) => [...oldState, e.target.value]);
       setCurrentColorValue('');
@@ -95,7 +92,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
   const handleDelete = (item: never, index: number) => {
     const arr = [...colorValues];
     arr.splice(index, 1);
-    console.log(item);
     setColorValues(arr);
   };
   const getVariants = async () => {
@@ -114,6 +110,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
         });
 
         const variantList = await Promise.all(variantPromises);
+        variantList.push(currentProduct);
         const filteredVariants = variantList.filter((variant) => variant !== null);
         setCurrentProductVariantRows(filteredVariants);
       }
@@ -157,7 +154,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
         setCurrentProductVariantRows((prevRows) => [...prevRows, newVariant]);
       }
     } catch (error) {
-      console.error('Error creating variant:', title);
       console.error('Error:', error);
       // Handle error here if needed
     } finally {
@@ -194,7 +190,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
   };
 
   const handleDeleteClick = (id: GridRowId) => async () => {
-    console.log('id', id);
     try {
       const { data } = await axiosInstance.delete(`/products/${id}/`);
       enqueueSnackbar(t('delete_success'));
@@ -289,16 +284,13 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       headerName: `${t('active')}?`,
       width: 100,
       cellClassName: 'actions',
-      getActions: ({ id, row }) => {
-        console.log('row', row);
-        return [
-          <Switch
-            size="small"
-            checked={row?.is_product_active}
-            // onChange={handleChange}
-          />,
-        ];
-      },
+      getActions: ({ id, row }) => [
+        <Switch
+          size="small"
+          checked={row?.is_product_active}
+          // onChange={handleChange}
+        />,
+      ],
     },
     {
       field: 'actions',
@@ -452,7 +444,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       </Box>
       <Box
         sx={{
-          height: 500,
+          height: 600,
           width: '100%',
           '& .actions': {
             color: 'text.secondary',
