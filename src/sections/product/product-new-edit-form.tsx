@@ -1070,10 +1070,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 );
                 setValue(
                   'variant_discount',
-                  roundUp(
-                    100 *
-                      ((parent_price_per_piece - Number(e.target.value)) / parent_price_per_piece)
-                  )
+                  currentProduct?.is_variant
+                    ? roundUp(
+                        100 *
+                          ((parent_price_per_piece - Number(e.target.value)) /
+                            parent_price_per_piece)
+                      )
+                    : 0
                 );
                 setValue(
                   'price_per_unit',
