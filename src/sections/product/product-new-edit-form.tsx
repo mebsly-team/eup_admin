@@ -3,8 +3,8 @@ import * as Yup from 'yup';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
-import { useMemo, useState, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Droppable, Draggable, DragDropContext } from 'react-beautiful-dnd';
 
 import Box from '@mui/material/Box';
@@ -37,6 +37,7 @@ import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import ImageGallery from 'src/components/imageGallery';
 import CountrySelect from 'src/components/country-select';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 import FormProvider, {
   RHFEditor,
   RHFSelect,
@@ -76,6 +77,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [activeTab, setActiveTab] = useState(tab || 0);
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
   const [isBrandEdit, setBrandEdit] = useState(false);
+  const [isDeleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
   const [brandList, setBrandList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [isSupplierEdit, setSupplierEdit] = useState(false);
@@ -394,6 +396,19 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       }
     }
   });
+
+  const handleDeleteProduct = useCallback(
+    async (id: string) => {
+      try {
+        const { data } = await axiosInstance.delete(`/products/${id}/`);
+        enqueueSnackbar(t('delete_success'));
+        router.push(paths.dashboard.product.root);
+      } catch (error) {
+        enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+      }
+    },
+    [enqueueSnackbar, router, t]
+  );
 
   const renderTabs = (
     <Tabs
@@ -1523,6 +1538,16 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           <LoadingButton
             type="button"
             variant="contained"
+            color="warning"
+            size="large"
+            loading={isSubmitting}
+            onClick={() => setDeleteConfirmDialogOpen(true)}
+          >
+            {t('delete')}
+          </LoadingButton>
+          <LoadingButton
+            type="button"
+            variant="contained"
             size="large"
             loading={isSubmitting}
             onClick={() => handleActionClick('save_stay')}
@@ -1792,6 +1817,23 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           onClose={() => setImageGalleryOpen(false)}
           onSelect={handleSelectImage}
           name={getValues('ean')}
+        />
+      ) : null}
+      {isDeleteConfirmDialogOpen ? (
+        <ConfirmDialog
+          open={isDeleteConfirmDialogOpen}
+          onClose={() => setDeleteConfirmDialogOpen(false)}
+          title={t('delete')}
+          content={t('sure_delete')}
+          action={
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => handleDeleteProduct(currentProduct?.id)}
+            >
+              {t('delete')}
+            </Button>
+          }
         />
       ) : null}
     </FormProvider>
