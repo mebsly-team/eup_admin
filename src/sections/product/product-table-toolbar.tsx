@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import { useSnackbar } from 'notistack';
-import { useState, useCallback } from 'react'; // Import debounce function
+import { useState, useCallback, useEffect } from 'react'; // Import debounce function
 
 import Stack from '@mui/material/Stack';
 import { Autocomplete } from '@mui/material';
@@ -42,7 +42,6 @@ export default function UserTableToolbar({
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [categoryList, setCategoryList] = useState<IProductItem[]>([]);
   const [value, setValue] = useState<string | null>();
-  console.log('value', value);
 
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false); // State for the spinner
 
@@ -50,10 +49,15 @@ export default function UserTableToolbar({
 
   const getAllCategories = async () => {
     setIsCategoriesLoading(true);
-    const { data } = await axiosInstance.get(`/categories/`);
+    const { data } = await axiosInstance.get(`/categories/?short=true`);
     setCategoryList(data || []);
     setIsCategoriesLoading(false);
   };
+
+  useEffect(() => {
+    if (!categoryList?.length) getAllCategories();
+  }, [categoryList]);
+
   // Debounce the search filter function
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
@@ -139,25 +143,24 @@ export default function UserTableToolbar({
             <MenuItem value="passive">{t('inactive')}</MenuItem>
           </Select>
         </FormControl>
-        {categoryList?.length > 0 && (
-          <Autocomplete
-            onClick={() => getAllCategories()}
-            fullWidth
-            options={categoryList}
-            getOptionLabel={(option) => option.name}
-            renderInput={(params) => <TextField {...params} label={t('category')} margin="none" />}
-            renderOption={(props, option) => (
-              <li {...props} key={option.name}>
-                {option.name}
-              </li>
-            )}
-            onChange={(event: any, newValue: any) => {
-              console.log('newValue', newValue);
-              setValue(newValue);
-              handleFilterCategory(newValue);
-            }}
-          />
-        )}
+        <Autocomplete
+          onClick={() => getAllCategories()}
+          fullWidth
+          options={categoryList}
+          getOptionLabel={(option) => option.name}
+          renderInput={(params) => <TextField {...params} label={t('category')} margin="none" />}
+          renderOption={(props, option) => (
+            <li {...props} key={option.name}>
+              {option.name}
+            </li>
+          )}
+          onChange={(event: any, newValue: any) => {
+            console.log('newValue', newValue);
+            setValue(newValue);
+            handleFilterCategory(newValue);
+          }}
+        />
+
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
