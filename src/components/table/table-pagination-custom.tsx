@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import { Button } from '@mui/material';
 import Select from '@mui/material/Select';
-import { Input, Button } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Pagination from '@mui/material/Pagination';
 import { Theme, SxProps } from '@mui/material/styles';
 import { TablePaginationProps } from '@mui/material/TablePagination';
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -27,27 +28,27 @@ export default function TablePaginationCustom({
   sx,
   ...other
 }: Props & TablePaginationProps) {
-  const [goToPage, setGoToPage] = useState();
+  const [goToPage, setGoToPage] = useState(page + 1);
+
   useEffect(() => {
     setGoToPage(page + 1);
   }, [page]);
-  const handleChangeRowsPerPage = (event) => {
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     onRowsPerPageChange(event);
   };
 
-  const handleGoToPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (event.key === 'Enter') {
-      if (!isNaN(value) && value > 0 && value <= Math.ceil(count / rowsPerPage)) {
-        onPageChange(null, value - 1);
-      }
+  const handleGoToPageChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const value = event.target.value as number;
+    if (!isNaN(value) && value > 0 && value <= Math.ceil(count / rowsPerPage)) {
+      onPageChange(null, value - 1);
     } else {
       setGoToPage(value);
     }
   };
 
-  const handleGoToPage = (e) => {
-    onPageChange(e, goToPage - 1);
+  const handleGoToPage = () => {
+    onPageChange(null, goToPage - 1);
   };
 
   return (
@@ -70,18 +71,31 @@ export default function TablePaginationCustom({
         />
       ) : null}
 
-      <Box>
-        <Input
-          type="number"
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Button
+          variant="text"
+          onClick={handleGoToPage}
+          sx={{ minWidth: 0, width: '40px', p: 0, mr: 1 }}
+        >
+          Pagina
+        </Button>
+        <Select
+          size="small"
+          InputLabelProps={{ shrink: true }}
           value={goToPage}
           onChange={handleGoToPageChange}
-          onKeyDown={handleGoToPageChange}
-          sx={{ width: '25px', textAlign: 'right' }}
-        />
-        <Button variant="text" onClick={handleGoToPage} sx={{ minWidth: 0, width: '40px', p: 0 }}>
-          Ga
-        </Button>
+          sx={{ height: '30px', width: '75px', textAlign: 'center' }}
+        >
+          {Array.from({ length: Math.ceil(count / rowsPerPage) }, (_, index) => index + 1).map(
+            (pageNumber) => (
+              <MenuItem key={pageNumber} value={pageNumber}>
+                {pageNumber}
+              </MenuItem>
+            )
+          )}
+        </Select>
       </Box>
+
       <Select
         value={rowsPerPage}
         onChange={handleChangeRowsPerPage}
