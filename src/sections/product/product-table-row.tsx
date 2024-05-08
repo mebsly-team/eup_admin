@@ -33,6 +33,7 @@ type Props = {
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
   onEditStock: VoidFunction;
+  handleLightBoxSlides: VoidFunction;
 };
 
 export default function ProductTableRow({
@@ -42,6 +43,7 @@ export default function ProductTableRow({
   onSelectRow,
   onDeleteRow,
   onEditStock,
+  handleLightBoxSlides,
 }: Props) {
   const {
     id,
@@ -103,6 +105,10 @@ export default function ProductTableRow({
       });
     }
   };
+  const handleImageClick = (e) => {
+    e.stopPropagation();
+    handleLightBoxSlides(images);
+  };
   return (
     <>
       <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
@@ -110,7 +116,7 @@ export default function ProductTableRow({
           <Checkbox checked={selected} onClick={onSelectRowClick} />
         </TableCell>
 
-        <TableCell sx={{ p: 1, display: 'flex', alignItems: 'center' }}>
+        <TableCell sx={{ p: 1, display: 'flex', alignItems: 'center' }} onClick={handleImageClick}>
           <Image alt={title} src={images?.[0]} sx={{ maxWidth: '150px', maxHeight: '150px' }} />
         </TableCell>
 

@@ -1,4 +1,6 @@
 import isEqual from 'lodash/isEqual';
+import 'yet-another-react-lightbox/styles.css';
+import Lightbox from 'yet-another-react-lightbox';
 import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
@@ -50,7 +52,6 @@ import { IProductItem, IProductTableFilters, IProductTableFilterValue } from 'sr
 import ProductTableRow from '../product-table-row';
 import ProductTableToolbar from '../product-table-toolbar';
 import ProductTableFiltersResult from '../product-table-filters-result';
-
 // ----------------------------------------------------------------------
 
 const defaultFilters: IProductTableFilters = {
@@ -77,7 +78,17 @@ export default function ProductListView() {
   const [filters, setFilters] = useState(defaultFilters);
   const { t, onChangeLang } = useTranslate();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
-
+  const [openLightBox, setOpenLightBox] = useState(false);
+  const [lightBoxSlides, setLightBoxSlides] = useState();
+  const handleLightBoxSlides = useCallback((images) => {
+    if (images.length) {
+      setOpenLightBox(true);
+      const slides = images.map((img) => ({
+        src: img,
+      }));
+      setLightBoxSlides(slides);
+    }
+  }, []);
   const TABLE_HEAD = [
     { id: 'image', label: t('image') },
     { id: 'title', label: t('title'), hideOnMd: true },
@@ -295,6 +306,7 @@ export default function ProductListView() {
                           onDeleteRow={() => handleDeleteRow(row.id)}
                           onEditRow={() => handleEditRow(row.id)}
                           onEditStock={() => handleUpdateStock(row)}
+                          handleLightBoxSlides={handleLightBoxSlides}
                         />
                       ))}
 
@@ -388,6 +400,7 @@ export default function ProductListView() {
           </DialogActions>
         </Dialog>
       ) : null}
+      <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
     </>
   );
 }
