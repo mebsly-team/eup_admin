@@ -65,6 +65,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   console.log('currentProduct', currentProduct);
   const router = useRouter();
   const location = useLocation();
+  const isNewProduct = location?.pathname?.includes('/new');
   let activeAction = '';
 
   // Now you can access query parameters from the location object
@@ -1774,7 +1775,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     </Grid>
   );
 
-  if (!currentProduct)
+  if (!isNewProduct && !currentProduct)
     return (
       <div style={{ textAlign: 'center' }}>
         <Iconify icon="svg-spinners:8-dots-rotate" />
