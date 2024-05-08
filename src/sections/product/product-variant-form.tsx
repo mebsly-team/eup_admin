@@ -29,7 +29,6 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 
-import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 
 import { IProductItem } from 'src/types/product';
@@ -232,7 +231,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       width: 80,
       align: 'left',
       headerAlign: 'left',
-      editable: true,
+      editable: false,
       renderCell: (params: GridCellParams) => t(params.value),
     },
     {
@@ -242,7 +241,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       width: 80,
       align: 'left',
       headerAlign: 'left',
-      editable: true,
+      editable: false,
     },
     {
       field: 'unit',
@@ -251,7 +250,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       width: 100,
       align: 'left',
       headerAlign: 'left',
-      editable: true,
+      editable: false,
       renderCell: (params: GridCellParams) => t(params.value),
     },
     {
@@ -261,20 +260,20 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       width: 140,
       align: 'left',
       headerAlign: 'left',
-      editable: true,
+      editable: false,
     },
     {
       field: 'price_per_piece',
       headerName: t('price_per_piece'),
       // type: 'date',
       width: 100,
-      editable: true,
+      editable: false,
     },
     // {
     //   field: 'role',
     //   headerName: 'Department',
     //   width: 220,
-    //   editable: true,
+    //   editable: false,
     //   type: 'singleSelect',
     //   valueOptions: ['Market', 'Finance', 'Development'],
     // },
@@ -339,6 +338,8 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       },
     },
   ];
+
+  const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
   return (
     <>
@@ -440,7 +441,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
           <Button onClick={createVariants} color="primary">
             {t('generate')}
           </Button>
-        </Box>
+        </Box>{' '}
       </Box>
       <Box
         sx={{
@@ -452,21 +453,22 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
           '& .textPrimary': {
             color: 'text.primary',
           },
+          '& .variant-row': {
+            backgroundColor: 'grey',
+            pointerEvents: 'none',
+          },
         }}
       >
-        {isLoading ? (
-          <Iconify icon="svg-spinners:8-dots-rotate" sx={{ mr: -3 }} />
-        ) : (
-          <DataGrid
-            rows={currentProductVariantRows}
-            columns={columns}
-            editMode="row"
-            rowModesModel={rowModesModel}
-            onRowModesModelChange={handleRowModesModelChange}
-            onRowEditStop={handleRowEditStop}
-            processRowUpdate={processRowUpdate}
-          />
-        )}
+        <DataGrid
+          rows={currentProductVariantRows}
+          columns={columns}
+          editMode="row"
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          processRowUpdate={processRowUpdate}
+          getRowClassName={getRowClassName}
+        />
       </Box>
     </>
   );
