@@ -95,6 +95,7 @@ export default function ProductTableRow({
     try {
       const response = await axiosInstance.put(`/products/${id}/`, {
         is_product_active: e.target.checked,
+        title,
       });
       setIsActive(response?.data?.is_product_active ?? isActive);
     } catch (error) {
