@@ -812,7 +812,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                           minWidth: '150px',
                           textAlign: 'center',
                         }}
-                        onClick={() => handleLightBoxSlides(getValues('images'))}
                       >
                         <img
                           src={item}
@@ -823,6 +822,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                             objectFit: 'cover',
                             maxHeight: '200px',
                           }}
+                          onClick={() => handleLightBoxSlides(getValues('images'))}
                         />
 
                         <IconButton
