@@ -116,8 +116,11 @@ export default function ProductTableRow({
           <Checkbox checked={selected} onClick={onSelectRowClick} />
         </TableCell>
 
-        <TableCell sx={{ p: 1, display: 'flex', alignItems: 'center' }} onClick={handleImageClick}>
-          <Image alt={title} src={images?.[0]} sx={{ maxWidth: '150px', maxHeight: '150px' }} />
+        <TableCell
+          sx={{ p: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={handleImageClick}
+        >
+          <Image alt={title} src={images?.[0]} sx={{ width: 'auto', height: '50px' }} />
         </TableCell>
 
         <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
