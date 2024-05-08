@@ -3,6 +3,8 @@ import * as Yup from 'yup';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
+import 'yet-another-react-lightbox/styles.css';
+import Lightbox from 'yet-another-react-lightbox';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Droppable, Draggable, DragDropContext } from 'react-beautiful-dnd';
@@ -68,7 +70,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   // Now you can access query parameters from the location object
   const queryParams = new URLSearchParams(location.search);
   const tab = queryParams.get('tab');
-
+  const [openLightBox, setOpenLightBox] = useState(false);
+  const [lightBoxSlides, setLightBoxSlides] = useState();
+  const handleLightBoxSlides = useCallback((images) => {
+    if (images.length) {
+      setOpenLightBox(true);
+      const slides = images.map((img) => ({
+        src: img,
+      }));
+      setLightBoxSlides(slides);
+    }
+  }, []);
   const mdUp = useResponsive('up', 'md');
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -799,6 +811,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                           minWidth: '150px',
                           textAlign: 'center',
                         }}
+                        onClick={() => handleLightBoxSlides(getValues('images'))}
                       >
                         <img
                           src={item}
@@ -1836,6 +1849,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           }
         />
       ) : null}
+      <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
     </FormProvider>
   );
 }
