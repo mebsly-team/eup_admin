@@ -56,11 +56,6 @@ export default function ProductTableFiltersResult({
             <Chip size="small" label={filters.is_product_active} onDelete={handleRemoveActive} />
           </Block>
         )}
-        {!!filters.name && (
-          <Block label="Keyword:">
-            <Chip label={filters.name} size="small" onDelete={handleRemoveKeyword} />
-          </Block>
-        )}
         {!!filters.category && (
           <Block label="Keyword:">
             <Chip
@@ -70,13 +65,20 @@ export default function ProductTableFiltersResult({
             />
           </Block>
         )}
-        <Button
-          color="error"
-          onClick={onResetFilters}
-          startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-        >
-          Clear
-        </Button>
+        {!!filters.name && (
+          <Block label="Keyword:">
+            <Chip label={filters.name} size="small" onDelete={handleRemoveKeyword} />
+          </Block>
+        )}
+        {(filters.is_product_active !== 'all' || filters.category || !!filters.name) && (
+          <Button
+            color="error"
+            onClick={onResetFilters}
+            startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+          >
+            Clear
+          </Button>
+        )}
       </Stack>
     </Stack>
   );

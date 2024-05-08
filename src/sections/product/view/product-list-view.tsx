@@ -1,5 +1,5 @@
-import isEqual from 'lodash/isEqual';
 import 'yet-another-react-lightbox/styles.css';
+import { useLocation } from 'react-router-dom';
 import Lightbox from 'yet-another-react-lightbox';
 import { useState, useEffect, useCallback } from 'react';
 
@@ -54,27 +54,33 @@ import ProductTableToolbar from '../product-table-toolbar';
 import ProductTableFiltersResult from '../product-table-filters-result';
 // ----------------------------------------------------------------------
 
-const defaultFilters: IProductTableFilters = {
-  is_product_active: 'all',
-  name: undefined,
-  title: '',
-  description: '',
-  ean: '',
-};
-
 // ----------------------------------------------------------------------
 
 export default function ProductListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable({ defaultCurrentPage: Number(localStorage?.getItem('pageNo')) });
   const settings = useSettingsContext();
   const router = useRouter();
+  const location = useLocation();
+  console.log('location', location)
+  const queryParams = new URLSearchParams(location.search);
+  const table = useTable({ defaultCurrentPage: Number(queryParams.get('page') || 1) - 1 });
+
   const confirm = useBoolean();
   const [productList, setProductList] = useState<IProductItem[]>([]);
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IProductItem[]>(productList);
   const [isStockUpdateDialogOpen, setStockUpdateDialogOpen] = useState(false);
   const [selectedSingleRow, setSelectedSingleRow] = useState();
+
+  const defaultFilters: IProductTableFilters = {
+    is_product_active: queryParams.get('is_product_active') || 'all',
+    name: queryParams.get('name') || '',
+    category:
+      (queryParams.get('category') &&
+        queryParams.get('category') !== 'undefined' &&
+        queryParams.get('category')) ||
+      '',
+  };
   const [filters, setFilters] = useState(defaultFilters);
   const { t, onChangeLang } = useTranslate();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
@@ -114,10 +120,6 @@ export default function ProductListView() {
   };
   const denseHeight = table.dense ? 56 : 56 + 20;
 
-  const canReset = !isEqual(defaultFilters, filters);
-
-  const notFound = (!productList?.length && canReset) || !productList?.length;
-
   useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
@@ -147,17 +149,28 @@ export default function ProductListView() {
 
   const handleFilters = useCallback(
     (name: string, value: IProductTableFilterValue) => {
-      table.onResetPage();
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.set(name, value);
+      if (name !== 'page') newSearchParams.set('page', '1');
+      table.onChangePage(null, 0);
+
+      // table.onResetPage();
+      router.push(`${location.pathname}?${newSearchParams.toString()}`);
       setFilters((prevState) => ({
         ...prevState,
         [name]: value,
       }));
     },
-    [table]
+    [location.pathname, location.search, router, table]
   );
 
   const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
+    setFilters({
+      is_product_active: 'all',
+      name: '',
+      category: '',
+    });
+    router.push(`${location.pathname}`);
   }, []);
 
   const handleDeleteRow = useCallback(
@@ -210,7 +223,7 @@ export default function ProductListView() {
     setStockUpdateDialogOpen(true);
   }, []);
   const handleTablePageChange = useCallback((e, pageNo) => {
-    localStorage.setItem('pageNo', pageNo);
+    handleFilters('page', pageNo + 1);
     table.onChangePage(e, pageNo);
   }, []);
 
@@ -240,19 +253,17 @@ export default function ProductListView() {
         />
 
         <Card>
-          <ProductTableToolbar filters={filters} onFilters={handleFilters} />
+          <ProductTableToolbar filters={filters} onFilters={handleFilters} roleOptions={[]} />
 
-          {canReset && (
-            <ProductTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={productList?.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
+          <ProductTableFiltersResult
+            filters={filters}
+            onFilters={handleFilters}
+            //
+            onResetFilters={handleResetFilters}
+            //
+            results={productList?.length}
+            sx={{ p: 2.5, pt: 0 }}
+          />
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction

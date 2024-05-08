@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import { useSnackbar } from 'notistack';
-import { useState, useCallback, useEffect } from 'react'; // Import debounce function
+import { useState, useEffect, useCallback } from 'react'; // Import debounce function
 
 import Stack from '@mui/material/Stack';
 import { Autocomplete } from '@mui/material';
@@ -45,7 +45,7 @@ export default function UserTableToolbar({
 
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false); // State for the spinner
 
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>(filters.name);
 
   const getAllCategories = async () => {
     setIsCategoriesLoading(true);
@@ -144,7 +144,6 @@ export default function UserTableToolbar({
           </Select>
         </FormControl>
         <Autocomplete
-          onClick={() => getAllCategories()}
           fullWidth
           options={categoryList}
           getOptionLabel={(option) => option.name}
@@ -154,8 +153,8 @@ export default function UserTableToolbar({
               {option.name}
             </li>
           )}
+          value={categoryList.find((category) => category.id === Number(filters.category)) || null}
           onChange={(event: any, newValue: any) => {
-            console.log('newValue', newValue);
             setValue(newValue);
             handleFilterCategory(newValue);
           }}

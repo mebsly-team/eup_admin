@@ -369,7 +369,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         // Do nothing, stay on the same page
       } else if (activeAction === 'save_back') {
         if (currentProduct?.is_variant) setActiveTab(1);
-        else router.push(paths.dashboard.product.root);
+        else router.back();
       }
     } catch (error) {
       if (error.response && error.response.data && error.response.data.errors) {
