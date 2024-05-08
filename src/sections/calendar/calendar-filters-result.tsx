@@ -49,7 +49,7 @@ export default function CalendarFiltersResult({
       <Box sx={{ typography: 'body2' }}>
         <strong>{results}</strong>
         <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-          results found
+          resultaten gevonden
         </Box>
       </Box>
 

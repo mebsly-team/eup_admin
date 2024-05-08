@@ -34,7 +34,6 @@ export default function CategoryTableFiltersResult({
     onFilters('name', '');
   }, [onFilters]);
 
-
   const handleRemoveRole = useCallback(
     (inputValue: string) => {
       const newValue = filters.role.filter((item) => item !== inputValue);
@@ -49,7 +48,7 @@ export default function CategoryTableFiltersResult({
       <Box sx={{ typography: 'body2' }}>
         <strong>{results}</strong>
         <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-          results found
+          resultaten gevonden
         </Box>
       </Box>
 
