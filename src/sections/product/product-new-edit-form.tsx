@@ -272,7 +272,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     setValue,
     handleSubmit,
     getValues,
-    formState: { isSubmitting, isDirty, errors },
+    formState: { isSubmitting, isDirty, errors, ...rest2 },
     ...rest
   } = methods;
   const values = watch();
@@ -1543,7 +1543,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           variant="contained"
           size="large"
           loading={isSubmitting}
-          onClick={() => handleActionClick('save_stay')}
+          onClick={() => handleActionClick('save_back')}
         >
           {t('create_product')}
         </LoadingButton>
