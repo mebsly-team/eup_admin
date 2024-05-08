@@ -1706,7 +1706,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   ) : null;
 
   const renderStock = (
-    <Grid xs={12} sx={{ pointerEvents: 'none' }}>
+    <Grid
+      xs={12}
+      // sx={{ pointerEvents: 'none' }}
+    >
       <Card>
         <CardHeader title={t('stock')} />
         <Stack spacing={3} sx={{ p: 3 }}>
