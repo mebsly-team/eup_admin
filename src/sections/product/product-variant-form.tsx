@@ -226,7 +226,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
   };
 
   const columns: GridColDef[] = [
-    { field: 'title', headerName: 'Title', width: 400, editable: false },
+    { field: 'title', headerName: 'Title', width: 300, editable: false, fontSize: 8 },
     {
       field: 'color',
       headerName: t('color'),
@@ -272,6 +272,13 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       width: 100,
       editable: false,
     },
+    {
+      field: 'free_stock',
+      headerName: t('Voorraad'),
+      // type: 'date',
+      width: 80,
+      editable: false,
+    },
     // {
     //   field: 'role',
     //   headerName: 'Department',
@@ -300,7 +307,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       headerName: 'Actions',
       width: 100,
       cellClassName: 'actions',
-      getActions: ({ id }) => {
+      getActions: ({ id, row }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
 
         if (isInEditMode) {
@@ -323,21 +330,31 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
           ];
         }
 
-        return [
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            className="textPrimary"
-            onClick={handleEditClick(id)}
-            color="inherit"
-          />,
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleDeleteClick(id)}
-            color="inherit"
-          />,
-        ];
+        return row.is_variant
+          ? [
+              <GridActionsCellItem
+                icon={<EditIcon />}
+                label="Edit"
+                className="textPrimary"
+                onClick={handleEditClick(id)}
+                color="inherit"
+              />,
+              <GridActionsCellItem
+                icon={<DeleteIcon />}
+                label="Delete"
+                onClick={handleDeleteClick(id)}
+                color="inherit"
+              />,
+            ]
+          : [
+              <GridActionsCellItem
+                icon={<EditIcon />}
+                label="Edit"
+                className="textPrimary"
+                onClick={handleEditClick(id)}
+                color="inherit"
+              />,
+            ];
       },
     },
   ];
@@ -347,33 +364,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
   if (isLoading) return <Iconify icon="svg-spinners:8-dots-rotate" />;
   return (
     <>
-      <Box
-        sx={{
-          height: 600,
-          width: '100%',
-          '& .actions': {
-            color: 'text.secondary',
-          },
-          '& .textPrimary': {
-            color: 'text.primary',
-          },
-          '& .variant-row': {
-            backgroundColor: 'grey',
-            // pointerEvents: 'none',
-          },
-        }}
-      >
-        <DataGrid
-          rows={currentProductVariantRows}
-          columns={columns}
-          editMode="row"
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          getRowClassName={getRowClassName}
-        />
-      </Box>
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
         <Typography sx={{ mb: 2 }}>{t('selectVariantType')}</Typography>
         <Box
@@ -472,7 +462,35 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
           <Button onClick={createVariants} color="primary">
             {t('generate')}
           </Button>
-        </Box>{' '}
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          height: 600,
+          width: '100%',
+          '& .actions': {
+            color: 'text.secondary',
+          },
+          '& .textPrimary': {
+            color: 'text.primary',
+          },
+          '& .variant-row': {
+            backgroundColor: 'grey',
+            // pointerEvents: 'none',
+          },
+        }}
+      >
+        <DataGrid
+          rows={currentProductVariantRows}
+          columns={columns}
+          editMode="row"
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          processRowUpdate={processRowUpdate}
+          getRowClassName={getRowClassName}
+          hideFooterPagination
+        />
       </Box>
     </>
   );
