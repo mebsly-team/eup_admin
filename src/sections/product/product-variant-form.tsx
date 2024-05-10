@@ -135,6 +135,8 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       title,
       is_variant: true,
       parent_product: currentProduct?.id,
+      extra_location: currentProduct?.extra_location,
+      location: currentProduct?.location,
       color: value1?.replace(/\s+/g, '%'),
       size: value2?.replace(/\s+/g, '%'),
       unit: unitValue,
