@@ -95,6 +95,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [supplierList, setSupplierList] = useState([]);
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
+  const parent_max_order_allowed_per_unit = Number(
+    currentProduct?.parent_max_order_allowed_per_unit || 0
+  );
 
   const getAllSuppliers = async () => {
     const { data } = await axiosInstance.get(`/suppliers/`);
@@ -213,7 +216,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       stock_alert: currentProduct?.stock_alert || false,
       stock_disable_when_sold_out: currentProduct?.stock_disable_when_sold_out || false,
       */
-
       max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
       delivery_time: currentProduct?.delivery_time || '',
       important_information: currentProduct?.important_information || '',
@@ -661,6 +663,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             </RHFSelect>
 
             <RHFTextField
+              disabled={['box', 'pallet_full', 'pallet_layer'].includes(currentProduct?.unit)}
               name="max_order_allowed_per_unit"
               label={t('max_order_allowed_per_unit')}
               type="number"
@@ -1027,6 +1030,20 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   e.target.value !== '' ? Number(e.target.value) : e.target.value
                 );
                 setValue(
+                  'variant_discount',
+                  currentProduct?.is_variant
+                    ? (
+                        100 *
+                        ((parent_price_per_piece -
+                          (Number(e.target.value) +
+                            (Number(e.target.value) *
+                              Number(getValues('supplier').percentage_to_add)) /
+                              100)) /
+                          parent_price_per_piece)
+                      ).toFixed(2)
+                    : 0
+                );
+                setValue(
                   'price_per_piece',
                   roundUp(
                     Number(e.target.value) +
@@ -1100,6 +1117,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 setValue(
                   'price_consumers',
                   roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
+                );
+                setValue(
+                  'max_order_allowed_per_unit',
+                  Math.round(parent_max_order_allowed_per_unit / Number(e.target.value))
                 );
               }}
               InputLabelProps={{ shrink: true }}
