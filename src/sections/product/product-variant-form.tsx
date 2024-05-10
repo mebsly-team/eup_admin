@@ -29,6 +29,7 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 
+import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 
 import { IProductItem } from 'src/types/product';
@@ -343,8 +344,36 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
 
   const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
+  if (isLoading) return <Iconify icon="svg-spinners:8-dots-rotate" />;
   return (
     <>
+      <Box
+        sx={{
+          height: 600,
+          width: '100%',
+          '& .actions': {
+            color: 'text.secondary',
+          },
+          '& .textPrimary': {
+            color: 'text.primary',
+          },
+          '& .variant-row': {
+            backgroundColor: 'grey',
+            // pointerEvents: 'none',
+          },
+        }}
+      >
+        <DataGrid
+          rows={currentProductVariantRows}
+          columns={columns}
+          editMode="row"
+          rowModesModel={rowModesModel}
+          onRowModesModelChange={handleRowModesModelChange}
+          onRowEditStop={handleRowEditStop}
+          processRowUpdate={processRowUpdate}
+          getRowClassName={getRowClassName}
+        />
+      </Box>
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
         <Typography sx={{ mb: 2 }}>{t('selectVariantType')}</Typography>
         <Box
@@ -444,33 +473,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
             {t('generate')}
           </Button>
         </Box>{' '}
-      </Box>
-      <Box
-        sx={{
-          height: 600,
-          width: '100%',
-          '& .actions': {
-            color: 'text.secondary',
-          },
-          '& .textPrimary': {
-            color: 'text.primary',
-          },
-          '& .variant-row': {
-            backgroundColor: 'grey',
-            pointerEvents: 'none',
-          },
-        }}
-      >
-        <DataGrid
-          rows={currentProductVariantRows}
-          columns={columns}
-          editMode="row"
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          getRowClassName={getRowClassName}
-        />
       </Box>
     </>
   );
