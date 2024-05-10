@@ -47,9 +47,11 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
 
   const NewSchema = Yup.object().shape({
     name: Yup.string().required(t('name_required')),
+    classification: Yup.string().required(t('classification_required')),
     supplier_code: Yup.string().required(t('supplier_code_required')),
     email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
     phone: Yup.string().required(t('phone_required')),
+    contact_person_phone: Yup.string().required(t('phone_required')),
     mobile_phone: Yup.string().required(t('phone_required')),
     // gender: Yup.string().required(t('gender_required')),
     // address: Yup.string().required(t('address_required')),
@@ -91,9 +93,6 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       contact_person_phone: currentSupplier?.contact_person_phone || null,
       contact_person_branch: currentSupplier?.contact_person_branch || null,
       contact_person_department: currentSupplier?.contact_person_department || null,
-      contact_person_address: currentSupplier?.contact_person_address || null,
-      contact_person_postcode: currentSupplier?.contact_person_postcode || null,
-      contact_person_city: currentSupplier?.contact_person_city || null,
       contact_person_country: currentSupplier?.contact_person_country || null,
       contact_person_nationality: currentSupplier?.contact_person_nationality || null,
       classification: currentSupplier?.classification || null,
@@ -251,9 +250,6 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
               <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
               <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
-              <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
-              <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
-              <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
               <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
               <RHFTextField
                 name="contact_person_department"
