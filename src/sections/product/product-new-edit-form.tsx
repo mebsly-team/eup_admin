@@ -558,7 +558,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
               <MenuItem value="rol">{t('rol')}</MenuItem>
-              {currentProduct?.is_variant && <MenuItem value="box">{t('box')}</MenuItem>}
+              <MenuItem value="box">{t('box')}</MenuItem>
               {currentProduct?.is_variant && (
                 <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
               )}
@@ -578,15 +578,33 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="white">{t('white')}</MenuItem>
               <MenuItem value="orange">{t('orange')}</MenuItem>
               <MenuItem value="gray">{t('gray')}</MenuItem>
+              <MenuItem value="cyan">{t('cyan')}</MenuItem>
+              <MenuItem value="magenta">{t('magenta')}</MenuItem>
+              <MenuItem value="turquoise">{t('turquoise')}</MenuItem>
+              <MenuItem value="gold">{t('gold')}</MenuItem>
+              <MenuItem value="silver">{t('silver')}</MenuItem>
+              <MenuItem value="lavender">{t('lavender')}</MenuItem>
+              <MenuItem value="maroon">{t('maroon')}</MenuItem>
+              <MenuItem value="teal">{t('teal')}</MenuItem>
+              <MenuItem value="navy">{t('navy')}</MenuItem>
+              <MenuItem value="indigo">{t('indigo')}</MenuItem>
+              <MenuItem value="olive">{t('olive')}</MenuItem>
+              <MenuItem value="salmon">{t('salmon')}</MenuItem>
+              <MenuItem value="peach">{t('peach')}</MenuItem>
+              <MenuItem value="violet">{t('violet')}</MenuItem>
+              <MenuItem value="coral">{t('coral')}</MenuItem>
+              <MenuItem value="lime">{t('lime')}</MenuItem>
+              <MenuItem value="beige">{t('beige')}</MenuItem>
+              <MenuItem value="khaki">{t('khaki')}</MenuItem>
+              <MenuItem value="azure">{t('azure')}</MenuItem>
+              <MenuItem value="orchid">{t('orchid')}</MenuItem>
+              <MenuItem value="crimson">{t('crimson')}</MenuItem>
+              <MenuItem value="fuchsia">{t('fuchsia')}</MenuItem>
+              <MenuItem value="ivory">{t('ivory')}</MenuItem>
+              <MenuItem value="tan">{t('tan')}</MenuItem>
+              <MenuItem value="mint">{t('mint')}</MenuItem>
             </RHFSelect>
-            <RHFSelect name="size" label={t('size')}>
-              <MenuItem value="XS">XS</MenuItem>
-              <MenuItem value="S">S</MenuItem>
-              <MenuItem value="M">M</MenuItem>
-              <MenuItem value="L">L</MenuItem>
-              <MenuItem value="XL">XL</MenuItem>
-              <MenuItem value="XXL">XXL</MenuItem>
-            </RHFSelect>
+            <RHFTextField name="size" label={t('variant')} />
             <RHFTextField name="article_code" label={t('article_code')} />
             <RHFTextField name="ean" label={t('ean')} />
             <RHFTextField name="sku" label={t('sku')} />
