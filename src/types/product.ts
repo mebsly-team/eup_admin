@@ -45,7 +45,6 @@ export type IProductTableFilters = {
 export interface IProductItem {
   id: number;
   campaigns: Campaign[];
-  discounted_price: number;
   chips: string[];
   variants: any;
   image_urls: string[];

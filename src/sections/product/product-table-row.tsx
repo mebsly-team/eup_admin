@@ -52,7 +52,6 @@ export default function ProductTableRow({
     description,
     ean,
     is_product_active,
-    discounted_price,
     price_per_piece,
     overall_stock,
     free_stock,

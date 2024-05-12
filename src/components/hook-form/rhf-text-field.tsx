@@ -21,6 +21,9 @@ export default function RHFTextField({ name, helperText, type, ...other }: Props
           fullWidth
           type={type}
           value={field.value}
+          onWheelCapture={(e) => {
+            e.target.blur();
+          }}
           onChange={(event) => {
             if (type === 'number' && event.target.value !== '') {
               field.onChange(Number(event.target.value));
