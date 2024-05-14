@@ -74,7 +74,11 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
       }
     }
   };
-
+  const handleInputChange = (event, item) => {
+    const newValue = event.target.value;
+    // Update the section_data property of the corresponding item
+    item.section_data = newValue;
+  };
   return (
     <Grid container spacing={3}>
       <Grid xs={12} md={8}>
@@ -93,6 +97,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
                   id={item.id}
                   label={item.section_name}
                   defaultValue={item.section_data}
+                  onChange={(event) => handleInputChange(event, item)}
                 />
                 <Button variant="outlined" onClick={() => saveText(item)}>
                   {t('save')}
