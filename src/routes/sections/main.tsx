@@ -81,11 +81,7 @@ const LogsAccountPage = lazy(() => import('src/pages/dashboard/logs/account'));
 const LogsCreatePage = lazy(() => import('src/pages/dashboard/logs/new'));
 const LogsEditPage = lazy(() => import('src/pages/dashboard/logs/edit'));
 
-// FILE MANAGER
-const FileManagerPage = lazy(() => import('src/pages/dashboard/file-manager'));
 // APP
-
-const MailPage = lazy(() => import('src/pages/dashboard/mail'));
 const CalendarPage = lazy(() => import('src/pages/dashboard/calendar'));
 const KanbanPage = lazy(() => import('src/pages/dashboard/kanban'));
 // TEST RENDER PAGE BY ROLE
@@ -245,8 +241,6 @@ export const mainRoutes = [
           { path: ':id/edit', element: <LanguageEditPage /> },
         ],
       },
-      { path: 'file-manager', element: <FileManagerPage /> },
-      { path: 'mail', element: <MailPage /> },
       { path: 'calendar', element: <CalendarPage /> },
       { path: 'kanban', element: <KanbanPage /> },
       { path: 'permission', element: <PermissionDeniedPage /> },

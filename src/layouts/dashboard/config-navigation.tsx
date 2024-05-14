@@ -62,11 +62,11 @@ export function useNavData() {
             path: paths.dashboard.root,
             icon: ICONS.dashboard,
           },
-          {
-            title: t('analytics'),
-            path: paths.dashboard.general.analytics,
-            icon: ICONS.analytics,
-          },
+          // {
+          //   title: t('analytics'),
+          //   path: paths.dashboard.general.analytics,
+          //   icon: ICONS.analytics,
+          // },
         ],
       },
 
@@ -213,33 +213,16 @@ export function useNavData() {
             ],
           },
 
-          // LANGUAGE
-          {
-            title: t('language'),
-            path: paths.dashboard.language.root,
-            icon: ICONS.order,
-            children: [
-              { title: t('list'), path: paths.dashboard.language.root },
-              { title: t('create'), path: paths.dashboard.language.new },
-            ],
-          },
-
-
-          // FILE MANAGER
-          {
-            title: t('file_manager'),
-            path: paths.dashboard.fileManager,
-            icon: ICONS.folder,
-          },
-
-          // MAIL
-          {
-            title: t('mail'),
-            path: paths.dashboard.mail,
-            icon: ICONS.mail,
-            info: <Label color="error">+32</Label>,
-          },
-
+          // // LANGUAGE
+          // {
+          //   title: t('language'),
+          //   path: paths.dashboard.language.root,
+          //   icon: ICONS.order,
+          //   children: [
+          //     { title: t('list'), path: paths.dashboard.language.root },
+          //     { title: t('create'), path: paths.dashboard.language.new },
+          //   ],
+          // },
 
           // CALENDAR
           {
