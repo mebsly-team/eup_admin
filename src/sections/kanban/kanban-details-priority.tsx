@@ -14,7 +14,7 @@ type Props = {
 export default function KanbanDetailsPriority({ priority, onChangePriority }: Props) {
   return (
     <Stack direction="row" flexWrap="wrap" spacing={1}>
-      {['low', 'medium', 'hight'].map((option) => (
+      {['LOW', 'MEDIUM', 'HIGH'].map((option) => (
         <ButtonBase
           key={option}
           onClick={() => onChangePriority(option)}
@@ -35,19 +35,19 @@ export default function KanbanDetailsPriority({ priority, onChangePriority }: Pr
         >
           <Iconify
             icon={
-              (option === 'low' && 'solar:double-alt-arrow-down-bold-duotone') ||
-              (option === 'medium' && 'solar:double-alt-arrow-right-bold-duotone') ||
+              (option === 'LOW' && 'solar:double-alt-arrow-down-bold-duotone') ||
+              (option === 'MEDIUM' && 'solar:double-alt-arrow-right-bold-duotone') ||
               'solar:double-alt-arrow-up-bold-duotone'
             }
             sx={{
               mr: 0.5,
-              ...(option === 'low' && {
+              ...(option === 'LOW' && {
                 color: 'info.main',
               }),
-              ...(option === 'medium' && {
+              ...(option === 'MEDIUM' && {
                 color: 'warning.main',
               }),
-              ...(option === 'hight' && {
+              ...(option === 'HIGH' && {
                 color: 'error.main',
               }),
             }}

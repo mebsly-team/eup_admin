@@ -35,6 +35,7 @@ export default function KanbanTaskItem({
   sx,
   ...other
 }: Props) {
+  console.log('task', task)
   const theme = useTheme();
 
   const openDetails = useBoolean();
@@ -42,21 +43,21 @@ export default function KanbanTaskItem({
   const renderPriority = (
     <Iconify
       icon={
-        (task.priority === 'low' && 'solar:double-alt-arrow-down-bold-duotone') ||
-        (task.priority === 'medium' && 'solar:double-alt-arrow-right-bold-duotone') ||
+        (task.priority === 'LOW' && 'solar:double-alt-arrow-down-bold-duotone') ||
+        (task.priority === 'MEDIUM' && 'solar:double-alt-arrow-right-bold-duotone') ||
         'solar:double-alt-arrow-up-bold-duotone'
       }
       sx={{
         position: 'absolute',
         top: 4,
         right: 4,
-        ...(task.priority === 'low' && {
+        ...(task.priority === 'LOW' && {
           color: 'info.main',
         }),
-        ...(task.priority === 'medium' && {
+        ...(task.priority === 'MEDIUM' && {
           color: 'warning.main',
         }),
-        ...(task.priority === 'hight' && {
+        ...(task.priority === 'HIGH' && {
           color: 'error.main',
         }),
       }}
@@ -69,17 +70,7 @@ export default function KanbanTaskItem({
         p: theme.spacing(1, 1, 0, 1),
       }}
     >
-      <Box
-        component="img"
-        alt={task.attachments[0]}
-        src={task.attachments[0]}
-        sx={{
-          borderRadius: 1.5,
-          ...(openDetails.value && {
-            opacity: 0.8,
-          }),
-        }}
-      />
+      {/* <Box> RENDER DESC</Box> */}
     </Box>
   );
 
@@ -98,12 +89,9 @@ export default function KanbanTaskItem({
         <Box component="span" sx={{ mr: 1 }}>
           {task.comments.length}
         </Box>
-
-        <Iconify width={16} icon="eva:attach-2-fill" sx={{ mr: 0.25 }} />
-        <Box component="span">{task.attachments.length}</Box>
       </Stack>
 
-      <AvatarGroup
+      {/* <AvatarGroup
         sx={{
           [`& .${avatarGroupClasses.avatar}`]: {
             width: 24,
@@ -114,7 +102,7 @@ export default function KanbanTaskItem({
         {task.assignee.map((user) => (
           <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
         ))}
-      </AvatarGroup>
+      </AvatarGroup> */}
     </Stack>
   );
 
@@ -151,12 +139,12 @@ export default function KanbanTaskItem({
             }}
             {...other}
           >
-            {!!task.attachments.length && renderImg}
+            {renderImg}
 
             <Stack spacing={2} sx={{ px: 2, py: 2.5, position: 'relative' }}>
               {renderPriority}
 
-              <Typography variant="subtitle2">{task.name}</Typography>
+              <Typography variant="subtitle2">{task.title}</Typography>
 
               {renderInfo}
             </Stack>

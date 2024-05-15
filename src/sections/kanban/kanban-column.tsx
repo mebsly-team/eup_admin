@@ -141,63 +141,56 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
         onClick={openAddTask.onToggle}
         sx={{ fontSize: 14 }}
       >
-        {openAddTask.value ? 'Close' : 'Add Task'}
+        {openAddTask.value ? 'Close' : 'Taak toevoegen'}
       </Button>
     </Stack>
   );
 
   return (
-    <Draggable draggableId={column.id} index={index}>
-      {(provided, snapshot) => (
-        <Paper
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          sx={{
-            px: 2,
-            borderRadius: 2,
-            bgcolor: 'background.neutral',
-            ...(snapshot.isDragging && {
-              bgcolor: (theme) => alpha(theme.palette.grey[500], 0.24),
-            }),
-          }}
-        >
-          <Stack {...provided.dragHandleProps}>
-            <KanbanColumnToolBar
+    <Droppable droppableId={column.id} type="TASK">
+   {(provided, snapshot) => (
+    <Paper
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      sx={{
+        px: 2,
+        borderRadius: 2,
+        bgcolor: 'background.neutral',
+        ...(snapshot.isDragging && {
+          bgcolor: (theme) => alpha(theme.palette.grey[500], 0.24),
+        }),
+      }}
+    >
+      <Stack {...provided.dragHandleProps}>
+          <KanbanColumnToolBar
               columnName={column.name}
               onUpdateColumn={handleUpdateColumn}
               onClearColumn={handleClearColumn}
               onDeleteColumn={handleDeleteColumn}
             />
 
-            <Droppable droppableId={column.id} type="TASK">
-              {(dropProvided) => (
-                <Stack
-                  ref={dropProvided.innerRef}
-                  {...dropProvided.droppableProps}
-                  spacing={2}
-                  sx={{
-                    py: 3,
-                    width: 280,
-                  }}
-                >
-                  {column.taskIds.map((taskId, taskIndex) => (
-                    <KanbanTaskItem
-                      key={taskId}
-                      index={taskIndex}
-                      task={tasks[taskId]}
-                      onUpdateTask={handleUpdateTask}
-                      onDeleteTask={() => handleDeleteTask(taskId)}
-                    />
-                  ))}
-                  {dropProvided.placeholder}
-                </Stack>
-              )}
-            </Droppable>
-
-            {renderAddTask}
+        {tasks.map((item, taskIndex) => (
+          <Draggable key={item.id} draggableId={item.id} index={taskIndex}>
+            {(provided, snapshot) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+              >
+                <KanbanTaskItem
+                  task={item}
+                  onDeleteTask={() => handleDeleteTask(item.id)}
+                />
+              </div>
+            )}
+          </Draggable>
+        ))}
+        {provided.placeholder}
+      
+        {renderAddTask}
           </Stack>
         </Paper>
-      )}
-    </Draggable>
+    )}
+  </Droppable>
   );
 }

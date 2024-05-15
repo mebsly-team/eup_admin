@@ -46,7 +46,7 @@ export default function KanbanColumnToolBar({
   }, [popover.open]);
 
   const handleChangeName = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
+    // setName(event.target.value);
   }, []);
 
   const handleKeyUpUpdateColumn = useCallback(
@@ -78,9 +78,9 @@ export default function KanbanColumnToolBar({
           onKeyUp={handleKeyUpUpdateColumn}
         />
 
-        <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+        {/* <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
           <Iconify icon="eva:more-horizontal-fill" />
-        </IconButton>
+        </IconButton> */}
       </Stack>
 
       <CustomPopover

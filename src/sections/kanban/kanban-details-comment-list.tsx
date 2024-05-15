@@ -4,7 +4,6 @@ import Typography from '@mui/material/Typography';
 
 import { fToNow } from 'src/utils/format-time';
 
-import Image from 'src/components/image';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
 
 import { IKanbanComment } from 'src/types/kanban';
@@ -37,31 +36,14 @@ export default function KanbanDetailsCommentList({ comments }: Props) {
           <Stack key={comment.id} direction="row" spacing={2}>
             <Avatar src={comment.avatarUrl} />
 
-            <Stack spacing={comment.messageType === 'image' ? 1 : 0.5} flexGrow={1}>
+            <Stack spacing={0.5}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography variant="subtitle2"> {comment.name}</Typography>
                 <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                  {fToNow(comment.createdAt)}
+                  {fToNow(comment.datetime)}
                 </Typography>
               </Stack>
 
-              {comment.messageType === 'image' ? (
-                <Image
-                  alt={comment.message}
-                  src={comment.message}
-                  onClick={() => lightbox.onOpen(comment.message)}
-                  sx={{
-                    borderRadius: 1.5,
-                    cursor: 'pointer',
-                    transition: (theme) => theme.transitions.create(['opacity']),
-                    '&:hover': {
-                      opacity: 0.8,
-                    },
-                  }}
-                />
-              ) : (
-                <Typography variant="body2">{comment.message}</Typography>
-              )}
+              <Typography variant="body2">{comment.comment}</Typography>
             </Stack>
           </Stack>
         ))}

@@ -16,17 +16,19 @@ const options = {
 };
 
 export function useGetBoard() {
-  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher, options);
+  const BASE_URL = '/kanban/';
+
+  const { data, isLoading, error, isValidating } = useSWR(BASE_URL, fetcher, options);
 
   const memoizedValue = useMemo(
     () => ({
-      board: data?.board as IKanban,
+      board: data as IKanban,
       boardLoading: isLoading,
       boardError: error,
       boardValidating: isValidating,
-      boardEmpty: !isLoading && !data?.board.ordered.length,
+      boardEmpty: !isLoading && !data?.length,
     }),
-    [data?.board, error, isLoading, isValidating]
+    [data, error, isLoading, isValidating]
   );
 
   return memoizedValue;

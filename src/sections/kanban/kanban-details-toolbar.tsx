@@ -75,21 +75,21 @@ export default function KanbanDetailsToolbar({
         </Button>
 
         <Stack direction="row" justifyContent="flex-end" flexGrow={1}>
-          <Tooltip title="Like">
+          {/* <Tooltip title="Like">
             <IconButton color={liked ? 'default' : 'primary'} onClick={onLike}>
               <Iconify icon="ic:round-thumb-up" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
 
           <Tooltip title="Delete task">
             <IconButton onClick={confirm.onTrue}>
               <Iconify icon="solar:trash-bin-trash-bold" />
             </IconButton>
           </Tooltip>
-
+          {/* 
           <IconButton>
             <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
+          </IconButton> */}
         </Stack>
       </Stack>
 

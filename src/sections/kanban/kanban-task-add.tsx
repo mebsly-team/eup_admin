@@ -77,7 +77,7 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
           autoFocus
           multiline
           fullWidth
-          placeholder="Task name"
+          placeholder="Taaknaam"
           value={name}
           onChange={handleChangeName}
           onKeyUp={handleKeyUpAddTask}
