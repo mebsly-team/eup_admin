@@ -83,7 +83,7 @@ export const paths = {
     general: {
       ecommerce: `${ROOTS.DASHBOARD}/ecommerce`,
       analytics: `${ROOTS.DASHBOARD}/analytics`,
-      file: `${ROOTS.DASHBOARD}/file`,
+      // file: `${ROOTS.DASHBOARD}/file`,
     },
     user: {
       root: `${ROOTS.DASHBOARD}/user`,

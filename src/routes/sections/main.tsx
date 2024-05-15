@@ -18,7 +18,6 @@ const MaintenancePage = lazy(() => import('src/pages/maintenance'));
 // OVERVIEW
 const OverviewEcommercePage = lazy(() => import('src/pages/dashboard/ecommerce'));
 const OverviewAnalyticsPage = lazy(() => import('src/pages/dashboard/analytics'));
-const OverviewFilePage = lazy(() => import('src/pages/dashboard/file'));
 // PRODUCT
 
 const ProductListPage = lazy(() => import('src/pages/dashboard/product/list'));
