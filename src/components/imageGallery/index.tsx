@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react'; // Import debounce function
+
+import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,10 +13,12 @@ import Typography from '@mui/material/Typography';
 import Pagination from '@mui/material/Pagination';
 import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
+import QRCodeIcon from '@mui/icons-material/QrCode';
 import ListItemText from '@mui/material/ListItemText';
 import { alpha, useTheme } from '@mui/material/styles';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import axiosInstance from 'src/utils/axios';
 
@@ -50,11 +54,20 @@ export default function ImageGallery({
   const [totalItems, setTotalItems] = useState(0);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const { t, onChangeLang } = useTranslate();
+  const [qrReaderOpen, setQRReaderOpen] = useState(false);
 
   useEffect(() => {
     getAll();
   }, [searchQuery, currentPage]);
-
+  const handleToggleQRReader = () => {
+    setQRReaderOpen(!qrReaderOpen);
+  };
+  const handleScanQRCode = (data: SetStateAction<string>) => {
+    if (data) {
+      setSearchQuery(data);
+      setQRReaderOpen(false);
+    }
+  };
   const getAll = async () => {
     const searchFilter = searchQuery ? `&search=${searchQuery}` : '';
     const offset = (currentPage - 1) * itemsPerPage;
@@ -162,7 +175,26 @@ export default function ImageGallery({
             InputLabelProps={{ shrink: true }}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <QRCodeIcon onClick={handleToggleQRReader} style={{ cursor: 'pointer' }} />
+                </InputAdornment>
+              ),
+            }}
           />
+          {qrReaderOpen && (
+            <BarcodeScannerComponent
+              onUpdate={(err, result) => {
+                if (result) handleScanQRCode(result.text);
+              }}
+            />
+          )}
         </Box>
 
         <Grid container spacing={2}>

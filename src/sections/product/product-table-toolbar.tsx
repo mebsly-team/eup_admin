@@ -1,17 +1,19 @@
 import debounce from 'lodash.debounce';
 import { useSnackbar } from 'notistack';
-import { useState, useEffect, useCallback } from 'react'; // Import debounce function
+import { useState, useEffect, useCallback, SetStateAction } from 'react'; // Import debounce function
+import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 
 import Stack from '@mui/material/Stack';
-import { Autocomplete } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
+import QRCodeIcon from '@mui/icons-material/QrCode';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { Dialog, DialogTitle, Autocomplete, DialogContent } from '@mui/material';
 
 import axiosInstance from 'src/utils/axios';
 
@@ -42,7 +44,7 @@ export default function UserTableToolbar({
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [categoryList, setCategoryList] = useState<IProductItem[]>([]);
   const [value, setValue] = useState<string | null>();
-
+  const [qrReaderOpen, setQRReaderOpen] = useState(false);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false); // State for the spinner
 
   const [searchQuery, setSearchQuery] = useState<string>(filters.name);
@@ -52,6 +54,16 @@ export default function UserTableToolbar({
     const { data } = await axiosInstance.get(`/categories/?short=true`);
     setCategoryList(data || []);
     setIsCategoriesLoading(false);
+  };
+  const handleToggleQRReader = () => {
+    setQRReaderOpen(!qrReaderOpen);
+  };
+  const handleScanQRCode = (data: SetStateAction<string>) => {
+    if (data) {
+      setSearchQuery(data);
+      debouncedSearch(data); 
+      setQRReaderOpen(false);
+    }
   };
 
   useEffect(() => {
@@ -161,19 +173,38 @@ export default function UserTableToolbar({
         />
 
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
-          <TextField
-            fullWidth
-            value={searchQuery}
-            onChange={handleSearchChange} // Change to the debounced handler
-            placeholder={t('search')}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-                </InputAdornment>
-              ),
-            }}
-          />
+          <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
+            <TextField
+              fullWidth
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder={t('search')}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <QRCodeIcon onClick={handleToggleQRReader} style={{ cursor: 'pointer' }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Stack>
+          {qrReaderOpen && (
+            <Dialog open={qrReaderOpen} onClose={handleToggleQRReader}>
+              <DialogTitle>Scan QR Code</DialogTitle>
+              <DialogContent>
+                <BarcodeScannerComponent
+                  onUpdate={(err, result) => {
+                    if (result) handleScanQRCode(result.text);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
 
           <IconButton onClick={popover.onOpen}>
             <Iconify icon="eva:more-vertical-fill" />
