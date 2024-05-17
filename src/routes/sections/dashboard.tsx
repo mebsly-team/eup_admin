@@ -71,6 +71,13 @@ const LogsListPage = lazy(() => import('src/pages/dashboard/logs/list'));
 const LogsAccountPage = lazy(() => import('src/pages/dashboard/logs/account'));
 const LogsCreatePage = lazy(() => import('src/pages/dashboard/logs/new'));
 const LogsEditPage = lazy(() => import('src/pages/dashboard/logs/edit'));
+// MAP
+const MapProfilePage = lazy(() => import('src/pages/dashboard/map/profile'));
+const MapCardsPage = lazy(() => import('src/pages/dashboard/map/cards'));
+const MapListPage = lazy(() => import('src/pages/dashboard/map/list'));
+const MapAccountPage = lazy(() => import('src/pages/dashboard/map/account'));
+const MapCreatePage = lazy(() => import('src/pages/dashboard/map/new'));
+const MapEditPage = lazy(() => import('src/pages/dashboard/map/edit'));
 
 // APP
 const CalendarPage = lazy(() => import('src/pages/dashboard/calendar'));
@@ -143,6 +150,18 @@ export const dashboardRoutes = [
           { path: 'new', element: <LogsCreatePage /> },
           { path: ':id/edit', element: <LogsEditPage /> },
           { path: 'account', element: <LogsAccountPage /> },
+        ],
+      },
+      {
+        path: 'map',
+        children: [
+          { element: <MapProfilePage />, index: true },
+          { path: 'profile', element: <MapProfilePage /> },
+          { path: 'cards', element: <MapCardsPage /> },
+          { path: 'list', element: <MapListPage /> },
+          { path: 'new', element: <MapCreatePage /> },
+          { path: ':id/edit', element: <MapEditPage /> },
+          { path: 'account', element: <MapAccountPage /> },
         ],
       },
       {

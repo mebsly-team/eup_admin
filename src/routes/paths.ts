@@ -124,6 +124,15 @@ export const paths = {
       account: `${ROOTS.DASHBOARD}/logs/account`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/logs/${id}/edit`,
     },
+    map: {
+      root: `${ROOTS.DASHBOARD}/map`,
+      new: `${ROOTS.DASHBOARD}/map/new`,
+      list: `${ROOTS.DASHBOARD}/map/list`,
+      cards: `${ROOTS.DASHBOARD}/map/cards`,
+      profile: `${ROOTS.DASHBOARD}/map/profile`,
+      account: `${ROOTS.DASHBOARD}/map/account`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/map/${id}/edit`,
+    },
     product: {
       root: `${ROOTS.DASHBOARD}/product`,
       new: `${ROOTS.DASHBOARD}/product/new`,

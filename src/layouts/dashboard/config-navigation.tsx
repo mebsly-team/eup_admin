@@ -186,6 +186,20 @@ export function useNavData() {
               // { title: t('account'), path: paths.dashboard.logs.account },
             ],
           },
+          // MAP
+          {
+            title: t('map'),
+            path: paths.dashboard.map.list,
+            icon: ICONS.user,
+            children: [
+              // { title: t('profile'), path: paths.dashboard.map.root },
+              // { title: t('cards'), path: paths.dashboard.map.cards },
+              { title: t('list'), path: paths.dashboard.map.list },
+              // { title: t('create'), path: paths.dashboard.map.new },
+              // { title: t('edit'), path: paths.dashboard.map.demo.edit },
+              // { title: t('account'), path: paths.dashboard.map.account },
+            ],
+          },
           // ORDER
           {
             title: t('order'),
