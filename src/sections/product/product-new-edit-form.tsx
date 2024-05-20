@@ -387,6 +387,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
         else router.back();
       }
     } catch (error) {
+      console.log('error', error);
       if (error.response && error.response.data && error.response.data.errors) {
         const errorMessages = Object.values(error.response.data.errors).flat();
         errorMessages?.forEach((errorMessage) => {
@@ -394,20 +395,27 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           enqueueSnackbar({ variant: 'error', message: errorMessage });
         });
       } else {
-        const errorMessages = Object.entries(error);
-        if (errorMessages?.length) {
-          errorMessages.forEach(([fieldName, errors]) => {
-            errors.forEach((errorMsg) => {
-              enqueueSnackbar({
-                variant: 'error',
-                message: `${t(fieldName)}: ${errorMsg}`,
-              });
-            });
-          });
-        } else {
-          console.error('An unexpected error occurred:', error);
-          enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
-        }
+        // const errorMessages = Object.entries(error);
+        // if (errorMessages.length) {
+        //   errorMessages.forEach(([fieldName, errors]) => {
+        //     if (Array.isArray(errors)) {
+        //       errors.forEach((errorMsg) => {
+        //         enqueueSnackbar({
+        //           variant: 'error',
+        //           message: `${t(fieldName)}: ${errorMsg}`,
+        //         });
+        //       });
+        //     } else {
+        //       enqueueSnackbar({
+        //         variant: 'error',
+        //         message: `${t(fieldName)}: ${errors}`,
+        //       });
+        //     }
+        //   });
+        // } else {
+        //   console.error('An unexpected error occurred:', error);
+        //   enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+        // }
       }
     }
   });
