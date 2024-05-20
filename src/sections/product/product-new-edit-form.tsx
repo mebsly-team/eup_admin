@@ -1185,6 +1185,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
               <MenuItem value="rol">{t('rol')}</MenuItem>
+              <MenuItem value="scoop">{t('scoop')}</MenuItem>
+              <MenuItem value="vel">{t('vel')}</MenuItem>
+              <MenuItem value="stok">{t('stok')}</MenuItem>
+              <MenuItem value="ml">{t('ml')}</MenuItem>
+              <MenuItem value="onderdeel">{t('onderdeel')}</MenuItem>
+              <MenuItem value="gram">{t('gram')}</MenuItem>
+              <MenuItem value="cm">{t('cm')}</MenuItem>
+              <MenuItem value="paar">{t('paar')}</MenuItem>
             </RHFSelect>
             <RHFTextField
               disabled

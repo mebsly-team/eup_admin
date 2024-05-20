@@ -536,5 +536,13 @@
   "is_active": "Actief?",
   "inhoud_number": "Inhoud Aantal",
   "inhoud_unit": "Inhoud Unit",
-  "inhoud_price": "Inhoud Prijs"
+  "inhoud_price": "Inhoud Prijs",
+  "scoop": "Scoop",
+  "vel": "Vel",
+  "stok": "Stok",
+  "ml": "ML",
+  "onderdeel": "Onderdeel",
+  "gram": "Gram",
+  "cm": "CM",
+  "paar": "Paar"
 }
