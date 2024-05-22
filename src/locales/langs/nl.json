@@ -544,5 +544,9 @@
   "onderdeel": "Onderdeel",
   "gram": "Gram",
   "cm": "CM",
-  "paar": "Paar"
+  "paar": "Paar",
+  "email_must_be_valid": "E-mail moet geldig zijn",
+  "state": "Provincie (optioneel)",
+  "line1": "Straatnaam, huisnummer & toe.",
+  "required": "Dit veld is verplicht"
 }

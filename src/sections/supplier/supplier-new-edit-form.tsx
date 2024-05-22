@@ -46,30 +46,27 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
   ];
 
   const NewSchema = Yup.object().shape({
-    name: Yup.string().required(t('name_required')),
-    classification: Yup.string().required(t('classification_required')),
-    supplier_code: Yup.string().required(t('supplier_code_required')),
-    email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
-    phone: Yup.string().required(t('phone_required')),
-    contact_person_phone: Yup.string().required(t('phone_required')),
-    mobile_phone: Yup.string().required(t('phone_required')),
-    // gender: Yup.string().required(t('gender_required')),
-    // address: Yup.string().required(t('address_required')),
-    // city: Yup.string().required(t('city_required')),
-    // country: Yup.string().required(t('country_required')),
-    // postal_code: Yup.string().required(t('postal_code_required')),
-    contact_person_name: Yup.string().required(t('contact_person_required')),
-    iban: Yup.string().required(t('iban_required')),
-    bic: Yup.string().required(t('bic_required')),
-    debtor_number: Yup.string().required(t('debtor_number_required')),
-    payment_terms: Yup.string().required(t('payment_terms_required')),
-    payment_instruction: Yup.string().required(t('payment_instruction_required')),
-    payment_method: Yup.string().required(t('payment_method_required')),
-    minimum_order_amount: Yup.number().required(t('minimum_order_amount_required')),
-    account_holder_name: Yup.string().required(t('account_holder_name_required')),
-    account_holder_city: Yup.string().required(t('account_holder_city_required')),
-    vat_number: Yup.string().required(t('vat_number_required')),
-    kvk_number: Yup.string().required(t('kvk_number_required')),
+    name: Yup.string().required(t('required')),
+    classification: Yup.string().required(t('required')),
+    supplier_code: Yup.string().required(t('required')),
+    email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
+    phone: Yup.string().required(t('required')),
+    contact_person_phone: Yup.string().required(t('required')),
+    mobile_phone: Yup.string().required(t('required')),
+    supplier_address_line1: Yup.string().required(t('required')),
+    supplier_country: Yup.string().required(t('required')),
+    contact_person_name: Yup.string().required(t('required')),
+    iban: Yup.string().required(t('required')),
+    bic: Yup.string().required(t('required')),
+    debtor_number: Yup.string().required(t('required')),
+    payment_terms: Yup.string().required(t('required')),
+    payment_instruction: Yup.string().required(t('required')),
+    payment_method: Yup.string().required(t('required')),
+    minimum_order_amount: Yup.number().required(t('required')),
+    account_holder_name: Yup.string().required(t('required')),
+    account_holder_city: Yup.string().required(t('required')),
+    vat_number: Yup.string().required(t('required')),
+    kvk_number: Yup.string().required(t('required')),
   });
   const defaultValues = useMemo(
     () => ({
@@ -83,10 +80,14 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       mobile_phone: currentSupplier?.mobile_phone || null,
       fax: currentSupplier?.fax || null,
       // gender: currentSupplier?.gender || null,
-      address: currentSupplier?.address || null,
-      postcode: currentSupplier?.postcode || null,
-      city: currentSupplier?.city || null,
-      country: currentSupplier?.country || null,
+      supplier_address_line1: currentSupplier?.supplier_address_line1 || null,
+      supplier_street_name: currentSupplier?.supplier_street_name || null,
+      supplier_house_number: currentSupplier?.supplier_house_number || null,
+      supplier_house_suffix: currentSupplier?.supplier_house_suffix || null,
+      supplier_state: currentSupplier?.supplier_state || null,
+      supplier_zip_code: currentSupplier?.supplier_zip_code || null,
+      supplier_city: currentSupplier?.supplier_city || null,
+      supplier_country: currentSupplier?.supplier_country || null,
 
       contact_person_name: currentSupplier?.contact_person_name || null,
       contact_person_email: currentSupplier?.contact_person_email || null,
@@ -231,10 +232,11 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               <RHFTextField name="phone" label={t('phone')} />
               <RHFTextField name="mobile_phone" label={t('mobile')} />
               <RHFTextField name="fax" label={t('fax')} />
-              <RHFTextField name="address" label={t('address')} />
-              <RHFTextField name="postcode" label={t('postcode')} />
-              <RHFTextField name="city" label={t('city')} />
-              <RHFTextField name="country" label={t('country')} />
+              <RHFTextField name="supplier_address_line1" label={t('line1')} />
+              <RHFTextField name="supplier_zip_code" label={t('postcode')} />
+              <RHFTextField name="supplier_city" label={t('city')} />
+              <RHFTextField name="supplier_state" label={t('state')} />
+              <RHFTextField name="supplier_country" label={t('country')} />
             </Box>
           </Card>
           <Card sx={{ p: 3, mt: 5 }}>
