@@ -44,7 +44,7 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
 
   const NewCampaignSchema = Yup.object().shape({
-    name: Yup.string().required(t('name_required')),
+    name: Yup.string().required(t('required')),
     description: Yup.string(),
     discount_percentage: Yup.string(),
     start_date: Yup.string(),

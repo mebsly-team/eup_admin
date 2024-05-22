@@ -54,8 +54,8 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
   );
 
   const NewCategorySchema = Yup.object().shape({
-    name: Yup.string().required(t('name_required')),
-    icon: radioValue === 'parent' && Yup.string().required(t('icon_required')),
+    name: Yup.string().required(t('required')),
+    icon: radioValue === 'parent' && Yup.string().required(t('required')),
     description: Yup.string(),
     parent_category: radioValue === 'sub' && Yup.mixed().required(t('category_is_required')),
     image: radioValue === 'parent' && Yup.mixed().required(t('image_required')),
@@ -231,7 +231,6 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                 </Stack>
               ) : null}
             </Box>
-            {JSON.stringify(errors)}
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
                 {!currentCategory ? t('create_category') : t('save_changes')}

@@ -38,11 +38,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const NewUserSchema = Yup.object().shape({
-    type: Yup.string().required(t('type_required')),
-    first_name: !isBusiness && Yup.string().required(t('name_required')),
-    last_name: !isBusiness && Yup.string().required(t('surname_required')),
-    password: currentUser ? null : Yup.string().required(t('password_required')),
-    email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
+    type: Yup.string().required(t('required')),
+    first_name: !isBusiness && Yup.string().required(t('required')),
+    last_name: !isBusiness && Yup.string().required(t('required')),
+    password: currentUser ? null : Yup.string().required(t('required')),
+    email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
     phone_number:
       isBusiness &&
       Yup.string()
@@ -56,7 +56,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
     // gender: Yup.string().required(t('gender_required')),
     birthdate: Yup.date()
       .required(t('birthdate_required'))
-      .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years')),
+      .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years'))
+      .nullable(),
     fax: Yup.string().nullable(),
     facebook: Yup.string().nullable().url(t('facebook_url_invalid')),
     linkedin: Yup.string().nullable().url(t('linkedin_url_invalid')),
@@ -140,7 +141,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       mobile_number: currentUser?.mobile_number || '',
       // gender: currentUser?.gender || '',
       type: currentUser?.type || '',
-      birthdate: currentUser?.birthdate || '',
+      birthdate: currentUser?.birthdate || null,
       fax: currentUser?.fax || null,
       facebook: currentUser?.facebook || null,
       linkedin: currentUser?.linkedin || null,
@@ -274,7 +275,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 render={({ field, fieldState: { error } }) => (
                   <DatePicker
                     label={t('birthdate')}
-                    value={field.value || null}
+                    value={new Date(field.value) || null}
                     format="yyyy-MM-dd"
                     onChange={(newValue) => {
                       field.onChange(newValue);

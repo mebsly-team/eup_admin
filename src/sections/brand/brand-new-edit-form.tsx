@@ -36,7 +36,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
   const { t, onChangeLang } = useTranslate();
 
   const NewBrandSchema = Yup.object().shape({
-    name: Yup.string().required(t('name_required')),
+    name: Yup.string().required(t('required')),
     description: Yup.string(),
     logo: Yup.mixed<any>().required(t('image_required')),
   });

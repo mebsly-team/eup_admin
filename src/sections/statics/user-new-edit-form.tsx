@@ -35,8 +35,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const { enqueueSnackbar } = useSnackbar();
 
   const NewUserSchema = Yup.object().shape({
-    password: currentUser ? null : Yup.string().required(t('password_required')),
-    email: Yup.string().required(t('email_required')).email(t('email_must_be_valid')),
+    password: currentUser ? null : Yup.string().required(t('required')),
+    email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
   });
 
   const defaultValues = useMemo(
