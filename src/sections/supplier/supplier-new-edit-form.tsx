@@ -150,16 +150,16 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
   const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
-  useEffect(() => {
-    if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
-  }, [isDirty, values]);
+  // useEffect(() => {
+  //   if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
+  // }, [isDirty, values]);
 
-  useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
-    if (savedData) {
-      methods.reset(savedData); // Reset form with saved data
-    }
-  }, [methods]);
+  // useEffect(() => {
+  //   const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
+  //   if (savedData) {
+  //     methods.reset(savedData); // Reset form with saved data
+  //   }
+  // }, [methods]);
   const onSubmit = handleSubmit(async (data) => {
     try {
       const ex_date = data.owner_birthday
@@ -171,7 +171,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       } else {
         const response = await axiosInstance.post(`/suppliers/`, data);
       }
-      localStorage.removeItem('formData');
+      // localStorage.removeItem('formData');
 
       enqueueSnackbar(currentSupplier ? t('update_success') : t('create_success'));
       reset();
