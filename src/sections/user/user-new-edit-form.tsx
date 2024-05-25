@@ -486,16 +486,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
               }}
             >
               <RHFSwitch
-                name="is_staff"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('staff')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
                 name="is_active"
                 labelPlacement="start"
                 label={
