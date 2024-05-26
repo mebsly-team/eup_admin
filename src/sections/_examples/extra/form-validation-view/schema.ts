@@ -13,12 +13,12 @@ export const FormSchema = Yup.object().shape({
     .moreThan(18, 'Age must be between 18 and 100')
     .lessThan(100, 'Age must be between 18 and 100'),
   //
-  startDate: Yup.mixed<any>().nullable().required('Start date is required'),
+  startDate: Yup.mixed<any>().nullable().required('Begindatum is required'),
   endDate: Yup.mixed<any>()
-    .required('End date is required')
+    .required('Einddatum is required')
     .test(
       'date-min',
-      'End date must be later than start date',
+      'Einddatum must be later than start date',
       (value, { parent }) => value.getTime() > parent.startDate.getTime()
     ),
   password: Yup.string()

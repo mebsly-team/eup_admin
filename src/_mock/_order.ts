@@ -2,12 +2,7 @@ import { _mock } from './_mock';
 
 // ----------------------------------------------------------------------
 
-export const ORDER_STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-  { value: 'refunded', label: 'Refunded' },
-];
+
 
 const ITEMS = [...Array(3)].map((_, index) => ({
   id: _mock.id(index),

@@ -188,7 +188,7 @@ export default function ReactHookForm({ debug }: Props) {
                 render={({ field, fieldState: { error } }) => (
                   <DatePicker
                     {...field}
-                    label="Start date"
+                    label="Begindatum"
                     format="dd/MM/yyyy"
                     slotProps={{
                       textField: {
@@ -207,7 +207,7 @@ export default function ReactHookForm({ debug }: Props) {
                 render={({ field, fieldState: { error } }) => (
                   <DatePicker
                     {...field}
-                    label="End date"
+                    label="Einddatum"
                     format="dd/MM/yyyy"
                     slotProps={{
                       textField: {

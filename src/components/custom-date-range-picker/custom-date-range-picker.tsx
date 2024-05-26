@@ -50,8 +50,8 @@ export default function CustomDateRangePicker({
         sx={{
           ...(isCalendarView &&
             mdUp && {
-            overflow: 'unset',
-          }),
+              overflow: 'unset',
+            }),
         }}
       >
         <Stack
@@ -86,16 +86,16 @@ export default function CustomDateRangePicker({
             </>
           ) : (
             <>
-              <DatePicker label="Start date" value={startDate} onChange={onChangeStartDate} />
+              <DatePicker label="Begindatum" value={startDate} onChange={onChangeStartDate} />
 
-              <DatePicker label="End date" value={endDate} onChange={onChangeEndDate} />
+              <DatePicker label="Einddatum" value={endDate} onChange={onChangeEndDate} />
             </>
           )}
         </Stack>
 
         {error && (
           <FormHelperText error sx={{ px: 2 }}>
-            End date must be later than start date
+            Einddatum must be later than start date
           </FormHelperText>
         )}
       </DialogContent>

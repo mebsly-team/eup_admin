@@ -6,7 +6,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 
 import { paths } from 'src/routes/paths';
 
-import { _orders, ORDER_STATUS_OPTIONS } from 'src/_mock';
+import { _orders } from 'src/_mock';
 
 import { useSettingsContext } from 'src/components/settings';
 
@@ -20,7 +20,12 @@ import OrderDetailsHistory from '../order-details-history';
 type Props = {
   id: string;
 };
-
+export const ORDER_STATUS_OPTIONS = [
+  { value: 'pending', label: 'In behandeling' },
+  { value: 'completed', label: 'Afgerond' },
+  { value: 'cancelled', label: 'Geannuleerd' },
+  { value: 'refunded', label: 'Terugbetaald' },
+];
 export default function OrderDetailsView({ id }: Props) {
   const settings = useSettingsContext();
 

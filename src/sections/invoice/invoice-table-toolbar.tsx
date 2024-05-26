@@ -111,7 +111,7 @@ export default function InvoiceTableToolbar({
         </FormControl>
 
         <DatePicker
-          label="Start date"
+          label="Begindatum"
           value={filters.startDate}
           onChange={handleFilterStartDate}
           slotProps={{ textField: { fullWidth: true } }}
@@ -121,14 +121,14 @@ export default function InvoiceTableToolbar({
         />
 
         <DatePicker
-          label="End date"
+          label="Einddatum"
           value={filters.endDate}
           onChange={handleFilterEndDate}
           slotProps={{
             textField: {
               fullWidth: true,
               error: dateError,
-              helperText: dateError && 'End date must be later than start date',
+              helperText: dateError && 'Einddatumm must be later than start date',
             },
           }}
           sx={{
@@ -145,7 +145,7 @@ export default function InvoiceTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search customer or invoice number..."
+            placeholder="Zoeken..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

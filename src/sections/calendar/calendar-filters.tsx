@@ -119,16 +119,16 @@ export default function CalendarFilters({
       <Typography variant="subtitle2">Range</Typography>
 
       <Stack spacing={2}>
-        <DatePicker label="Start date" value={filters.startDate} onChange={handleFilterStartDate} />
+        <DatePicker label="Begindatum" value={filters.startDate} onChange={handleFilterStartDate} />
 
         <DatePicker
-          label="End date"
+          label="Einddatum"
           value={filters.endDate}
           onChange={handleFilterEndDate}
           slotProps={{
             textField: {
               error: dateError,
-              helperText: dateError && 'End date must be later than start date',
+              helperText: dateError && 'Einddatum must be later than start date',
             },
           }}
         />

@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -17,10 +18,10 @@ import { useRouter } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
+import axiosInstance from 'src/utils/axios';
 import { isAfter, isBetween } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
-import { _orders, ORDER_STATUS_OPTIONS } from 'src/_mock';
 
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -31,10 +32,7 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import {
   useTable,
-  emptyRows,
-  TableNoData,
   getComparator,
-  TableEmptyRows,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
@@ -47,32 +45,30 @@ import OrderTableToolbar from '../order-table-toolbar';
 import OrderTableFiltersResult from '../order-table-filters-result';
 
 // ----------------------------------------------------------------------
-
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...ORDER_STATUS_OPTIONS];
+export const ORDER_STATUS_OPTIONS = [
+  { value: 'pending', label: 'In behandeling' },
+  { value: 'completed', label: 'Afgerond' },
+  { value: 'cancelled', label: 'Geannuleerd' },
+  { value: 'refunded', label: 'Terugbetaald' },
+];
+const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, ...ORDER_STATUS_OPTIONS];
 
 const TABLE_HEAD = [
-  { id: 'orderNumber', label: 'Order', width: 116 },
-  { id: 'name', label: 'Customer' },
-  { id: 'createdAt', label: 'Date', width: 140 },
+  { id: 'orderNumber', label: 'Bestel', width: 116 },
+  { id: 'name', label: 'Klant' },
+  { id: 'createdAt', label: 'Datum', width: 140 },
   { id: 'totalQuantity', label: 'Items', width: 120, align: 'center' },
-  { id: 'totalAmount', label: 'Price', width: 140 },
+  { id: 'totalAmount', label: 'Prijs', width: 140 },
   { id: 'status', label: 'Status', width: 110 },
   { id: '', width: 88 },
 ];
-
-const defaultFilters: IOrderTableFilters = {
-  name: '',
-  status: 'all',
-  startDate: null,
-  endDate: null,
-};
 
 // ----------------------------------------------------------------------
 
 export default function OrderListView() {
   const { enqueueSnackbar } = useSnackbar();
 
-  const table = useTable({ defaultOrderBy: 'orderNumber' });
+  const table = useTable({ defaultOrderBy: 'ordered_date' });
   const { t, onChangeLang } = useTranslate();
 
   const settings = useSettingsContext();
@@ -80,8 +76,21 @@ export default function OrderListView() {
   const router = useRouter();
 
   const confirm = useBoolean();
+  const location = useLocation();
+  const [orderList, setOrderList] = useState<IOrderItem[]>([]);
 
-  const [tableData, setTableData] = useState<IOrderItem[]>(_orders);
+  const [tableData, setTableData] = useState<IOrderItem[]>(orderList);
+  const queryParams = new URLSearchParams(location.search);
+
+  const defaultFilters: IOrderTableFilters = {
+    status: queryParams.get('status') || 'all',
+    name: queryParams.get('name') || '',
+    category:
+      (queryParams.get('category') &&
+        queryParams.get('category') !== 'undefined' &&
+        queryParams.get('category')) ||
+      '',
+  };
 
   const [filters, setFilters] = useState(defaultFilters);
 
@@ -100,6 +109,33 @@ export default function OrderListView() {
   );
 
   const denseHeight = table.dense ? 56 : 56 + 20;
+
+  const [isLoading, setIsLoading] = useState(false); // State for the spinner
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    getAll();
+  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
+
+  console.log('orderList', orderList);
+
+  const getAll = async () => {
+    setIsLoading(true);
+    const statusFilter = filters.status !== 'all' ? `&status=${filters.status}` : '';
+    const orderByParam = table.orderBy
+      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
+      : '';
+    const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const categoryFilter = filters.category ? `&category=${filters.category}` : '';
+    const { data } = await axiosInstance.get(
+      `/orders/?all=true&limit=${table.rowsPerPage}&offset=${
+        table.page * table.rowsPerPage
+      }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
+    );
+    setCount(data.count || 0);
+    setOrderList(data.results || []);
+    setIsLoading(false);
+  };
 
   const canReset =
     !!filters.name || filters.status !== 'all' || (!!filters.startDate && !!filters.endDate);
@@ -160,7 +196,10 @@ export default function OrderListView() {
     },
     [handleFilters]
   );
-
+  const handleTablePageChange = useCallback((e, pageNo) => {
+    handleFilters('page', pageNo + 1);
+    table.onChangePage(e, pageNo);
+  }, []);
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -275,40 +314,34 @@ export default function OrderListView() {
                 />
 
                 <TableBody>
-                  {dataFiltered
-                    .slice(
-                      table.page * table.rowsPerPage,
-                      table.page * table.rowsPerPage + table.rowsPerPage
-                    )
-                    .map((row) => (
-                      <OrderTableRow
-                        key={row.id}
-                        row={row}
-                        selected={table.selected.includes(row.id)}
-                        onSelectRow={() => table.onSelectRow(row.id)}
-                        onDeleteRow={() => handleDeleteRow(row.id)}
-                        onViewRow={() => handleViewRow(row.id)}
-                      />
-                    ))}
+                  {orderList.map((row) => (
+                    <OrderTableRow
+                      key={row.id}
+                      row={row}
+                      selected={table.selected.includes(row.id)}
+                      onSelectRow={() => table.onSelectRow(row.id)}
+                      onDeleteRow={() => handleDeleteRow(row.id)}
+                      onViewRow={() => handleViewRow(row.id)}
+                    />
+                  ))}
 
-                  <TableEmptyRows
+                  {/* <TableEmptyRows
                     height={denseHeight}
                     emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
-                  />
+                  /> */}
 
-                  <TableNoData notFound={notFound} />
+                  {/* <TableNoData notFound={notFound} /> */}
                 </TableBody>
               </Table>
             </Scrollbar>
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
+            count={count}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
+            onPageChange={handleTablePageChange}
             onRowsPerPageChange={table.onChangeRowsPerPage}
-            //
             dense={table.dense}
             onChangeDense={table.onChangeDense}
           />

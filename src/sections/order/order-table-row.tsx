@@ -40,7 +40,23 @@ export default function OrderTableRow({
   onSelectRow,
   onDeleteRow,
 }: Props) {
-  const { items, status, orderNumber, createdAt, customer, totalQuantity, subTotal } = row;
+  const {
+    cart,
+    delivered_date,
+    extra_note,
+    id,
+    invoice_address,
+    is_invoice_address_same_with_shipping,
+    is_paid,
+    ordered_date,
+    payment_reference,
+    shipped_date,
+    shipping_address,
+    status,
+    sub_total,
+    total,
+    user,
+  } = row;
 
   const confirm = useBoolean();
 
@@ -64,16 +80,14 @@ export default function OrderTableRow({
             },
           }}
         >
-          {orderNumber}
+          {id}
         </Box>
       </TableCell>
 
       <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-        <Avatar alt={customer.name} src={customer.avatarUrl} sx={{ mr: 2 }} />
-
         <ListItemText
-          primary={customer.name}
-          secondary={customer.email}
+          primary={user.email}
+          secondary={`ID: ${user.id}`}
           primaryTypographyProps={{ typography: 'body2' }}
           secondaryTypographyProps={{
             component: 'span',
@@ -84,8 +98,8 @@ export default function OrderTableRow({
 
       <TableCell>
         <ListItemText
-          primary={fDate(createdAt)}
-          secondary={fTime(createdAt)}
+          primary={fDate(ordered_date)}
+          secondary={fTime(delivered_date)}
           primaryTypographyProps={{ typography: 'body2', noWrap: true }}
           secondaryTypographyProps={{
             mt: 0.5,
@@ -95,9 +109,9 @@ export default function OrderTableRow({
         />
       </TableCell>
 
-      <TableCell align="center"> {totalQuantity} </TableCell>
+      <TableCell align="center"> {cart.items?.length} </TableCell>
 
-      <TableCell> {fCurrency(subTotal)} </TableCell>
+      <TableCell> {fCurrency(total)} </TableCell>
 
       <TableCell>
         <Label
@@ -143,7 +157,7 @@ export default function OrderTableRow({
           sx={{ bgcolor: 'background.neutral' }}
         >
           <Stack component={Paper} sx={{ m: 1.5 }}>
-            {items.map((item) => (
+            {cart.items.map((item) => (
               <Stack
                 key={item.id}
                 direction="row"
@@ -156,14 +170,14 @@ export default function OrderTableRow({
                 }}
               >
                 <Avatar
-                  src={item.coverUrl}
+                  src={item?.product?.images?.[0]}
                   variant="rounded"
                   sx={{ width: 48, height: 48, mr: 2 }}
                 />
 
                 <ListItemText
-                  primary={item.name}
-                  secondary={item.sku}
+                  primary={item.product?.title}
+                  secondary={item.product?.ean}
                   primaryTypographyProps={{
                     typography: 'body2',
                   }}
@@ -176,7 +190,9 @@ export default function OrderTableRow({
 
                 <Box>x{item.quantity}</Box>
 
-                <Box sx={{ width: 110, textAlign: 'right' }}>{fCurrency(item.price)}</Box>
+                <Box sx={{ width: 110, textAlign: 'right' }}>
+                  {fCurrency(item.product?.price_per_unit)}
+                </Box>
               </Stack>
             ))}
           </Stack>

@@ -64,7 +64,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
         }}
       >
         <DatePicker
-          label="Start date"
+          label="Begindatum"
           value={filters.startDate}
           onChange={handleFilterStartDate}
           slotProps={{
@@ -78,14 +78,14 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
         />
 
         <DatePicker
-          label="End date"
+          label="Einddatum"
           value={filters.endDate}
           onChange={handleFilterEndDate}
           slotProps={{
             textField: {
               fullWidth: true,
               error: dateError,
-              helperText: dateError && 'End date must be later than start date',
+              helperText: dateError && 'Einddatum must be later than start date',
             },
           }}
           sx={{
@@ -102,7 +102,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search customer or order number..."
+            placeholder="Zoeken..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
