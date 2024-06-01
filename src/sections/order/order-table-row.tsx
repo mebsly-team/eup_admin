@@ -8,6 +8,7 @@ import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
+import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 
@@ -15,6 +16,8 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import { fCurrency } from 'src/utils/format-number';
 import { fDate, fTime } from 'src/utils/format-time';
+
+import { useTranslate } from 'src/locales';
 
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -57,7 +60,30 @@ export default function OrderTableRow({
     total,
     user,
   } = row;
-
+  const { t, onChangeLang } = useTranslate();
+  const theme = useTheme();
+  const styles = {
+    hideOnSm: {
+      [theme.breakpoints.down('sm')]: {
+        display: 'none',
+      },
+    },
+    hideOnMd: {
+      [theme.breakpoints.down('md')]: {
+        display: 'none',
+      },
+    },
+    hideOnLg: {
+      [theme.breakpoints.down('lg')]: {
+        display: 'none',
+      },
+    },
+    hideOnXl: {
+      [theme.breakpoints.down('xl')]: {
+        display: 'none',
+      },
+    },
+  };
   const confirm = useBoolean();
 
   const collapse = useBoolean();
@@ -70,7 +96,7 @@ export default function OrderTableRow({
         <Checkbox checked={selected} onClick={onSelectRow} />
       </TableCell>
 
-      <TableCell>
+      <TableCell sx={{ padding: 0 }}>
         <Box
           onClick={onViewRow}
           sx={{
@@ -84,10 +110,10 @@ export default function OrderTableRow({
         </Box>
       </TableCell>
 
-      <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+      <TableCell sx={{ display: 'flex', alignItems: 'center', width: '150px' }}>
         <ListItemText
           primary={user.email}
-          secondary={`ID: ${user.id}`}
+          secondary={`Relatie Code: ${user.relation_code}`}
           primaryTypographyProps={{ typography: 'body2' }}
           secondaryTypographyProps={{
             component: 'span',
@@ -96,24 +122,25 @@ export default function OrderTableRow({
         />
       </TableCell>
 
-      <TableCell>
+      <TableCell sx={{ padding: 1, ...styles.hideOnMd, width: '80px' }}>
         <ListItemText
           primary={fDate(ordered_date)}
-          secondary={fTime(delivered_date)}
+          secondary={fTime(delivered_date) || t('not_delivered')}
           primaryTypographyProps={{ typography: 'body2', noWrap: true }}
           secondaryTypographyProps={{
-            mt: 0.5,
-            component: 'span',
-            typography: 'caption',
+            typography: 'body2',
+            noWrap: true,
           }}
         />
       </TableCell>
 
-      <TableCell align="center"> {cart.items?.length} </TableCell>
+      <TableCell align="center" sx={{ padding: 1 }}>
+        {cart.items?.length}
+      </TableCell>
 
-      <TableCell> {fCurrency(total)} </TableCell>
+      <TableCell sx={{ padding: 1 }}> {fCurrency(total)} </TableCell>
 
-      <TableCell>
+      <TableCell sx={{ width: 110, padding: 1 }}>
         <Label
           variant="soft"
           color={
@@ -177,21 +204,64 @@ export default function OrderTableRow({
 
                 <ListItemText
                   primary={item.product?.title}
-                  secondary={item.product?.ean}
+                  secondary={`${t('article_code')}: ${item.product?.article_code}`}
                   primaryTypographyProps={{
-                    typography: 'body2',
+                    typography: 'caption',
+                    noWrap: false,
+                    maxWidth: '175px',
+                    overflow: 'hidden',
+                    whiteSpace: 'pre-wrap',
+                    textOverflow: 'ellipsis',
                   }}
                   secondaryTypographyProps={{
-                    component: 'span',
-                    color: 'text.disabled',
-                    mt: 0.5,
+                    typography: 'caption',
                   }}
                 />
 
-                <Box>x{item.quantity}</Box>
+                <ListItemText
+                  sx={{ padding: 1, ...styles.hideOnLg }}
+                  primary={t('categories')}
+                  secondary={item.product?.categories?.map((cat) => cat.name).join(',')}
+                  primaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                  secondaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                />
+                <ListItemText
+                  primary={`${t('location')}: ${item.product?.location}`}
+                  secondary={`${t('location')}2: ${item.product?.extra_location}`}
+                  primaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                  secondaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                />
 
+                <ListItemText
+                  primary={t('price_per_piece')}
+                  secondary={fCurrency(item.product?.price_per_piece)}
+                  primaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                  secondaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                />
+                <ListItemText
+                  primary={`${t('amount')}: x${item.quantity}`}
+                  secondary={`${t('quantity_per_unit')}: ${item.product?.quantity_per_unit}`}
+                  primaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                  secondaryTypographyProps={{
+                    typography: 'caption',
+                  }}
+                />
                 <Box sx={{ width: 110, textAlign: 'right' }}>
-                  {fCurrency(item.product?.price_per_unit)}
+                  {`${item.quantity} x ${fCurrency(item.product?.price_per_unit)}`}
                 </Box>
               </Stack>
             ))}
@@ -213,7 +283,7 @@ export default function OrderTableRow({
         arrow="right-top"
         sx={{ width: 140 }}
       >
-        <MenuItem
+        {/* <MenuItem
           onClick={() => {
             confirm.onTrue();
             popover.onClose();
@@ -222,7 +292,7 @@ export default function OrderTableRow({
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
           Delete
-        </MenuItem>
+        </MenuItem> */}
 
         <MenuItem
           onClick={() => {

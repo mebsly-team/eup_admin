@@ -566,5 +566,6 @@
   "email_must_be_valid": "E-mail moet geldig zijn",
   "state": "Provincie (optioneel)",
   "line1": "Straatnaam, huisnummer & toe.",
-  "required": "Dit veld is verplicht"
+  "required": "Dit veld is verplicht",
+  "not_delivered": "Niet afgeleverd"
 }

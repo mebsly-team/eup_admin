@@ -54,13 +54,13 @@ export const ORDER_STATUS_OPTIONS = [
 const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, ...ORDER_STATUS_OPTIONS];
 
 const TABLE_HEAD = [
-  { id: 'orderNumber', label: 'Bestel', width: 116 },
-  { id: 'name', label: 'Klant' },
-  { id: 'createdAt', label: 'Datum', width: 140 },
-  { id: 'totalQuantity', label: 'Items', width: 120, align: 'center' },
-  { id: 'totalAmount', label: 'Prijs', width: 140 },
-  { id: 'status', label: 'Status', width: 110 },
-  { id: '', width: 88 },
+  { id: 'id', label: 'Bestel', width: 40, padding: 0 },
+  { id: 'name', label: 'Klant', width: 40, padding: 1 },
+  { id: 'ordered_date', label: 'Datum', width: '80px', hideOnMd: true, padding: 1 },
+  { id: 'totalQuantity', label: 'Items', width: 40, align: 'center', padding: 1 },
+  { id: 'total', label: 'Prijs', width: 50, padding: 1 },
+  { id: 'status', label: 'Status', width: 110, padding: 1 },
+  { id: '', width: 88, padding: 1 },
 ];
 
 // ----------------------------------------------------------------------
@@ -116,8 +116,6 @@ export default function OrderListView() {
   useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
-
-  console.log('orderList', orderList);
 
   const getAll = async () => {
     setIsLoading(true);

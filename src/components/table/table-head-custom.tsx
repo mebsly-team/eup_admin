@@ -55,12 +55,22 @@ export default function TableHeadCustom({
         display: 'none',
       },
     },
+    hideOnLg: {
+      [theme.breakpoints.down('lg')]: {
+        display: 'none',
+      },
+    },
+    hideOnXl: {
+      [theme.breakpoints.down('xl')]: {
+        display: 'none',
+      },
+    },
   };
   return (
     <TableHead sx={sx}>
       <TableRow>
         {onSelectAllRows && (
-          <TableCell padding="checkbox" sx={styles.hideOnMd}>
+          <TableCell padding="checkbox" sx={{ padding: 0 }}>
             <Checkbox
               indeterminate={!!numSelected && numSelected < rowCount}
               checked={!!rowCount && numSelected === rowCount}
@@ -76,7 +86,14 @@ export default function TableHeadCustom({
             key={headCell.id}
             align={headCell.align || 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
-            sx={headCell.hideOnSm ? styles.hideOnSm : headCell.hideOnMd ? styles.hideOnMd : ''}
+            sx={{
+              padding: headCell.padding,
+              width: headCell.width,
+              ...(headCell.hideOnSm ? styles.hideOnSm : {}),
+              ...(headCell.hideOnMd ? styles.hideOnMd : {}),
+              ...(headCell.hideOnLg ? styles.hideOnLg : {}),
+              ...(headCell.hideOnXl ? styles.hideOnXl : {}),
+            }}
           >
             {onSort ? (
               <TableSortLabel
