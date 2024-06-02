@@ -70,6 +70,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
           slotProps={{
             textField: {
               fullWidth: true,
+              error: false,
             },
           }}
           sx={{
@@ -85,7 +86,7 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
             textField: {
               fullWidth: true,
               error: dateError,
-              helperText: dateError && 'Einddatum must be later than start date',
+              helperText: dateError && 'Einddatum moet later zijn dan begindatum',
             },
           }}
           sx={{
