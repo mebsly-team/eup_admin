@@ -1,3 +1,5 @@
+import { Key, ReactNode, ReactPortal, ReactElement, JSXElementConstructor } from 'react';
+
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -144,13 +146,14 @@ export default function OrderTableRow({
         <Label
           variant="soft"
           color={
-            (status === 'completed' && 'success') ||
-            (status === 'pending' && 'warning') ||
+            (status === 'delivered' && 'success') ||
+            (status === 'pending_order' && 'warning') ||
+            (status === 'pending_offer' && 'warning') ||
             (status === 'cancelled' && 'error') ||
             'default'
           }
         >
-          {status}
+          {t(status)}
         </Label>
       </TableCell>
 
@@ -184,87 +187,117 @@ export default function OrderTableRow({
           sx={{ bgcolor: 'background.neutral' }}
         >
           <Stack component={Paper} sx={{ m: 1.5 }}>
-            {cart.items.map((item) => (
-              <Stack
-                key={item.id}
-                direction="row"
-                alignItems="center"
-                sx={{
-                  p: (theme) => theme.spacing(1.5, 2, 1.5, 1.5),
-                  '&:not(:last-of-type)': {
-                    borderBottom: (theme) => `solid 2px ${theme.palette.background.neutral}`,
-                  },
-                }}
-              >
-                <Avatar
-                  src={item?.product?.images?.[0]}
-                  variant="rounded"
-                  sx={{ width: 48, height: 48, mr: 2 }}
-                />
+            {cart.items.map(
+              (item: {
+                id: Key | null | undefined;
+                product: {
+                  images: (string | undefined)[];
+                  title:
+                    | string
+                    | number
+                    | boolean
+                    | ReactElement<any, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | ReactPortal
+                    | null
+                    | undefined;
+                  article_code: any;
+                  categories: { name: any }[];
+                  location: any;
+                  extra_location: any;
+                  price_per_piece: string | number | null;
+                  quantity_per_unit: any;
+                  price_per_unit: string | number | null;
+                };
+                quantity: any;
+              }) => (
+                <Stack
+                  key={item.id}
+                  direction="row"
+                  alignItems="center"
+                  sx={{
+                    p: (theme) => theme.spacing(1.5, 2, 1.5, 1.5),
+                    '&:not(:last-of-type)': {
+                      borderBottom: (theme) => `solid 2px ${theme.palette.background.neutral}`,
+                    },
+                  }}
+                >
+                  <Avatar
+                    src={item?.product?.images?.[0]}
+                    variant="rounded"
+                    sx={{ width: 48, height: 48, mr: 2 }}
+                  />
 
-                <ListItemText
-                  primary={item.product?.title}
-                  secondary={`${t('article_code')}: ${item.product?.article_code}`}
-                  primaryTypographyProps={{
-                    typography: 'caption',
-                    noWrap: false,
-                    maxWidth: '175px',
-                    overflow: 'hidden',
-                    whiteSpace: 'pre-wrap',
-                    textOverflow: 'ellipsis',
-                  }}
-                  secondaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                />
+                  <ListItemText
+                    primary={item.product?.title}
+                    secondary={`${t('article_code')}: ${item.product?.article_code}`}
+                    primaryTypographyProps={{
+                      typography: 'caption',
+                      noWrap: false,
+                      maxWidth: '175px',
+                      overflow: 'hidden',
+                      whiteSpace: 'pre-wrap',
+                      textOverflow: 'ellipsis',
+                    }}
+                    secondaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                  />
 
-                <ListItemText
-                  sx={{ padding: 1, ...styles.hideOnLg }}
-                  primary={t('categories')}
-                  secondary={item.product?.categories?.map((cat) => cat.name).join(',')}
-                  primaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                  secondaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                />
-                <ListItemText
-                  primary={`${t('location')}: ${item.product?.location}`}
-                  secondary={`${t('location')}2: ${item.product?.extra_location}`}
-                  primaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                  secondaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                />
+                  <ListItemText
+                    sx={{ padding: 1, ...styles.hideOnLg }}
+                    primary={t('categories')}
+                    secondary={item.product?.categories
+                      ?.map((cat: { name: any }) => cat.name)
+                      .join(',')}
+                    primaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                    secondaryTypographyProps={{
+                      typography: 'caption',
+                      sx: {
+                        maxWidth: 100,
+                        wordBreak: 'break-all', // This is the correct CSS property to use
+                      },
+                    }}
+                  />
+                  <ListItemText
+                    primary={`${t('location')}: ${item.product?.location}`}
+                    secondary={`${t('location')}2: ${item.product?.extra_location}`}
+                    primaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                    secondaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                  />
 
-                <ListItemText
-                  primary={t('price_per_piece')}
-                  secondary={fCurrency(item.product?.price_per_piece)}
-                  primaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                  secondaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                />
-                <ListItemText
-                  primary={`${t('amount')}: x${item.quantity}`}
-                  secondary={`${t('quantity_per_unit')}: ${item.product?.quantity_per_unit}`}
-                  primaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                  secondaryTypographyProps={{
-                    typography: 'caption',
-                  }}
-                />
-                <Box sx={{ width: 110, textAlign: 'right' }}>
-                  {`${item.quantity} x ${fCurrency(item.product?.price_per_unit)}`}
-                </Box>
-              </Stack>
-            ))}
+                  <ListItemText
+                    primary={t('price_per_piece')}
+                    secondary={fCurrency(item.product?.price_per_piece)}
+                    primaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                    secondaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                  />
+                  <ListItemText
+                    primary={`${t('amount')}: x${item.quantity}`}
+                    secondary={`${t('quantity_per_unit')}: ${item.product?.quantity_per_unit}`}
+                    primaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                    secondaryTypographyProps={{
+                      typography: 'caption',
+                    }}
+                  />
+                  <Box sx={{ width: 110, textAlign: 'right' }}>
+                    {`${item.quantity} x ${fCurrency(item.product?.price_per_unit)}`}
+                  </Box>
+                </Stack>
+              )
+            )}
           </Stack>
         </Collapse>
       </TableCell>

@@ -6,6 +6,8 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Stack, { StackProps } from '@mui/material/Stack';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 import { shortDateLabel } from 'src/components/custom-date-range-picker';
 
@@ -32,6 +34,7 @@ export default function OrderTableFiltersResult({
   ...other
 }: Props) {
   const shortLabel = shortDateLabel(filters.startDate, filters.endDate);
+  const { t, onChangeLang } = useTranslate();
 
   const handleRemoveKeyword = useCallback(() => {
     onFilters('name', '');
@@ -58,7 +61,7 @@ export default function OrderTableFiltersResult({
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
         {filters.status !== 'all' && (
           <Block label="Status:">
-            <Chip size="small" label={filters.status} onDelete={handleRemoveStatus} />
+            <Chip size="small" label={t(filters.status)} onDelete={handleRemoveStatus} />
           </Block>
         )}
 

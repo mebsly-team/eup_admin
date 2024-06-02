@@ -567,5 +567,14 @@
   "state": "Provincie (optioneel)",
   "line1": "Straatnaam, huisnummer & toe.",
   "required": "Dit veld is verplicht",
-  "not_delivered": "Niet afgeleverd"
+  "not_delivered": "Niet afgeleverd",
+  "pending_order": "Bestel-pending",
+  "pending_offer": "Offerte-pending",
+  "confirmed": "Bevestiging",
+  "werkbon": "Orderpicker",
+  "packing": "Pakbon",
+  "shipped": "Verzonden",
+  "delivered": "Afgerond",
+  "cancelled": "Geannuleerd",
+  "refunded": "Terugbetaald"
 }

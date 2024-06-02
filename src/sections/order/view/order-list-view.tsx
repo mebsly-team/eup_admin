@@ -23,7 +23,6 @@ import { isAfter, isBetween } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
 
-import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
@@ -32,7 +31,6 @@ import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import {
   useTable,
-  getComparator,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
@@ -45,9 +43,15 @@ import OrderTableToolbar from '../order-table-toolbar';
 import OrderTableFiltersResult from '../order-table-filters-result';
 
 // ----------------------------------------------------------------------
+
 export const ORDER_STATUS_OPTIONS = [
-  { value: 'pending', label: 'In behandeling' },
-  { value: 'completed', label: 'Afgerond' },
+  { value: 'pending_order', label: 'Bestel-pending' },
+  { value: 'pending_offer', label: 'Offerte-pending' },
+  { value: 'confirmed', label: 'Bevestiging' },
+  { value: 'werkbon', label: 'Orderpicker' },
+  { value: 'packing', label: 'Pakbon' },
+  { value: 'shipped', label: 'Verzonden' },
+  { value: 'delivered', label: 'Afgerond' },
   { value: 'cancelled', label: 'Geannuleerd' },
   { value: 'refunded', label: 'Terugbetaald' },
 ];
@@ -85,10 +89,15 @@ export default function OrderListView() {
   const defaultFilters: IOrderTableFilters = {
     status: queryParams.get('status') || 'all',
     name: queryParams.get('name') || '',
-    category:
-      (queryParams.get('category') &&
-        queryParams.get('category') !== 'undefined' &&
-        queryParams.get('category')) ||
+    startDate:
+      (queryParams.get('start_date') &&
+        queryParams.get('start_date') !== 'undefined' &&
+        queryParams.get('start_date')) ||
+      '',
+    endDate:
+      (queryParams.get('end_date') &&
+        queryParams.get('end_date') !== 'undefined' &&
+        queryParams.get('end_date')) ||
       '',
   };
 
@@ -96,19 +105,10 @@ export default function OrderListView() {
 
   const dateError = isAfter(filters.startDate, filters.endDate);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-    dateError,
-  });
-
-  const dataInPage = dataFiltered.slice(
+  const dataInPage = orderList.slice(
     table.page * table.rowsPerPage,
     table.page * table.rowsPerPage + table.rowsPerPage
   );
-
-  const denseHeight = table.dense ? 56 : 56 + 20;
 
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [count, setCount] = useState(0);
@@ -124,11 +124,13 @@ export default function OrderListView() {
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
-    const categoryFilter = filters.category ? `&category=${filters.category}` : '';
+    const startDateFilter = filters.startDate ? `&start_date=${formatDate(filters.startDate)}` : '';
+    const endDateFilter = filters.endDate ? `&end_date=${formatDate(filters.endDate)}` : '';
+
     const { data } = await axiosInstance.get(
       `/orders/?all=true&limit=${table.rowsPerPage}&offset=${
         table.page * table.rowsPerPage
-      }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
+      }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}`
     );
     setCount(data.count || 0);
     setOrderList(data.results || []);
@@ -137,8 +139,6 @@ export default function OrderListView() {
 
   const canReset =
     !!filters.name || filters.status !== 'all' || (!!filters.startDate && !!filters.endDate);
-
-  const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
   const handleFilters = useCallback(
     (name: string, value: IOrderTableFilterValue) => {
@@ -177,9 +177,9 @@ export default function OrderListView() {
 
     table.onUpdatePageDeleteRows({
       totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: dataFiltered.length,
+      totalRowsFiltered: orderList.length,
     });
-  }, [dataFiltered.length, dataInPage.length, enqueueSnackbar, table, tableData]);
+  }, [orderList.length, dataInPage.length, enqueueSnackbar, table, tableData]);
 
   const handleViewRow = useCallback(
     (id: string) => {
@@ -224,33 +224,42 @@ export default function OrderListView() {
             value={filters.status}
             onChange={handleFilterStatus}
             sx={{
-              px: 2.5,
+              px: 0,
               boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+              'div div': {
+                justifyContent: 'space-between',
+              },
             }}
           >
             {STATUS_OPTIONS.map((tab) => (
               <Tab
                 key={tab.value}
-                iconPosition="end"
+                // iconPosition="end"
                 value={tab.value}
                 label={tab.label}
-                icon={
-                  <Label
-                    variant={
-                      ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                    }
-                    color={
-                      (tab.value === 'completed' && 'success') ||
-                      (tab.value === 'pending' && 'warning') ||
-                      (tab.value === 'cancelled' && 'error') ||
-                      'default'
-                    }
-                  >
-                    {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
-                      ? tableData.filter((user) => user.status === tab.value).length
-                      : tableData.length}
-                  </Label>
-                }
+                sx={{
+                  textTransform: 'uppercase',
+                  fontSize: '0.725rem',
+                  marginRight: '1rem!important',
+                }}
+                // icon={
+                //   <Label
+                //     variant={
+                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
+                //     }
+                //     color={
+                //       (tab.value === 'delivered' && 'success') ||
+                //       (tab.value === 'pending_order' && 'warning') ||
+                //       (tab.value === 'pending_offer' && 'warning') ||
+                //       (tab.value === 'cancelled' && 'error') ||
+                //       'default'
+                //     }
+                //   >
+                //     {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
+                //       ? tableData.filter((user) => user.status === tab.value).length
+                //       : tableData.length}
+                //   </Label>
+                // }
               />
             ))}
           </Tabs>
@@ -269,7 +278,7 @@ export default function OrderListView() {
               //
               onResetFilters={handleResetFilters}
               //
-              results={dataFiltered.length}
+              results={count}
               sx={{ p: 2.5, pt: 0 }}
             />
           )}
@@ -278,11 +287,11 @@ export default function OrderListView() {
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={dataFiltered.length}
+              rowCount={orderList.length}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
-                  dataFiltered.map((row) => row.id)
+                  orderList.map((row) => row.id)
                 )
               }
               action={
@@ -300,13 +309,13 @@ export default function OrderListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={dataFiltered.length}
+                  rowCount={orderList.length}
                   numSelected={table.selected.length}
                   onSort={table.onSort}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
-                      dataFiltered.map((row) => row.id)
+                      orderList.map((row) => row.id)
                     )
                   }
                 />
@@ -325,7 +334,7 @@ export default function OrderListView() {
 
                   {/* <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, orderList.length)}
                   /> */}
 
                   {/* <TableNoData notFound={notFound} /> */}
@@ -418,3 +427,10 @@ function applyFilter({
 
   return inputData;
 }
+
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
