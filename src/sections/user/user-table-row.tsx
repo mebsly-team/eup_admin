@@ -42,6 +42,7 @@ export default function UserTableRow({
 }: Props) {
   const {
     id,
+    relation_code,
     fullname,
     business_name,
     last_login,
@@ -77,12 +78,24 @@ export default function UserTableRow({
           <Checkbox checked={selected} onClick={onSelectRow} />
         </TableCell>
 
-        <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+        <TableCell>
+          <ListItemText
+            primary={`ID: ${id}`}
+            secondary={`Relaticode: ${relation_code || '-'}`}
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{
+              component: 'span',
+              color: 'text.disabled',
+            }}
+          />
+        </TableCell>
+
+        <TableCell>
           {/* <Avatar alt={name} src={avatarUrl} sx={{ mr: 2 }} /> */}
 
           <ListItemText
             primary={business_name || fullname}
-            secondary={type}
+            secondary={t(type)}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
               component: 'span',
@@ -94,7 +107,7 @@ export default function UserTableRow({
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
             primary={email}
-            secondary={phone_number}
+            secondary={`Tel: ${phone_number}`}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
               component: 'span',

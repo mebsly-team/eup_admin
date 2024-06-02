@@ -68,7 +68,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
     notes: Yup.string().nullable(),
     website: Yup.string().nullable().url(t('website_url_invalid')),
     is_active: Yup.boolean().required(),
-    is_staff: Yup.boolean().required(),
     business_name: isBusiness && Yup.string().required(t('business_name_required')),
     contact_person_name: isBusiness && Yup.string().required(t('contact_person_name_required')),
     contact_person_phone_number:

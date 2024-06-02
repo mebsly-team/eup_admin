@@ -6,6 +6,8 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Stack, { StackProps } from '@mui/material/Stack';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 
 import { IUserTableFilters, IUserTableFilterValue } from 'src/types/user';
@@ -30,6 +32,8 @@ export default function UserTableFiltersResult({
   results,
   ...other
 }: Props) {
+  const { t, onChangeLang } = useTranslate();
+
   const handleRemoveKeyword = useCallback(() => {
     onFilters('first_name', '');
   }, [onFilters]);
@@ -50,7 +54,7 @@ export default function UserTableFiltersResult({
   return (
     <Stack spacing={1.5} {...other}>
       <Box sx={{ typography: 'body2' }}>
-        <strong>{results}</strong>
+        <strong>{results}</strong>{' '}
         <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
           resultaten gevonden
         </Box>
@@ -59,14 +63,19 @@ export default function UserTableFiltersResult({
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
         {filters.status !== 'all' && (
           <Block label="Status:">
-            <Chip size="small" label={filters.status} onDelete={handleRemoveStatus} />
+            <Chip size="small" label={t(filters.status)} onDelete={handleRemoveStatus} />
           </Block>
         )}
 
         {!!filters.role.length && (
           <Block label="Role:">
             {filters.role.map((item) => (
-              <Chip key={item} label={item} size="small" onDelete={() => handleRemoveRole(item)} />
+              <Chip
+                key={item}
+                label={t(item)}
+                size="small"
+                onDelete={() => handleRemoveRole(item)}
+              />
             ))}
           </Block>
         )}

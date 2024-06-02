@@ -65,6 +65,7 @@ export default function UserListView() {
   const { t, onChangeLang } = useTranslate();
 
   const TABLE_HEAD = [
+    { id: 'relation_code', label: t('id') },
     { id: 'name', label: t('name_type') },
     { id: 'email', label: t('email_phone'), width: 180 },
     { id: 'company', label: t('poc'), width: 220 },
