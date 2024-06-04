@@ -128,7 +128,7 @@ export default function ProductTableRow({
             primary={
               <a
                 target="_blank"
-                href={`http://52.28.100.129:3000/nl/product/${id}/${slug}`}
+                href={`http://kooptop.com/nl/product/${id}/${slug}`}
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
               >

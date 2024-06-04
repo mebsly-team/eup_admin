@@ -1647,7 +1647,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {currentProduct?.id ? (
         <Link
           target="_blank"
-          href={`http://52.28.100.129:3000/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          href={`https://kooptop.com/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{
