@@ -62,15 +62,19 @@ export default function CategoryTableRow({
 
   return (
     <>
-      <TableRow
-        hover
-        selected={selected}
-        sx={{ background: isSubcategory ? color : 'none' }}
-      >
+      <TableRow hover selected={selected} sx={{ background: isSubcategory ? color : 'none' }}>
         <TableCell align="center">{row.id}</TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          {image ? <Image alt={name} src={image} maxWidth={100} /> : '-'}
+          {image ? (
+            <Image
+              alt={name}
+              src={`https://eup-data.s3.amazonaws.com/eup/uploads/${image}`}
+              maxWidth={100}
+            />
+          ) : (
+            '-'
+          )}
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{name}</TableCell>

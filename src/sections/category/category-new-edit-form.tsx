@@ -225,7 +225,9 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               {radioValue === 'parent' ? (
                 <Stack spacing={1.5}>
                   <Typography variant="subtitle2">{t('image')}</Typography>
-                  <Image src={getValues('image')} />
+                  <Image
+                    src={`https://eup-data.s3.amazonaws.com/eup/uploads/${getValues('image')}`}
+                  />
                   <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
                   {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
                 </Stack>
