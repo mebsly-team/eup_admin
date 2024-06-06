@@ -223,7 +223,7 @@ export default function OrderTableRow({
                   }}
                 >
                   <Avatar
-                    src={item?.product?.images?.[0]}
+                    src={item?.product?.images?.[0]?.replace('eup-images', 'eup-data')}
                     variant="rounded"
                     sx={{ width: 48, height: 48, mr: 2 }}
                   />

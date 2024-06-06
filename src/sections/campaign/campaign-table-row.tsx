@@ -74,7 +74,7 @@ export default function CampaignTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={name} src={images?.[0]} />
+          <Image alt={name} src={images?.[0]?.replace('eup-images', 'eup-data')} />
         </TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText

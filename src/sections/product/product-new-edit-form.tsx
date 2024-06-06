@@ -73,11 +73,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const tab = queryParams.get('tab');
   const [openLightBox, setOpenLightBox] = useState(false);
   const [lightBoxSlides, setLightBoxSlides] = useState();
+
   const handleLightBoxSlides = useCallback((images) => {
     if (images.length) {
       setOpenLightBox(true);
       const slides = images.map((img) => ({
-        src: img,
+        src: `https://eup-data.s3.amazonaws.com/eup/uploads/${img}`,
       }));
       setLightBoxSlides(slides);
     }
@@ -753,11 +754,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const handleSelectImage = (urlList = []) => {
     const imageList = getValues('images') || [];
 
+    const elementsToAdd = [];
     urlList.forEach((element) => {
       if (!imageList?.includes(element)) {
-        setValue('images', [...imageList, element]);
+        elementsToAdd.push(element);
       }
     });
+    setValue('images', [...imageList, ...elementsToAdd]);
 
     setImageGalleryOpen(false);
   };
@@ -817,7 +820,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                         }}
                       >
                         <img
-                          src={item}
+                          src={`https://eup-data.s3.amazonaws.com/eup/uploads/${item}`}
                           alt={`Preview ${index + 1}`}
                           style={{
                             width: '100%',
@@ -1688,7 +1691,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
               {getValues('images')?.[0] && (
                 <img
-                  src={getValues('images')?.[0]}
+                  src={`https://eup-data.s3.amazonaws.com/eup/uploads/${getValues('images')?.[0]}`}
                   alt=""
                   style={{
                     width: 'auto',

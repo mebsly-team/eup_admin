@@ -120,7 +120,11 @@ export default function ProductTableRow({
           sx={{ p: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={handleImageClick}
         >
-          <Image alt={title} src={images?.[0]} sxImg={{ width: 'auto', height: 'auto', maxWidth: '75px', maxHeight: '50px' }} />
+          <Image
+            alt={title}
+            src={`https://eup-data.s3.amazonaws.com/eup/uploads/${images?.[0]}`}
+            sxImg={{ width: 'auto', height: 'auto', maxWidth: '75px', maxHeight: '50px' }}
+          />
         </TableCell>
 
         <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
