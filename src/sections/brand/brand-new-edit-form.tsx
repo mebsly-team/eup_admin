@@ -123,7 +123,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
               <RHFTextField name="description" label={t('description')} />
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">Logo</Typography>
-                <Image src={getValues('logo')} />
+                <Image src={`https://eup-data.s3.amazonaws.com/eup/uploads/${getValues('logo')}`} />
                 <Button onClick={() => setImageGalleryOpen(true)}>{t('select')}</Button>
                 {errors?.logo && <Typography color="error">{errors?.logo?.message}</Typography>}
               </Stack>

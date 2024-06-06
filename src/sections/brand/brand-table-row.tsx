@@ -53,7 +53,7 @@ export default function BrandTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center', maxWidth: '200px' }}>
-          <Image alt={name} src={logo} />
+          <Image alt={name} src={`https://eup-data.s3.amazonaws.com/eup/uploads/${logo}`} />
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
