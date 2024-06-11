@@ -128,6 +128,14 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
 
   const createVariantsCall = async (value1, value2, unitValue) => {
     setIsLoading(true); // Show the spinner
+    const discount =
+      unitValue === 'box'
+        ? 10
+        : unitValue === 'pallet_layer'
+          ? 15
+          : unitValue === 'pallet_full'
+            ? 20
+            : null;
 
     const title = `${currentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
       value2 ? `-${t(value2)}` : ''
@@ -147,7 +155,12 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
     if (currentProduct?.brand?.id) data.brand = currentProduct?.brand?.id;
     if (currentProduct?.delivery_time) data.delivery_time = currentProduct?.delivery_time;
     if (currentProduct?.hs_code) data.hs_code = currentProduct?.hs_code;
+    if (currentProduct?.vat) data.vat = currentProduct?.vat;
+    if (currentProduct?.languages_on_item_package)
+      data.languages_on_item_package = currentProduct?.languages_on_item_package;
     if (currentProduct?.is_regular !== null) data.is_regular = currentProduct?.is_regular;
+    if (discount) data.variant_discount = discount;
+
     try {
       const response = await axiosInstance.post('/products/', data);
 
