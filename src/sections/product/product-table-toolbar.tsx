@@ -165,7 +165,7 @@ export default function UserTableToolbar({
               {option.name}
             </li>
           )}
-          value={categoryList.find((category) => category.id === Number(filters.category)) || null}
+          value={categoryList.find((category) => category?.id === Number(filters.category)) || null}
           onChange={(event: any, newValue: any) => {
             setValue(newValue);
             handleFilterCategory(newValue);

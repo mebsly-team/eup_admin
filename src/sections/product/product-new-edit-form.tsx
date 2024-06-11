@@ -252,7 +252,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       meta_keywords: currentProduct?.meta_keywords || '',
       url: currentProduct?.url || '',
 
-      inhoud_number: currentProduct?.inhoud_number || 0,
+      inhoud_number: currentProduct?.inhoud_number || 1,
       inhoud_unit: currentProduct?.inhoud_unit || '',
       inhoud_price: currentProduct?.inhoud_price || 0,
     }),
@@ -276,6 +276,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
+  const handleEmptyNumbers = (event) => {
+    const { value } = event.target;
+    if (value === '' || value === null) {
+      setValue(event.target.name, 0);
+    }
+  };
   useEffect(() => {
     if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
   }, [isDirty, values]);
@@ -390,28 +396,28 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           console.error(errorMessage);
           enqueueSnackbar({ variant: 'error', message: errorMessage });
         });
-      } else {
-        // const errorMessages = Object.entries(error);
-        // if (errorMessages.length) {
-        //   errorMessages.forEach(([fieldName, errors]) => {
-        //     if (Array.isArray(errors)) {
-        //       errors.forEach((errorMsg) => {
-        //         enqueueSnackbar({
-        //           variant: 'error',
-        //           message: `${t(fieldName)}: ${errorMsg}`,
-        //         });
-        //       });
-        //     } else {
-        //       enqueueSnackbar({
-        //         variant: 'error',
-        //         message: `${t(fieldName)}: ${errors}`,
-        //       });
-        //     }
-        //   });
-        // } else {
-        //   console.error('An unexpected error occurred:', error);
-        //   enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
-        // }
+      } else if (typeof error === 'object') {
+        const errorMessages = Object.entries(error);
+        if (errorMessages.length) {
+          errorMessages.forEach(([fieldName, errors]) => {
+            if (Array.isArray(errors)) {
+              errors.forEach((errorMsg) => {
+                enqueueSnackbar({
+                  variant: 'error',
+                  message: `${t(fieldName)}: ${errorMsg}`,
+                });
+              });
+            } else {
+              enqueueSnackbar({
+                variant: 'error',
+                message: `${t(fieldName)}: ${errors}`,
+              });
+            }
+          });
+        } else {
+          console.error('An unexpected error occurred:', error);
+          enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+        }
       }
     }
   });
@@ -727,7 +733,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             }}
           >
             <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
-            <RHFTextField name="stock_at_supplier" label={t('stock_at_supplier')} type="number" />
+            <RHFTextField
+              name="stock_at_supplier"
+              label={t('stock_at_supplier')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
 
             <RHFSwitch
               name="sell_from_supplier"
@@ -881,7 +892,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <ul>
                 {getValues('categories')?.map((category, index) => (
                   <li key={index}>
-                    {category ? <strong>{category?.name}</strong> : `Category: ${category.id}`}
+                    {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
                   </li>
                 ))}
               </ul>
@@ -975,8 +986,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 setValue(
                   'inhoud_price',
                   roundUp(
-                    (Number(e.target.value) * Number(getValues('price_per_piece'))) /
-                      Number(getValues('inhoud_number'))
+                    (Number(e.target.value || 1) * Number(getValues('price_per_piece') || 0)) /
+                      Number(getValues('inhoud_number') || 1)
                   )
                 );
                 setValue(
@@ -1050,7 +1061,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                       (Number(e.target.value) +
                         (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
                           100)) /
-                      Number(getValues('inhoud_number'))
+                      Number(getValues('inhoud_number') || 1)
                   )
                 );
               }}
@@ -1102,7 +1113,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   'inhoud_price',
                   roundUp(
                     (Number(e.target.value) * Number(getValues('quantity_per_unit'))) /
-                      Number(getValues('inhoud_number'))
+                      Number(getValues('inhoud_number') || 1)
                   )
                 );
                 setValue(
@@ -1181,12 +1192,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               onChange={(e) => {
                 setValue(
                   'inhoud_number',
-                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                  e.target.value !== '' ? Number(e.target.value) : 1
                 );
 
                 setValue(
                   'inhoud_price',
-                  roundUp(Number(getValues('price_per_unit')) / Number(e.target.value))
+                  roundUp(Number(getValues('price_per_unit')) / Number(e.target.value || 1))
                 );
               }}
             />
@@ -1207,6 +1218,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               disabled
               name="inhoud_price"
               label={t('inhoud_price')}
+              onBlur={handleEmptyNumbers}
               placeholder="0.00"
               type="number"
               InputLabelProps={{ shrink: true }}
@@ -1269,12 +1281,33 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               name="max_order_allowed_per_unit"
               label={t('max_order_allowed_per_unit')}
               type="number"
+              onBlur={handleEmptyNumbers}
             />
 
-            <RHFTextField name="order_unit_amount" label={t('order_unit_amount')} type="number" />
-            <RHFTextField name="min_order_amount" label={t('min_order_amount')} type="number" />
-            <RHFTextField name="min_stock_value" label={t('min_stock_value')} type="number" />
-            <RHFTextField name="max_stock_at_rack" label={t('max_stock_at_rack')} type="number" />
+            <RHFTextField
+              name="order_unit_amount"
+              label={t('order_unit_amount')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="min_order_amount"
+              label={t('min_order_amount')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="min_stock_value"
+              label={t('min_stock_value')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="max_stock_at_rack"
+              label={t('max_stock_at_rack')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
             <RHFSwitch
               name="has_electronic_barcode"
               labelPlacement="start"
@@ -1512,9 +1545,24 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="cm">{t('cm')}</MenuItem>
               <MenuItem value="m">{t('m')}</MenuItem>
             </RHFSelect>
-            <RHFTextField name="size_x_value" label={t('size_x_value')} type="number" />
-            <RHFTextField name="size_y_value" label={t('size_y_value')} type="number" />
-            <RHFTextField name="size_z_value" label={t('size_z_value')} type="number" />
+            <RHFTextField
+              name="size_x_value"
+              label={t('size_x_value')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="size_y_value"
+              label={t('size_y_value')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="size_z_value"
+              label={t('size_z_value')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
             <RHFTextField
               sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
               name="volume"
@@ -1525,7 +1573,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               name="volume_unit"
               label={t('volume_unit')}
             />
-            <RHFTextField name="liter" label={t('liter')} type="number" />
+            <RHFTextField
+              name="liter"
+              label={t('liter')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
             <RHFSelect name="liter_unit" label={t('liter_unit')}>
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
@@ -1543,11 +1596,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               name="pallet_layer_total_number"
               label={t('pallet_layer_total_number')}
               type="number"
+              onBlur={handleEmptyNumbers}
             />
             <RHFTextField
               name="pallet_full_total_number"
               label={t('pallet_full_total_number')}
               type="number"
+              onBlur={handleEmptyNumbers}
             />
 
             <RHFSwitch
@@ -1773,12 +1828,23 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
-            <RHFTextField name="overall_stock" label={t('overall_stock')} type="number" />
-            <RHFTextField name="free_stock" label={t('free_stock')} type="number" />
+            <RHFTextField
+              name="overall_stock"
+              label={t('overall_stock')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="free_stock"
+              label={t('free_stock')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
             <RHFTextField
               name="ordered_in_progress_stock"
               label={t('ordered_in_progress_stock')}
               type="number"
+              onBlur={handleEmptyNumbers}
             />
           </Box>
         </Stack>
@@ -1796,16 +1862,41 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
-            <RHFTextField name="number_in_order" label={t('number_in_order')} type="number" />
-            <RHFTextField name="number_in_offer" label={t('number_in_offer')} type="number" />
-            <RHFTextField name="number_in_pakbon" label={t('number_in_pakbon')} type="number" />
+            <RHFTextField
+              name="number_in_order"
+              label={t('number_in_order')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="number_in_offer"
+              label={t('number_in_offer')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="number_in_pakbon"
+              label={t('number_in_pakbon')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
             <RHFTextField
               name="number_in_confirmation"
               label={t('number_in_confirmation')}
               type="number"
             />
-            <RHFTextField name="number_in_werkbon" label={t('number_in_werkbon')} type="number" />
-            <RHFTextField name="number_in_other" label={t('number_in_other')} type="number" />
+            <RHFTextField
+              name="number_in_werkbon"
+              label={t('number_in_werkbon')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
+            <RHFTextField
+              name="number_in_other"
+              label={t('number_in_other')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
           </Box>
         </Stack>
       </Card>
@@ -1822,7 +1913,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(2, 1fr)',
             }}
           >
-            <RHFTextField name="sell_count" label={t('sell_count')} type="number" />
+            <RHFTextField
+              name="sell_count"
+              label={t('sell_count')}
+              type="number"
+              onBlur={handleEmptyNumbers}
+            />
           </Box>
         </Stack>
       </Card>
