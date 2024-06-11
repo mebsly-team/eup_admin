@@ -21,6 +21,7 @@ import { useTheme } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
+import FormHelperText from '@mui/material/FormHelperText';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Link, alpha, MenuItem, IconButton } from '@mui/material';
@@ -96,6 +97,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [supplierList, setSupplierList] = useState([]);
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
+
   const parent_max_order_allowed_per_unit = Number(
     currentProduct?.parent_max_order_allowed_per_unit || 0
   );
@@ -171,6 +173,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       title_long: currentProduct?.title_long || '',
       // description: currentProduct?.description || '',
       parent_product: currentProduct?.parent_product || '',
+      min_price_to_sell: currentProduct?.min_price_to_sell || '',
       ean: currentProduct?.ean || '',
       article_code: currentProduct?.article_code || '',
       sku: currentProduct?.sku || '',
@@ -961,9 +964,44 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 }}
               />
             ) : null}
+
+            <RHFTextField
+              name="quantity_per_unit"
+              label={t('quantity_per_unit')}
+              placeholder="0"
+              type="number"
+              value={getValues('quantity_per_unit')}
+              onChange={(e) => {
+                setValue(
+                  'quantity_per_unit',
+                  e.target.value !== '' ? Number(e.target.value) : e.target.value
+                );
+                setValue(
+                  'price_per_unit',
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
+                );
+                setValue(
+                  'inhoud_price',
+                  roundUp(
+                    (Number(e.target.value) * Number(getValues('price_per_piece'))) /
+                      Number(getValues('inhoud_number'))
+                  )
+                );
+                setValue(
+                  'price_consumers',
+                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
+                );
+                setValue(
+                  'max_order_allowed_per_unit',
+                  Math.round(parent_max_order_allowed_per_unit / Number(e.target.value))
+                );
+              }}
+              InputLabelProps={{ shrink: true }}
+            />
             <RHFTextField
               name="price_cost"
               label={t('price_cost')}
+              disabled={['box', 'pallet_full', 'pallet_layer'].includes(currentProduct?.unit)}
               placeholder="0.00"
               type="number"
               value={getValues('price_cost')}
@@ -1036,41 +1074,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               }}
             />
             <RHFTextField
-              name="quantity_per_unit"
-              label={t('quantity_per_unit')}
-              placeholder="0"
-              type="number"
-              value={getValues('quantity_per_unit')}
-              onChange={(e) => {
-                setValue(
-                  'quantity_per_unit',
-                  e.target.value !== '' ? Number(e.target.value) : e.target.value
-                );
-                setValue(
-                  'price_per_unit',
-                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
-                );
-                setValue(
-                  'inhoud_price',
-                  roundUp(
-                    (Number(e.target.value) * Number(getValues('price_per_piece'))) /
-                      Number(getValues('inhoud_number'))
-                  )
-                );
-                setValue(
-                  'price_consumers',
-                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
-                );
-                setValue(
-                  'max_order_allowed_per_unit',
-                  Math.round(parent_max_order_allowed_per_unit / Number(e.target.value))
-                );
-              }}
-              InputLabelProps={{ shrink: true }}
-            />
-            <RHFTextField
               name="price_per_piece"
               label={t('price_per_piece')}
+              helperText={
+                getValues('min_price_to_sell') ? (
+                  <FormHelperText error sx={{ p: 0, m: -1 }}>
+                    min: {getValues('min_price_to_sell')}
+                  </FormHelperText>
+                ) : (
+                  ''
+                )
+              }
               placeholder="0.00"
               type="number"
               value={getValues('price_per_piece')}
@@ -1904,4 +1918,4 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   );
 }
 
-const roundUp = (num) => num.toFixed(4);
+const roundUp = (num) => num.toFixed(2);

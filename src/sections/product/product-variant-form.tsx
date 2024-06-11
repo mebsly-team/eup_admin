@@ -159,7 +159,11 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
     if (currentProduct?.languages_on_item_package)
       data.languages_on_item_package = currentProduct?.languages_on_item_package;
     if (currentProduct?.is_regular !== null) data.is_regular = currentProduct?.is_regular;
-    if (discount) data.variant_discount = discount;
+    if (discount) {
+      data.variant_discount = discount;
+      data.price_cost = currentProduct?.price_cost;
+      data.price_per_piece = Number(currentProduct?.price_per_piece) * (1 - discount / 100);
+    }
 
     try {
       const response = await axiosInstance.post('/products/', data);
