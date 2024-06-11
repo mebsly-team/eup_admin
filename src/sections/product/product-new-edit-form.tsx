@@ -120,18 +120,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
   const NewProductSchema = Yup.object().shape({
     title: Yup.string().required(t('validation_title')),
-    // unit: Yup.string().required(t('validation_unit')),
-    // // description: Yup.string().required(t('validation_description')),
-    // ean: Yup.string().required(t('validation_ean')),
-    // article_code: Yup.string().required(t('validation_articleCode')),
-    // // sku: Yup.string().required(t('validation_sku')),
-    // categories: Yup.array().min(1, t('validation_minCategory')),
-    // images: Yup.array().min(1, t('validation_images')),
-    // brand: Yup.number().required(t('validation_brand')),
-    // quantity_per_unit: Yup.number().required(t('validation_quantity_per_unit')),
-    // supplier: Yup.number().required(t('validation_supplier')).nullable(),
-    // // tags: Yup.array().min(2, t('validation_minTags')),
-    // price_per_piece: Yup.number().moreThan(0, t('validation_moreThanZero')),
+    price_per_piece: Yup.number().when('min_price_to_sell', (min_price_to_sell, schema) =>
+      min_price_to_sell ? schema.moreThan(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
+    ),
+
     // price_per_unit: Yup.number().moreThan(0, t('validation_moreThanZero')),
     // price_consumers: Yup.number().moreThan(0, t('validation_moreThanZero')),
     // price_cost: Yup.number().moreThan(0, t('validation_moreThanZero')),
@@ -1078,7 +1070,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               label={t('price_per_piece')}
               helperText={
                 getValues('min_price_to_sell') ? (
-                  <FormHelperText error sx={{ p: 0, m: -1 }}>
+                  <FormHelperText error={errors.price_per_piece} sx={{ p: 0, m: -1 }}>
                     min: {getValues('min_price_to_sell')}
                   </FormHelperText>
                 ) : (
