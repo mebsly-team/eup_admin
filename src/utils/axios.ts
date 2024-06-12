@@ -1,12 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
+import { HOST_API } from 'src/config-global';
+
 // ----------------------------------------------------------------------
 
-//let axiosInstance = axios.create({ baseURL: 'http://52.28.100.129/api' });
-//axiosInstance = axios.create({ baseURL: 'http://localhost:8000/api' });
-// let axiosInstance = axios.create({ baseURL: 'http://3.76.29.246/api' });
-let axiosInstance = axios.create({ baseURL: 'https://be.kooptop.com/api' });
-// const axiosInstance = axios.create({ baseURL: HOST_API });
+const axiosInstance = axios.create({ baseURL: HOST_API });
 
 axiosInstance.interceptors.request.use(
   (config) => {
