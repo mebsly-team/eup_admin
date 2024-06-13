@@ -63,6 +63,7 @@ const styles = {
     },
   },
 };
+const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
 export default function ProductVariantForm({ currentProduct, setActiveTab }: Props) {
   const router = useRouter();
@@ -502,7 +503,9 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
         }}
       >
         <DataGrid
-          rows={currentProductVariantRows}
+          rows={currentProductVariantRows.sort(
+            (a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit)
+          )}
           columns={columns}
           editMode="row"
           rowModesModel={rowModesModel}
