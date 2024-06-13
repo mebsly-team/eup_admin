@@ -23,6 +23,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
@@ -80,7 +81,7 @@ export default function ImageGallery({
   };
 
   const slides = imageList.map((slide) => ({
-    src: `https://eup-data.s3.amazonaws.com/eup/uploads/${slide.name}`,
+    src: `${IMAGE_FOLDER_PATH}${slide.name}`,
   }));
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -224,9 +225,8 @@ export default function ImageGallery({
                 <Image
                   alt="gallery"
                   ratio="1/1"
-                  src={`https://eup-data.s3.amazonaws.com/eup/uploads/${image.name}`}
+                  src={`${IMAGE_FOLDER_PATH}${image.name}`}
                   onClick={() => handleSelect(`${image.name}`)}
-                  // onClick={() => lightbox.onOpen(image.url?.replace("eup-images", "eup-data"))}
                 />
                 <IconButton
                   style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}

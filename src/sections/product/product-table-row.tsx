@@ -15,6 +15,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
@@ -122,7 +123,7 @@ export default function ProductTableRow({
         >
           <Image
             alt={title}
-            src={`https://eup-data.s3.amazonaws.com/eup/uploads/${images?.[0]}`}
+            src={`${IMAGE_FOLDER_PATH}${images?.[0]}`}
             sxImg={{ width: 'auto', height: 'auto', maxWidth: '75px', maxHeight: '50px' }}
           />
         </TableCell>

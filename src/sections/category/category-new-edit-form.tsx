@@ -21,6 +21,7 @@ import { useRouter } from 'src/routes/hooks';
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Image from 'src/components/image';
 import { useSnackbar } from 'src/components/snackbar';
@@ -225,9 +226,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               {radioValue === 'parent' ? (
                 <Stack spacing={1.5}>
                   <Typography variant="subtitle2">{t('image')}</Typography>
-                  <Image
-                    src={`https://eup-data.s3.amazonaws.com/eup/uploads/${getValues('image')}`}
-                  />
+                  <Image src={`${IMAGE_FOLDER_PATH}${getValues('image')}`} />
                   <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
                   {errors?.image && <Typography color="error">{errors?.image?.message}</Typography>}
                 </Stack>

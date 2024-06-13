@@ -11,6 +11,7 @@ import { useRouter } from 'src/routes/hooks';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
@@ -66,15 +67,7 @@ export default function CategoryTableRow({
         <TableCell align="center">{row.id}</TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          {image ? (
-            <Image
-              alt={name}
-              src={`https://eup-data.s3.amazonaws.com/eup/uploads/${image}`}
-              maxWidth={100}
-            />
-          ) : (
-            '-'
-          )}
+          {image ? <Image alt={name} src={`${IMAGE_FOLDER_PATH}${image}`} maxWidth={100} /> : '-'}
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{name}</TableCell>

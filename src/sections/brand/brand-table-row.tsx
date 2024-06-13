@@ -9,6 +9,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
@@ -53,7 +54,7 @@ export default function BrandTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center', maxWidth: '200px' }}>
-          <Image alt={name} src={`https://eup-data.s3.amazonaws.com/eup/uploads/${logo}`} />
+          <Image alt={name} src={`${IMAGE_FOLDER_PATH}${logo}`} />
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>

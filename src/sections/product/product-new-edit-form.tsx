@@ -35,6 +35,7 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { countries } from 'src/assets/data';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
@@ -79,7 +80,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     if (images.length) {
       setOpenLightBox(true);
       const slides = images.map((img) => ({
-        src: `https://eup-data.s3.amazonaws.com/eup/uploads/${img}`,
+        src: `${IMAGE_FOLDER_PATH}${img}`,
       }));
       setLightBoxSlides(slides);
     }
@@ -826,7 +827,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                         }}
                       >
                         <img
-                          src={`https://eup-data.s3.amazonaws.com/eup/uploads/${item}`}
+                          src={`${IMAGE_FOLDER_PATH}${item}`}
                           alt={`Preview ${index + 1}`}
                           style={{
                             width: '100%',
@@ -1190,10 +1191,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               type="number"
               value={getValues('inhoud_number')}
               onChange={(e) => {
-                setValue(
-                  'inhoud_number',
-                  e.target.value !== '' ? Number(e.target.value) : 1
-                );
+                setValue('inhoud_number', e.target.value !== '' ? Number(e.target.value) : 1);
 
                 setValue(
                   'inhoud_price',
@@ -1752,7 +1750,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
               {getValues('images')?.[0] && (
                 <img
-                  src={`https://eup-data.s3.amazonaws.com/eup/uploads/${getValues('images')?.[0]}`}
+                  src={`${IMAGE_FOLDER_PATH}${getValues('images')?.[0]}`}
                   alt=""
                   style={{
                     width: 'auto',
