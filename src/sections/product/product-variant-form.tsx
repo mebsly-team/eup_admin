@@ -136,7 +136,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
           : unitValue === 'pallet_full'
             ? 20
             : null;
-
+    const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
     const title = `${currentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
       value2 ? `-${t(value2)}` : ''
     }-${t(unitValue)}`;
@@ -163,6 +163,10 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       data.variant_discount = discount;
       data.price_cost = currentProduct?.price_cost;
       data.price_per_piece = Number(currentProduct?.price_per_piece) * (1 - discount / 100);
+    }
+    if (isPalletOrBox) {
+      data.ean = currentProduct?.ean;
+      data.article_code = currentProduct?.article_code;
     }
 
     try {
