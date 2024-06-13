@@ -99,6 +99,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
 
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [tab]);
+
   const parent_max_order_allowed_per_unit = Number(
     currentProduct?.parent_max_order_allowed_per_unit || 0
   );
@@ -386,7 +392,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       if (activeAction === 'save_stay') {
         // Do nothing, stay on the same page
       } else if (activeAction === 'save_back') {
-        if (currentProduct?.is_variant) setActiveTab(1);
+        if (currentProduct?.is_variant)
+          router.push(`/dashboard/product/${currentProduct?.parent_product}/edit?tab=1`);
         else router.back();
       }
     } catch (error) {
@@ -1971,7 +1978,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           </Grid>
         </Grid>
       ) : (
-        <ProductVariantForm currentProduct={currentProduct} setActiveTab={setActiveTab} />
+        <ProductVariantForm
+          currentProduct={currentProduct}
+          setActiveTab={setActiveTab}
+          activeTab={activeTab}
+        />
       )}
 
       {isImageGalleryOpen ? (

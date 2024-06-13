@@ -37,6 +37,7 @@ import { IProductItem } from 'src/types/product';
 type Props = {
   currentProduct?: IProductItem;
   setActiveTab?: () => void;
+  activeTab: any;
 };
 
 const styles = {
@@ -65,7 +66,7 @@ const styles = {
 };
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
-export default function ProductVariantForm({ currentProduct, setActiveTab }: Props) {
+export default function ProductVariantForm({ currentProduct, setActiveTab, activeTab }: Props) {
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -125,7 +126,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
 
   useEffect(() => {
     getVariants();
-  }, [currentProductVariantIdList?.length]);
+  }, [activeTab, currentProductVariantIdList?.length]);
 
   const createVariantsCall = async (value1, value2, unitValue) => {
     setIsLoading(true); // Show the spinner
@@ -182,6 +183,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       // Handle error here if needed
     } finally {
       setIsLoading(false); // Hide the spinner when done
+      getVariants();
     }
   };
 
@@ -209,10 +211,24 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
     router.push(paths.dashboard.product.edit(id));
   };
 
-  const handleSaveClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
-  };
+  const handleActiveSwitchChange = (row) => async (e) => {
+    e.stopPropagation(); // Stop event propagation
 
+    try {
+      const response = await axiosInstance.put(`/products/${row.id}/`, {
+        is_product_active: e.target.checked,
+        title: row.title,
+      });
+    } catch (error) {
+      console.error('Missing Fields:', error);
+      const missingFields = Object.values(error)?.[0] || [];
+      missingFields.forEach((element) => {
+        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+      });
+    } finally {
+      getVariants();
+    }
+  };
   const handleDeleteClick = (id: GridRowId) => async () => {
     try {
       const { data } = await axiosInstance.delete(`/products/${id}/`);
@@ -220,6 +236,8 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
       setCurrentProductVariantRows(currentProductVariantRows.filter((row) => row.id !== id));
     } catch (error) {
       enqueueSnackbar({ variant: 'error', message: t('error') });
+    } finally {
+      getVariants();
     }
   };
 
@@ -319,7 +337,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
         <Switch
           size="small"
           checked={row?.is_product_active}
-          // onChange={handleChange}
+          onChange={handleActiveSwitchChange(row)}
         />,
       ],
     },
@@ -384,6 +402,8 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
   const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
   if (isLoading) return <Iconify icon="svg-spinners:8-dots-rotate" />;
+  const sortedRows = [...currentProductVariantRows];
+  sortedRows?.sort((a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit));
   return (
     <>
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
@@ -503,9 +523,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab }: Pro
         }}
       >
         <DataGrid
-          rows={currentProductVariantRows.sort(
-            (a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit)
-          )}
+          rows={sortedRows}
           columns={columns}
           editMode="row"
           rowModesModel={rowModesModel}
