@@ -61,7 +61,6 @@ export default function ProductListView() {
   const settings = useSettingsContext();
   const router = useRouter();
   const location = useLocation();
-  console.log('location', location)
   const queryParams = new URLSearchParams(location.search);
   const table = useTable({ defaultCurrentPage: Number(queryParams.get('page') || 1) - 1 });
 
@@ -73,7 +72,7 @@ export default function ProductListView() {
   const [selectedSingleRow, setSelectedSingleRow] = useState();
 
   const defaultFilters: IProductTableFilters = {
-    is_product_active: queryParams.get('is_product_active') || 'all',
+    visibility: queryParams.get('visibility') || 'visible',
     name: queryParams.get('name') || '',
     category:
       (queryParams.get('category') &&
@@ -86,6 +85,8 @@ export default function ProductListView() {
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [openLightBox, setOpenLightBox] = useState(false);
   const [lightBoxSlides, setLightBoxSlides] = useState();
+  const [searchQuery, setSearchQuery] = useState<string>(filters.name);
+
   const handleLightBoxSlides = useCallback((images) => {
     if (images.length) {
       setOpenLightBox(true);
@@ -102,7 +103,8 @@ export default function ProductListView() {
     { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
     { id: 'ean', label: t('ean'), hideOnSm: true },
     { id: 'overall_stock', label: t('free_all_stock'), hideOnMd: true },
-    { id: 'is_product_active', label: `${t('active')}?` },
+    { id: 'is_visible_particular', label: `${t('is_particular')}` },
+    { id: 'is_visible_B2B', label: `${t('is_b2b')}` },
   ];
   const theme = useTheme();
 
@@ -110,15 +112,6 @@ export default function ProductListView() {
     table.page * table.rowsPerPage,
     table.page * table.rowsPerPage + table.rowsPerPage
   );
-
-  const styles = {
-    tableCell: {
-      [theme.breakpoints.down('sm')]: {
-        display: 'none', // Hide the cell on small screens
-      },
-    },
-  };
-  const denseHeight = table.dense ? 56 : 56 + 20;
 
   useEffect(() => {
     getAll();
@@ -128,10 +121,16 @@ export default function ProductListView() {
 
   const getAll = async () => {
     setIsLoading(true);
+
     const statusFilter =
-      filters.is_product_active !== 'all'
-        ? `&is_product_active=${filters.is_product_active === 'active'}`
-        : '';
+      filters.visibility === 'hidden'
+        ? `&is_product_active=false`
+        : filters.visibility === 'is_visible_particular'
+          ? `&is_visible_particular=true`
+          : filters.visibility === 'is_visible_B2B'
+            ? `&is_visible_B2B=true`
+            : `&is_product_active=true`;
+
     const orderByParam = table.orderBy
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
@@ -152,6 +151,9 @@ export default function ProductListView() {
       const newSearchParams = new URLSearchParams(location.search);
       newSearchParams.set(name, value);
       if (name !== 'page') newSearchParams.set('page', '1');
+      if (name === 'name' && value === '') {
+        setSearchQuery('');
+      }
       table.onChangePage(null, 0);
 
       // table.onResetPage();
@@ -165,8 +167,9 @@ export default function ProductListView() {
   );
 
   const handleResetFilters = useCallback(() => {
+    setSearchQuery('');
     setFilters({
-      is_product_active: 'all',
+      visibility: 'visible',
       name: '',
       category: '',
     });
@@ -205,6 +208,28 @@ export default function ProductListView() {
       console.error('Error deleting rows:', error);
     }
   }, [tableData, table.selected, enqueueSnackbar, getAll, t]);
+
+  const onToggleVisibility = useCallback(
+    (row) => async () => {
+      try {
+        const response = await axiosInstance.put(`/products/${row.id}/`, {
+          is_product_active: !row.is_product_active,
+          is_visible_particular: false,
+          is_visible_B2B: false,
+          title: row.title,
+        });
+        enqueueSnackbar(t('update_success'));
+        getAll();
+      } catch (error) {
+        console.log('error', error);
+        const err = Object.values(error)?.[0] || [];
+        err.forEach((element) => {
+          enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        });
+      }
+    },
+    [tableData, table.selected, enqueueSnackbar, getAll, t]
+  );
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -253,7 +278,13 @@ export default function ProductListView() {
         />
 
         <Card>
-          <ProductTableToolbar filters={filters} onFilters={handleFilters} roleOptions={[]} />
+          <ProductTableToolbar
+            filters={filters}
+            onFilters={handleFilters}
+            roleOptions={[]}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
 
           <ProductTableFiltersResult
             filters={filters}
@@ -318,6 +349,7 @@ export default function ProductListView() {
                           onEditRow={() => handleEditRow(row.id)}
                           onEditStock={() => handleUpdateStock(row)}
                           handleLightBoxSlides={handleLightBoxSlides}
+                          onToggleVisibility={onToggleVisibility(row)}
                         />
                       ))}
 

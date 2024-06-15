@@ -6,6 +6,8 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Stack, { StackProps } from '@mui/material/Stack';
 
+import { useTranslate } from 'src/locales';
+
 import Iconify from 'src/components/iconify';
 
 import { IProductTableFilters, IProductTableFilterValue } from 'src/types/product';
@@ -33,10 +35,11 @@ export default function ProductTableFiltersResult({
   const handleRemoveKeyword = useCallback(() => {
     onFilters('name', '');
   }, [onFilters]);
+  const { t, onChangeLang } = useTranslate();
 
   const handleRemoveActive = useCallback(
     (inputValue: string) => {
-      onFilters('is_product_active', 'all');
+      onFilters('visibility', 'visible');
     },
     [onFilters]
   );
@@ -51,9 +54,9 @@ export default function ProductTableFiltersResult({
       </Box>
 
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
-        {filters.is_product_active !== 'all' && (
+        {filters.visibility !== 'visible' && (
           <Block label="Status:">
-            <Chip size="small" label={filters.is_product_active} onDelete={handleRemoveActive} />
+            <Chip size="small" label={t(filters.visibility)} onDelete={handleRemoveActive} />
           </Block>
         )}
         {!!filters.category && (
@@ -67,16 +70,16 @@ export default function ProductTableFiltersResult({
         )}
         {!!filters.name && (
           <Block label="Keyword:">
-            <Chip label={filters.name} size="small" onDelete={handleRemoveKeyword} />
+            <Chip label={t(filters.name)} size="small" onDelete={handleRemoveKeyword} />
           </Block>
         )}
-        {(filters.is_product_active !== 'all' || filters.category || !!filters.name) && (
+        {(filters.visibility !== 'visible' || filters.category || !!filters.name) && (
           <Button
             color="error"
             onClick={onResetFilters}
             startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
           >
-            Clear
+            {t('reset')}
           </Button>
         )}
       </Stack>

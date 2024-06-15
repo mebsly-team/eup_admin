@@ -10,7 +10,6 @@ import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import QRCodeIcon from '@mui/icons-material/QrCode';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { Dialog, DialogTitle, Autocomplete, DialogContent } from '@mui/material';
@@ -31,13 +30,17 @@ type Props = {
   onFilters: (name: string, value: IProductTableFilterValue) => void;
   //
   roleOptions: string[];
+  searchQuery: any;
+  setSearchQuery: any;
 };
 
-export default function UserTableToolbar({
+export default function ProductTableToolbar({
   filters,
   onFilters,
   //
   roleOptions,
+  searchQuery,
+  setSearchQuery,
 }: Props) {
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
@@ -46,8 +49,6 @@ export default function UserTableToolbar({
   const [value, setValue] = useState<string | null>();
   const [qrReaderOpen, setQRReaderOpen] = useState(false);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false); // State for the spinner
-
-  const [searchQuery, setSearchQuery] = useState<string>(filters.name);
 
   const getAllCategories = async () => {
     setIsCategoriesLoading(true);
@@ -61,7 +62,7 @@ export default function UserTableToolbar({
   const handleScanQRCode = (data: SetStateAction<string>) => {
     if (data) {
       setSearchQuery(data);
-      debouncedSearch(data); 
+      debouncedSearch(data);
       setQRReaderOpen(false);
     }
   };
@@ -88,7 +89,7 @@ export default function UserTableToolbar({
 
   const handleFilterActive = useCallback(
     (event: SelectChangeEvent<string[]>) => {
-      onFilters('is_product_active', event.target.value);
+      onFilters('visibility', event.target.value);
     },
     [onFilters]
   );
@@ -143,16 +144,16 @@ export default function UserTableToolbar({
         sx={{ p: 2.5, pr: { xs: 2.5, md: 1 } }}
       >
         <FormControl sx={{ flexShrink: 0, width: { xs: 1, md: 200 } }}>
-          <InputLabel>Active?</InputLabel>
+          <InputLabel>{`${t('visible')}?`}</InputLabel>
           <Select
-            value={filters.is_product_active}
+            value={filters.visibility}
             onChange={handleFilterActive}
-            input={<OutlinedInput label="Active?" />}
             MenuProps={{ PaperProps: { sx: { maxHeight: 240 } } }}
           >
-            <MenuItem value="all">{t('all')}</MenuItem>
-            <MenuItem value="active">{t('active')}</MenuItem>
-            <MenuItem value="passive">{t('inactive')}</MenuItem>
+            <MenuItem value="visible">{t('active_products')}</MenuItem>
+            <MenuItem value="is_visible_particular">{t('is_visible_particular')}</MenuItem>
+            <MenuItem value="is_visible_B2B">{t('is_visible_B2B')}</MenuItem>
+            <MenuItem value="hidden">{t('hidden')}</MenuItem>
           </Select>
         </FormControl>
         <Autocomplete

@@ -15,7 +15,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
-import { IMAGE_FOLDER_PATH } from 'src/config-global';
+import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
@@ -35,7 +35,9 @@ type Props = {
   onDeleteRow: VoidFunction;
   onEditStock: VoidFunction;
   handleLightBoxSlides: VoidFunction;
+  onToggleVisibility: VoidFunction;
 };
+const hostUrl = HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000';
 
 export default function ProductTableRow({
   row,
@@ -45,6 +47,7 @@ export default function ProductTableRow({
   onDeleteRow,
   onEditStock,
   handleLightBoxSlides,
+  onToggleVisibility,
 }: Props) {
   const {
     id,
@@ -59,10 +62,13 @@ export default function ProductTableRow({
     variants,
     variants_count,
     slug,
+    is_visible_particular,
+    is_visible_B2B,
   } = row;
   const { enqueueSnackbar } = useSnackbar();
 
-  const [isActive, setIsActive] = useState(is_product_active);
+  const [isActive, setIsActive] = useState(is_visible_particular);
+  const [isActiveB2B, setIsActiveB2B] = useState(is_visible_B2B);
   const theme = useTheme();
   const styles = {
     hideOnSm: {
@@ -94,10 +100,27 @@ export default function ProductTableRow({
 
     try {
       const response = await axiosInstance.put(`/products/${id}/`, {
-        is_product_active: e.target.checked,
+        is_visible_particular: e.target.checked,
         title,
       });
-      setIsActive(response?.data?.is_product_active ?? isActive);
+      setIsActive(response?.data?.is_visible_particular ?? isActive);
+    } catch (error) {
+      console.error('Missing Fields:', error);
+      const missingFields = Object.values(error)?.[0] || [];
+      missingFields.forEach((element) => {
+        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+      });
+    }
+  };
+  const handleActiveSwitchChange2 = async (e) => {
+    e.stopPropagation(); // Stop event propagation
+
+    try {
+      const response = await axiosInstance.put(`/products/${id}/`, {
+        is_visible_B2B: e.target.checked,
+        title,
+      });
+      setIsActiveB2B(response?.data?.is_visible_B2B ?? isActiveB2B);
     } catch (error) {
       console.error('Missing Fields:', error);
       const missingFields = Object.values(error)?.[0] || [];
@@ -112,6 +135,16 @@ export default function ProductTableRow({
   };
   return (
     <>
+      <style>
+        {`
+          .links {
+            display: none;
+          }
+          .has-links:hover .links {
+            display: inline;
+          }
+        `}
+      </style>
       <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
         <TableCell padding="checkbox" sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
           <Checkbox checked={selected} onClick={onSelectRowClick} />
@@ -128,18 +161,9 @@ export default function ProductTableRow({
           />
         </TableCell>
 
-        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
+        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }} className="has-links">
           <ListItemText
-            primary={
-              <a
-                target="_blank"
-                href={`http://kooptop.com/nl/product/${id}/${slug}`}
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {title}
-              </a>
-            }
+            primary={title}
             secondary={description}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
@@ -147,6 +171,25 @@ export default function ProductTableRow({
               color: 'text.disabled',
             }}
           />
+          <span className="links">
+            <a
+              target="_blank"
+              href={`http://${hostUrl}/nl/product/${id}/${slug}`}
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              WEB
+            </a>
+            {' - '}
+            <a
+              target="_blank"
+              href={`http://${hostUrl}/nl/product/${id}/${slug}`}
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              B2B
+            </a>
+          </span>
         </TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
@@ -156,12 +199,26 @@ export default function ProductTableRow({
         <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
           {free_stock}/{overall_stock}
         </TableCell>
-        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>
+
+        <TableCell
+          sx={{ p: 1, whiteSpace: 'nowrap', pointerEvents: is_product_active ? 'auto' : 'none' }}
+        >
           <div onClick={(e) => e.stopPropagation()} tabIndex={0}>
             <Switch
-              name="is_product_active"
+              name="is_visible_particular"
               checked={isActive}
               onChange={handleActiveSwitchChange}
+            />
+          </div>
+        </TableCell>
+        <TableCell
+          sx={{ p: 1, whiteSpace: 'nowrap', pointerEvents: is_product_active ? 'auto' : 'none' }}
+        >
+          <div onClick={(e) => e.stopPropagation()} tabIndex={0}>
+            <Switch
+              name="is_visible_B2B"
+              checked={isActiveB2B}
+              onChange={handleActiveSwitchChange2}
             />
           </div>
         </TableCell>
@@ -201,6 +258,16 @@ export default function ProductTableRow({
         >
           <Iconify icon="eva:cube-fill" />
           {t('stock_update_choices')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            onToggleVisibility();
+            popover.onClose();
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <Iconify icon={is_product_active ? 'solar:eye-closed-bold' : 'solar:eye-bold'} />
+          {is_product_active ? t('hide') : t('show')}
         </MenuItem>
         <MenuItem
           onClick={() => {

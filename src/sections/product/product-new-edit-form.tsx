@@ -35,7 +35,7 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { countries } from 'src/assets/data';
-import { IMAGE_FOLDER_PATH } from 'src/config-global';
+import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
@@ -1716,7 +1716,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       {currentProduct?.id ? (
         <Link
           target="_blank"
-          href={`https://kooptop.com/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          href={`http://${
+            HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
+          }/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{
@@ -1729,6 +1731,26 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           }}
         >
           WEB
+        </Link>
+      ) : null}
+      {currentProduct?.id ? (
+        <Link
+          target="_blank"
+          href={`http://${
+            HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
+          }/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            typography: '',
+            float: 'right',
+            fontWeight: 'fontWeightBold',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            marginRight: 3,
+          }}
+        >
+          B2B
         </Link>
       ) : null}
       {currentProduct?.parent_product ? (
