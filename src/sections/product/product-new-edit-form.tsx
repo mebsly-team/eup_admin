@@ -126,39 +126,122 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   ];
 
   const NewProductSchema = Yup.object().shape({
-    title: Yup.string().required(t('validation_title')),
-    price_per_piece: Yup.number().when('min_price_to_sell', (min_price_to_sell, schema) =>
-      min_price_to_sell ? schema.moreThan(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
+    title: Yup.string().required(t('required')),
+    price_per_piece: Yup.number()
+      .when('min_price_to_sell', (min_price_to_sell, schema) =>
+        min_price_to_sell ? schema.moreThan(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
+      )
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    quantity_per_unit: Yup.number().required(t('required')),
+    variant_discount: Yup.number().test(
+      'is-decimal',
+      t('Max. 2 decimale posities'),
+      (value) =>
+        value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
     ),
+    price_per_unit: Yup.number()
+      .required(t('required'))
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    price_consumers: Yup.number()
+      .required(t('required'))
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    price_cost: Yup.number()
+      .required(t('required'))
+      .test(
+        'is-decimal',
+        t('Max. 4 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,4})?$/.test(value.toString())
+      ),
+    vat: Yup.number().required(t('required')),
 
-    // price_per_unit: Yup.number().moreThan(0, t('validation_moreThanZero')),
-    // price_consumers: Yup.number().moreThan(0, t('validation_moreThanZero')),
-    // price_cost: Yup.number().moreThan(0, t('validation_moreThanZero')),
-    // vat: Yup.number().required(t('validation_vat')),
+    overall_stock: Yup.number().required(t('required')),
+    free_stock: Yup.number().required(t('required')),
+    ordered_in_progress_stock: Yup.number().required(t('required')),
 
-    // location: Yup.string().required(t('validation_location')),
-    // languages_on_item_package: Yup.array().required(t('validation_languages_on_item_package')),
-    // // size_x_value: Yup.string().required(t('validation_size_x_value')),
-    // size_y_value: Yup.string().required(t('validation_size_y_value')),
-    // size_z_value: Yup.string().required(t('validation_size_z_value')),
-    // size_unit: Yup.string().required(t('validation_size_unit')),
-    // weight: Yup.string().required(t('validation_weight')),
-    // weight_unit: Yup.string().required(t('validation_weight_unit')),
+    number_in_order: Yup.number().required(t('required')),
+    number_in_offer: Yup.number().required(t('required')),
+    number_in_pakbon: Yup.number().required(t('required')),
+    number_in_confirmation: Yup.number().required(t('required')),
+    number_in_werkbon: Yup.number().required(t('required')),
+    number_in_other: Yup.number().required(t('required')),
 
-    // extra_etiket_nl: Yup.string().test(
-    //   'conditional-required',
-    //   'Extra etiket NL is vereist als NL niet is inbegrepen',
-    //   function (value) {
-    //     const languages = this.resolve(Yup.ref('languages_on_item_package'));
-    //     if (!languages?.includes('NL') && !value) {
-    //       return this.createError({
-    //         path: 'extra_etiket_nl',
-    //         message: 'Extra etiket NL is vereist als NL niet is inbegrepen',
-    //       });
-    //     }
-    //     return true;
-    //   }
-    // ),
+    order_unit_amount: Yup.number().required(t('required')),
+    min_order_amount: Yup.number().required(t('required')),
+    min_stock_value: Yup.number().required(t('required')),
+    max_stock_at_rack: Yup.number().required(t('required')),
+
+    stock_at_supplier: Yup.number().required(t('required')),
+
+    max_order_allowed_per_unit: Yup.number().required(t('required')),
+
+    sell_count: Yup.number().required(t('required')),
+
+    size_x_value: Yup.string()
+      .nullable()
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    size_y_value: Yup.string()
+      .nullable()
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    liter: Yup.string()
+      .nullable()
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    liter_unit: Yup.string().nullable(),
+
+    size_z_value: Yup.string()
+      .nullable()
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    size_unit: Yup.string().nullable(),
+    weight: Yup.number()
+      .nullable()
+      .test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    weight_unit: Yup.string().nullable(),
+    volume_unit: Yup.string().nullable(),
+    volume: Yup.string().nullable(),
+    pallet_full_total_number: Yup.number().required(t('required')),
+    pallet_layer_total_number: Yup.number().required(t('required')),
+
+    inhoud_number: Yup.number().required(t('required')),
   });
 
   const defaultValues = useMemo(
@@ -230,24 +313,22 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       is_used: currentProduct?.is_used || false,
       is_regular: currentProduct?.is_regular || true,
       is_featured: currentProduct?.is_featured || false,
-      is_visible_B2B: currentProduct?.is_visible_on_web || true,
-      is_visible_particular: currentProduct?.is_visible_on_mobile || true,
       is_only_for_export: currentProduct?.is_only_for_export || false,
       // is_only_for_B2B: currentProduct?.is_only_for_B2B || false,
       is_listed_on_marktplaats: currentProduct?.is_listed_on_marktplaats || false,
       is_listed_on_2dehands: currentProduct?.is_listed_on_2dehands || false,
       has_electronic_barcode: currentProduct?.has_electronic_barcode || false,
-      size_x_value: currentProduct?.size_x_value || '',
-      size_y_value: currentProduct?.size_y_value || '',
-      liter: currentProduct?.liter || '',
+      size_x_value: currentProduct?.size_x_value || 0,
+      size_y_value: currentProduct?.size_y_value || 0,
+      liter: currentProduct?.liter || 0,
       liter_unit: currentProduct?.liter_unit || '',
       is_clearance: currentProduct?.is_clearance || false,
       is_party_sale: currentProduct?.is_party_sale || false,
       sell_from_supplier: currentProduct?.sell_from_supplier || false,
       is_taken_from_another_package: currentProduct?.is_taken_from_another_package || false,
-      size_z_value: currentProduct?.size_z_value || '',
+      size_z_value: currentProduct?.size_z_value || 0,
       size_unit: currentProduct?.size_unit || '',
-      weight: currentProduct?.weight || '',
+      weight: currentProduct?.weight || 0,
       weight_unit: currentProduct?.weight_unit || '',
       volume_unit: currentProduct?.volume_unit || '',
       volume: currentProduct?.volume || '',
@@ -339,7 +420,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
       }
 
-      setValue('volume', calculatedVolume.toFixed(2)); // Setting the calculated volume in the form
+      setValue('volume', roundUp(calculatedVolume)); // Setting the calculated volume in the form
       setValue('volume_unit', calculatedVolumeUnit); // Setting the calculated volume unit
       setValue('is_brief_box', isBriefBox); // Setting is_brief_box based on size and weight
     };
@@ -899,7 +980,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <div>
               <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
               <ul>
-                {currentProduct.categories?.map((category, index) => (
+                {currentProduct?.categories?.map((category, index) => (
                   <li key={index}>
                     {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
                   </li>
@@ -994,10 +1075,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 );
                 setValue(
                   'inhoud_price',
-                  roundUp(
+                  (
                     (Number(e.target.value || 1) * Number(getValues('price_per_piece') || 0)) /
-                      Number(getValues('inhoud_number') || 1)
-                  )
+                    Number(getValues('inhoud_number') || 1)
+                  ).toFixed(4)
                 );
                 setValue(
                   'price_consumers',
@@ -1025,15 +1106,15 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 setValue(
                   'variant_discount',
                   currentProduct?.is_variant
-                    ? (
+                    ? roundUp(
                         100 *
-                        ((parent_price_per_piece -
-                          (Number(e.target.value) +
-                            (Number(e.target.value) *
-                              Number(getValues('supplier').percentage_to_add)) /
-                              100)) /
-                          parent_price_per_piece)
-                      ).toFixed(2)
+                          ((parent_price_per_piece -
+                            (Number(e.target.value) +
+                              (Number(e.target.value) *
+                                Number(getValues('supplier').percentage_to_add)) /
+                                100)) /
+                            parent_price_per_piece)
+                      )
                     : 0
                 );
                 setValue(
@@ -1065,13 +1146,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 );
                 setValue(
                   'inhoud_price',
-                  roundUp(
-                    (Number(getValues('quantity_per_unit')) *
+                  (
+                    (Number(getValues('quantity_per_unit') || 0) *
                       (Number(e.target.value) +
                         (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
                           100)) /
-                      Number(getValues('inhoud_number') || 1)
-                  )
+                    Number(getValues('inhoud_number') || 1)
+                  ).toFixed(4)
                 );
               }}
               InputLabelProps={{ shrink: true }}
@@ -1108,26 +1189,27 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 setValue(
                   'variant_discount',
                   currentProduct?.is_variant
-                    ? (
+                    ? roundUp(
                         100 *
-                        ((parent_price_per_piece - Number(e.target.value)) / parent_price_per_piece)
-                      ).toFixed(2)
+                          ((parent_price_per_piece - Number(e.target.value)) /
+                            parent_price_per_piece)
+                      )
                     : 0
                 );
                 setValue(
                   'price_per_unit',
-                  roundUp(Number(e.target.value) * getValues('quantity_per_unit'))
+                  roundUp(Number(e.target.value) * getValues('quantity_per_unit')) || 0
                 );
                 setValue(
                   'inhoud_price',
-                  roundUp(
-                    (Number(e.target.value) * Number(getValues('quantity_per_unit'))) /
-                      Number(getValues('inhoud_number') || 1)
-                  )
+                  (
+                    (Number(e.target.value) * Number(getValues('quantity_per_unit') || 0)) /
+                    Number(getValues('inhoud_number') || 1)
+                  ).toFixed(4)
                 );
                 setValue(
                   'price_consumers',
-                  roundUp(Number(e.target.value) * getValues('quantity_per_unit') * 1.75)
+                  roundUp(Number(e.target.value) * getValues('quantity_per_unit') * 1.75) || 0
                 );
               }}
               InputLabelProps={{ shrink: true }}
@@ -1199,11 +1281,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               type="number"
               value={getValues('inhoud_number')}
               onChange={(e) => {
-                setValue('inhoud_number', e.target.value !== '' ? Number(e.target.value) : 1);
+                setValue('inhoud_number', e.target.value !== '' ? Number(e.target.value) : '');
 
                 setValue(
                   'inhoud_price',
-                  roundUp(Number(getValues('price_per_unit')) / Number(e.target.value || 1))
+                  (Number(getValues('price_per_unit')) / Number(e.target.value || 1)).toFixed(4)
                 );
               }}
             />
@@ -1225,7 +1307,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               name="inhoud_price"
               label={t('inhoud_price')}
               onBlur={handleEmptyNumbers}
-              placeholder="0.00"
+              placeholder="0.0000"
               type="number"
               InputLabelProps={{ shrink: true }}
               InputProps={{
@@ -1410,27 +1492,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               label={
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                   {t('is_clearance')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-
-            <RHFSwitch
-              name="is_visible_particular"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_visible_particular')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_visible_B2B"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_visible_B2B')}
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -1816,7 +1877,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   >
                     {getValues('price_per_piece') ? (
                       <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                        €{getValues('price_per_piece')}
+                        €{roundUp(getValues('price_per_piece'))}
                       </Typography>
                     ) : null}
                     <Typography
@@ -1824,7 +1885,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                       ml={1}
                       sx={{ color: 'grey', textDecoration: 'line-through' }}
                     >
-                      {getValues('price_consumers')}
+                      {roundUp(getValues('price_consumers'))}
                     </Typography>
                   </Box>
                   <Typography variant="subtitle2" sx={{ color: 'grey' }}>
@@ -2042,4 +2103,4 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   );
 }
 
-const roundUp = (num) => num.toFixed(2);
+const roundUp = (num) => parseFloat(num || 0).toFixed(2);

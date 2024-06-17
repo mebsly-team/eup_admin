@@ -145,6 +145,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
     const data = {
       title,
       is_variant: true,
+      title_long: currentProduct?.title_long,
       parent_product: currentProduct?.id,
       extra_location: currentProduct?.extra_location,
       location: currentProduct?.location,
