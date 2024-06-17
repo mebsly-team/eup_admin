@@ -890,6 +890,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}
                 onSave={(ct) => {
+                  currentProduct.categories = ct;
                   setValue('categories', ct);
                   setOpenDialogCategory(false); // Close the dialog after saving
                 }}
@@ -898,7 +899,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <div>
               <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
               <ul>
-                {getValues('categories')?.map((category, index) => (
+                {currentProduct.categories?.map((category, index) => (
                   <li key={index}>
                     {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
                   </li>
@@ -1632,8 +1633,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       <Card>
         <CardHeader title={t('other')} />
         <Stack spacing={2} sx={{ p: 3 }}>
-          <Typography variant="subtitle2">{t('important_information')}</Typography>
-          <RHFEditor simple name="important_information" />
+          <Typography variant="subtitle2">{t('important_information')}:</Typography>
+          <RHFTextField
+            name="important_information"
+            // label={t('important_information')}
+            type="textarea"
+          />
         </Stack>
       </Card>
     </Grid>
