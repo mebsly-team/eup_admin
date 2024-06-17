@@ -23,6 +23,7 @@ export function useGetCategories() {
     [data, error, isLoading, isValidating]
   );
 
+  if (data) localStorage.setItem('categories', JSON.stringify(data));
   return memoizedValue;
 }
 

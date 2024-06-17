@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 
 import { TreeView, TreeItem } from '@mui/x-tree-view';
-import { Dialog, Button, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Dialog,
+  Button,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress, // Add CircularProgress for the spinner
+} from '@mui/material';
 
 import { useGetCategories } from 'src/api/category';
 
@@ -16,7 +23,11 @@ export const CategorySelector = ({
   const [selectedCategories, setSelectedCategories] = useState([]);
   console.log('selectedCategories', selectedCategories);
 
-  const { items: categories } = useGetCategories();
+  const cachedCategories = JSON.parse(localStorage.getItem('categories'));
+  let categories = cachedCategories || [];
+
+  const { items: categoriesNew } = useGetCategories();
+  if (categoriesNew?.length) categories = categoriesNew;
 
   useEffect(() => {
     if (defaultSelectedCategories) {
@@ -56,6 +67,17 @@ export const CategorySelector = ({
     onClose();
   };
 
+  if (!categories?.length) {
+    return (
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitle>{t('select_category')}</DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pb: 5 }}>
+          <CircularProgress size={24} color="inherit" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{t('select_category')}</DialogTitle>
@@ -88,18 +110,3 @@ function flattenCategories(categories) {
 
   return flattenedCategories;
 }
-
-const findCategoryById = (categories, id) => {
-  for (let i = 0; i < categories.length; i++) {
-    if (categories[i].id === id) {
-      return categories[i];
-    }
-    if (categories[i].sub_categories && categories[i].sub_categories.length > 0) {
-      const found = findCategoryById(categories[i].sub_categories, id);
-      if (found) {
-        return found;
-      }
-    }
-  }
-  return null;
-};
