@@ -165,7 +165,9 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
     if (discount) {
       data.variant_discount = discount;
       data.price_cost = currentProduct?.price_cost;
-      data.price_per_piece = Number(currentProduct?.price_per_piece) * (1 - discount / 100);
+      data.price_per_piece = parseFloat(
+        Number(currentProduct?.price_per_piece) * (1 - discount / 100)
+      ).toFixed(2);
     }
     if (isPalletOrBox) {
       data.ean = currentProduct?.ean;
