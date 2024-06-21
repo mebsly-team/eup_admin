@@ -315,7 +315,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   };
 
   const columns: GridColDef[] = [
-    { field: 'title', headerName: 'Title', width: 250, editable: false, fontSize: 8 },
+    { field: 'title', headerName: 'Title', editable: false, fontSize: 8, resizable: true, flex: 1 },
     {
       field: 'color',
       headerName: t('color'),
@@ -325,6 +325,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       headerAlign: 'left',
       editable: false,
       renderCell: (params: GridCellParams) => t(params.value),
+      resizable: true,
     },
     {
       field: 'size',
@@ -334,6 +335,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       align: 'left',
       headerAlign: 'left',
       editable: false,
+      resizable: true,
     },
     {
       field: 'unit',
@@ -344,6 +346,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       headerAlign: 'left',
       editable: false,
       renderCell: (params: GridCellParams) => t(params.value),
+      resizable: true,
     },
     {
       field: 'ean',
@@ -353,6 +356,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       align: 'left',
       headerAlign: 'left',
       editable: false,
+      resizable: true,
     },
     {
       field: 'price_per_piece',
@@ -360,6 +364,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       // type: 'date',
       width: 100,
       editable: false,
+      resizable: true,
     },
     {
       field: 'quantity_per_unit',
@@ -367,6 +372,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       // type: 'date',
       width: 50,
       editable: false,
+      resizable: true,
     },
     {
       field: 'free_stock',
@@ -374,6 +380,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       // type: 'date',
       width: 80,
       editable: false,
+      resizable: true,
     },
     // {
     //   field: 'role',
