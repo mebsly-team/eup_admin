@@ -36,7 +36,6 @@ import { IProductItem } from 'src/types/product';
 
 type Props = {
   currentProduct?: IProductItem;
-  setActiveTab?: () => void;
   activeTab: any;
 };
 
@@ -66,11 +65,12 @@ const styles = {
 };
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
-export default function ProductVariantForm({ currentProduct, setActiveTab, activeTab }: Props) {
+export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
+  const [isWaiting, setIsWaiting] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
   const [selectedValues1, setSelectedValues1] = useState([]);
   const [colorValues, setColorValues] = useState([]);
@@ -129,7 +129,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
   }, [activeTab, currentProductVariantIdList?.length]);
 
   const createVariantsCall = async (value1, value2, unitValue) => {
-    setIsLoading(true); // Show the spinner
     const discount =
       unitValue === 'box'
         ? 10
@@ -176,31 +175,41 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
 
     try {
       const response = await axiosInstance.post('/products/', data);
-
-      if (response?.data?.id) {
-        const newVariant = response.data;
-        setCurrentProductVariantRows((prevRows) => [...prevRows, newVariant]);
-      }
+      return response?.data; // Return the created variant
     } catch (error) {
       console.error('Error:', error);
       // Handle error here if needed
-    } finally {
-      setIsLoading(false); // Hide the spinner when done
-      getVariants();
+      return null; // Return null on error
     }
   };
 
-  const createVariants = () => {
+  const createVariants = async () => {
+    setIsLoading(true); // Show the spinner
     const values1 = selectedValues1.length > 0 ? selectedValues1 : [null];
     const values2 = colorValues.length > 0 ? colorValues : [null];
+
+    const variantPromises: any[] = [];
 
     values1.forEach((value1) => {
       values2.forEach((value2) => {
         selectedUnitValues.forEach((unitValue) => {
-          createVariantsCall(value1, value2, unitValue);
+          variantPromises.push(createVariantsCall(value1, value2, unitValue));
         });
       });
     });
+
+    const newVariants = await Promise.all(variantPromises);
+
+    // Filter out any null results (errors)
+    const successfulVariants = newVariants.filter((variant) => variant !== null);
+
+    if (successfulVariants.length > 0) {
+      setCurrentProductVariantRows((prevRows) => [...prevRows, ...successfulVariants]);
+    }
+
+    // await getVariants(); // List updated variants
+    setSelectedUnitValues([]);
+    setIsLoading(false); // Hide the spinner
   };
 
   const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
@@ -210,17 +219,24 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
   };
 
   const handleEditClick = (id: GridRowId) => () => {
-    setActiveTab(0);
-    router.push(paths.dashboard.product.edit(id));
+    router.push(`${paths.dashboard.product.edit(id)}?tab=0`);
   };
 
   const handleActiveSwitchChange = (row) => async (e) => {
     e.stopPropagation(); // Stop event propagation
-
+    setIsWaiting(true);
+    const newStatus = e.target.checked;
     try {
       const response = await axiosInstance.put(`/products/${row.id}/`, {
-        is_product_active: e.target.checked,
+        is_visible_particular: newStatus,
         title: row.title,
+      });
+      setCurrentProductVariantRows((prevRows) => {
+        // Find the index of the existing variant
+        const variantIndex = prevRows.findIndex((variant) => variant.id === row.id);
+        const updatedRows = [...prevRows];
+        updatedRows[variantIndex] = { ...row, is_visible_particular: newStatus };
+        return updatedRows;
       });
     } catch (error) {
       console.error('Missing Fields:', error);
@@ -229,7 +245,37 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
         enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
       });
     } finally {
-      getVariants();
+      // getVariants();
+      setIsWaiting(false);
+    }
+  };
+
+  const handleActiveSwitchChange2 = (row) => async (e) => {
+    e.stopPropagation(); // Stop event propagation
+    setIsWaiting(true);
+    const newStatus = e.target.checked;
+
+    try {
+      const response = await axiosInstance.put(`/products/${row.id}/`, {
+        is_visible_B2B: e.target.checked,
+        title: row.title,
+      });
+      setCurrentProductVariantRows((prevRows) => {
+        // Find the index of the existing variant
+        const variantIndex = prevRows.findIndex((variant) => variant.id === row.id);
+        const updatedRows = [...prevRows];
+        updatedRows[variantIndex] = { ...row, is_visible_B2B: newStatus };
+        return updatedRows;
+      });
+    } catch (error) {
+      console.error('Missing Fields:', error);
+      const missingFields = Object.values(error)?.[0] || [];
+      missingFields.forEach((element) => {
+        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+      });
+    } finally {
+      // getVariants();
+      setIsWaiting(false);
     }
   };
   const handleDeleteClick = (id: GridRowId) => async () => {
@@ -269,7 +315,7 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
   };
 
   const columns: GridColDef[] = [
-    { field: 'title', headerName: 'Title', width: 300, editable: false, fontSize: 8 },
+    { field: 'title', headerName: 'Title', width: 250, editable: false, fontSize: 8 },
     {
       field: 'color',
       headerName: t('color'),
@@ -316,6 +362,13 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
       editable: false,
     },
     {
+      field: 'quantity_per_unit',
+      headerName: t('quantity_per_unit'),
+      // type: 'date',
+      width: 50,
+      editable: false,
+    },
+    {
       field: 'free_stock',
       headerName: t('Voorraad'),
       // type: 'date',
@@ -331,16 +384,30 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
     //   valueOptions: ['Market', 'Finance', 'Development'],
     // },
     {
-      field: 'is_product_active',
+      field: 'is_visible_particular',
       type: 'actions',
-      headerName: `${t('active')}?`,
+      headerName: `${t('is_particular')}?`,
       width: 100,
       cellClassName: 'actions',
       getActions: ({ id, row }) => [
         <Switch
           size="small"
-          checked={row?.is_product_active}
+          checked={row?.is_visible_particular}
           onChange={handleActiveSwitchChange(row)}
+        />,
+      ],
+    },
+    {
+      field: 'is_visible_B2B',
+      type: 'actions',
+      headerName: `${t('is_b2b')}?`,
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id, row }) => [
+        <Switch
+          size="small"
+          checked={row?.is_visible_B2B}
+          onChange={handleActiveSwitchChange2(row)}
         />,
       ],
     },
@@ -404,7 +471,6 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
 
   const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
-  if (isLoading) return <Iconify icon="svg-spinners:8-dots-rotate" />;
   const sortedRows = [...currentProductVariantRows];
   sortedRows?.sort((a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit));
   return (
@@ -509,34 +575,39 @@ export default function ProductVariantForm({ currentProduct, setActiveTab, activ
           </Button>
         </Box>
       </Box>
-      <Box
-        sx={{
-          height: 600,
-          width: '100%',
-          '& .actions': {
-            color: 'text.secondary',
-          },
-          '& .textPrimary': {
-            color: 'text.primary',
-          },
-          '& .variant-row': {
-            backgroundColor: 'grey',
-            // pointerEvents: 'none',
-          },
-        }}
-      >
-        <DataGrid
-          rows={sortedRows}
-          columns={columns}
-          editMode="row"
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          getRowClassName={getRowClassName}
-          hideFooterPagination
-        />
-      </Box>
+      {isLoading ? (
+        <Iconify icon="svg-spinners:8-dots-rotate" />
+      ) : (
+        <Box
+          sx={{
+            cursor: isWaiting ? 'wait' : 'default',
+            height: 600,
+            width: '100%',
+            '& .actions': {
+              color: 'text.secondary',
+            },
+            '& .textPrimary': {
+              color: 'text.primary',
+            },
+            '& .variant-row': {
+              backgroundColor: 'grey',
+              // pointerEvents: 'none',
+            },
+          }}
+        >
+          <DataGrid
+            rows={sortedRows}
+            columns={columns}
+            editMode="row"
+            rowModesModel={rowModesModel}
+            onRowModesModelChange={handleRowModesModelChange}
+            onRowEditStop={handleRowEditStop}
+            processRowUpdate={processRowUpdate}
+            getRowClassName={getRowClassName}
+            hideFooterPagination
+          />
+        </Box>
+      )}
     </>
   );
 }

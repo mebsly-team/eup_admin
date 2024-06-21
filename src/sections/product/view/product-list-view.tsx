@@ -233,7 +233,7 @@ export default function ProductListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.product.edit(id));
+      router.push(`/dashboard/product/${id}/edit?tab=0`);
     },
     [router]
   );

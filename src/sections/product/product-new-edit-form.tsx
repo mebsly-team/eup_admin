@@ -63,6 +63,11 @@ type Props = {
   currentProduct?: IProductItem;
 };
 
+function updateQueryParams(key, value) {
+  const url = new URL(window.location);
+  url.searchParams.set(key, value);
+  window.history.replaceState({}, '', url);
+}
 export default function ProductNewEditForm({ currentProduct }: Props) {
   console.log('currentProduct', currentProduct);
   const router = useRouter();
@@ -72,7 +77,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
   // Now you can access query parameters from the location object
   const queryParams = new URLSearchParams(location.search);
-  const tab = queryParams.get('tab');
+  const tab = Number(queryParams.get('tab') || 0);
   const [openLightBox, setOpenLightBox] = useState(false);
   const [lightBoxSlides, setLightBoxSlides] = useState();
 
@@ -527,7 +532,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const renderTabs = (
     <Tabs
       value={activeTab}
-      onChange={(e) => setActiveTab(Number(e.target.id))}
+      onChange={(e) => {
+        setActiveTab(Number(e.target.id));
+        updateQueryParams('tab', Number(e.target.id));
+      }}
       sx={{
         px: 2.5,
         boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
@@ -2066,11 +2074,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           </Grid>
         </Grid>
       ) : (
-        <ProductVariantForm
-          currentProduct={currentProduct}
-          setActiveTab={setActiveTab}
-          activeTab={activeTab}
-        />
+        <ProductVariantForm currentProduct={currentProduct} activeTab={activeTab} />
       )}
 
       {isImageGalleryOpen ? (
