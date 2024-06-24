@@ -316,7 +316,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       sell_count: currentProduct?.sell_count || 0,
       is_only_for_logged_in_user: currentProduct?.is_only_for_logged_in_user || false,
       is_used: currentProduct?.is_used || false,
-      is_regular: currentProduct?.is_regular || true,
+      is_regular: currentProduct?.is_regular ?? true,
       is_featured: currentProduct?.is_featured || false,
       is_only_for_export: currentProduct?.is_only_for_export || false,
       // is_only_for_B2B: currentProduct?.is_only_for_B2B || false,
@@ -658,11 +658,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               lg: 'repeat(4, 1fr)',
             }}
           >
-            <RHFTextField name="article_code" label={t('article_code')} />
-            <RHFTextField name="ean" label={t('ean')} />
+            <RHFTextField name="article_code" label={t('article_code')} labelColor="red" />
+            <RHFTextField name="ean" label={t('ean')} labelColor="red" />
             <RHFTextField name="sku" label={t('sku')} />
             <RHFTextField name="hs_code" label={t('hs_code')} />
-            <RHFSelect name="unit" label={t('unit')}>
+            <RHFSelect name="unit" label={t('unit')} labelColor="red">
               <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
               <MenuItem value="rol">{t('rol')}</MenuItem>
@@ -741,9 +741,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       <Card>
         <CardHeader title={t('seo_meta_data')} />
         <Stack spacing={2} sx={{ p: 3 }}>
-          <RHFTextField name="title" label={t('product_title')} />
-          <RHFTextField name="title_long" label={t('product_title_long')} />
-          <RHFTextField name="meta_title" label={t('meta_title')} />
+          <RHFTextField name="title" label={t('product_title')} labelColor="red" />
+          <RHFTextField name="title_long" label={t('product_title_long')} labelColor="red" />
+          <RHFTextField name="meta_title" label={t('meta_title')} labelColor="red" />
           {/* <RHFTextField name="meta_description" label={t('meta_description')} /> */}
           <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
           {/* <RHFTextField name="url" label={t('url')} /> */}
@@ -829,7 +829,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(3, 1fr)',
             }}
           >
-            <RHFTextField name="supplier_article_code" label={t('supplier_article_code')} />
+            <RHFTextField
+              name="supplier_article_code"
+              label={t('supplier_article_code')}
+              labelColor="red"
+            />
             <RHFTextField
               name="stock_at_supplier"
               label={t('stock_at_supplier')}
@@ -954,7 +958,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       <Typography typography="caption" sx={{ color: 'error.main' }}>
         {(errors.images as any)?.message}
       </Typography>
-      <Button onClick={() => setImageGalleryOpen(true)}>{t('upload_images')}</Button>
+      <Button sx={{ color: 'red' }} onClick={() => setImageGalleryOpen(true)}>
+        {t('upload_images')}
+      </Button>
     </>
   );
 
@@ -986,7 +992,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               />
             )}
             <div>
-              <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
+              <Typography color="red" variant="subtitle2">
+                {t('selected_categories')}:
+              </Typography>
               <ul>
                 {currentProduct?.categories?.map((category, index) => (
                   <li key={index}>
@@ -1097,7 +1105,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   Math.round(parent_max_order_allowed_per_unit / Number(e.target.value))
                 );
               }}
-              InputLabelProps={{ shrink: true }}
+              InputLabelProps={{ shrink: true, sx: { color: 'red!important' } }}
             />
             <RHFTextField
               name="price_cost"
@@ -1163,7 +1171,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   ).toFixed(4)
                 );
               }}
-              InputLabelProps={{ shrink: true }}
+              InputLabelProps={{ shrink: true, sx: { color: 'red!important' } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -1220,7 +1228,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   roundUp(Number(e.target.value) * getValues('quantity_per_unit') * 1.75) || 0
                 );
               }}
-              InputLabelProps={{ shrink: true }}
+              InputLabelProps={{ shrink: true, sx: { color: 'red!important' } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -1265,7 +1273,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 ),
               }}
             />
-            <RHFSelect name="vat" label={t('vat')}>
+            <RHFSelect name="vat" label={t('vat')} labelColor="red">
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
               <MenuItem value={0}>0</MenuItem>
@@ -1285,6 +1293,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           >
             <RHFTextField
               name="inhoud_number"
+              labelColor="red"
               label={t('inhoud_number')}
               type="number"
               value={getValues('inhoud_number')}
@@ -1297,7 +1306,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 );
               }}
             />
-            <RHFSelect name="inhoud_unit" label={t('inhoud_unit')}>
+            <RHFSelect name="inhoud_unit" label={t('inhoud_unit')} labelColor="red">
               <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
               <MenuItem value="rol">{t('rol')}</MenuItem>
@@ -1348,10 +1357,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               md: 'repeat(3, 1fr)',
             }}
           >
-            <RHFTextField name="location" label={t('location')} />
-            <RHFTextField name="extra_location" label={t('extra_location')} />
+            <RHFTextField name="location" label={t('location')} labelColor="red" />
+            <RHFTextField name="extra_location" label={t('extra_location')} labelColor="red" />
             <RHFSelect name="delivery_time" label={t('delivery_time')}>
-              <MenuItem value="">None</MenuItem>
+              <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
               {DELIVERY_CHOICES.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -1545,6 +1554,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               onChange={(event, newValue) => setValue('languages_on_item_package', newValue)}
               options={countries?.map((option) => option.code) || []}
               getOptionLabel={(option) => option}
+             
             />
             {!getValues('languages_on_item_package')?.includes('NL') && (
               <>
@@ -1577,7 +1587,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   {t('has_no_expiry_date')}
                 </Typography>
               }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between', color: 'red' }}
             />
             <DatePicker
               sx={{ pointerEvents: getValues('has_no_expiry_date') ? 'none' : 'auto' }}
@@ -1613,7 +1623,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               lg: 'repeat(4, 1fr)',
             }}
           >
-            <RHFSelect name="size_unit" label={t('size_unit')}>
+            <RHFSelect name="size_unit" label={t('size_unit')} labelColor="red">
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
               <MenuItem value="mm">{t('mm')}</MenuItem>
@@ -1621,18 +1631,21 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="m">{t('m')}</MenuItem>
             </RHFSelect>
             <RHFTextField
+              labelColor="red"
               name="size_x_value"
               label={t('size_x_value')}
               type="number"
               onBlur={handleEmptyNumbers}
             />
             <RHFTextField
+              labelColor="red"
               name="size_y_value"
               label={t('size_y_value')}
               type="number"
               onBlur={handleEmptyNumbers}
             />
             <RHFTextField
+              labelColor="red"
               name="size_z_value"
               label={t('size_z_value')}
               type="number"
@@ -1649,31 +1662,34 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               label={t('volume_unit')}
             />
             <RHFTextField
+              labelColor="red"
               name="liter"
               label={t('liter')}
               type="number"
               onBlur={handleEmptyNumbers}
             />
-            <RHFSelect name="liter_unit" label={t('liter_unit')}>
+            <RHFSelect name="liter_unit" label={t('liter_unit')} labelColor="red">
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
               <MenuItem value="l">{t('l')}</MenuItem>
               <MenuItem value="ml">{t('ml')}</MenuItem>
             </RHFSelect>
-            <RHFTextField name="weight" label={t('weight')} />
-            <RHFSelect name="weight_unit" label={t('weight_unit')}>
+            <RHFTextField name="weight" label={t('weight')} labelColor="red" />
+            <RHFSelect name="weight_unit" label={t('weight_unit')} labelColor="red">
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
               <MenuItem value="gr">{t('gr')}</MenuItem>
               <MenuItem value="kg">{t('kg')}</MenuItem>
             </RHFSelect>
             <RHFTextField
+              labelColor="red"
               name="pallet_layer_total_number"
               label={t('pallet_layer_total_number')}
               type="number"
               onBlur={handleEmptyNumbers}
             />
             <RHFTextField
+              labelColor="red"
               name="pallet_full_total_number"
               label={t('pallet_full_total_number')}
               type="number"
@@ -1934,12 +1950,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               label={t('overall_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
+              labelColor="red"
             />
             <RHFTextField
               name="free_stock"
               label={t('free_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
+              labelColor="red"
             />
             <RHFTextField
               name="ordered_in_progress_stock"

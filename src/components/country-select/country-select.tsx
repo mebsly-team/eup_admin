@@ -74,7 +74,14 @@ export default function CountrySelect<
         };
 
         if (multiple) {
-          return <TextField {...baseField} />;
+          return (
+            <TextField
+              {...baseField}
+              InputLabelProps={{
+                sx: { color: 'red!important' },
+              }}
+            />
+          );
         }
 
         return (

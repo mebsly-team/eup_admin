@@ -19,6 +19,7 @@ type RHFSelectProps = TextFieldProps & {
   maxHeight?: boolean | number;
   children: React.ReactNode;
   PaperPropsSx?: SxProps<Theme>;
+  labelColor?: any; // Add labelColor prop
 };
 
 export function RHFSelect({
@@ -28,10 +29,13 @@ export function RHFSelect({
   helperText,
   children,
   PaperPropsSx,
+  labelColor,
   ...other
 }: RHFSelectProps) {
   const { control } = useFormContext();
-
+  const labelSx: SxProps<Theme> = {
+    color: `${labelColor} !important`, // Set the label color with !important
+  };
   return (
     <Controller
       name={name}
@@ -41,6 +45,10 @@ export function RHFSelect({
           {...field}
           select
           fullWidth
+          InputLabelProps={{
+            shrink: true,
+            sx: labelSx,
+          }}
           SelectProps={{
             native,
             MenuProps: {
@@ -50,6 +58,7 @@ export function RHFSelect({
                     maxHeight: typeof maxHeight === 'number' ? maxHeight : 'unset',
                   }),
                   ...PaperPropsSx,
+                  color: 'red',
                 },
               },
             },

@@ -152,14 +152,24 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       size: value2?.replace(/\s+/g, '%'),
       unit: unitValue,
       categories: currentProduct?.categories?.map((item) => item.id) || [],
+      languages_on_item_package: currentProduct?.languages_on_item_package,
+      meta_title: currentProduct?.meta_title,
+      meta_description: currentProduct?.meta_description,
+      meta_keywords: currentProduct?.meta_keywords,
+      size_unit: currentProduct?.size_unit,
+      weight_unit: currentProduct?.weight_unit,
+      liter_unit: currentProduct?.liter_unit,
+      pallet_full_total_number: currentProduct?.pallet_full_total_number,
+      pallet_layer_total_number: currentProduct?.pallet_layer_total_number,
+      supplier_article_code: currentProduct?.supplier_article_code,
+      expiry_date: currentProduct?.expiry_date,
+      inhoud_unit: currentProduct?.inhoud_unit,
     };
     if (currentProduct?.supplier?.id) data.supplier = currentProduct?.supplier?.id;
     if (currentProduct?.brand?.id) data.brand = currentProduct?.brand?.id;
     if (currentProduct?.delivery_time) data.delivery_time = currentProduct?.delivery_time;
     if (currentProduct?.hs_code) data.hs_code = currentProduct?.hs_code;
     if (currentProduct?.vat) data.vat = currentProduct?.vat;
-    if (currentProduct?.languages_on_item_package)
-      data.languages_on_item_package = currentProduct?.languages_on_item_package;
     if (currentProduct?.is_regular !== null) data.is_regular = currentProduct?.is_regular;
     if (discount) {
       data.variant_discount = discount;
