@@ -33,6 +33,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -91,7 +92,7 @@ export default function ProductListView() {
     if (images.length) {
       setOpenLightBox(true);
       const slides = images.map((img) => ({
-        src: img,
+        src: `${IMAGE_FOLDER_PATH}${img}`,
       }));
       setLightBoxSlides(slides);
     }
