@@ -344,6 +344,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       meta_description: currentProduct?.meta_description || '',
       meta_keywords: currentProduct?.meta_keywords || '',
       url: currentProduct?.url || '',
+      is_visible_particular: currentProduct?.is_visible_particular,
+      is_visible_B2B: currentProduct?.is_visible_B2B,
 
       inhoud_number: currentProduct?.inhoud_number || 1,
       inhoud_unit: currentProduct?.inhoud_unit || '',
@@ -375,9 +377,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       setValue(event.target.name, 0);
     }
   };
-  useEffect(() => {
-    if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
-  }, [isDirty, values]);
 
   const getLocalSavedData = () => {
     const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
@@ -456,6 +455,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     console.log('handleSubmit data', data);
+    localStorage.setItem('formData', JSON.stringify(data));
     try {
       const ex_date = data.expiry_date ? format(new Date(data.expiry_date), 'yyyy-MM-dd') : null;
       data.expiry_date = ex_date;
@@ -1828,7 +1828,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           {t('main_product')}
         </Link>
       ) : null}
-      {currentProduct?.id ? (
+      {currentProduct?.id && currentProduct?.is_visible_particular ? (
         <Link
           target="_blank"
           href={`http://${
@@ -1848,7 +1848,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           WEB
         </Link>
       ) : null}
-      {currentProduct?.id ? (
+      {currentProduct?.id && currentProduct?.is_visible_B2B ? (
         <Link
           target="_blank"
           href={`http://${

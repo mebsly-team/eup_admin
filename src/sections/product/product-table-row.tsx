@@ -172,23 +172,27 @@ export default function ProductTableRow({
             }}
           />
           <span className="links">
-            <a
-              target="_blank"
-              href={`http://${hostUrl}/nl/product/${id}/${slug}`}
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              WEB
-            </a>
-            {' - '}
-            <a
-              target="_blank"
-              href={`http://${hostUrl}/nl/product/${id}/${slug}`}
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              B2B
-            </a>
+            {is_visible_particular && (
+              <a
+                target="_blank"
+                href={`http://${hostUrl}/nl/product/${id}/${slug}`}
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                WEB
+              </a>
+            )}
+            {'  '}
+            {is_visible_B2B && (
+              <a
+                target="_blank"
+                href={`http://${hostUrl}/nl/product/${id}/${slug}`}
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                B2B
+              </a>
+            )}
           </span>
         </TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
