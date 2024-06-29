@@ -130,13 +130,15 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const createVariantsCall = async (value1, value2, unitValue) => {
     const discount =
-      unitValue === 'box'
-        ? 10
-        : unitValue === 'pallet_layer'
-          ? 15
-          : unitValue === 'pallet_full'
-            ? 20
-            : null;
+      unitValue === 'package'
+        ? 5
+        : unitValue === 'box'
+          ? 10
+          : unitValue === 'pallet_layer'
+            ? 15
+            : unitValue === 'pallet_full'
+              ? 20
+              : null;
     const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
     const title = `${currentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
       value2 ? `-${t(value2)}` : ''
@@ -171,9 +173,9 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     if (currentProduct?.hs_code) data.hs_code = currentProduct?.hs_code;
     if (currentProduct?.vat) data.vat = currentProduct?.vat;
     if (currentProduct?.is_regular !== null) data.is_regular = currentProduct?.is_regular;
+    data.price_cost = currentProduct?.price_cost;
     if (discount) {
       data.variant_discount = discount;
-      data.price_cost = currentProduct?.price_cost;
       data.price_per_piece = parseFloat(
         Number(currentProduct?.price_per_piece) * (1 - discount / 100)
       ).toFixed(2);
@@ -211,6 +213,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     const newVariants = await Promise.all(variantPromises);
 
     // Filter out any null results (errors)
+    newVariants.push(currentProduct);
     const successfulVariants = newVariants.filter((variant) => variant !== null);
 
     if (successfulVariants.length > 0) {

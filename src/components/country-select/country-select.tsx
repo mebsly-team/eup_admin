@@ -78,7 +78,7 @@ export default function CountrySelect<
             <TextField
               {...baseField}
               InputLabelProps={{
-                sx: { color: 'red!important' },
+                sx: { color: 'violet!important' },
               }}
             />
           );
