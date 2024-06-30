@@ -66,6 +66,7 @@ const styles = {
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
 export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
+  console.log('currentProduct', currentProduct);
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -128,7 +129,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     getVariants();
   }, [activeTab, currentProductVariantIdList?.length]);
 
-  const createVariantsCall = async (value1, value2, unitValue) => {
+  const createVariantsCall = async (parentProduct, value1, value2, unitValue) => {
     const discount =
       unitValue === 'package'
         ? 5
@@ -140,49 +141,49 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
               ? 20
               : null;
     const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
-    const title = `${currentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
+    const title = `${parentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
       value2 ? `-${t(value2)}` : ''
     }-${t(unitValue)}`;
     const data = {
       title,
       is_variant: true,
-      title_long: currentProduct?.title_long,
-      parent_product: currentProduct?.id,
-      extra_location: currentProduct?.extra_location,
-      location: currentProduct?.location,
+      title_long: parentProduct?.title_long,
+      parent_product: parentProduct?.id,
+      extra_location: parentProduct?.extra_location,
+      location: parentProduct?.location,
       color: value1?.replace(/\s+/g, '%'),
       size: value2?.replace(/\s+/g, '%'),
       unit: unitValue,
-      categories: currentProduct?.categories?.map((item) => item.id) || [],
-      languages_on_item_package: currentProduct?.languages_on_item_package,
-      meta_title: currentProduct?.meta_title,
-      meta_description: currentProduct?.meta_description,
-      meta_keywords: currentProduct?.meta_keywords,
-      size_unit: currentProduct?.size_unit,
-      weight_unit: currentProduct?.weight_unit,
-      liter_unit: currentProduct?.liter_unit,
-      pallet_full_total_number: currentProduct?.pallet_full_total_number,
-      pallet_layer_total_number: currentProduct?.pallet_layer_total_number,
-      supplier_article_code: currentProduct?.supplier_article_code,
-      expiry_date: currentProduct?.expiry_date,
-      inhoud_unit: currentProduct?.inhoud_unit,
+      categories: parentProduct?.categories?.map((item) => item.id) || [],
+      languages_on_item_package: parentProduct?.languages_on_item_package,
+      meta_title: parentProduct?.meta_title,
+      meta_description: parentProduct?.meta_description,
+      meta_keywords: parentProduct?.meta_keywords,
+      size_unit: parentProduct?.size_unit,
+      weight_unit: parentProduct?.weight_unit,
+      liter_unit: parentProduct?.liter_unit,
+      pallet_full_total_number: parentProduct?.pallet_full_total_number,
+      pallet_layer_total_number: parentProduct?.pallet_layer_total_number,
+      supplier_article_code: parentProduct?.supplier_article_code,
+      expiry_date: parentProduct?.expiry_date,
+      inhoud_unit: parentProduct?.inhoud_unit,
     };
-    if (currentProduct?.supplier?.id) data.supplier = currentProduct?.supplier?.id;
-    if (currentProduct?.brand?.id) data.brand = currentProduct?.brand?.id;
-    if (currentProduct?.delivery_time) data.delivery_time = currentProduct?.delivery_time;
-    if (currentProduct?.hs_code) data.hs_code = currentProduct?.hs_code;
-    if (currentProduct?.vat) data.vat = currentProduct?.vat;
-    if (currentProduct?.is_regular !== null) data.is_regular = currentProduct?.is_regular;
-    data.price_cost = currentProduct?.price_cost;
+    if (parentProduct?.supplier?.id) data.supplier = parentProduct?.supplier?.id;
+    if (parentProduct?.brand?.id) data.brand = parentProduct?.brand?.id;
+    if (parentProduct?.delivery_time) data.delivery_time = parentProduct?.delivery_time;
+    if (parentProduct?.hs_code) data.hs_code = parentProduct?.hs_code;
+    if (parentProduct?.vat) data.vat = parentProduct?.vat;
+    if (parentProduct?.is_regular !== null) data.is_regular = parentProduct?.is_regular;
+    data.price_cost = parentProduct?.price_cost;
     if (discount) {
       data.variant_discount = discount;
       data.price_per_piece = parseFloat(
-        Number(currentProduct?.price_per_piece) * (1 - discount / 100)
+        Number(parentProduct?.price_per_piece) * (1 - discount / 100)
       ).toFixed(2);
     }
     if (isPalletOrBox) {
-      data.ean = currentProduct?.ean;
-      data.article_code = currentProduct?.article_code;
+      data.ean = parentProduct?.ean;
+      data.article_code = parentProduct?.article_code;
     }
 
     try {
@@ -199,30 +200,37 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     setIsLoading(true); // Show the spinner
     const values1 = selectedValues1.length > 0 ? selectedValues1 : [null];
     const values2 = colorValues.length > 0 ? colorValues : [null];
+    let parentProduct = {};
+    try {
+      const response = await axiosInstance.get(`/products/${currentProduct?.id}/`);
+      parentProduct = response?.data;
 
-    const variantPromises: any[] = [];
+      const variantPromises: any[] = [];
 
-    values1.forEach((value1) => {
-      values2.forEach((value2) => {
-        selectedUnitValues.forEach((unitValue) => {
-          variantPromises.push(createVariantsCall(value1, value2, unitValue));
+      values1.forEach((value1) => {
+        values2.forEach((value2) => {
+          selectedUnitValues.forEach((unitValue) => {
+            variantPromises.push(createVariantsCall(parentProduct, value1, value2, unitValue));
+          });
         });
       });
-    });
 
-    const newVariants = await Promise.all(variantPromises);
+      const newVariants = await Promise.all(variantPromises);
 
-    // Filter out any null results (errors)
-    newVariants.push(currentProduct);
-    const successfulVariants = newVariants.filter((variant) => variant !== null);
+      // Filter out any null results (errors)
+      newVariants.push(currentProduct);
+      const successfulVariants = newVariants.filter((variant) => variant !== null);
 
-    if (successfulVariants.length > 0) {
-      setCurrentProductVariantRows((prevRows) => [...prevRows, ...successfulVariants]);
+      if (successfulVariants.length > 0) {
+        setCurrentProductVariantRows((prevRows) => [...prevRows, ...successfulVariants]);
+      }
+
+      setSelectedUnitValues([]);
+    } catch (error) {
+      console.log('error', error);
+    } finally {
+      setIsLoading(false); // Hide the spinner
     }
-
-    // await getVariants(); // List updated variants
-    setSelectedUnitValues([]);
-    setIsLoading(false); // Hide the spinner
   };
 
   const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {

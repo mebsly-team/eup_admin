@@ -101,6 +101,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [isDeleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
   const [brandList, setBrandList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
+  const [parentProduct, setParentProduct] = useState({});
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
 
@@ -110,9 +111,21 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     }
   }, [tab]);
 
-  const parent_max_order_allowed_per_unit = Number(
-    currentProduct?.parent_max_order_allowed_per_unit || 0
-  );
+  const getParentProduct = async () => {
+    try {
+      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
+      setParentProduct(response?.data);
+    } catch (error) {
+      setParentProduct({});
+    }
+  };
+
+  useEffect(() => {
+    if (currentProduct?.parent_product) {
+      getParentProduct();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProduct?.parent_product]);
 
   const getAllSuppliers = async () => {
     const { data } = await axiosInstance.get(`/suppliers/`);
@@ -283,8 +296,16 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       has_no_expiry_date: !currentProduct?.expiry_date,
       comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || 'all',
 
-      overall_stock: currentProduct?.overall_stock || 0, // # Huidege Voorraad
-      free_stock: currentProduct?.free_stock || 0, // # Vrije Voorraad
+      overall_stock: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.overall_stock || 0) / Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.overall_stock || 0, // # Huidege Voorraad
+      free_stock: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.free_stock || 0) / Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.free_stock || 0, // # Vrije Voorraad
       ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0, // # Voorraad Aantal in bestelling
 
       number_in_order: currentProduct?.number_in_order || 0, // Aantal in order
@@ -296,8 +317,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
       order_unit_amount: currentProduct?.order_unit_amount || 0, // Bestellenheid
       min_order_amount: currentProduct?.min_order_amount || 0, //  Minimum bestelaantal
-      min_stock_value: currentProduct?.min_stock_value || 0, // minimumvoorraad
-      max_stock_at_rack: currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
+      min_stock_value: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.min_stock_value || 0, // minimumvoorraad
+      max_stock_at_rack: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.max_stock_at_rack || 0) /
+              Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
       stock_check: currentProduct?.stock_check || false, // voorraadcontrole
 
       stock_at_supplier: currentProduct?.stock_at_supplier || 0,
@@ -351,9 +381,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       inhoud_unit: currentProduct?.inhoud_unit || '',
       inhoud_price: currentProduct?.inhoud_price || 0,
     }),
-    [currentProduct]
+    [currentProduct, parentProduct]
   );
-
   const methods = useForm({
     resolver: yupResolver(NewProductSchema),
     defaultValues,
@@ -1128,8 +1157,30 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 );
                 setValue(
                   'max_order_allowed_per_unit',
-                  Math.round(parent_max_order_allowed_per_unit / Number(e.target.value))
+                  Math.round(
+                    Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(e.target.value)
+                  )
                 );
+                if (currentProduct?.is_variant) {
+                  setValue(
+                    'min_stock_value',
+                    Math.floor(Number(parentProduct?.min_stock_value || 0) / Number(e.target.value))
+                  );
+                  setValue(
+                    'max_stock_at_rack',
+                    Math.floor(
+                      Number(parentProduct?.max_stock_at_rack || 0) / Number(e.target.value)
+                    )
+                  );
+                  setValue(
+                    'free_stock',
+                    Math.floor(Number(parentProduct?.free_stock || 0) / Number(e.target.value))
+                  );
+                  setValue(
+                    'overall_stock',
+                    Math.floor(Number(parentProduct?.overall_stock || 0) / Number(e.target.value))
+                  );
+                }
               }}
               InputLabelProps={{ shrink: true, sx: { color: 'violet!important' } }}
             />
@@ -1428,12 +1479,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               onBlur={handleEmptyNumbers}
             />
             <RHFTextField
+              disabled={currentProduct?.is_variant}
               name="min_stock_value"
               label={t('min_stock_value')}
               type="number"
               onBlur={handleEmptyNumbers}
             />
             <RHFTextField
+              disabled={currentProduct?.is_variant}
               name="max_stock_at_rack"
               label={t('max_stock_at_rack')}
               type="number"
@@ -1956,7 +2009,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const renderStock = (
     <Grid
       xs={12}
-      // sx={{ pointerEvents: 'none' }}
+      sx={{
+        pointerEvents: currentProduct?.is_variant ? 'none' : 'auto',
+      }}
     >
       <Card>
         <CardHeader title={t('stock')} />
