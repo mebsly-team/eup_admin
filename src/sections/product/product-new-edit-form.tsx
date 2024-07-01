@@ -343,7 +343,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       extra_etiket_nl: currentProduct?.extra_etiket_nl || '',
       extra_etiket_fr: currentProduct?.extra_etiket_fr || '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
-      sell_count: currentProduct?.sell_count || 0,
+      sell_count: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.sell_count || 0) / Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.sell_count || 0,
       is_only_for_logged_in_user: currentProduct?.is_only_for_logged_in_user || false,
       is_used: currentProduct?.is_used || false,
       is_regular: currentProduct?.is_regular ?? true,
@@ -1179,6 +1183,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   setValue(
                     'overall_stock',
                     Math.floor(Number(parentProduct?.overall_stock || 0) / Number(e.target.value))
+                  );
+                  setValue(
+                    'sell_count',
+                    Math.floor(Number(parentProduct?.sell_count || 0) / Number(e.target.value))
                   );
                 }
               }}
@@ -2113,6 +2121,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             }}
           >
             <RHFTextField
+              disabled={currentProduct?.is_variant}
               name="sell_count"
               label={t('sell_count')}
               type="number"
