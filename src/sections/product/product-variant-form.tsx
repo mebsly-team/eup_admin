@@ -147,7 +147,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     const data = {
       title,
       is_variant: true,
-      title_long: parentProduct?.title,
+      title_long: title,
       parent_product: parentProduct?.id,
       extra_location: parentProduct?.extra_location,
       location: parentProduct?.location,
@@ -167,6 +167,8 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       supplier_article_code: parentProduct?.supplier_article_code,
       expiry_date: parentProduct?.expiry_date,
       inhoud_unit: parentProduct?.inhoud_unit,
+      extra_etiket_nl: parentProduct?.extra_etiket_nl,
+      extra_etiket_fr: parentProduct?.extra_etiket_fr,
     };
     if (parentProduct?.supplier?.id) data.supplier = parentProduct?.supplier?.id;
     if (parentProduct?.brand?.id) data.brand = parentProduct?.brand?.id;
