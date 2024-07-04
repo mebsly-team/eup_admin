@@ -1,0 +1,48 @@
+# Base image
+FROM --platform=linux/amd64 node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci --legacy-peer-deps; \
+  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm install --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN echo "VITE_IMAGE_FOLDER_PATH=https://eup-images.s3.amazonaws.com/eup/uploads/" > .env.production
+RUN echo "VITE_HOST_API=https://be2.mebsly.com/api" >> .env.production
+
+RUN yarn build
+
+# If using npm, comment out the above and use below instead
+# RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/dist ./dist
+
+USER nextjs
+
+EXPOSE 3001
+
+ENV PORT 3001
+ENV HOSTNAME "0.0.0.0"
+
+# Serve the built Vite app using a static file server
+CMD ["npx", "serve", "-s", "dist", "-l", "3001"]
