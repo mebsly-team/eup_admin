@@ -1894,7 +1894,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           target="_blank"
           href={`http://${
             HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
-          }/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          }/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{
@@ -1914,7 +1914,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           target="_blank"
           href={`http://${
             HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
-          }/nl/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          }/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{

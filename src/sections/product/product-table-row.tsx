@@ -175,7 +175,7 @@ export default function ProductTableRow({
             {is_visible_particular && (
               <a
                 target="_blank"
-                href={`http://${hostUrl}/nl/product/${id}/${slug}`}
+                href={`http://${hostUrl}/product/${id}/${slug}`}
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -186,7 +186,7 @@ export default function ProductTableRow({
             {is_visible_B2B && (
               <a
                 target="_blank"
-                href={`http://${hostUrl}/nl/product/${id}/${slug}`}
+                href={`http://${hostUrl}/product/${id}/${slug}`}
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
               >
