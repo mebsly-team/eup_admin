@@ -137,26 +137,27 @@ export function AuthProvider({ children }: Props) {
     const res = await axios.post(endpoints.auth.login, data);
 
     const { access, refresh, user } = res.data;
+    if (user?.type === 'admin') {
+      setSession(access);
+      const userData = {
+        id: user?.id,
+        photoURL: `${ASSETS_API}/assets/images/avatar/avatar_25.jpg`,
+        displayName: user?.displayName || 'Admin',
+        email: user?.email,
+        type: user?.type,
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
 
-    setSession(access);
-    const userData = {
-      id: user?.id,
-      photoURL: `${ASSETS_API}/assets/images/avatar/avatar_25.jpg`,
-      displayName: user?.displayName || 'Admin',
-      email: user?.email,
-      type: user?.type,
-    };
-    localStorage.setItem('user', JSON.stringify(userData));
-
-    dispatch({
-      type: Types.LOGIN,
-      payload: {
-        user: {
-          ...userData,
-          access,
+      dispatch({
+        type: Types.LOGIN,
+        payload: {
+          user: {
+            ...userData,
+            access,
+          },
         },
-      },
-    });
+      });
+    }
   }, []);
 
   // REGISTER
