@@ -2126,6 +2126,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               label={t('sell_count')}
               type="number"
               onBlur={handleEmptyNumbers}
+              labelColor="violet"
             />
           </Box>
         </Stack>

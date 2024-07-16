@@ -589,5 +589,12 @@
   "shipped": "Verzonden",
   "delivered": "Afgerond",
   "cancelled": "Geannuleerd",
-  "refunded": "Terugbetaald"
+  "refunded": "Terugbetaald",
+  "created": "Gemaakt",
+  "paid": "Betaald",
+  "unpaid": "Onbetaald",
+  "pending": "In afwachting van",
+  "failed": "Mislukt",
+  "canceled": "Geannuleerd",
+  "expired": "Verlopen"
 }

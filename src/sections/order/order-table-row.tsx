@@ -1,6 +1,7 @@
 import { Key, ReactNode, ReactPortal, ReactElement, JSXElementConstructor } from 'react';
 
 import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -140,7 +141,29 @@ export default function OrderTableRow({
         {cart.items?.length}
       </TableCell>
 
-      <TableCell sx={{ padding: 1 }}> {fCurrency(total)} </TableCell>
+      <TableCell sx={{ padding: 1 }}>
+        <ListItemText
+          primary={fCurrency(total)}
+          secondary={
+            <Link
+              href={`https://my.mollie.com/dashboard/${'org_18347469'}/payments/${payment_reference}`}
+              variant="body2"
+              target="_blank"
+              rel="noopener"
+              sx={{ display: 'table' }}
+            >
+              <Label variant="soft" color={is_paid ? 'success' : 'error'}>
+                {t(is_paid ? 'paid' : 'unpaid')}
+              </Label>
+            </Link>
+          }
+          primaryTypographyProps={{ typography: 'body2', noWrap: true }}
+          secondaryTypographyProps={{
+            typography: 'body2',
+            noWrap: true,
+          }}
+        />
+      </TableCell>
 
       <TableCell sx={{ width: 110, padding: 1 }}>
         <Label
