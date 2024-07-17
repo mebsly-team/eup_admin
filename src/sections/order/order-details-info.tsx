@@ -115,7 +115,11 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
             Adres
           </Box>
-          {`${shippingAddress.line1} ${shippingAddress.city} ${shippingAddress.country}`}
+          {shippingAddress.line1 || ''}
+          <br />
+          {`${shippingAddress.zip_code || ''} ${shippingAddress.city || ''}`}
+          <br />
+          {shippingAddress.country || ''}
         </Stack>
 
         <Stack direction="row">
