@@ -21,6 +21,7 @@ import { fCurrency } from 'src/utils/format-number';
 import { fDate, fTime } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -250,7 +251,7 @@ export default function OrderTableRow({
                   }}
                 >
                   <Avatar
-                    src={item?.product?.images?.[0]}
+                    src={`${IMAGE_FOLDER_PATH}${item?.product?.images?.[0]}`}
                     variant="rounded"
                     sx={{ width: 48, height: 48, mr: 2 }}
                   />
