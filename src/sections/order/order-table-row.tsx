@@ -216,31 +216,34 @@ export default function OrderTableRow({
         >
           <Stack component={Paper} sx={{ m: 1.5 }}>
             {cart.items.map(
-              (item: {
-                id: Key | null | undefined;
-                product: {
-                  images: (string | undefined)[];
-                  title:
-                    | string
-                    | number
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | ReactPortal
-                    | null
-                    | undefined;
-                  article_code: any;
-                  categories: { name: any }[];
-                  location: any;
-                  extra_location: any;
-                  price_per_piece: string | number | null;
-                  quantity_per_unit: any;
-                  price_per_unit: string | number | null;
-                };
-                quantity: any;
-              }) => (
+              (
+                item: {
+                  id: Key | null | undefined;
+                  product: {
+                    images: (string | undefined)[];
+                    title:
+                      | string
+                      | number
+                      | boolean
+                      | ReactElement<any, string | JSXElementConstructor<any>>
+                      | Iterable<ReactNode>
+                      | ReactPortal
+                      | null
+                      | undefined;
+                    article_code: any;
+                    categories: { name: any }[];
+                    location: any;
+                    extra_location: any;
+                    price_per_piece: string | number | null;
+                    quantity_per_unit: any;
+                    price_per_unit: string | number | null;
+                  };
+                  quantity: any;
+                },
+                i
+              ) => (
                 <Stack
-                  key={item.id}
+                  key={i}
                   direction="row"
                   alignItems="center"
                   sx={{

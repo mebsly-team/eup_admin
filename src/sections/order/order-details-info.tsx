@@ -146,8 +146,15 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
         <Box component="span" sx={{ color: 'text.secondary', flexGrow: 1 }}>
           Betalingsverwijzing
         </Box>
-
-        {payment}
+        <Link
+          href={`https://my.mollie.com/dashboard/${'org_18347469'}/payments/${payment}`}
+          variant="body2"
+          target="_blank"
+          rel="noopener"
+          sx={{ cursor: 'pointer' }}
+        >
+          {payment}
+        </Link>
         {/* <Iconify icon="logos:mastercard" width={24} sx={{ ml: 0.5 }} /> */}
       </Stack>
     </>
