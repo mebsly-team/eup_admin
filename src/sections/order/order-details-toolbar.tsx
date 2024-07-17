@@ -29,15 +29,14 @@ type Props = {
 };
 
 export default function OrderDetailsToolbar({
-  status,
+  currentOrder,
   backLink,
-  createdAt,
-  orderNumber,
   statusOptions,
   onChangeStatus,
 }: Props) {
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
+  const { id, is_paid, ordered_date, status } = currentOrder;
 
   return (
     <>
@@ -55,22 +54,14 @@ export default function OrderDetailsToolbar({
 
           <Stack spacing={0.5}>
             <Stack spacing={1} direction="row" alignItems="center">
-              <Typography variant="h4"> Order {orderNumber} </Typography>
-              <Label
-                variant="soft"
-                color={
-                  (status === 'completed' && 'success') ||
-                  (status === 'pending' && 'warning') ||
-                  (status === 'cancelled' && 'error') ||
-                  'default'
-                }
-              >
-                {status}
+              <Typography variant="h4"> Order {id} </Typography>
+              <Label variant="soft" color={is_paid ? 'success' : 'error'}>
+                {t(is_paid ? 'paid' : 'unpaid')}
               </Label>
             </Stack>
 
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-              {fDateTime(createdAt)}
+              {fDateTime(ordered_date)}
             </Typography>
           </Stack>
         </Stack>
@@ -89,7 +80,7 @@ export default function OrderDetailsToolbar({
             onClick={popover.onOpen}
             sx={{ textTransform: 'capitalize' }}
           >
-            {status}
+            {t(status)}
           </Button>
 
           <Button
@@ -101,7 +92,7 @@ export default function OrderDetailsToolbar({
           </Button>
 
           <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
-            Edit
+            {t('edit')}
           </Button>
         </Stack>
       </Stack>

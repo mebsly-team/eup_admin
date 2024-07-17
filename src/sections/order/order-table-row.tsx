@@ -150,9 +150,13 @@ export default function OrderTableRow({
               variant="body2"
               target="_blank"
               rel="noopener"
-              sx={{ display: 'table' }}
+              sx={{ cursor: 'pointer' }}
             >
-              <Label variant="soft" color={is_paid ? 'success' : 'error'}>
+              <Label
+                variant="soft"
+                color={is_paid ? 'success' : 'error'}
+                sx={{ cursor: 'pointer' }}
+              >
                 {t(is_paid ? 'paid' : 'unpaid')}
               </Label>
             </Link>

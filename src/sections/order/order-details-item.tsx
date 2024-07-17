@@ -24,14 +24,8 @@ type Props = {
   items: IOrderProductItem[];
 };
 
-export default function OrderDetailsItems({
-  items,
-  taxes,
-  shipping,
-  discount,
-  subTotal,
-  totalAmount,
-}: Props) {
+export default function OrderDetailsItems({ currentOrder }: Props) {
+  const { cart, sub_total, total } = currentOrder;
   const renderTotal = (
     <Stack
       spacing={2}
@@ -39,42 +33,38 @@ export default function OrderDetailsItems({
       sx={{ my: 3, textAlign: 'right', typography: 'body2' }}
     >
       <Stack direction="row">
-        <Box sx={{ color: 'text.secondary' }}>Subtotal</Box>
-        <Box sx={{ width: 160, typography: 'subtitle2' }}>{fCurrency(subTotal) || '-'}</Box>
+        <Box sx={{ color: 'text.secondary' }}>Subtotaal</Box>
+        <Box sx={{ width: 160, typography: 'subtitle2' }}>{fCurrency(sub_total) || '-'}</Box>
       </Stack>
 
       <Stack direction="row">
-        <Box sx={{ color: 'text.secondary' }}>Shipping</Box>
+        <Box sx={{ color: 'text.secondary' }}>Verzendkosten</Box>
         <Box
           sx={{
             width: 160,
-            ...(shipping && { color: 'error.main' }),
           }}
         >
-          {shipping ? `- ${fCurrency(shipping)}` : '-'}
+          {`${fCurrency(cart?.shipping_fee)}`}
         </Box>
       </Stack>
 
       <Stack direction="row">
-        <Box sx={{ color: 'text.secondary' }}>Discount</Box>
+        <Box sx={{ color: 'text.secondary' }}>Transactiekosten</Box>
+        <Box sx={{ width: 160 }}>{fCurrency(cart?.transaction_fee)}</Box>
+      </Stack>
+      <Stack direction="row">
+        <Box sx={{ color: 'text.secondary' }}>Korting</Box>
         <Box
           sx={{
             width: 160,
-            ...(discount && { color: 'error.main' }),
           }}
         >
-          {discount ? `- ${fCurrency(discount)}` : '-'}
+          {`${fCurrency(cart?.cart_discount)}`}
         </Box>
       </Stack>
-
-      <Stack direction="row">
-        <Box sx={{ color: 'text.secondary' }}>Taxes</Box>
-        <Box sx={{ width: 160 }}>{taxes ? fCurrency(taxes) : '-'}</Box>
-      </Stack>
-
       <Stack direction="row" sx={{ typography: 'subtitle1' }}>
-        <Box>Total</Box>
-        <Box sx={{ width: 160 }}>{fCurrency(totalAmount) || '-'}</Box>
+        <Box>Totaal</Box>
+        <Box sx={{ width: 160 }}>{fCurrency(total) || '-'}</Box>
       </Stack>
     </Stack>
   );
@@ -96,7 +86,7 @@ export default function OrderDetailsItems({
         }}
       >
         <Scrollbar>
-          {items.map((item) => (
+          {cart?.items?.map((item) => (
             <Stack
               key={item.id}
               direction="row"
@@ -107,11 +97,15 @@ export default function OrderDetailsItems({
                 borderBottom: (theme) => `dashed 2px ${theme.palette.background.neutral}`,
               }}
             >
-              <Avatar src={item.coverUrl} variant="rounded" sx={{ width: 48, height: 48, mr: 2 }} />
+              <Avatar
+                src={item.product.images?.[0]}
+                variant="rounded"
+                sx={{ width: 48, height: 48, mr: 2 }}
+              />
 
               <ListItemText
-                primary={item.name}
-                secondary={item.sku}
+                primary={item.product.title}
+                secondary={item.product.article_code}
                 primaryTypographyProps={{
                   typography: 'body2',
                 }}
@@ -125,7 +119,7 @@ export default function OrderDetailsItems({
               <Box sx={{ typography: 'body2' }}>x{item.quantity}</Box>
 
               <Box sx={{ width: 110, textAlign: 'right', typography: 'subtitle2' }}>
-                {fCurrency(item.price)}
+                {fCurrency(item.product.price_per_unit)}
               </Box>
             </Stack>
           ))}

@@ -18,10 +18,10 @@ import { IOrderHistory } from 'src/types/order';
 // ----------------------------------------------------------------------
 
 type Props = {
-  history: IOrderHistory;
+  currentOrder: IOrderHistory;
 };
 
-export default function OrderDetailsHistory({ history }: Props) {
+export default function OrderDetailsHistory({ currentOrder }: Props) {
   const renderSummary = (
     <Stack
       spacing={2}
@@ -37,20 +37,20 @@ export default function OrderDetailsHistory({ history }: Props) {
       }}
     >
       <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Order time</Box>
-        {fDateTime(history.orderTime)}
+        <Box sx={{ color: 'text.disabled' }}>Besteldatum</Box>
+        {fDateTime(currentOrder?.ordered_date)}
       </Stack>
       <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Payment time</Box>
-        {fDateTime(history.orderTime)}
+        <Box sx={{ color: 'text.disabled' }}>Betalingsdatum</Box>
+        {fDateTime(currentOrder?.ordered_date)}
       </Stack>
       <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Delivery time for the carrier</Box>
-        {fDateTime(history.orderTime)}
+        <Box sx={{ color: 'text.disabled' }}>Verzenddatum</Box>
+        {fDateTime(currentOrder?.shipped_date)}
       </Stack>
       <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Completion time</Box>
-        {fDateTime(history.orderTime)}
+        <Box sx={{ color: 'text.disabled' }}>Afleverdatum</Box>
+        {fDateTime(currentOrder?.delivered_date)}
       </Stack>
     </Stack>
   );
@@ -66,10 +66,10 @@ export default function OrderDetailsHistory({ history }: Props) {
         },
       }}
     >
-      {history.timeline.map((item, index) => {
+      {currentOrder?.timeline?.map((item, index) => {
         const firstTimeline = index === 0;
 
-        const lastTimeline = index === history.timeline.length - 1;
+        const lastTimeline = index === (currentOrder?.timeline?.length || 0) - 1;
 
         return (
           <TimelineItem key={item.title}>
@@ -93,7 +93,7 @@ export default function OrderDetailsHistory({ history }: Props) {
 
   return (
     <Card>
-      <CardHeader title="History" />
+      <CardHeader title="Geschiedenis" />
       <Stack
         spacing={3}
         alignItems={{ md: 'flex-start' }}

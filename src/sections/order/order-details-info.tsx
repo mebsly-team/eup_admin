@@ -31,7 +31,7 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
   const renderCustomer = (
     <>
       <CardHeader
-        title="Customer Info"
+        title="Klanten info"
         action={
           <IconButton>
             <Iconify icon="solar:pen-bold" />
@@ -51,7 +51,7 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
           <Box sx={{ color: 'text.secondary' }}>{customer.email}</Box>
 
           <Box>
-            IP Address:
+            IP Adres:
             <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
               {customer.ipAddress}
             </Box>
@@ -63,7 +63,7 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
             startIcon={<Iconify icon="mingcute:add-line" />}
             sx={{ mt: 1 }}
           >
-            Add to Blacklist
+            Toevoegen aan zwarte lijst
           </Button>
         </Stack>
       </Stack>
@@ -73,7 +73,7 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
   const renderDelivery = (
     <>
       <CardHeader
-        title="Delivery"
+        title="Levering"
         action={
           <IconButton>
             <Iconify icon="solar:pen-bold" />
@@ -83,19 +83,14 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Ship by
+            Verzonden door:
           </Box>
           {delivery.shipBy}
         </Stack>
+
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Speedy
-          </Box>
-          {delivery.speedy}
-        </Stack>
-        <Stack direction="row" alignItems="center">
-          <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Tracking No.
+            Volgen No.
           </Box>
           <Link underline="always" color="inherit">
             {delivery.trackingNumber}
@@ -108,7 +103,7 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
   const renderShipping = (
     <>
       <CardHeader
-        title="Shipping"
+        title="Verzending"
         action={
           <IconButton>
             <Iconify icon="solar:pen-bold" />
@@ -118,16 +113,16 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Address
+            Adres
           </Box>
-          {shippingAddress.fullAddress}
+          {`${shippingAddress.line1} ${shippingAddress.city} ${shippingAddress.country}`}
         </Stack>
 
         <Stack direction="row">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Phone number
+            Telefoonnummer
           </Box>
-          {shippingAddress.phoneNumber}
+          {shippingAddress.phone_number}
         </Stack>
       </Stack>
     </>
@@ -136,7 +131,7 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
   const renderPayment = (
     <>
       <CardHeader
-        title="Payment"
+        title="Betaling"
         action={
           <IconButton>
             <Iconify icon="solar:pen-bold" />
@@ -145,11 +140,11 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
       />
       <Stack direction="row" alignItems="center" sx={{ p: 3, typography: 'body2' }}>
         <Box component="span" sx={{ color: 'text.secondary', flexGrow: 1 }}>
-          Phone number
+          Betalingsverwijzing
         </Box>
 
-        {payment.cardNumber}
-        <Iconify icon="logos:mastercard" width={24} sx={{ ml: 0.5 }} />
+        {payment}
+        {/* <Iconify icon="logos:mastercard" width={24} sx={{ ml: 0.5 }} /> */}
       </Stack>
     </>
   );

@@ -212,20 +212,20 @@ export function useNavData() {
           },
 
           // INVOICE
-          {
-            title: t('invoice'),
-            path: paths.dashboard.invoice.root,
-            icon: ICONS.invoice,
-            children: [
-              { title: t('list'), path: paths.dashboard.invoice.root },
-              {
-                title: t('details'),
-                path: paths.dashboard.invoice.demo.details,
-              },
-              { title: t('create'), path: paths.dashboard.invoice.new },
-              { title: t('edit'), path: paths.dashboard.invoice.demo.edit },
-            ],
-          },
+          // {
+          //   title: t('invoice'),
+          //   path: paths.dashboard.invoice.root,
+          //   icon: ICONS.invoice,
+          //   children: [
+          //     { title: t('list'), path: paths.dashboard.invoice.root },
+          //     {
+          //       title: t('details'),
+          //       path: paths.dashboard.invoice.demo.details,
+          //     },
+          //     { title: t('create'), path: paths.dashboard.invoice.new },
+          //     { title: t('edit'), path: paths.dashboard.invoice.demo.edit },
+          //   ],
+          // },
 
           // // LANGUAGE
           // {
