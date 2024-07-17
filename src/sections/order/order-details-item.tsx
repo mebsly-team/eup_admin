@@ -8,6 +8,8 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { fCurrency } from 'src/utils/format-number';
 
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
+
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
@@ -98,7 +100,7 @@ export default function OrderDetailsItems({ currentOrder }: Props) {
               }}
             >
               <Avatar
-                src={item.product.images?.[0]}
+                src={`${IMAGE_FOLDER_PATH}${item.product.images?.[0]}`}
                 variant="rounded"
                 sx={{ width: 48, height: 48, mr: 2 }}
               />
