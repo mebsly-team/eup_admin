@@ -207,7 +207,7 @@ export function useNavData() {
             icon: ICONS.order,
             children: [
               { title: t('list'), path: paths.dashboard.order.root },
-              { title: t('details'), path: paths.dashboard.order.demo.details },
+              // { title: t('details'), path: paths.dashboard.order.demo.details },
             ],
           },
 
