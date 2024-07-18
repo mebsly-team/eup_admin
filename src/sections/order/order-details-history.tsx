@@ -66,23 +66,23 @@ export default function OrderDetailsHistory({ currentOrder }: Props) {
         },
       }}
     >
-      {currentOrder?.timeline?.map((item, index) => {
+      {currentOrder?.history?.map((item, index) => {
         const firstTimeline = index === 0;
 
         const lastTimeline = index === (currentOrder?.timeline?.length || 0) - 1;
 
         return (
-          <TimelineItem key={item.title}>
+          <TimelineItem key={item.date}>
             <TimelineSeparator>
               <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
               {lastTimeline ? null : <TimelineConnector />}
             </TimelineSeparator>
 
             <TimelineContent>
-              <Typography variant="subtitle2">{item.title}</Typography>
+              <Typography variant="subtitle2">{item.event}</Typography>
 
               <Box sx={{ color: 'text.disabled', typography: 'caption', mt: 0.5 }}>
-                {fDateTime(item.time)}
+                {fDateTime(item.date)}
               </Box>
             </TimelineContent>
           </TimelineItem>

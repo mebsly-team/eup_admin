@@ -12,6 +12,7 @@ export type IOrderTableFilters = {
 // ----------------------------------------------------------------------
 
 export type IOrderHistory = {
+  history: any;
   orderTime: Date;
   paymentTime: Date;
   deliveryTime: Date;

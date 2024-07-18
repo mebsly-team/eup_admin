@@ -10,6 +10,8 @@ import { paths } from 'src/routes/paths';
 
 import axiosInstance from 'src/utils/axios';
 
+import { useTranslate } from 'src/locales';
+
 import { useSettingsContext } from 'src/components/settings';
 
 import OrderDetailsInfo from '../order-details-info';
@@ -39,6 +41,7 @@ export const ORDER_STATUS_OPTIONS = [
 export default function OrderDetailsView({ id }: Props) {
   const [currentOrder, setCurrentOrder] = useState({});
   const settings = useSettingsContext();
+  const { t } = useTranslate();
 
   useEffect(() => {
     if (id) {
@@ -74,9 +77,22 @@ export default function OrderDetailsView({ id }: Props) {
     }
   };
 
-  const handleChangeStatus = useCallback((newValue: string) => {
-    updateOrder(id, { status: newValue });
-  }, []);
+  const handleChangeStatus = useCallback(
+    (newValue: string) => {
+      const newHistory = currentOrder.history;
+      newHistory.push({
+        date: new Date(),
+        event: `Status gewijzigd in ${t(newValue)} door ${
+          currentOrder?.shipping_address?.email || currentOrder?.user?.email
+        }`,
+      });
+      updateOrder(id, {
+        status: newValue,
+        history: newHistory,
+      });
+    },
+    [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
+  );
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
