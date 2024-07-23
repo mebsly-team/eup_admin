@@ -49,6 +49,36 @@ export default function OrderDetailsView({ id }: Props) {
     }
   }, [id]);
 
+  // Function to handle invoice download
+  const handleDownloadInvoice = async () => {
+    try {
+      const initialResponse = await axiosInstance.get(`/invoice/${id}/?all=true`, {
+        responseType: 'blob',
+        validateStatus: (status) => status < 400 || status === 301,
+      });
+
+      let response = initialResponse;
+
+      // Handle 301 redirection
+      if (initialResponse.status === 301) {
+        const redirectedUrl = initialResponse.headers.location;
+        response = await axiosInstance.get(redirectedUrl, {
+          responseType: 'blob',
+        });
+      }
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice_${id}.pdf`); // Set the file name
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download invoice:', error);
+    }
+  };
+
   const getOrder = async (orderId: string) => {
     try {
       const response = await axiosInstance.get(`/orders/${orderId}/?all=true`);
@@ -101,6 +131,7 @@ export default function OrderDetailsView({ id }: Props) {
         currentOrder={currentOrder}
         onChangeStatus={handleChangeStatus}
         statusOptions={ORDER_STATUS_OPTIONS}
+        handleDownloadInvoice={handleDownloadInvoice}
       />
 
       <Grid container spacing={3}>

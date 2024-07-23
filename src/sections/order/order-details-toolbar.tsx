@@ -22,6 +22,7 @@ type Props = {
   orderNumber: string;
   createdAt: Date;
   onChangeStatus: (newValue: string) => void;
+  handleDownloadInvoice: () => void;
   statusOptions: {
     value: string;
     label: string;
@@ -33,6 +34,7 @@ export default function OrderDetailsToolbar({
   backLink,
   statusOptions,
   onChangeStatus,
+  handleDownloadInvoice,
 }: Props) {
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
@@ -88,7 +90,15 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
           >
-            {t('print')}
+            {t('werkbon')}
+          </Button>
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+            onClick={handleDownloadInvoice}
+          >
+            {t('invoice')}
           </Button>
 
           <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
