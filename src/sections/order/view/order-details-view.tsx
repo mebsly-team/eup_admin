@@ -50,9 +50,9 @@ export default function OrderDetailsView({ id }: Props) {
   }, [id]);
 
   // Function to handle invoice download
-  const handleDownloadInvoice = async () => {
+  const handleDownloadInvoice = async ({ doc = 'invoice' }) => {
     try {
-      const initialResponse = await axiosInstance.get(`/invoice/${id}/?all=true`, {
+      const initialResponse = await axiosInstance.get(`/${doc}/${id}/?all=true`, {
         responseType: 'blob',
         validateStatus: (status) => status < 400 || status === 301,
       });
@@ -70,12 +70,12 @@ export default function OrderDetailsView({ id }: Props) {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `invoice_${id}.pdf`); // Set the file name
+      link.setAttribute('download', `${doc}_${id}.pdf`); // Set the file name
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
     } catch (error) {
-      console.error('Failed to download invoice:', error);
+      console.error('Failed to download:', error);
     }
   };
 

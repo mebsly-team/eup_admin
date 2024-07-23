@@ -22,7 +22,7 @@ type Props = {
   orderNumber: string;
   createdAt: Date;
   onChangeStatus: (newValue: string) => void;
-  handleDownloadInvoice: () => void;
+  handleDownloadInvoice: (value: { doc: string }) => void;
   statusOptions: {
     value: string;
     label: string;
@@ -89,6 +89,7 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+            onClick={() => handleDownloadInvoice({ doc: 'werkbon' })}
           >
             {t('werkbon')}
           </Button>
