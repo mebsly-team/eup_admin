@@ -1987,7 +1987,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   >
                     {getValues('price_per_piece') ? (
                       <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                        €{roundUp(getValues('price_per_piece'))}
+                        €{roundUp(getValues('price_per_piece') * (1 + getValues('vat') / 100))}
                       </Typography>
                     ) : null}
                     <Typography
@@ -1995,7 +1995,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                       ml={1}
                       sx={{ color: 'grey', textDecoration: 'line-through' }}
                     >
-                      {roundUp(getValues('price_consumers'))}
+                      {roundUp(getValues('price_consumers') * (1 + getValues('vat') / 100))}
                     </Typography>
                   </Box>
                   <Typography variant="subtitle2" sx={{ color: 'grey' }}>
