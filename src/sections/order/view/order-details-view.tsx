@@ -26,15 +26,15 @@ type Props = {
 };
 
 export const ORDER_STATUS_OPTIONS = [
-  { value: 'pending_order', label: 'In order' },
-  { value: 'pending_offer', label: 'In offerte' },
-  { value: 'confirmed', label: 'Bevestigd' },
-  { value: 'werkbon', label: 'Order Picker' },
+  { value: 'pending_order', label: 'Order' },
+  { value: 'werkbon', label: 'Orderpicker' },
   { value: 'packing', label: 'Pakbon' }, // Verpakking
   { value: 'shipped', label: 'Verzonden' },
   { value: 'delivered', label: 'Geleverd' },
   { value: 'cancelled', label: 'Geannuleerd' },
   { value: 'refunded', label: 'Terugbetaald' },
+  { value: 'pending_offer', label: 'Offer' },
+  { value: 'confirmed', label: 'Bevestigd' },
   { value: 'other', label: 'Anders' },
 ];
 

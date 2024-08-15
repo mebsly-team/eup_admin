@@ -45,15 +45,16 @@ import OrderTableFiltersResult from '../order-table-filters-result';
 // ----------------------------------------------------------------------
 
 export const ORDER_STATUS_OPTIONS = [
-  { value: 'pending_order', label: 'Bestel-pending' },
-  { value: 'pending_offer', label: 'Offerte-pending' },
-  { value: 'confirmed', label: 'Bevestiging' },
+  { value: 'pending_order', label: 'Order' },
   { value: 'werkbon', label: 'Orderpicker' },
-  { value: 'packing', label: 'Pakbon' },
+  { value: 'packing', label: 'Pakbon' }, // Verpakking
   { value: 'shipped', label: 'Verzonden' },
-  { value: 'delivered', label: 'Afgerond' },
+  { value: 'delivered', label: 'Geleverd' },
   { value: 'cancelled', label: 'Geannuleerd' },
   { value: 'refunded', label: 'Terugbetaald' },
+  { value: 'pending_offer', label: 'Offer' },
+  { value: 'confirmed', label: 'Bevestigd' },
+  { value: 'other', label: 'Anders' },
 ];
 const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, ...ORDER_STATUS_OPTIONS];
 

@@ -365,7 +365,7 @@ export default function OrderTableRow({
           }}
         >
           <Iconify icon="solar:eye-bold" />
-          View
+          Bekijk
         </MenuItem>
       </CustomPopover>
 
