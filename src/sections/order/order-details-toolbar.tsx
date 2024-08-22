@@ -97,6 +97,14 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+            onClick={() => handleDownloadInvoice({ doc: 'pakbon' })}
+          >
+            {t('packing')}
+          </Button>
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={handleDownloadInvoice}
           >
             {t('invoice')}
