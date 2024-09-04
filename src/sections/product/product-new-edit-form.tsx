@@ -1212,7 +1212,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}
                 onSave={(ct) => {
-                  currentProduct?.categories = ct;
+                  currentProduct.categories = ct;
                   setValue('categories', ct);
                   setOpenDialogCategory(false); // Close the dialog after saving
                 }}
