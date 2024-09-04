@@ -663,7 +663,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       data.tags = [];
       data.brand = typeof data.brand === 'object' ? data.brand?.id : data.brand;
       data.supplier = typeof data.supplier === 'object' ? data.supplier?.id : data.supplier;
-      data.categories = data.categories.map((item) => item?.id);
+      data.categories = data?.categories.map((item) => item?.id);
       let response;
       if (currentProduct?.id) {
         response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
@@ -1212,7 +1212,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}
                 onSave={(ct) => {
-                  currentProduct.categories = ct;
+                  currentProduct?.categories = ct;
                   setValue('categories', ct);
                   setOpenDialogCategory(false); // Close the dialog after saving
                 }}
@@ -1231,7 +1231,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               </ul>
             </div>
             <Typography typography="caption" sx={{ color: 'error.main' }}>
-              {(errors.categories as any)?.message}
+              {(errors?.categories as any)?.message}
             </Typography>
           </Box>
           {/* Add Image button */}
@@ -1380,7 +1380,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                           ((parent_price_per_piece -
                             (Number(e.target.value) +
                               (Number(e.target.value) *
-                                Number(getValues('supplier').percentage_to_add)) /
+                                Number(getValues('supplier')?.percentage_to_add)) /
                                 100)) /
                             parent_price_per_piece)
                       )
@@ -1390,7 +1390,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   'price_per_piece',
                   roundUp(
                     Number(e.target.value) +
-                      (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                      (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
                         100
                   )
                 );
@@ -1399,7 +1399,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   roundUp(
                     Number(getValues('quantity_per_unit')) *
                       (Number(e.target.value) +
-                        (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                        (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
                           100)
                   )
                 );
@@ -1408,7 +1408,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   roundUp(
                     Number(getValues('quantity_per_unit')) *
                       (Number(e.target.value) +
-                        (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                        (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
                           100) *
                       1.75
                   )
@@ -1418,7 +1418,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   (
                     (Number(getValues('quantity_per_unit') || 0) *
                       (Number(e.target.value) +
-                        (Number(e.target.value) * Number(getValues('supplier').percentage_to_add)) /
+                        (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
                           100)) /
                     Number(getValues('inhoud_number') || 1)
                   ).toFixed(4)
