@@ -596,5 +596,10 @@
   "pending": "In afwachting van",
   "failed": "Mislukt",
   "canceled": "Geannuleerd",
-  "expired": "Verlopen"
+  "expired": "Verlopen",
+  "unit_in_pallet": "Eenheid voor pallet",
+  "pallet_x_value": "Pallet Lengte",
+  "pallet_y_value": "Pallet Breedte",
+  "pallet_z_value": "Pallet Hoogte",
+  "pallet_max_weight_value": "Pallet Max Gewicht"
 }

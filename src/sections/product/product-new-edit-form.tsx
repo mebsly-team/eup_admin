@@ -75,10 +75,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const isNewProduct = location?.pathname?.includes('/new');
   let activeAction = '';
   const [results, setResults] = useState({
-    singleLayer: [],
-    fullPallet: [],
+    orientationName: '',
+    totalItemNumber: 0,
+    totalWeight: 0,
+    totalVolume: 0,
   });
 
+  console.log('results', results);
   // Now you can access query parameters from the location object
   const queryParams = new URLSearchParams(location.search);
   const tab = Number(queryParams.get('tab') || 0);
@@ -105,6 +108,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const [isDeleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
   const [brandList, setBrandList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
+  const [variantListforPallet, setVariantListforPallet] = useState([]);
   const [parentProduct, setParentProduct] = useState({});
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
@@ -249,6 +253,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
       ),
     size_unit: Yup.string().nullable(),
+    unit_in_pallet:
+      ['pallet_full', 'pallet_layer'].includes(currentProduct?.unit) &&
+      Yup.string().required(t('required')),
     weight: Yup.number()
       .nullable()
       .test(
@@ -260,8 +267,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     weight_unit: Yup.string().nullable(),
     volume_unit: Yup.string().nullable(),
     volume: Yup.string().nullable(),
-    pallet_full_total_number: Yup.number().required(t('required')),
-    pallet_layer_total_number: Yup.number().required(t('required')),
+    // pallet_full_total_number: Yup.number().required(t('required')),
+    // pallet_layer_total_number: Yup.number().required(t('required')),
 
     inhoud_number: Yup.number().required(t('required')),
   });
@@ -426,6 +433,33 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     }
   };
 
+  const getVariants = async () => {
+    try {
+      if (currentProduct?.variants?.length) {
+        const variantPromises = currentProduct.variants.map(async (item: any) => {
+          try {
+            const { data } = await axiosInstance.get(`/products/${item.id}/`);
+            return data;
+          } catch (error) {
+            console.error(`Error fetching variant ${item.id}:`, error);
+            // Handle the error as needed (e.g., show an error message)
+            return null; // Return null for this variant
+          }
+        });
+
+        const variantList = await Promise.all(variantPromises);
+        const filteredVariants = variantList.filter((variant) => variant !== null);
+        setVariantListforPallet(filteredVariants);
+      }
+    } catch (error) {
+      console.error('Error fetching variants:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (['pallet_full', 'pallet_layer'].includes(currentProduct?.unit)) getVariants();
+  }, [currentProduct?.variants?.length]);
+
   useEffect(() => {
     const calculateVolume = () => {
       const size_unit = watch('size_unit');
@@ -465,72 +499,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
       }
 
-      setValue('volume', roundUp(calculatedVolume)); // Setting the calculated volume in the form
-      setValue('volume_unit', calculatedVolumeUnit); // Setting the calculated volume unit
-      setValue('is_brief_box', isBriefBox); // Setting is_brief_box based on size and weight
-
-      const orientations = [
-        { name: 'Normaal', x: sizeX, y: sizeY, z: sizeZ },
-        { name: 'Zijkant', x: sizeY, y: sizeX, z: sizeZ },
-      ];
-      // Hem tek katman hem de tam dolu palet için en fazla ürün sayısını bulma
-      let max_items_single_layer = 0;
-      let best_orientation_single_layer = '';
-      let max_items_full_pallet = 0;
-      let best_orientation_full_pallet = '';
-      const tmpResult = {
-        singleLayer: [],
-        fullPallet: [],
-      };
-      orientations.forEach((orientation) => {
-        const items_per_layer_x = Math.floor(watch('pallet_x_value') / orientation.x);
-        const items_per_layer_y = Math.floor(watch('pallet_y_value') / orientation.y);
-        const items_per_layer = items_per_layer_x * items_per_layer_y;
-
-        // Tek katman (layer) için hesaplama
-        const total_items_single_layer = items_per_layer;
-        const total_weight_single_layer = total_items_single_layer * weight;
-        if (total_weight_single_layer <= watch('pallet_max_weight_value')) {
-          tmpResult?.singleLayer.push({
-            orientation: orientation.name,
-            total: total_items_single_layer,
-            weight: total_weight_single_layer,
-          });
-
-          if (total_items_single_layer > max_items_single_layer) {
-            max_items_single_layer = total_items_single_layer;
-            best_orientation_single_layer = orientation.name;
-          }
-        }
-
-        // Tam dolu palet (çok katmanlı) için hesaplama
-        const layers_by_height = Math.floor(watch('pallet_z_value') / orientation.z);
-        const max_weight_per_layer = Math.floor(
-          watch('pallet_max_weight_value') / (items_per_layer * weight)
-        );
-        const layers_by_weight = Math.floor(max_weight_per_layer);
-        const layers = Math.min(layers_by_height, layers_by_weight);
-        console.log('layers', layers);
-
-        const total_items_full_pallet = items_per_layer * layers;
-        const total_weight_full_pallet = total_items_full_pallet * weight;
-
-        if (total_weight_full_pallet <= watch('pallet_max_weight_value')) {
-          tmpResult.fullPallet.push({
-            orientation: orientation.name,
-            total: total_items_full_pallet,
-            weight: total_weight_full_pallet,
-          });
-
-          if (total_items_full_pallet > max_items_full_pallet) {
-            max_items_full_pallet = total_items_full_pallet;
-            best_orientation_full_pallet = orientation.name;
-          }
-        }
-      });
-      setResults(tmpResult);
+      if (!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit))
+        setValue('volume', roundUp(calculatedVolume)); // Setting the calculated volume in the form
+      if (!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit))
+        setValue('volume_unit', calculatedVolumeUnit); // Setting the calculated volume unit
+      if (!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit))
+        setValue('is_brief_box', isBriefBox); // Setting is_brief_box based on size and weight
     };
-
     calculateVolume();
   }, [
     watch('size_unit'),
@@ -539,10 +514,136 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     watch('size_z_value'),
     watch('weight'),
     watch('weight_unit'),
+  ]);
+
+  useEffect(() => {
+    const calculateVolume = () => {
+      const unitInPallet = getValues('unit_in_pallet');
+      const productInPallet = variantListforPallet?.find((item) => item.unit === unitInPallet);
+      if (!productInPallet) {
+        setResults({
+          orientationName: '',
+          totalItemNumber: 0,
+          totalWeight: 0,
+          totalVolume: 0,
+        });
+        return;
+      }
+      const size_unit = productInPallet?.size_unit;
+      const weightUnit = productInPallet?.weight_unit;
+      const sizeX = convertSizeToCm(parseFloat(productInPallet?.size_x_value || 0), size_unit);
+      const sizeY = convertSizeToCm(
+        parseFloat(productInPallet?.size_y_value || 0),
+        watch('size_unit')
+      );
+      const sizeZ = convertSizeToCm(
+        parseFloat(productInPallet?.size_z_value || 0),
+        watch('size_unit')
+      );
+      const weight = convertWeightToKg(parseFloat(productInPallet?.weight || 0), weightUnit);
+
+      // Calculate the volume in m³
+      const volumeInCm3 = sizeX * sizeY * sizeZ; // volume in cm³
+      const volumeInM3 = volumeInCm3 / 1_000_000; // converting to m³
+
+      const orientations = [
+        { name: 'Normaal', x: sizeX, y: sizeY, z: sizeZ },
+        { name: 'Zijkant', x: sizeY, y: sizeX, z: sizeZ },
+      ];
+
+      // Find the maximum number of items for both single layer and full pallet
+      let max_items_single_layer = 0;
+      let best_orientation_single_layer = '';
+      let max_items_full_pallet = 0;
+      let best_orientation_full_pallet = '';
+      const tmpResult = {
+        orientationName: '',
+        totalItemNumber: 0,
+        totalWeight: 0,
+        totalVolume: 0,
+      };
+
+      orientations.forEach((orientation) => {
+        const items_per_layer_x = Math.floor(watch('pallet_x_value') / orientation.x);
+        const items_per_layer_y = Math.floor(watch('pallet_y_value') / orientation.y);
+        const items_per_layer = items_per_layer_x * items_per_layer_y;
+
+        // Calculation for a single layer
+        const total_items_single_layer = items_per_layer;
+        const total_weight_single_layer = total_items_single_layer * weight;
+
+        // Check if the single layer weight is within the pallet's max weight capacity
+        if (total_weight_single_layer <= watch('pallet_max_weight_value')) {
+          tmpResult.orientationName = orientation.name;
+          tmpResult.totalItemNumber = total_items_single_layer;
+          tmpResult.totalWeight = total_weight_single_layer;
+          tmpResult.totalVolume = total_items_single_layer * volumeInM3; // Volume of products on pallet
+
+          // Update best orientation if the current one allows more items per layer
+          if (total_items_single_layer > max_items_single_layer) {
+            max_items_single_layer = total_items_single_layer;
+            best_orientation_single_layer = orientation.name;
+          }
+        }
+
+        if (getValues('unit') === 'pallet_full') {
+          // Calculation for a full pallet (multilayer)
+          const layers_by_height = Math.floor(watch('pallet_z_value') / orientation.z);
+
+          // Maximum number of layers that can fit based on weight capacity
+          const max_layers_by_weight = Math.floor(
+            watch('pallet_max_weight_value') / (items_per_layer * weight)
+          );
+
+          // Determine the feasible number of layers considering both height and weight constraints
+          const layers = Math.min(layers_by_height, max_layers_by_weight);
+          console.log('layers', layers);
+
+          const total_items_full_pallet = items_per_layer * layers;
+          const total_weight_full_pallet = total_items_full_pallet * weight;
+
+          // Check if the total weight of the full pallet does not exceed the pallet's max weight
+          if (total_weight_full_pallet <= watch('pallet_max_weight_value')) {
+            tmpResult.orientationName = orientation.name;
+            tmpResult.totalItemNumber = total_items_full_pallet;
+            tmpResult.totalWeight = total_weight_full_pallet;
+            tmpResult.totalVolume = total_items_full_pallet * volumeInM3; // Volume of products on pallet
+
+            // Update the best orientation if the current one allows more items for the full pallet
+            if (total_items_full_pallet > max_items_full_pallet) {
+              max_items_full_pallet = total_items_full_pallet;
+              best_orientation_full_pallet = orientation.name;
+            }
+          }
+        }
+      });
+      setValue('size_unit', 'cm');
+      setValue('size_x_value', watch('pallet_x_value'));
+      setValue('size_y_value', watch('pallet_y_value'));
+      setValue('size_z_value', watch('pallet_z_value'));
+      setValue('volume', tmpResult.totalVolume.toFixed(3));
+      setValue('volume_unit', 'm³');
+      setValue('weight', tmpResult.totalWeight);
+      setValue('weight_unit', 'kg');
+      setValue(
+        'pallet_full_total_number',
+        getValues('unit') === 'pallet_full' ? tmpResult.totalItemNumber : null
+      );
+      setValue(
+        'pallet_layer_total_number',
+        getValues('unit') === 'pallet_layer' ? tmpResult.totalItemNumber : null
+      );
+
+      setResults(tmpResult);
+    };
+
+    calculateVolume();
+  }, [
     watch('pallet_x_value'),
     watch('pallet_y_value'),
     watch('pallet_z_value'),
     watch('pallet_max_weight_value'),
+    watch('unit_in_pallet'),
   ]);
 
   useEffect(() => {
@@ -1772,6 +1873,73 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       <Card>
         <CardHeader title={t('size_volume')} />
         <Stack spacing={2} sx={{ p: 3 }}>
+          {['pallet_full', 'pallet_layer'].includes(currentProduct?.unit) ? (
+            <>
+              <Box
+                columnGap={2}
+                rowGap={3}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(2, 1fr)',
+                  md: 'repeat(3, 1fr)',
+                  lg: 'repeat(4, 1fr)',
+                }}
+              >
+                <RHFTextField
+                  name="pallet_x_value"
+                  label={t('pallet_x_value')}
+                  type="number"
+                  onBlur={handleEmptyNumbers}
+                />
+                <RHFTextField
+                  name="pallet_y_value"
+                  label={t('pallet_y_value')}
+                  type="number"
+                  onBlur={handleEmptyNumbers}
+                />
+                <RHFTextField
+                  name="pallet_z_value"
+                  label={t('pallet_z_value')}
+                  type="number"
+                  onBlur={handleEmptyNumbers}
+                />
+                <RHFTextField
+                  name="pallet_max_weight_value"
+                  label={t('pallet_max_weight_value')}
+                  type="number"
+                  onBlur={handleEmptyNumbers}
+                />
+                <RHFSelect name="unit_in_pallet" label={t('unit_in_pallet')}>
+                  <MenuItem value="piece">{t('piece')}</MenuItem>
+                  <MenuItem value="package">{t('package')}</MenuItem>
+                  <MenuItem value="rol">{t('rol')}</MenuItem>
+                  <MenuItem value="box">{t('box')}</MenuItem>
+                </RHFSelect>
+              </Box>
+              {['pallet_layer'].includes(currentProduct?.unit) ? (
+                <div>
+                  <h2>Resultaten met één laag:</h2>
+                  <ul>
+                    <li>
+                      {results?.orientationName}: <b>{results?.totalItemNumber}</b> producten,{' '}
+                      {results?.totalWeight.toFixed(2)} kg, {results?.totalVolume.toFixed(3)} m³
+                    </li>
+                  </ul>
+                </div>
+              ) : null}
+              {['pallet_full'].includes(currentProduct?.unit) ? (
+                <div>
+                  <h2>Resultaten voor volle pallets:</h2>
+                  <ul>
+                    <li>
+                      {results?.orientationName}: <b>{results?.totalItemNumber}</b> producten,{' '}
+                      {results?.totalWeight.toFixed(2)} kg, {results?.totalVolume.toFixed(3)} m³
+                    </li>
+                  </ul>
+                </div>
+              ) : null}
+            </>
+          ) : null}
           <Box
             columnGap={2}
             rowGap={3}
@@ -1811,28 +1979,16 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               onBlur={handleEmptyNumbers}
             />
             <RHFTextField
-              sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
+              // sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
               name="volume"
               label={t('volume')}
             />
             <RHFTextField
-              sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
+              // sx={{ pointerEvents: 'none', backgroundColor: '#f5f3f3' }}
               name="volume_unit"
               label={t('volume_unit')}
             />
-            <RHFTextField
-              labelColor="violet"
-              name="liter"
-              label={t('liter')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFSelect name="liter_unit" label={t('liter_unit')} labelColor="violet">
-              <MenuItem value="">--</MenuItem>
-              <Divider sx={{ borderStyle: 'dashed' }} />
-              <MenuItem value="l">{t('l')}</MenuItem>
-              <MenuItem value="ml">{t('ml')}</MenuItem>
-            </RHFSelect>
+
             <RHFTextField name="weight" label={t('weight')} labelColor="violet" />
             <RHFSelect name="weight_unit" label={t('weight_unit')} labelColor="violet">
               <MenuItem value="">--</MenuItem>
@@ -1840,94 +1996,53 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="gr">{t('gr')}</MenuItem>
               <MenuItem value="kg">{t('kg')}</MenuItem>
             </RHFSelect>
-            <RHFSwitch
-              name="is_brief_box"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_brief_box')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
+            {!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit) && (
+              <>
+                <RHFTextField
+                  labelColor="violet"
+                  name="liter"
+                  label={t('liter')}
+                  type="number"
+                  onBlur={handleEmptyNumbers}
+                />
+                <RHFSelect name="liter_unit" label={t('liter_unit')} labelColor="violet">
+                  <MenuItem value="">--</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <MenuItem value="l">{t('l')}</MenuItem>
+                  <MenuItem value="ml">{t('ml')}</MenuItem>
+                </RHFSelect>
+                <RHFSwitch
+                  name="is_brief_box"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_brief_box')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+              </>
+            )}
+
+            {['pallet_layer'].includes(currentProduct?.unit) ? (
+              <RHFTextField
+                labelColor="violet"
+                name="pallet_layer_total_number"
+                label={t('pallet_layer_total_number')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+            ) : ['pallet_full'].includes(currentProduct?.unit) ? (
+              <RHFTextField
+                labelColor="violet"
+                name="pallet_full_total_number"
+                label={t('pallet_full_total_number')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+            ) : null}
           </Box>
           <Divider sx={{ borderStyle: 'dashed' }} />
-
-          <Box
-            columnGap={2}
-            rowGap={3}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)',
-              lg: 'repeat(4, 1fr)',
-            }}
-          >
-            <RHFTextField
-              labelColor="violet"
-              name="pallet_x_value"
-              label={t('pallet_x_value')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              labelColor="violet"
-              name="pallet_y_value"
-              label={t('pallet_y_value')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              labelColor="violet"
-              name="pallet_z_value"
-              label={t('pallet_z_value')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              labelColor="violet"
-              name="pallet_max_weight_value"
-              label={t('pallet_max_weight_value')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              labelColor="violet"
-              name="pallet_layer_total_number"
-              label={t('pallet_layer_total_number')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              labelColor="violet"
-              name="pallet_full_total_number"
-              label={t('pallet_full_total_number')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-          </Box>
-          <Divider sx={{ borderStyle: 'dashed' }} />
-          <div>
-            <h2>Resultaten met één laag:</h2>
-            <ul>
-              {results.singleLayer.map((result, index) => (
-                <li key={index}>
-                  {result?.orientation}: {result?.total} producten, {result?.weight.toFixed(2)}{' '}
-                  kg
-                </li>
-              ))}
-            </ul>
-
-            <h2>Resultaten voor volle pallets:</h2>
-            <ul>
-              {results.fullPallet.map((result, index) => (
-                <li key={index}>
-                  {result?.orientation}: {result?.total} producten, {' '}
-                  {result?.weight.toFixed(2)} kg
-                </li>
-              ))}
-            </ul>
-          </div>
         </Stack>
       </Card>
     </Grid>
@@ -2353,11 +2468,11 @@ const roundUp = (num) => parseFloat(num || 0).toFixed(2);
 
 function convertSizeToCm(size, unit) {
   if (unit === 'mm') return size / 10;
-  if (unit === 'm') return size * 100; 
-  return size; 
+  if (unit === 'm') return size * 100;
+  return size;
 }
 
 function convertWeightToKg(weight, unit) {
   if (unit === 'gr') return weight / 1000;
-  return weight; 
+  return weight;
 }
