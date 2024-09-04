@@ -623,16 +623,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       setValue('size_z_value', watch('pallet_z_value'));
       setValue('volume', tmpResult.totalVolume.toFixed(3));
       setValue('volume_unit', 'm³');
-      setValue('weight', tmpResult.totalWeight);
+      setValue('weight', tmpResult.totalWeight.toFixed(2));
       setValue('weight_unit', 'kg');
-      setValue(
-        'pallet_full_total_number',
-        getValues('unit') === 'pallet_full' ? tmpResult.totalItemNumber : null
-      );
-      setValue(
-        'pallet_layer_total_number',
-        getValues('unit') === 'pallet_layer' ? tmpResult.totalItemNumber : null
-      );
+      setValue('pallet_full_total_number', tmpResult.totalItemNumber);
+      setValue('pallet_layer_total_number', tmpResult.totalItemNumber);
 
       setResults(tmpResult);
     };
