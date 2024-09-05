@@ -181,7 +181,7 @@ export default function ProfileNewEditForm({ currentUser }: Props) {
     console.log('useEffect');
     const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
     if (savedData) {
-      methods.reset(savedData); // Reset form with saved data
+      methods.reset(savedData);
     }
   }, [methods]);
 

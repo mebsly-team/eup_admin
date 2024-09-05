@@ -7,7 +7,6 @@ import { useTranslate } from 'src/locales';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
-import UserNewEditForm from '../user-new-edit-form';
 import ProfileNewEditForm from '../profile-new-edit-form';
 
 // ----------------------------------------------------------------------
