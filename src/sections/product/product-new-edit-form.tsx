@@ -380,6 +380,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       is_party_sale: currentProduct?.is_party_sale || false,
       sell_from_supplier: currentProduct?.sell_from_supplier || false,
       is_taken_from_another_package: currentProduct?.is_taken_from_another_package || false,
+      is_taken_from_another_package_ean: currentProduct?.is_taken_from_another_package_ean || '',
       size_z_value: currentProduct?.size_z_value || 0,
       size_unit: currentProduct?.size_unit || '',
       weight: currentProduct?.weight || 0,
@@ -1399,7 +1400,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   roundUp(
                     Number(getValues('quantity_per_unit')) *
                       (Number(e.target.value) +
-                        (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
+                        (Number(e.target.value) *
+                          Number(getValues('supplier')?.percentage_to_add)) /
                           100)
                   )
                 );
@@ -1408,7 +1410,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   roundUp(
                     Number(getValues('quantity_per_unit')) *
                       (Number(e.target.value) +
-                        (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
+                        (Number(e.target.value) *
+                          Number(getValues('supplier')?.percentage_to_add)) /
                           100) *
                       1.75
                   )
@@ -1418,7 +1421,8 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   (
                     (Number(getValues('quantity_per_unit') || 0) *
                       (Number(e.target.value) +
-                        (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
+                        (Number(e.target.value) *
+                          Number(getValues('supplier')?.percentage_to_add)) /
                           100)) /
                     Number(getValues('inhoud_number') || 1)
                   ).toFixed(4)
@@ -1709,16 +1713,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
             <RHFSwitch
-              name="is_taken_from_another_package"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_taken_from_another_package')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
               name="stock_check"
               labelPlacement="start"
               label={
@@ -1855,6 +1849,31 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               }
               format="dd/MM/yyyy"
               onChange={(newValue) => setValue('expiry_date', newValue)}
+            />
+          </Box>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFSwitch
+              name="is_taken_from_another_package"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_taken_from_another_package')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFTextField
+              sx={{ pointerEvents: getValues('is_taken_from_another_package') ? 'auto' : 'none' }}
+              name="is_taken_from_another_package_ean"
+              label={t('is_taken_from_another_package_ean')}
             />
           </Box>
         </Stack>

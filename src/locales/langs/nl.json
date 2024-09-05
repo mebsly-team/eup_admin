@@ -525,6 +525,7 @@
   "is_party_sale": "Is partijhandel",
   "sell_from_supplier": "Wordt verkocht via leverancier",
   "is_taken_from_another_package": "Wordt uit een andere verpakking gehaald",
+  "is_taken_from_another_package_ean": "Andere verpakking EAN",
   "whatsapp_only": "Alleen whatsappen",
   "email_only": "Alleen e-mail",
   "comm_channel_after_out_of_stock": "Contact na niet op voorraad",
