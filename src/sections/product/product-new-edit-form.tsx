@@ -1575,6 +1575,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               <MenuItem value="gram">{t('gram')}</MenuItem>
               <MenuItem value="cm">{t('cm')}</MenuItem>
               <MenuItem value="paar">{t('paar')}</MenuItem>
+              <MenuItem value="uur">{t('uur')}</MenuItem>
             </RHFSelect>
             <RHFTextField
               disabled
