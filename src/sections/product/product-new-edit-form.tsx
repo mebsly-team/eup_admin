@@ -325,9 +325,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       number_in_confirmation: currentProduct?.number_in_confirmation || 0, // Aantal in bevestiging
       number_in_werkbon: currentProduct?.number_in_werkbon || 0, //  Aantal in werkbon
       number_in_other: currentProduct?.number_in_other || 0, // Aantal in anders
-
-      order_unit_amount: currentProduct?.order_unit_amount || 0, // Bestellenheid
-      min_order_amount: currentProduct?.min_order_amount || 0, //  Minimum bestelaantal
+      order_unit_amount: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.order_unit_amount || 0) /
+              Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.min_stock_value || 0, // minimumvoorraad
+      min_order_amount: currentProduct?.is_variant
+        ? Math.floor(
+            Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
+          )
+        : currentProduct?.min_stock_value || 0, // minimumvoorraad
       min_stock_value: currentProduct?.is_variant
         ? Math.floor(
             Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
@@ -471,28 +479,25 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       const weight = convertWeightToKg(parseFloat(watch('weight') || 0), weightUnit);
 
       let calculatedVolume = 0;
-      let calculatedVolumeUnit = '';
       let isBriefBox = true;
 
+      // Calculate volume in cm³ first
       if (size_unit === 'mm') {
-        calculatedVolume = (sizeX * sizeY * sizeZ) / 1000000; // Conversion from mm^3 to cm^3
-        calculatedVolumeUnit = 'cm^3';
+        calculatedVolume = (sizeX * sizeY * sizeZ) / 1000; // mm³ to cm³
         isBriefBox =
           sizeX <= 264 &&
           sizeY <= 380 &&
           sizeZ <= 32 &&
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
       } else if (size_unit === 'cm') {
-        calculatedVolume = sizeX * sizeY * sizeZ;
-        calculatedVolumeUnit = 'cm^3';
+        calculatedVolume = sizeX * sizeY * sizeZ; // cm³
         isBriefBox =
           sizeX <= 26.4 &&
           sizeY <= 38 &&
           sizeZ <= 3.2 &&
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
       } else if (size_unit === 'm') {
-        calculatedVolume = sizeX * sizeY * sizeZ;
-        calculatedVolumeUnit = 'm^3';
+        calculatedVolume = sizeX * sizeY * sizeZ * 1e6; // m³ to cm³
         isBriefBox =
           sizeX <= 0.264 &&
           sizeY <= 0.38 &&
@@ -500,10 +505,13 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           (weightUnit === 'kg' ? weight <= 1 : weight <= 1000);
       }
 
+      // Convert volume to m³
+      const volumeInM3 = calculatedVolume / 1e6; // cm³ to m³
+
       if (!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit))
-        setValue('volume', roundUp(calculatedVolume)); // Setting the calculated volume in the form
+        setValue('volume', volumeInM3); // Setting the calculated volume in m³
       if (!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit))
-        setValue('volume_unit', calculatedVolumeUnit); // Setting the calculated volume unit
+        setValue('volume_unit', 'm³'); // Volume unit is always m³
       if (!['pallet_full', 'pallet_layer'].includes(currentProduct?.unit))
         setValue('is_brief_box', isBriefBox); // Setting is_brief_box based on size and weight
     };
