@@ -877,7 +877,11 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
               )}
             </RHFSelect>
 
-            <RHFSelect name="color" label={t('color')}>
+            <RHFSelect
+              name="color"
+              label={t('color')}
+              disabled={parentProduct?.id && !parentProduct?.color}
+            >
               <MenuItem value="red">{t('red')}</MenuItem>
               <MenuItem value="blue">{t('blue')}</MenuItem>
               <MenuItem value="green">{t('green')}</MenuItem>
