@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
-import { useMemo, useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import Box from '@mui/material/Box';
@@ -79,7 +79,7 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
       phone: currentSupplier?.phone || null,
       mobile_phone: currentSupplier?.mobile_phone || null,
       fax: currentSupplier?.fax || null,
-      // gender: currentSupplier?.gender || null,
+      gender: currentSupplier?.gender || null,
       supplier_address_line1: currentSupplier?.supplier_address_line1 || null,
       supplier_street_name: currentSupplier?.supplier_street_name || null,
       supplier_house_number: currentSupplier?.supplier_house_number || null,
@@ -219,6 +219,22 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               <RHFTextField name="name" label={t('business_name')} />
               <RHFTextField name="supplier_code" label={t('supplier_code')} />
               <RHFTextField name="owner_fullname" label={t('owner_fullname')} />
+              <RHFSelect
+                name="gender"
+                label={t('gender')}
+                onChange={(e) => {
+                  setValue('gender', e.target.value);
+                }}
+              >
+                <MenuItem value="">None</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                <MenuItem key="M" value="M">
+                  M
+                </MenuItem>
+                <MenuItem key="M" value="M">
+                  V
+                </MenuItem>
+              </RHFSelect>
               <DatePicker
                 label={t('owner_birthday')}
                 value={
@@ -250,9 +266,12 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               }}
             >
               <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
-              <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
-              <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
+              <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
+              <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
+              <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
               <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
+              <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
+              <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
               <RHFTextField
                 name="contact_person_department"
                 label={t('contact_person_department')}

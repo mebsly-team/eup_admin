@@ -68,46 +68,43 @@ export default function UserNewEditForm({ currentUser }: Props) {
     notes: Yup.string().nullable(),
     website: Yup.string().nullable().url(t('website_url_invalid')),
     is_active: Yup.boolean().required(),
-    business_name: isBusiness && Yup.string().required(t('business_name_required')),
-    contact_person_name: isBusiness && Yup.string().required(t('contact_person_name_required')),
-    contact_person_phone_number:
+    business_name: isBusiness && Yup.string().required(t('required')),
+    contact_person_name: isBusiness && Yup.string().required(t('required')),
+    contact_person_phone:
       isBusiness &&
       Yup.string()
-        .required(t('contact_person_phone_required'))
+        .required(t('required'))
         .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')),
     contact_person_email:
-      isBusiness &&
-      Yup.string()
-        .required(t('contact_person_email_required'))
-        .email(t('contact_person_email_invalid')),
-    department: isBusiness && Yup.string().required(t('department_required')),
-    classification: isBusiness && Yup.string().required(t('classification_required')),
-    branch: isBusiness && Yup.string().required(t('branch_required')),
-    iban: isBusiness && Yup.string().required(t('iban_required')),
-    bic: isBusiness && Yup.string().required(t('bic_required')),
-    account_holder_name: isBusiness && Yup.string().required(t('account_holder_name_required')),
-    account_holder_city: isBusiness && Yup.string().required(t('account_holder_city_required')),
-    vat: isBusiness && Yup.string().required(t('vat_required')),
-    kvk: isBusiness && Yup.string().required(t('kvk_required')),
-    payment_method: isBusiness && Yup.string().required(t('payment_method_required')),
-    customer_percentage: isBusiness && Yup.number().required(t('customer_percentage_required')),
-    invoice_discount: isBusiness && Yup.number().required(t('invoice_discount_required')),
-    payment_termin: isBusiness && Yup.string().required(t('payment_termin_required')),
-    credit_limit: isBusiness && Yup.number().required(t('credit_limit_required')),
-    invoice_address: isBusiness && Yup.string().required(t('invoice_address_required')),
-    invoice_language: isBusiness && Yup.string().required(t('invoice_language_required')),
-    discount_group: isBusiness && Yup.string().required(t('discount_group_required')),
-    inform_via: isBusiness && Yup.string().required(t('inform_via_required')),
-    customer_color: isBusiness && Yup.string().required(t('customer_color_required')),
-    relation_type: isBusiness && Yup.string().required(t('relation_type_required')),
-    relation_via: isBusiness && Yup.string().required(t('relation_via_required')),
-    days_closed: isBusiness && Yup.string().required(t('days_closed_required')),
-    days_no_delivery: isBusiness && Yup.string().required(t('days_no_delivery_required')),
-    incasseren: isBusiness && Yup.boolean().required(),
-    is_payment_termin_active: isBusiness && Yup.boolean().required(),
-    is_eligible_to_work_with: isBusiness && Yup.boolean().required(),
-    inform_when_new_products: isBusiness && Yup.boolean().required(),
-    notify: isBusiness && Yup.boolean().required(),
+      isBusiness && Yup.string().required(t('required')).email(t('contact_person_email_invalid')),
+    // department: isBusiness && Yup.string().required(t('required')),
+    classification: isBusiness && Yup.string().required(t('required')),
+    branch: isBusiness && Yup.string().required(t('required')),
+    iban: isBusiness && Yup.string().required(t('required')),
+    bic: isBusiness && Yup.string().required(t('required')),
+    account_holder_name: isBusiness && Yup.string().required(t('required')),
+    account_holder_city: isBusiness && Yup.string().required(t('required')),
+    vat: isBusiness && Yup.string().required(t('required')),
+    kvk: isBusiness && Yup.string().required(t('required')),
+    payment_method: isBusiness && Yup.string().required(t('required')),
+    customer_percentage: isBusiness && Yup.number().required(t('required')),
+    invoice_discount: isBusiness && Yup.number().required(t('required')),
+    payment_termin: isBusiness && Yup.string().required(t('required')),
+    credit_limit: isBusiness && Yup.number().required(t('required')),
+    invoice_address: isBusiness && Yup.string().required(t('required')),
+    invoice_language: isBusiness && Yup.string().required(t('required')),
+    discount_group: isBusiness && Yup.string().required(t('required')),
+    inform_via: isBusiness && Yup.string().required(t('required')),
+    customer_color: isBusiness && Yup.string().required(t('required')),
+    relation_type: isBusiness && Yup.string().required(t('required')),
+    relation_via: isBusiness && Yup.string().required(t('required')),
+    days_closed: isBusiness && Yup.string().required(t('required')),
+    days_no_delivery: isBusiness && Yup.string().required(t('required')),
+    // incasseren: isBusiness && Yup.boolean().required(),
+    // is_payment_termin_active: isBusiness && Yup.boolean().required(),
+    // is_eligible_to_work_with: isBusiness && Yup.boolean().required(),
+    // inform_when_new_products: isBusiness && Yup.boolean().required(),
+    // notify: isBusiness && Yup.boolean().required(),
   });
 
   const USER_TYPES = [
@@ -136,9 +133,19 @@ export default function UserNewEditForm({ currentUser }: Props) {
       first_name: currentUser?.first_name || '',
       last_name: currentUser?.last_name || '',
       email: currentUser?.email || '',
+      gender: currentUser?.gender || '',
       phone_number: currentUser?.phone_number || '',
       mobile_number: currentUser?.mobile_number || '',
-      // gender: currentUser?.gender || '',
+      contact_person_name: currentUser?.contact_person_name || '',
+      contact_person_address: currentUser?.contact_person_address || '',
+      contact_person_postcode: currentUser?.contact_person_postcode || '',
+      contact_person_city: currentUser?.contact_person_city || '',
+      contact_person_country: currentUser?.contact_person_country || '',
+      contact_person_phone: currentUser?.contact_person_phone || '',
+      contact_person_email: currentUser?.contact_person_email || '',
+      contact_person_department: currentUser?.contact_person_department || '',
+      contact_person_branch: currentUser?.contact_person_branch || '',
+      contact_person_nationality: currentUser?.contact_person_nationality || '',
       type: currentUser?.type || '',
       birthdate: currentUser?.birthdate || null,
       fax: currentUser?.fax || null,
@@ -153,6 +160,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       is_active: currentUser?.is_active || true,
       is_staff: currentUser?.is_staff || false,
       is_no_payment: currentUser?.is_no_payment || false,
+      inform_when_new_products: currentUser?.inform_when_new_products || false,
     }),
     [currentUser]
   );
@@ -266,6 +274,22 @@ export default function UserNewEditForm({ currentUser }: Props) {
               {currentUser ? null : (
                 <RHFTextField name="password" label={t('password')} type="password" />
               )}
+              <RHFSelect
+                name="gender"
+                label={t('gender')}
+                onChange={(e) => {
+                  setValue('gender', e.target.value);
+                }}
+              >
+                <MenuItem value="">None</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                <MenuItem key="M" value="M">
+                  M
+                </MenuItem>
+                <MenuItem key="M" value="M">
+                  V
+                </MenuItem>
+              </RHFSelect>
               <RHFTextField name="phone_number" label={t('phone')} />
               <RHFTextField name="mobile_number" label={t('mobile')} />
               <Controller
@@ -288,6 +312,16 @@ export default function UserNewEditForm({ currentUser }: Props) {
                     }}
                   />
                 )}
+              />
+              <RHFSwitch
+                name="inform_when_new_products"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('inform_when_new_products')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
               />
               <RHFSwitch
                 name="is_subscribed_newsletters"
@@ -325,13 +359,22 @@ export default function UserNewEditForm({ currentUser }: Props) {
               >
                 <RHFTextField name="business_name" label={t('business_name')} />
                 <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
-                <RHFTextField
-                  name="contact_person_phone_number"
-                  label={t('contact_person_phone_number')}
-                />
+                <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
+                <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
+                <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
+                <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
+                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
                 <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
-                <RHFTextField name="department" label={t('department')} />
+                <RHFTextField
+                  name="contact_person_department"
+                  label={t('contact_person_department')}
+                />
+                <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
                 <RHFTextField name="classification" label={t('classification')} />
+                <RHFTextField
+                  name="contact_person_nationality"
+                  label={t('contact_person_nationality')}
+                />
                 <RHFTextField name="branch" label={t('branch')} />
                 <RHFTextField name="iban" label={t('iban')} />
                 <RHFTextField name="bic" label={t('bic')} />
