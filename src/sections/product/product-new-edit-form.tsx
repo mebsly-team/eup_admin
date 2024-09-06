@@ -304,6 +304,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       price_cost: currentProduct?.price_cost || 0,
       vat: Number(currentProduct?.vat || 0),
       expiry_date: currentProduct?.expiry_date || null,
+      unit_in_pallet: currentProduct?.unit_in_pallet || '',
       has_no_expiry_date: !currentProduct?.expiry_date,
       comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || 'all',
 
