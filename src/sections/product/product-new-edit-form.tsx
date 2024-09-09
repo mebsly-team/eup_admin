@@ -196,27 +196,27 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       ),
     vat: Yup.number().required(t('required')),
 
-    overall_stock: Yup.number().required(t('required')),
-    free_stock: Yup.number().required(t('required')),
-    ordered_in_progress_stock: Yup.number().required(t('required')),
+    // overall_stock: Yup.number().required(t('required')),
+    // free_stock: Yup.number().required(t('required')),
+    // ordered_in_progress_stock: Yup.number().required(t('required')),
 
-    number_in_order: Yup.number().required(t('required')),
-    number_in_offer: Yup.number().required(t('required')),
-    number_in_pakbon: Yup.number().required(t('required')),
-    number_in_confirmation: Yup.number().required(t('required')),
-    number_in_werkbon: Yup.number().required(t('required')),
-    number_in_other: Yup.number().required(t('required')),
+    // number_in_order: Yup.number().required(t('required')),
+    // number_in_offer: Yup.number().required(t('required')),
+    // number_in_pakbon: Yup.number().required(t('required')),
+    // number_in_confirmation: Yup.number().required(t('required')),
+    // number_in_werkbon: Yup.number().required(t('required')),
+    // number_in_other: Yup.number().required(t('required')),
 
     // order_unit_amount: Yup.number().required(t('required')),
     // min_order_amount: Yup.number().required(t('required')),
     // min_stock_value: Yup.number().required(t('required')),
     // max_stock_at_rack: Yup.number().required(t('required')),
 
-    stock_at_supplier: Yup.number().required(t('required')),
+    // stock_at_supplier: Yup.number().required(t('required')),
 
-    max_order_allowed_per_unit: Yup.number().required(t('required')),
+    // max_order_allowed_per_unit: Yup.number().required(t('required')),
 
-    sell_count: Yup.number().required(t('required')),
+    // sell_count: Yup.number().required(t('required')),
 
     size_x_value: Yup.string()
       .nullable()
