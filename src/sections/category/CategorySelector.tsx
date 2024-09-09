@@ -60,7 +60,7 @@ export const CategorySelector = ({
   );
 
   const handleSave = () => {
-    const sc = flattenCategories(categories).filter((category) =>
+    const sc = flattenCategories(categories)?.filter((category) =>
       selectedCategories.includes(category.id)
     );
     onSave(single ? sc[0] : sc);
@@ -83,7 +83,7 @@ export const CategorySelector = ({
       <DialogTitle>{t('select_category')}</DialogTitle>
       <DialogContent>
         <TreeView selected={selectedCategories.map((id) => id.toString())}>
-          {categories.map((category) => renderTree(category))}
+          {categories?.map((category) => renderTree(category))}
         </TreeView>
       </DialogContent>
       <DialogActions>
@@ -98,10 +98,10 @@ export const CategorySelector = ({
   );
 };
 
-function flattenCategories(categories) {
+function flattenCategories(categories = []) {
   let flattenedCategories = [];
 
-  categories.forEach((category) => {
+  categories?.forEach((category) => {
     flattenedCategories.push(category);
     if (category.sub_categories && category.sub_categories.length > 0) {
       flattenedCategories = flattenedCategories.concat(flattenCategories(category.sub_categories));
