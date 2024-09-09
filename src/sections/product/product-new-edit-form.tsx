@@ -207,10 +207,10 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     number_in_werkbon: Yup.number().required(t('required')),
     number_in_other: Yup.number().required(t('required')),
 
-    order_unit_amount: Yup.number().required(t('required')),
-    min_order_amount: Yup.number().required(t('required')),
-    min_stock_value: Yup.number().required(t('required')),
-    max_stock_at_rack: Yup.number().required(t('required')),
+    // order_unit_amount: Yup.number().required(t('required')),
+    // min_order_amount: Yup.number().required(t('required')),
+    // min_stock_value: Yup.number().required(t('required')),
+    // max_stock_at_rack: Yup.number().required(t('required')),
 
     stock_at_supplier: Yup.number().required(t('required')),
 
