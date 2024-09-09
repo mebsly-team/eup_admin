@@ -637,6 +637,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       setValue('weight_unit', 'kg');
       setValue('pallet_full_total_number', tmpResult.totalItemNumber);
       setValue('pallet_layer_total_number', tmpResult.totalItemNumber);
+      setValue('quantity_per_unit', productInPallet?.quantity_per_unit * tmpResult.totalItemNumber);
 
       setResults(tmpResult);
     };
@@ -654,6 +655,50 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     setValue('meta_title', `${watch('title')} EAN:${watch('ean')}`);
     setValue('meta_description', `${watch('title_long')} EAN:${watch('ean')}`);
   }, [watch('title'), watch('title_long'), watch('ean')]);
+
+  useEffect(() => {
+    setValue(
+      'price_per_unit',
+      roundUp(Number(watch('quantity_per_unit')) * Number(getValues('price_per_piece')))
+    );
+    setValue(
+      'inhoud_price',
+      (
+        (Number(watch('quantity_per_unit') || 1) * Number(getValues('price_per_piece') || 0)) /
+        Number(getValues('inhoud_number') || 1)
+      ).toFixed(4)
+    );
+    setValue(
+      'price_consumers',
+      roundUp(Number(watch('quantity_per_unit')) * Number(getValues('price_per_piece')) * 1.75)
+    );
+    setValue(
+      'max_order_allowed_per_unit',
+      Math.round(Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(watch('quantity_per_unit')))
+    );
+    if (currentProduct?.is_variant) {
+      setValue(
+        'min_stock_value',
+        Math.floor(Number(parentProduct?.min_stock_value || 0) / Number(watch('quantity_per_unit')))
+      );
+      setValue(
+        'max_stock_at_rack',
+        Math.floor(Number(parentProduct?.max_stock_at_rack || 0) / Number(watch('quantity_per_unit')))
+      );
+      setValue(
+        'free_stock',
+        Math.floor(Number(parentProduct?.free_stock || 0) / Number(watch('quantity_per_unit')))
+      );
+      setValue(
+        'overall_stock',
+        Math.floor(Number(parentProduct?.overall_stock || 0) / Number(watch('quantity_per_unit')))
+      );
+      setValue(
+        'sell_count',
+        Math.floor(Number(parentProduct?.sell_count || 0) / Number(watch('quantity_per_unit')))
+      );
+    }
+  }, [watch('quantity_per_unit')]);
 
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
@@ -1326,51 +1371,6 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   'quantity_per_unit',
                   e.target.value !== '' ? Number(e.target.value) : e.target.value
                 );
-                setValue(
-                  'price_per_unit',
-                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')))
-                );
-                setValue(
-                  'inhoud_price',
-                  (
-                    (Number(e.target.value || 1) * Number(getValues('price_per_piece') || 0)) /
-                    Number(getValues('inhoud_number') || 1)
-                  ).toFixed(4)
-                );
-                setValue(
-                  'price_consumers',
-                  roundUp(Number(e.target.value) * Number(getValues('price_per_piece')) * 1.75)
-                );
-                setValue(
-                  'max_order_allowed_per_unit',
-                  Math.round(
-                    Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(e.target.value)
-                  )
-                );
-                if (currentProduct?.is_variant) {
-                  setValue(
-                    'min_stock_value',
-                    Math.floor(Number(parentProduct?.min_stock_value || 0) / Number(e.target.value))
-                  );
-                  setValue(
-                    'max_stock_at_rack',
-                    Math.floor(
-                      Number(parentProduct?.max_stock_at_rack || 0) / Number(e.target.value)
-                    )
-                  );
-                  setValue(
-                    'free_stock',
-                    Math.floor(Number(parentProduct?.free_stock || 0) / Number(e.target.value))
-                  );
-                  setValue(
-                    'overall_stock',
-                    Math.floor(Number(parentProduct?.overall_stock || 0) / Number(e.target.value))
-                  );
-                  setValue(
-                    'sell_count',
-                    Math.floor(Number(parentProduct?.sell_count || 0) / Number(e.target.value))
-                  );
-                }
               }}
               InputLabelProps={{ shrink: true, sx: { color: 'violet!important' } }}
             />
@@ -2425,9 +2425,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
           <Grid container md={9} spacing={1}>
             {renderDetails}
             {renderMeta}
-            {renderPricing}
             {renderDetails2}
             {renderMetrics}
+            {renderPricing}
             {renderProperties}
             {renderExtra}
             {renderCategories}
