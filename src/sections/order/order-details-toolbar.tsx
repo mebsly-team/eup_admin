@@ -60,6 +60,15 @@ export default function OrderDetailsToolbar({
               <Label variant="soft" color={is_paid ? 'success' : 'error'}>
                 {t(is_paid ? 'paid' : 'unpaid')}
               </Label>
+              <Button
+                color="inherit"
+                variant="outlined"
+                endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                onClick={popover.onOpen}
+                sx={{ textTransform: 'capitalize' }}
+              >
+                {t(status)}
+              </Button>
             </Stack>
 
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
@@ -75,16 +84,6 @@ export default function OrderDetailsToolbar({
           alignItems="center"
           justifyContent="flex-end"
         >
-          <Button
-            color="inherit"
-            variant="outlined"
-            endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-            onClick={popover.onOpen}
-            sx={{ textTransform: 'capitalize' }}
-          >
-            {t(status)}
-          </Button>
-
           <Button
             color="inherit"
             variant="outlined"
@@ -110,9 +109,9 @@ export default function OrderDetailsToolbar({
             {t('invoice')}
           </Button>
 
-          <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
+          {/* <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
             {t('edit')}
-          </Button>
+          </Button> */}
         </Stack>
       </Stack>
 

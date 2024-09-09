@@ -5,7 +5,6 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 
@@ -25,18 +24,25 @@ type Props = {
   delivery: IOrderDelivery;
   payment: IOrderPayment;
   shippingAddress: IOrderShippingAddress;
+  updateOrder: any;
 };
 
-export default function OrderDetailsInfo({ customer, delivery, payment, shippingAddress }: Props) {
+export default function OrderDetailsInfo({
+  customer,
+  delivery,
+  payment,
+  shippingAddress,
+  updateOrder,
+}: Props) {
   const renderCustomer = (
     <>
       <CardHeader
         title="Klanten info"
-        action={
-          <IconButton>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-        }
+        // action={
+        //   <IconButton>
+        //     <Iconify icon="solar:pen-bold" />
+        //   </IconButton>
+        // }
       />
       <Stack direction="row" sx={{ p: 3 }}>
         <Avatar
@@ -74,11 +80,11 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
     <>
       <CardHeader
         title="Levering"
-        action={
-          <IconButton>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-        }
+        // action={
+        //   <IconButton>
+        //     <Iconify icon="solar:pen-bold" />
+        //   </IconButton>
+        // }
       />
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row" alignItems="center">
@@ -104,11 +110,11 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
     <>
       <CardHeader
         title="Verzending"
-        action={
-          <IconButton>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-        }
+        // action={
+        //   <IconButton>
+        //     <Iconify icon="solar:pen-bold" />
+        //   </IconButton>
+        // }
       />
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row">
@@ -136,11 +142,11 @@ export default function OrderDetailsInfo({ customer, delivery, payment, shipping
     <>
       <CardHeader
         title="Betaling"
-        action={
-          <IconButton>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-        }
+        // action={
+        //   <IconButton>
+        //     <Iconify icon="solar:pen-bold" />
+        //   </IconButton>
+        // }
       />
       <Stack direction="row" alignItems="center" sx={{ p: 3, typography: 'body2' }}>
         <Box component="span" sx={{ color: 'text.secondary', flexGrow: 1 }}>

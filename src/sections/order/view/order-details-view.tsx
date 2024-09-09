@@ -123,7 +123,7 @@ export default function OrderDetailsView({ id }: Props) {
     },
     [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
   );
-
+  if (!currentOrder) return <></>;
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <OrderDetailsToolbar
@@ -136,8 +136,8 @@ export default function OrderDetailsView({ id }: Props) {
 
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
-          <Stack spacing={3} direction={{ xs: 'column-reverse', md: 'column' }}>
-            <OrderDetailsItems currentOrder={currentOrder} />
+          <Stack spacing={3} direction={{ xs: 'column', md: 'column' }}>
+            <OrderDetailsItems currentOrder={currentOrder} updateOrder={updateOrder} />
 
             <OrderDetailsHistory currentOrder={currentOrder} />
           </Stack>
@@ -149,6 +149,7 @@ export default function OrderDetailsView({ id }: Props) {
             delivery={currentOrder.delivered_date || {}}
             payment={currentOrder.payment_reference}
             shippingAddress={currentOrder.shipping_address || {}}
+            updateOrder={updateOrder}
           />
         </Grid>
       </Grid>
