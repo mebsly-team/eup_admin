@@ -117,12 +117,32 @@ export default function ProfileEditForm({ currentUser }: Props) {
       };
 
       await axiosInstance.put(`/profile/`, formattedData);
-      enqueueSnackbar(t('update_success'), { variant: 'success' });
 
-      reset();
+      const response = await axiosInstance.get(`/profile/`);
+      const newData = response.data;
+
+      reset({
+        first_name: newData.first_name || '',
+        last_name: newData.last_name || '',
+        phone_number: newData.phone_number || '',
+        email: newData.email || null,
+        mobile_number: newData.mobile_number || '',
+        gender: newData.gender || '',
+        birthdate: newData.birthdate ? moment(newData.birthdate).toDate() : null,
+        facebook: newData.facebook || '',
+        linkedin: newData.linkedin || '',
+        twitter: newData.twitter || '',
+        instagram: newData.instagram || '',
+        pinterest: newData.pinterest || '',
+        tiktok: newData.tiktok || '',
+      });
+
+      enqueueSnackbar(t('update_success'), { variant: 'success' });
     } catch (error) {
-      console.error(error);
-      enqueueSnackbar(t('error_occurred'), { variant: 'error' });
+      const errorMessage = error.response?.data?.message || t('error_occurred');
+
+      console.error(errorMessage);
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     }
   };
 
