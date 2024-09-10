@@ -11,7 +11,7 @@ import { useTranslate } from 'src/locales';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
-import { IUserItem } from 'src/types/user';
+import { IProfileItem } from 'src/types/user';
 
 import UserNewEditForm from '../user-new-edit-form';
 // ----------------------------------------------------------------------
@@ -22,7 +22,7 @@ type Props = {
 
 export default function UserEditView({ id }: Props) {
   const settings = useSettingsContext();
-  const [currentUser, setCurrentUser] = useState<IUserItem>();
+  const [currentUser, setCurrentUser] = useState<IProfileItem>();
   const getUserInfo = async (userId) => {
     const { data } = await axiosInstance.get(`/users/${userId}/`);
     setCurrentUser(data);

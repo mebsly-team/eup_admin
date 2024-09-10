@@ -596,5 +596,6 @@
   "pending": "In afwachting van",
   "failed": "Mislukt",
   "canceled": "Geannuleerd",
-  "expired": "Verlopen"
+  "expired": "Verlopen",
+  "update_profile": "Profiel bijwerken"
 }
