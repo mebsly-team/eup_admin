@@ -157,6 +157,24 @@ export type IUserItem = {
   user_permissions: any[]
 };
 
+export type IProfileItem = {
+  id: number
+  last_login: any
+  is_superuser: boolean
+  first_name: string
+  last_name: string
+  gender: any
+  birthdate: any
+  phone_number: string
+  mobile_number: any
+  facebook: any
+  linkedin: any
+  twitter: any
+  instagram: any
+  pinterest: any
+  tiktok: any
+};
+
 export type IUserAccount = {
   email: string;
   isPublic: boolean;
