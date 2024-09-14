@@ -35,6 +35,7 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { countries } from 'src/assets/data';
+import { useGetProduct } from 'src/api/product';
 import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
@@ -52,15 +53,13 @@ import FormProvider, {
 
 import { CategorySelector } from 'src/sections/category/CategorySelector';
 
-import { IProductItem } from 'src/types/product';
-
 import Rating from './Rating';
 import ProductVariantForm from './product-variant-form';
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  currentProduct?: IProductItem;
+  id: string;
 };
 
 function updateQueryParams(key, value) {
@@ -68,7 +67,9 @@ function updateQueryParams(key, value) {
   url.searchParams.set(key, value);
   window.history.replaceState({}, '', url);
 }
-export default function ProductNewEditForm({ currentProduct }: Props) {
+export default function ProductNewEditForm({ id }: Props) {
+  const { product: currentProduct } = useGetProduct(id);
+
   console.log('currentProduct', currentProduct);
   const router = useRouter();
   const location = useLocation();
@@ -120,6 +121,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   }, [tab]);
 
   const getParentProduct = async () => {
+    try {
+      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
+      setParentProduct(response?.data);
+    } catch (error) {
+      setParentProduct({});
+    }
+  };
+  const getCurrentProductUpdated = async () => {
     try {
       const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
       setParentProduct(response?.data);
@@ -737,10 +746,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
       if (activeAction === 'save_stay') {
         // Do nothing, stay on the same page
+        window.location.reload();
       } else if (activeAction === 'save_back') {
-        if (currentProduct?.is_variant)
+        if (currentProduct?.is_variant) {
           router.push(`/dashboard/product/${currentProduct?.parent_product}/edit?tab=1`);
-        else router.back();
+          window.location.reload();
+        } else router.back();
       }
     } catch (error) {
       console.log('error', error);

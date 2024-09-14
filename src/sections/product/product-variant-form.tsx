@@ -66,7 +66,6 @@ const styles = {
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
 export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
-  console.log('currentProduct', currentProduct);
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -502,7 +501,16 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
-  const sortedRows = [...currentProductVariantRows];
+  const mainProduct = currentProductVariantRows.find((item) => !item.is_variant);
+  const updatedVariants = currentProductVariantRows.map((item) =>
+    item.is_variant
+      ? {
+          ...item,
+          free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
+        }
+      : item
+  );
+  const sortedRows = [...updatedVariants];
   sortedRows?.sort((a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit));
   return (
     <>

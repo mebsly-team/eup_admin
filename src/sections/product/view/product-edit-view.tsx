@@ -2,13 +2,13 @@ import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
 
+import { useTranslate } from 'src/locales';
 import { useGetProduct } from 'src/api/product';
 
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
 import ProductNewEditForm from '../product-new-edit-form';
-import { useLocales, useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ export default function ProductEditView({ id }: Props) {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading={t("edit")}
+        heading={t('edit')}
         links={[
           { name: t('dashboard'), href: paths.dashboard.root },
           {
@@ -38,7 +38,7 @@ export default function ProductEditView({ id }: Props) {
           mb: { xs: 3, md: 5 },
         }}
       />
-      {currentProduct && <ProductNewEditForm currentProduct={currentProduct} />}
+      <ProductNewEditForm id={id} />
     </Container>
   );
 }
