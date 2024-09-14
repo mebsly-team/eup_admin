@@ -674,7 +674,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     );
     setValue(
       'max_order_allowed_per_unit',
-      Math.round(Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(watch('quantity_per_unit')))
+      Math.round(
+        Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(watch('quantity_per_unit'))
+      )
     );
     if (currentProduct?.is_variant) {
       setValue(
@@ -683,7 +685,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       );
       setValue(
         'max_stock_at_rack',
-        Math.floor(Number(parentProduct?.max_stock_at_rack || 0) / Number(watch('quantity_per_unit')))
+        Math.floor(
+          Number(parentProduct?.max_stock_at_rack || 0) / Number(watch('quantity_per_unit'))
+        )
       );
       setValue(
         'free_stock',
@@ -1040,7 +1044,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   </li>
                 )}
               />
-            ) : (
+            ) : currentProduct?.brand?.id ? (
               <Box>
                 <Link
                   href={paths.dashboard.brand.edit(currentProduct?.brand?.id)}
@@ -1059,9 +1063,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
                 <Typography
                   typography="caption"
-                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
                   onClick={handleBrandEditClick}
                 >{`${t('edit')}`}</Typography>
+              </Box>
+            ) : (
+              <Box>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
+                  onClick={handleBrandEditClick}
+                >{`${t('brand')} ${t('edit')}:`}</Typography>
               </Box>
             )}
 
@@ -1079,7 +1091,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   </li>
                 )}
               />
-            ) : (
+            ) : currentProduct?.supplier?.id ? (
               <Box>
                 <Link
                   href={paths.dashboard.supplier.edit(currentProduct?.supplier?.id)}
@@ -1100,9 +1112,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
                 <Typography
                   typography="caption"
-                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
                   onClick={handleSupplierEditClick}
                 >{`${t('edit')}`}</Typography>
+              </Box>
+            ) : (
+              <Box>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
+                  onClick={handleSupplierEditClick}
+                >{`${t('supplier')} ${t('edit')}:`}</Typography>{' '}
               </Box>
             )}
           </Box>
