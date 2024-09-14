@@ -243,6 +243,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const handleEditClick = (id: GridRowId) => () => {
     router.push(`${paths.dashboard.product.edit(id)}?tab=0`);
+    window.location.reload();
   };
 
   const handleActiveSwitchChange = (row) => async (e) => {
