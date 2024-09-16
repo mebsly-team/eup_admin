@@ -1,4 +1,7 @@
 import { useState, useCallback } from 'react';
+import { useAuthContext } from '../../auth/hooks/use-auth-context';
+
+// ...
 
 import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
@@ -24,10 +27,12 @@ import KanbanDetailsPriority from './kanban-details-priority';
 import KanbanDetailsAttachments from './kanban-details-attachments';
 import KanbanDetailsCommentList from './kanban-details-comment-list';
 import KanbanDetailsCommentInput from './kanban-details-comment-input';
+import TaskAssignee from './kanban-details-assignee-modal';
+
 
 // ----------------------------------------------------------------------
 
-const StyledLabel = styled('span')(({ theme }) => ({
+export const StyledLabel = styled('span')(({ theme }) => ({
   ...theme.typography.caption,
   width: 100,
   flexShrink: 0,
@@ -110,43 +115,39 @@ export default function KanbanDetails({
       onKeyUp={handleUpdateTask}
     />
   );
+  const { user } = useAuthContext();
 
+  
   const renderReporter = (
     <Stack direction="row" alignItems="center">
       <StyledLabel>Reporter</StyledLabel>
-      <Avatar alt={task.reporter.name} src={task.reporter.avatarUrl} />
+      <Avatar alt={user?.displayName} src={user?.photoURL} />
     </Stack>
   );
 
-  const renderAssignee = (
-    <Stack direction="row">
-      <StyledLabel sx={{ height: 40, lineHeight: '40px' }}>Assignee</StyledLabel>
+  // const renderAssignee = (
+  //   <Stack direction="row">
+  //     <StyledLabel sx={{ height: 40, lineHeight: '40px' }}>Assignee</StyledLabel>
 
-      <Stack direction="row" flexWrap="wrap" alignItems="center" spacing={1}>
-        {/* {task.assignee.map((user) => (
-          <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
-        ))} */}
+  //     <Stack direction="row" flexWrap="wrap" alignItems="center" spacing={1}>
+  //       {/* {task.assignee.map((user) => (
+  //         <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
+  //       ))} */}
 
-        <Tooltip title="Add assignee">
-          <IconButton
-            onClick={contacts.onTrue}
-            sx={{
-              bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
-              border: (theme) => `dashed 1px ${theme.palette.divider}`,
-            }}
-          >
-            <Iconify icon="mingcute:add-line" />
-          </IconButton>
-        </Tooltip>
-
-        {/* <KanbanContactsDialog
-          assignee={task.assignee}
-          open={contacts.value}
-          onClose={contacts.onFalse}
-        /> */}
-      </Stack>
-    </Stack>
-  );
+  //       <Tooltip title="Add assignee">
+  //         <IconButton
+  //           onClick={contacts.onTrue}
+  //           sx={{
+  //             bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
+  //             border: (theme) => `dashed 1px ${theme.palette.divider}`,
+  //           }}
+  //         >
+  //           <Iconify icon="mingcute:add-line" />
+  //         </IconButton>
+  //       </Tooltip>
+  //     </Stack>
+  //   </Stack>
+  // );
 
   const renderDueDate = (
     <Stack direction="row" alignItems="center">
@@ -234,8 +235,9 @@ export default function KanbanDetails({
 
           {renderReporter}
 
-          {renderAssignee}
+          {/* {renderAssignee} */}
 
+          <TaskAssignee />
           {renderDueDate}
 
           {renderPriority}

@@ -38,7 +38,7 @@ export default function UserCreateView({ id }: Props) {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading={t('Update User Profile')}
+        heading={t('update_user_profile')}
         links={[
           {
             name: t('dashboard'),
