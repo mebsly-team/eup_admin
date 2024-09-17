@@ -340,12 +340,12 @@ export default function ProductNewEditForm({ id }: Props) {
             Number(parentProduct?.order_unit_amount || 0) /
               Number(currentProduct?.quantity_per_unit)
           )
-        : currentProduct?.min_stock_value || 0, // minimumvoorraad
+        : currentProduct?.order_unit_amount || 0, // minimumvoorraad
       min_order_amount: currentProduct?.is_variant
         ? Math.floor(
             Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
           )
-        : currentProduct?.min_stock_value || 0, // minimumvoorraad
+        : currentProduct?.min_order_amount || 0, // minimumvoorraad
       min_stock_value: currentProduct?.is_variant
         ? Math.floor(
             Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
@@ -369,8 +369,12 @@ export default function ProductNewEditForm({ id }: Props) {
       max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
       delivery_time: currentProduct?.delivery_time || '',
       important_information: currentProduct?.important_information || '',
-      extra_etiket_nl: currentProduct?.extra_etiket_nl || '',
-      extra_etiket_fr: currentProduct?.extra_etiket_fr || '',
+      extra_etiket_nl: currentProduct?.is_variant
+        ? parentProduct?.extra_etiket_nl
+        : currentProduct?.extra_etiket_nl | '',
+      extra_etiket_fr: currentProduct?.is_variant
+        ? parentProduct?.extra_etiket_fr
+        : currentProduct?.extra_etiket_fr | '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
       sell_count: currentProduct?.is_variant
         ? Math.floor(
@@ -1066,7 +1070,7 @@ export default function ProductNewEditForm({ id }: Props) {
                     fontWeight: 'normal',
                     textDecoration: 'underline',
                     cursor: 'pointer',
-                    color: 'inherit',
+                    color: 'violet',
                   }}
                 >
                   {`${t('brand')}: ${getValues('brand') ? getValues('brand')?.name : '-'}`}
@@ -1113,7 +1117,7 @@ export default function ProductNewEditForm({ id }: Props) {
                     fontWeight: 'normal',
                     textDecoration: 'underline',
                     cursor: 'pointer',
-                    color: 'inherit',
+                    color: 'violet',
                   }}
                 >
                   {`${t('supplier')}: ${
