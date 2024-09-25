@@ -128,14 +128,6 @@ export default function ProductNewEditForm({ id }: Props) {
       setParentProduct({});
     }
   };
-  const getCurrentProductUpdated = async () => {
-    try {
-      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
-      setParentProduct(response?.data);
-    } catch (error) {
-      setParentProduct({});
-    }
-  };
 
   useEffect(() => {
     if (currentProduct?.parent_product) {
@@ -721,7 +713,7 @@ export default function ProductNewEditForm({ id }: Props) {
   console.log('getValues', getValues());
 
   useEffect(() => {
-    if (currentProduct) {
+    if (currentProduct?.id) {
       reset(defaultValues);
     }
   }, [currentProduct, defaultValues, reset]);
@@ -937,18 +929,20 @@ export default function ProductNewEditForm({ id }: Props) {
             <RHFTextField name="ean" label={t('ean')} labelColor="violet" />
             <RHFTextField name="sku" label={t('sku')} />
             <RHFTextField name="hs_code" label={t('hs_code')} />
-            <RHFSelect name="unit" label={t('unit')} labelColor="violet">
-              <MenuItem value="piece">{t('piece')}</MenuItem>
-              <MenuItem value="package">{t('package')}</MenuItem>
-              <MenuItem value="rol">{t('rol')}</MenuItem>
-              <MenuItem value="box">{t('box')}</MenuItem>
-              {currentProduct?.is_variant && (
-                <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-              )}
-              {currentProduct?.is_variant && (
-                <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
-              )}
-            </RHFSelect>
+            {getValues('unit') && (
+              <RHFSelect name="unit" label={t('unit')} labelColor="violet">
+                <MenuItem value="piece">{t('piece')}</MenuItem>
+                <MenuItem value="package">{t('package')}</MenuItem>
+                <MenuItem value="rol">{t('rol')}</MenuItem>
+                <MenuItem value="box">{t('box')}</MenuItem>
+                {currentProduct?.is_variant && (
+                  <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
+                )}
+                {currentProduct?.is_variant && (
+                  <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+                )}
+              </RHFSelect>
+            )}
 
             <RHFSelect
               name="color"

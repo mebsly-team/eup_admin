@@ -19,7 +19,7 @@ type RHFSelectProps = TextFieldProps & {
   maxHeight?: boolean | number;
   children: React.ReactNode;
   PaperPropsSx?: SxProps<Theme>;
-  labelColor?: any; // Add labelColor prop
+  labelColor?: any;
 };
 
 export function RHFSelect({
