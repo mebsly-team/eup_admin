@@ -1,37 +1,94 @@
-import React, { useState } from 'react';
-import { Stack, Avatar, IconButton, Tooltip, Modal, Box, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
+import { useEffect, useState } from 'react';
+import {
+  Stack,
+  Avatar,
+  IconButton,
+  Tooltip,
+  Modal,
+  Box,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import Iconify from 'src/components/iconify'; // Eğer iconlar için Iconify kullanıyorsanız
+import Iconify from 'src/components/iconify';
 import { StyledLabel } from '../../sections/kanban/kanban-details';
-
-
-
-
-const personnelList = [
-  { id: 1, name: 'John Doe', avatarUrl: 'https://randomuser.me/api/portraits/men/1.jpg' },
-  { id: 2, name: 'Jane Smith', avatarUrl: 'https://randomuser.me/api/portraits/women/2.jpg' },
-  // Diğer personeller...
-];
+import axiosInstance from 'src/utils/axios';
 
 export default function TaskAssignee() {
-  const [open, setOpen] = useState(false); // Modal'ı kontrol etmek için state
+  const [open, setOpen] = useState(false);
+  const [userList, setUserList] = useState([]);
+  const [assignedUsers, setAssignedUsers] = useState(() => {
+  
+    const savedAssignedUsers = localStorage.getItem('assignedUsers');
+    return savedAssignedUsers ? JSON.parse(savedAssignedUsers) : [];
+  });
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const getAll = async () => {
+    const typeFilter = `&type=admin`;
+    const { data } = await axiosInstance.get(`/users/?${typeFilter}`);
+    setUserList(data || []);
+  };
+  console.log(userList);
+  useEffect(() => {
+    getAll();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('assignedUsers', JSON.stringify(assignedUsers));
+  }, [assignedUsers]);
+
+  const handleRemoveUser = (userId) => {
+    setAssignedUsers((prevAssignedUsers) =>
+      prevAssignedUsers.filter((user) => user.id !== userId)
+    );
+  };
+
+  const handleAssignUser = (employee) => {
+    if (!assignedUsers.some((user) => user.id === employee.id)) {
+      setAssignedUsers((prevAssignedUsers) => [...prevAssignedUsers, employee]);
+    }
+    handleClose();
+  };
 
   const renderAssignee = (
     <Stack direction="row">
       <StyledLabel sx={{ height: 40, lineHeight: '40px' }}>Assignee</StyledLabel>
 
       <Stack direction="row" flexWrap="wrap" alignItems="center" spacing={1}>
-        {/* Assignee'leri burada gösterebilirsiniz */}
-        {/* {task.assignee.map((user) => (
-          <Avatar key={user.id} alt={user.name} src={user.name} />
-        ))} */}
-
+        {assignedUsers.map((user) => (
+          <Box key={user.id} sx={{ position: 'relative', display: 'inline-block' }}>
+            <Tooltip title={user.fullname}>
+              <Avatar alt={user.fullname} src={user.avatarUrl}  />
+            </Tooltip>
+            <IconButton
+              size="small"
+              onClick={() => handleRemoveUser(user.id)}
+              sx={{
+                position: 'absolute',
+                top: -4,
+                right: -4,
+                width: 20,
+                height: 20,
+                bgcolor: 'background.paper',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                '&:hover': {
+                  bgcolor: 'error.main',
+                  color: 'white',
+                },
+              }}
+            >
+              <Iconify icon="eva:close-outline" width={12} height={12} />
+            </IconButton>
+          </Box>
+        ))}
         <Tooltip title="Add assignee">
           <IconButton
-            onClick={handleOpen} // Personel listesini açar
+            onClick={handleOpen}
             sx={{
               bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
               border: (theme) => `dashed 1px ${theme.palette.divider}`,
@@ -42,7 +99,6 @@ export default function TaskAssignee() {
         </Tooltip>
       </Stack>
 
-      {/* Modal - Personel listesi */}
       <Modal open={open} onClose={handleClose}>
         <Box
           sx={{
@@ -60,12 +116,12 @@ export default function TaskAssignee() {
         >
           <h2>Assign a Person</h2>
           <List>
-            {personnelList.map((user) => (
-              <ListItem key={user.id} button onClick={() => console.log(`Assigned: ${user.name}`)}>
+            {userList.map((employee) => (
+              <ListItem key={employee.id} button onClick={() => handleAssignUser(employee)}>
                 <ListItemAvatar>
-                  <Avatar alt={user.name} src={user.avatarUrl} />
+                  <Avatar alt={employee.fullname} src={employee.avatarUrl} />
                 </ListItemAvatar>
-                <ListItemText primary={user.name} />
+                <ListItemText primary={employee.fullname} sx={{ display: 'inline-block', marginLeft: 1 }} />
               </ListItem>
             ))}
           </List>

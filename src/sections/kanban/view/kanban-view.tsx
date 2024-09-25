@@ -13,25 +13,29 @@ import EmptyContent from 'src/components/empty-content';
 import KanbanColumn from '../kanban-column';
 import KanbanColumnAdd from '../kanban-column-add';
 import { KanbanColumnSkeleton } from '../kanban-skeleton';
+import { useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
-const columns = [
-  {
-    id: 0,
-    name: 'DOEN',
-  },
-  {
-    id: 1,
-    name: 'ONDERHANDEN',
-  },
-  {
-    id: 2,
-    name: 'KLAAR',
-  },
-];
-export default function KanbanView() {
-  const { board, boardLoading, boardEmpty } = useGetBoard();
 
+
+export default function KanbanView() {
+  const { t } = useTranslate();
+  const columns = [
+    {
+      id: 0,
+      name: t('doing'),
+    },
+    {
+      id: 1,
+      name: t('review'),
+    },
+    {
+      id: 2,
+      name: t('done'),
+    },
+  ];
+  const { board, boardLoading, boardEmpty } = useGetBoard();
+  
   const onDragEnd = useCallback(
     async ({ destination, source, draggableId, type }: DropResult) => {
       try {

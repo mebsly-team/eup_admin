@@ -261,7 +261,7 @@ export async function createTask(columnId: string, taskData: IKanbanTask) {
 
       // current column
       const column = board.columns[columnId];
-
+  
       const columns = {
         ...board.columns,
         [columnId]: {
@@ -276,7 +276,7 @@ export async function createTask(columnId: string, taskData: IKanbanTask) {
         ...board.tasks,
         [taskData.id]: taskData,
       };
-
+      
       return {
         ...currentData,
         board: {
@@ -327,23 +327,18 @@ export async function updateTask(taskData: IKanbanTask) {
 
 // ----------------------------------------------------------------------
 
-export async function moveTask(updateColumns: Record<string, IKanbanColumn>) {
+export async function moveTask(updatedBoard: Record<string, IKanbanColumn>) {
   /**
    * Work in local
    */
-  mutate(
+  return mutate(
     URL,
     (currentData) => {
-      const board = currentData.board as IKanban;
-
-      // update board.columns
-      const columns = updateColumns;
-
       return {
         ...currentData,
         board: {
-          ...board,
-          columns,
+          ...currentData.board,
+          columns: updatedBoard,
         },
       };
     },

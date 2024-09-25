@@ -7,15 +7,14 @@ import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import { alpha, styled } from '@mui/material/styles';
+
+import { styled } from '@mui/material/styles';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import Editor from 'src/components/editor';
-import Iconify from 'src/components/iconify';
+
 import Scrollbar from 'src/components/scrollbar';
 import { useDateRangePicker } from 'src/components/custom-date-range-picker';
 

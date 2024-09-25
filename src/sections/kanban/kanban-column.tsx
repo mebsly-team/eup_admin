@@ -25,6 +25,7 @@ import { IKanbanTask, IKanbanColumn } from 'src/types/kanban';
 import KanbanTaskAdd from './kanban-task-add';
 import KanbanTaskItem from './kanban-task-item';
 import KanbanColumnToolBar from './kanban-column-tool-bar';
+import { useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -36,6 +37,7 @@ type Props = {
 
 export default function KanbanColumn({ column, tasks, index }: Props) {
   const { enqueueSnackbar } = useSnackbar();
+  const { t } = useTranslate();
 
   const openAddTask = useBoolean();
 
@@ -141,17 +143,17 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
         onClick={openAddTask.onToggle}
         sx={{ fontSize: 14 }}
       >
-        {openAddTask.value ? 'Close' : 'Taak toevoegen'}
+        {openAddTask.value ? t('dichtbij') : t('taak_toevoegen')}
       </Button>
     </Stack>
   );
 
   return (
-    <Droppable droppableId={column.id} type="TASK">
+    <Droppable droppableId={column.id.toString()} type="TASK">
    {(provided, snapshot) => (
     <Paper
       ref={provided.innerRef}
-      {...provided.draggableProps}
+      {...provided.droppableProps}
       sx={{
         px: 2,
         borderRadius: 2,
@@ -170,7 +172,7 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
             />
 
         {tasks.map((item, taskIndex) => (
-          <Draggable key={item.id} draggableId={item.id} index={taskIndex}>
+          <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={taskIndex}>
             {(provided, snapshot) => (
               <div
                 ref={provided.innerRef}
