@@ -5,7 +5,9 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton from '@mui/material/IconButton';
@@ -61,6 +63,29 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     }
   };
 
+  const handleVariantChange = async (item, variantId) => {
+    try {
+      const response = await axiosInstance.get(`/products/${variantId}/`);
+      if (response.status === 200) {
+        const product = response.data;
+        if (product) {
+          const newItem = {
+            id: product.id,
+            product,
+            quantity: 1,
+            completed: false,
+          };
+          const updatedItems = editedCart.items.filter((i) => item.id !== i.id);
+          console.log('updatedItems', updatedItems)
+          setEditedCart({ ...editedCart, items: [...updatedItems, newItem] });
+        }
+      } else {
+        console.error('Failed to fetch product, status code:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    }
+  };
   const handleItemChange = (id, key, value) => {
     const updatedItems = editedCart.items.map((item) =>
       item.id === id ? { ...item, [key]: value } : item
@@ -294,6 +319,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
 
               {isEditing ? (
                 <>
+                  <Select
+                    value={item.product.id}
+                    onChange={(e) => handleVariantChange(item, e.target.value)}
+                    label=""
+                  >
+                    <MenuItem value={item.product.id}>{item.product.unit}</MenuItem>
+                    {item?.product?.variants.map((v, i) => (
+                      <MenuItem key={i} value={v.id}>
+                        {v.unit}
+                      </MenuItem>
+                    ))}
+                  </Select>
                   <TextField
                     type="number"
                     value={item.quantity}
