@@ -929,17 +929,17 @@ export default function ProductNewEditForm({ id }: Props) {
             <RHFTextField name="ean" label={t('ean')} labelColor="violet" />
             <RHFTextField name="sku" label={t('sku')} />
             <RHFTextField name="hs_code" label={t('hs_code')} />
-            {getValues('unit') && (
+            {(!currentProduct?.id || (currentProduct?.id && getValues('unit'))) && (
               <RHFSelect name="unit" label={t('unit')} labelColor="violet">
                 <MenuItem value="piece">{t('piece')}</MenuItem>
                 <MenuItem value="package">{t('package')}</MenuItem>
                 <MenuItem value="rol">{t('rol')}</MenuItem>
                 <MenuItem value="box">{t('box')}</MenuItem>
                 {currentProduct?.is_variant && (
-                  <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-                )}
-                {currentProduct?.is_variant && (
-                  <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+                  <>
+                    <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
+                    <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+                  </>
                 )}
               </RHFSelect>
             )}
