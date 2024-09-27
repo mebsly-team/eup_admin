@@ -70,7 +70,6 @@ function updateQueryParams(key, value) {
 export default function ProductNewEditForm({ id }: Props) {
   const { product: currentProduct } = useGetProduct(id);
 
-  console.log('currentProduct', currentProduct);
   const router = useRouter();
   const location = useLocation();
   const isNewProduct = location?.pathname?.includes('/new');
@@ -1324,7 +1323,7 @@ export default function ProductNewEditForm({ id }: Props) {
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}
                 onSave={(ct) => {
-                  currentProduct.categories = ct;
+                  if (currentProduct?.id) currentProduct.categories = ct;
                   setValue('categories', ct);
                   setOpenDialogCategory(false); // Close the dialog after saving
                 }}
@@ -1335,11 +1334,17 @@ export default function ProductNewEditForm({ id }: Props) {
                 {t('selected_categories')}:
               </Typography>
               <ul>
-                {currentProduct?.categories?.map((category, index) => (
-                  <li key={index}>
-                    {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                  </li>
-                ))}
+                {currentProduct?.id
+                  ? currentProduct?.categories?.map((category, index) => (
+                      <li key={index}>
+                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                      </li>
+                    ))
+                  : getValues('categories')?.map((category, index) => (
+                      <li key={index}>
+                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                      </li>
+                    ))}
               </ul>
             </div>
             <Typography typography="caption" sx={{ color: 'error.main' }}>
