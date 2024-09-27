@@ -1028,6 +1028,14 @@ export default function ProductNewEditForm({ id }: Props) {
   const renderDetails2 = (
     <Grid xs={12}>
       <Card>
+        <IconButton
+          onClick={() => {
+            getAllSuppliers();
+            getAllBrands();
+          }}
+        >
+          <Iconify icon="eva:refresh-fill" />
+        </IconButton>
         <CardHeader title={t('basic_information2')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
@@ -1052,6 +1060,14 @@ export default function ProductNewEditForm({ id }: Props) {
                     {brandList.find((item) => item.id === option)?.name || ''}
                   </li>
                 )}
+                noOptionsText={
+                  <span>
+                    {t('geen_resultaten')}
+                    <a target="_blank" href="/dashboard/brand/new">
+                      {t('create_brand')}
+                    </a>
+                  </span>
+                }
               />
             ) : currentProduct?.brand?.id ? (
               <Box>
@@ -1099,6 +1115,14 @@ export default function ProductNewEditForm({ id }: Props) {
                     {supplierList.find((item) => item.id === option)?.name || ''}
                   </li>
                 )}
+                noOptionsText={
+                  <span>
+                    {t('geen_resultaten')}
+                    <a target="_blank" href="/dashboard/supplier/new">
+                      {t('create_supplier')}
+                    </a>
+                  </span>
+                }
               />
             ) : currentProduct?.supplier?.id ? (
               <Box>
