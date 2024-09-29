@@ -145,11 +145,13 @@ export default function OrderDetailsView({ id }: Props) {
 
         <Grid xs={12} md={4}>
           <OrderDetailsInfo
+            currentOrder={currentOrder}
             customer={currentOrder.user || {}}
             delivery={currentOrder.delivered_date || {}}
             payment={currentOrder.payment_reference}
             shippingAddress={currentOrder.shipping_address || {}}
             updateOrder={updateOrder}
+            orderId={id}
           />
         </Grid>
       </Grid>
