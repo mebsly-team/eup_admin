@@ -1940,7 +1940,7 @@ export default function ProductNewEditForm({ id }: Props) {
                   {t('is_taken_from_another_package')}
                 </Typography>
               }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between', color: 'violet' }}
             />
             <RHFTextField
               sx={{ pointerEvents: getValues('is_taken_from_another_package') ? 'auto' : 'none' }}
