@@ -9,6 +9,7 @@ import uuidv4 from 'src/utils/uuidv4';
 import { _mock } from 'src/_mock';
 
 import { IKanbanTask } from 'src/types/kanban';
+import { useTranslate } from 'src/locales';
 
 // ----------------------------------------------------------------------
 
@@ -20,12 +21,13 @@ type Props = {
 
 export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Props) {
   const [name, setName] = useState('');
+  const { t } = useTranslate();
 
   const defaultTask: IKanbanTask = useMemo(
     () => ({
       id: uuidv4(),
       status,
-      name: name.trim(),
+      title: name.trim(),
       priority: 'medium',
       attachments: [],
       labels: [],
@@ -45,7 +47,11 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
         if (name) {
+          console.log('Adding task:', defaultTask); // Debug log
           onAddTask(defaultTask);
+          setName('');
+        } else {
+          console.log('Task name is empty'); // Debug log
         }
       }
     },
@@ -54,14 +60,18 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
 
   const handleClickAddTask = useCallback(() => {
     if (name) {
+      console.log('Adding task:', defaultTask); // Debug log
       onAddTask(defaultTask);
+      setName('');
     } else {
+      console.log('Task name is empty, closing add task'); // Debug log
       onCloseAddTask();
     }
   }, [defaultTask, name, onAddTask, onCloseAddTask]);
 
   const handleChangeName = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
+    console.log('Task name changed:', event.target.value); // Debug log
   }, []);
 
   return (
@@ -77,7 +87,7 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
           autoFocus
           multiline
           fullWidth
-          placeholder="Taaknaam"
+          placeholder={t('task_name')}
           value={name}
           onChange={handleChangeName}
           onKeyUp={handleKeyUpAddTask}

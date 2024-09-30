@@ -24,7 +24,7 @@ type Props = PaperProps & {
   index: number;
   task: IKanbanTask;
   onUpdateTask: (updateTask: IKanbanTask) => void;
-  onDeleteTask: VoidFunction;
+  onDeleteTask: () => void;
 };
 
 export default function KanbanTaskItem({
@@ -91,7 +91,7 @@ export default function KanbanTaskItem({
         </Box>
       </Stack>
 
-      {/* <AvatarGroup
+      <AvatarGroup
         sx={{
           [`& .${avatarGroupClasses.avatar}`]: {
             width: 24,
@@ -102,13 +102,15 @@ export default function KanbanTaskItem({
         {task.assignee.map((user) => (
           <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
         ))}
-      </AvatarGroup> */}
+      </AvatarGroup>
+      
     </Stack>
   );
 
+  console.log('kanbantaskitem render edildi', {onUpdateTask});
   return (
     <>
-      <Draggable draggableId={task.id} index={index}>
+      <Draggable draggableId={task.id.toString()} index={index}>
         {(provided, snapshot) => (
           <Paper
             ref={provided.innerRef}
@@ -139,7 +141,7 @@ export default function KanbanTaskItem({
             }}
             {...other}
           >
-            {renderImg}
+            {/* {renderImg} */}
 
             <Stack spacing={2} sx={{ px: 2, py: 2.5, position: 'relative' }}>
               {renderPriority}
@@ -154,6 +156,7 @@ export default function KanbanTaskItem({
 
       <KanbanDetails
         task={task}
+        taskId={task.id.toString()}
         openDetails={openDetails.value}
         onCloseDetails={openDetails.onFalse}
         onUpdateTask={onUpdateTask}

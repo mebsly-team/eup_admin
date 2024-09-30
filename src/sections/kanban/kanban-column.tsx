@@ -25,6 +25,8 @@ import { IKanbanTask, IKanbanColumn } from 'src/types/kanban';
 import KanbanTaskAdd from './kanban-task-add';
 import KanbanTaskItem from './kanban-task-item';
 import KanbanColumnToolBar from './kanban-column-tool-bar';
+import { useTranslate } from 'src/locales';
+import uuidv4 from 'src/utils/uuidv4';
 
 // ----------------------------------------------------------------------
 
@@ -32,10 +34,13 @@ type Props = {
   column: IKanbanColumn;
   tasks: Record<string, IKanbanTask>;
   index: number;
+  setBoardData: React.Dispatch<React.SetStateAction<IKanbanTask[]>>;
+  onDeleteTask: (taskId: string) => void;
 };
 
-export default function KanbanColumn({ column, tasks, index }: Props) {
+export default function KanbanColumn({ column, tasks, index, setBoardData, onDeleteTask, onUpdateTask }: Props) {
   const { enqueueSnackbar } = useSnackbar();
+  const { t } = useTranslate();
 
   const openAddTask = useBoolean();
 
@@ -77,25 +82,33 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
   }, [column.id, enqueueSnackbar]);
 
   const handleAddTask = useCallback(
-    async (taskData: IKanbanTask) => {
+    async (taskData: Omit<IKanbanTask, 'id' | 'status'>) => {
       try {
-        createTask(column.id, taskData);
-
+        const newTask: IKanbanTask = {
+          ...taskData,
+          id: uuidv4(), // UUID oluşturmak için bir fonksiyon kullanın
+          status: parseInt(column.id, 10),
+        };
+        await createTask(column.id, newTask);
+        setBoardData((prevBoard) => [...prevBoard, newTask]);
         openAddTask.onFalse();
       } catch (error) {
         console.error(error);
       }
     },
-    [column.id, openAddTask]
+    [column.id, openAddTask, setBoardData]
   );
 
-  const handleUpdateTask = useCallback(async (taskData: IKanbanTask) => {
+  const handleUpdateTask = useCallback(async (updatedTask: IKanbanTask) => {
     try {
-      updateTask(taskData);
+      updateTask(updatedTask);
+      setBoardData((prevBoard) =>
+        prevBoard.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+      );
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [setBoardData]);
 
   const handleDeleteTask = useCallback(
     async (taskId: string) => {
@@ -141,17 +154,18 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
         onClick={openAddTask.onToggle}
         sx={{ fontSize: 14 }}
       >
-        {openAddTask.value ? 'Close' : 'Taak toevoegen'}
+        {openAddTask.value ? t('dichtbij') : t('taak_toevoegen')}
       </Button>
     </Stack>
   );
 
+  
   return (
-    <Droppable droppableId={column.id} type="TASK">
+    <Droppable droppableId={column.id.toString()} type="TASK">
    {(provided, snapshot) => (
     <Paper
       ref={provided.innerRef}
-      {...provided.draggableProps}
+      {...provided.droppableProps}
       sx={{
         px: 2,
         borderRadius: 2,
@@ -170,7 +184,7 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
             />
 
         {tasks.map((item, taskIndex) => (
-          <Draggable key={item.id} draggableId={item.id} index={taskIndex}>
+          <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={taskIndex}>
             {(provided, snapshot) => (
               <div
                 ref={provided.innerRef}
@@ -179,7 +193,8 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
               >
                 <KanbanTaskItem
                   task={item}
-                  onDeleteTask={() => handleDeleteTask(item.id)}
+                  onDeleteTask={() => onDeleteTask(item.id)}
+                  onUpdateTask={handleUpdateTask}
                 />
               </div>
             )}
