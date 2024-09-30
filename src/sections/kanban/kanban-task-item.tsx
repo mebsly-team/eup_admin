@@ -108,7 +108,7 @@ export default function KanbanTaskItem({
 
   return (
     <>
-      <Draggable draggableId={task.id} index={index}>
+      <Draggable draggableId={task.id.toString()} index={index}>
         {(provided, snapshot) => (
           <Paper
             ref={provided.innerRef}

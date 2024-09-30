@@ -245,51 +245,17 @@ export async function deleteColumn(columnId: string) {
 // ----------------------------------------------------------------------
 
 export async function createTask(columnId: string, taskData: IKanbanTask) {
-  /**
-   * Work on server
-   */
-  // const data = { columnId, taskData };
-  // await axios.post(endpoints.kanban, data, { params: { endpoint: 'create-task' } });
-
-  /**
-   * Work in local
-   */
-  mutate(
+  return mutate(
     URL,
-    (currentData: any) => {
-      const board = currentData.board as IKanban;
-
-      // current column
-      const column = board.columns[columnId];
-  
-      const columns = {
-        ...board.columns,
-        [columnId]: {
-          ...column,
-          // add task in column
-          taskIds: [...column.taskIds, taskData.id],
-        },
-      };
-
-      // add task in board.tasks
-      const tasks = {
-        ...board.tasks,
-        [taskData.id]: taskData,
-      };
-      
-      return {
-        ...currentData,
-        board: {
-          ...board,
-          columns,
-          tasks,
-        },
-      };
+    (currentData: IKanbanTask[]) => {
+      if (!Array.isArray(currentData)) {
+        return [taskData];
+      }
+      return [...currentData, taskData];
     },
     false
   );
 }
-
 // ----------------------------------------------------------------------
 
 export async function updateTask(taskData: IKanbanTask) {
@@ -327,30 +293,25 @@ export async function updateTask(taskData: IKanbanTask) {
 
 // ----------------------------------------------------------------------
 
-export async function moveTask(updatedBoard: Record<string, IKanbanColumn>) {
-  /**
-   * Work in local
-   */
+export async function moveTask(updatedTasks: IKanbanTask[]) {
   return mutate(
     URL,
-    (currentData) => {
-      return {
-        ...currentData,
-        board: {
-          ...currentData.board,
-          columns: updatedBoard,
-        },
-      };
+    (currentData: any) => {
+      if (!Array.isArray(currentData)) {
+        return updatedTasks;
+      }
+      return updatedTasks;
     },
     false
   );
+}
 
   /**
    * Work on server
    */
   // const data = { updateColumns };
   // await axios.post(endpoints.kanban, data, { params: { endpoint: 'move-task' } });
-}
+
 
 // ----------------------------------------------------------------------
 

@@ -19,8 +19,6 @@ type Props = {
   onAddTask: (task: IKanbanTask) => void;
 };
 
-// ... mevcut kod ...
-
 export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Props) {
   const [name, setName] = useState('');
   const { t } = useTranslate();
@@ -29,7 +27,7 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
     () => ({
       id: uuidv4(),
       status,
-      name: name.trim(),
+      title: name.trim(),
       priority: 'medium',
       attachments: [],
       labels: [],
@@ -51,6 +49,7 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
         if (name) {
           console.log('Adding task:', defaultTask); // Debug log
           onAddTask(defaultTask);
+          setName('');
         } else {
           console.log('Task name is empty'); // Debug log
         }
@@ -63,6 +62,7 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
     if (name) {
       console.log('Adding task:', defaultTask); // Debug log
       onAddTask(defaultTask);
+      setName('');
     } else {
       console.log('Task name is empty, closing add task'); // Debug log
       onCloseAddTask();

@@ -22,11 +22,11 @@ export type IKanbanAssignee = {
 };
 
 export type IKanbanTask = {
-  title(title: any): [any, any];
+  title: string;
   due_date(due_date: any, due_date1: any): unknown;
   id: string;
   name: string;
-  status: string;
+  status: number;
   priority: string;
   labels: string[];
   description?: string;

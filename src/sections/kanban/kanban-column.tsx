@@ -26,6 +26,7 @@ import KanbanTaskAdd from './kanban-task-add';
 import KanbanTaskItem from './kanban-task-item';
 import KanbanColumnToolBar from './kanban-column-tool-bar';
 import { useTranslate } from 'src/locales';
+import uuidv4 from 'src/utils/uuidv4';
 
 // ----------------------------------------------------------------------
 
@@ -33,9 +34,10 @@ type Props = {
   column: IKanbanColumn;
   tasks: Record<string, IKanbanTask>;
   index: number;
+  setBoardData: React.Dispatch<React.SetStateAction<IKanbanTask[]>>;
 };
 
-export default function KanbanColumn({ column, tasks, index }: Props) {
+export default function KanbanColumn({ column, tasks, index, setBoardData }: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const { t } = useTranslate();
 
@@ -79,16 +81,21 @@ export default function KanbanColumn({ column, tasks, index }: Props) {
   }, [column.id, enqueueSnackbar]);
 
   const handleAddTask = useCallback(
-    async (taskData: IKanbanTask) => {
+    async (taskData: Omit<IKanbanTask, 'id' | 'status'>) => {
       try {
-        createTask(column.id, taskData);
-
+        const newTask: IKanbanTask = {
+          ...taskData,
+          id: uuidv4(), // UUID oluşturmak için bir fonksiyon kullanın
+          status: parseInt(column.id, 10),
+        };
+        await createTask(column.id, newTask);
+        setBoardData((prevBoard) => [...prevBoard, newTask]);
         openAddTask.onFalse();
       } catch (error) {
         console.error(error);
       }
     },
-    [column.id, openAddTask]
+    [column.id, openAddTask, setBoardData]
   );
 
   const handleUpdateTask = useCallback(async (taskData: IKanbanTask) => {
