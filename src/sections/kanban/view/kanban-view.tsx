@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
-import { moveTask, moveColumn, useGetBoard } from 'src/api/kanban';
+import { moveTask, deleteTask, useGetBoard } from 'src/api/kanban';
 
 import Scrollbar from 'src/components/scrollbar';
 import EmptyContent from 'src/components/empty-content';
@@ -65,6 +65,16 @@ export default function KanbanView() {
   const handleAddTask = useCallback((newTask: IKanbanTask) => {
     setBoardData((prevBoard) => [...prevBoard, newTask]);
   }, []);
+
+  const handleDeleteTask = useCallback(async (taskId: string) => {
+    try {
+      await deleteTask(taskId);
+      setBoardData((prevBoard) => prevBoard.filter((task) => task.id !== taskId));
+      localStorage.setItem('kanbanBoard', JSON.stringify(boardData.filter((task) => task.id !== taskId)));
+    } catch (error) {
+      console.error('Görev silme hatası:', error);
+    }
+  }, [boardData]);
   
   const onDragEnd = useCallback(
     async ({ destination, source, draggableId, type }: DropResult) => {
@@ -182,6 +192,7 @@ export default function KanbanView() {
                       column={col}
                       tasks={boardData.filter((items) => items.status === col.id)}
                       setBoardData={setBoardData}
+                      onDeleteTask={handleDeleteTask}
                     >
                     <KanbanTaskAdd
                         status={col.id.toString()}

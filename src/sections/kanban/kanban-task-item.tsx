@@ -24,7 +24,7 @@ type Props = PaperProps & {
   index: number;
   task: IKanbanTask;
   onUpdateTask: (updateTask: IKanbanTask) => void;
-  onDeleteTask: VoidFunction;
+  onDeleteTask: () => void;
 };
 
 export default function KanbanTaskItem({
@@ -154,6 +154,7 @@ export default function KanbanTaskItem({
 
       <KanbanDetails
         task={task}
+        taskId={task.id.toString()}
         openDetails={openDetails.value}
         onCloseDetails={openDetails.onFalse}
         onUpdateTask={onUpdateTask}

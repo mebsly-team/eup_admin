@@ -35,9 +35,10 @@ type Props = {
   tasks: Record<string, IKanbanTask>;
   index: number;
   setBoardData: React.Dispatch<React.SetStateAction<IKanbanTask[]>>;
+  onDeleteTask: (taskId: string) => void;
 };
 
-export default function KanbanColumn({ column, tasks, index, setBoardData }: Props) {
+export default function KanbanColumn({ column, tasks, index, setBoardData, onDeleteTask }: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const { t } = useTranslate();
 
@@ -98,13 +99,16 @@ export default function KanbanColumn({ column, tasks, index, setBoardData }: Pro
     [column.id, openAddTask, setBoardData]
   );
 
-  const handleUpdateTask = useCallback(async (taskData: IKanbanTask) => {
+  const handleUpdateTask = useCallback(async (updatedTask: IKanbanTask) => {
     try {
-      updateTask(taskData);
+      updateTask(updatedTask);
+      setBoardData((prevBoard) =>
+        prevBoard.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+      );
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [setBoardData]);
 
   const handleDeleteTask = useCallback(
     async (taskId: string) => {
@@ -188,7 +192,8 @@ export default function KanbanColumn({ column, tasks, index, setBoardData }: Pro
               >
                 <KanbanTaskItem
                   task={item}
-                  onDeleteTask={() => handleDeleteTask(item.id)}
+                  onDeleteTask={() => onDeleteTask(item.id)}
+                  onUpdateTask={handleUpdateTask}
                 />
               </div>
             )}

@@ -15,15 +15,16 @@ import { alpha } from '@mui/material/styles';
 import Iconify from 'src/components/iconify';
 import { StyledLabel } from '../../sections/kanban/kanban-details';
 import axiosInstance from 'src/utils/axios';
+import { IKanbanAssignee } from 'src/types/kanban';
 
-export default function TaskAssignee() {
+type TaskAssigneeProps = {
+  taskId: string;
+  assignedUsers: IKanbanAssignee[];
+  onUpdateAssignees: (updatedAssignees: IKanbanAssignee[]) => void;
+}
+export default function TaskAssignee({ taskId, assignedUsers, onUpdateAssignees }: TaskAssigneeProps) {
   const [open, setOpen] = useState(false);
   const [userList, setUserList] = useState([]);
-  const [assignedUsers, setAssignedUsers] = useState(() => {
-  
-    const savedAssignedUsers = localStorage.getItem('assignedUsers');
-    return savedAssignedUsers ? JSON.parse(savedAssignedUsers) : [];
-  });
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -39,18 +40,18 @@ export default function TaskAssignee() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('assignedUsers', JSON.stringify(assignedUsers));
-  }, [assignedUsers]);
+    localStorage.setItem(`assignedUsers_${taskId}`, JSON.stringify(assignedUsers));
+  }, [assignedUsers, taskId]);
 
   const handleRemoveUser = (userId) => {
-    setAssignedUsers((prevAssignedUsers) =>
-      prevAssignedUsers.filter((user) => user.id !== userId)
-    );
+    const updatedAssignees = assignedUsers.filter((user) => user.id !== userId);
+    onUpdateAssignees(updatedAssignees);
   };
 
   const handleAssignUser = (employee) => {
     if (!assignedUsers.some((user) => user.id === employee.id)) {
-      setAssignedUsers((prevAssignedUsers) => [...prevAssignedUsers, employee]);
+      const updatedAssignees = [...assignedUsers, employee];
+      onUpdateAssignees(updatedAssignees);
     }
     handleClose();
   };

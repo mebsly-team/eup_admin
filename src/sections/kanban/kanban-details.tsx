@@ -27,6 +27,7 @@ import KanbanDetailsAttachments from './kanban-details-attachments';
 import KanbanDetailsCommentList from './kanban-details-comment-list';
 import KanbanDetailsCommentInput from './kanban-details-comment-input';
 import TaskAssignee from './kanban-details-assignee-modal';
+import { array } from 'yup';
 
 
 // ----------------------------------------------------------------------
@@ -43,18 +44,18 @@ export const StyledLabel = styled('span')(({ theme }) => ({
 
 type Props = {
   task: IKanbanTask;
+  taskId: string;
   openDetails: boolean;
   onCloseDetails: VoidFunction;
-  //
   onUpdateTask: (updateTask: IKanbanTask) => void;
   onDeleteTask: VoidFunction;
 };
 
 export default function KanbanDetails({
   task,
+  taskId,
   openDetails,
   onCloseDetails,
-  //
   onUpdateTask,
   onDeleteTask,
 }: Props) {
@@ -63,12 +64,20 @@ export default function KanbanDetails({
 
   const [taskName, setTaskName] = useState(task.title);
 
+  const [currentTask, setCurrentTask] = useState(null);
+
   const like = useBoolean();
 
   const contacts = useBoolean();
 
   const rangePicker = useDateRangePicker(task.due_date, task.due_date);
 
+  const [assignedUsers, setAssignedUsers] = useState(() => {
+    const savedAssignedUsers = localStorage.getItem(`assignedUsers_${taskId}`);
+    return savedAssignedUsers ? JSON.parse(savedAssignedUsers) : [];
+  });
+
+ 
   const handleChangeTaskName = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setTaskName(event.target.value);
   }, []);
@@ -236,7 +245,24 @@ export default function KanbanDetails({
 
           {/* {renderAssignee} */}
 
-          <TaskAssignee />
+          {task && (
+        <TaskAssignee 
+          taskId={task.id} 
+          
+          assignedUsers={Array.isArray(task.assignee) ? task.assignee : []}
+          
+          onUpdateAssignees={(updatedAssignees) => {
+            if (typeof onUpdateTask === 'function') {
+              onUpdateTask({
+                ...task,
+                assignee: updatedAssignees,
+              });
+            } else {
+              console.error('onUpdateTask is not a function');
+            }
+          }}
+        />
+      )}
           {renderDueDate}
 
           {renderPriority}
