@@ -1,18 +1,46 @@
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
-import InputBase from '@mui/material/InputBase';
-import IconButton from '@mui/material/IconButton';
+import { useCallback, useState } from 'react';
+import {Paper, Stack, Button, Avatar, InputBase, IconButton} from '@mui/material';
+import { IKanbanComment } from 'src/types/kanban';
 
 import { useAuthContext } from 'src/auth/hooks';
 
 import Iconify from 'src/components/iconify';
+import { useTranslate } from 'src/locales';
+
 
 // ----------------------------------------------------------------------
 
-export default function KanbanDetailsCommentInput() {
+type Props = {
+  onAddComment: (comment: IKanbanComment) => void;
+  
+};
+
+export default function KanbanDetailsCommentInput({ onAddComment }: Props) {
+  const { t } = useTranslate();
   const { user } = useAuthContext();
+  const [message, setMessage] = useState('');
+
+  const handleChangeMessage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(event.target.value);
+  }, []);
+
+
+  const handleSubmit = useCallback(() => {
+    if (!message.trim()) return;
+
+    const newComment: IKanbanComment = {
+      id: `comment-${Date.now()}`,
+      message: message.trim(),
+      messageType: 'text',
+      createdAt: new Date(),
+      name: user?.displayName || '',
+      avatarUrl: user?.photoURL || '',
+    };
+   
+
+    onAddComment(newComment);
+    setMessage('');
+  }, [message, onAddComment, user]);
 
   return (
     <Stack
@@ -28,7 +56,7 @@ export default function KanbanDetailsCommentInput() {
       </Avatar>
 
       <Paper variant="outlined" sx={{ p: 1, flexGrow: 1, bgcolor: 'transparent' }}>
-        <InputBase fullWidth multiline rows={2} placeholder="Type a message" sx={{ px: 1 }} />
+        <InputBase fullWidth multiline rows={2} placeholder="Type a message" sx={{ px: 1 }} onChange={handleChangeMessage} />
 
         <Stack direction="row" alignItems="center">
           <Stack direction="row" flexGrow={1}>
@@ -41,7 +69,7 @@ export default function KanbanDetailsCommentInput() {
             </IconButton>
           </Stack>
 
-          <Button variant="contained">Comment</Button>
+          <Button variant="contained" onClick={handleSubmit} >{t('comment')}</Button>
         </Stack>
       </Paper>
     </Stack>

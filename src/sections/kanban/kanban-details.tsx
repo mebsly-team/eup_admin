@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuthContext } from '../../auth/hooks/use-auth-context';
 
 // ...
@@ -19,6 +19,7 @@ import Scrollbar from 'src/components/scrollbar';
 import { useDateRangePicker } from 'src/components/custom-date-range-picker';
 
 import { IKanbanTask } from 'src/types/kanban';
+import { IKanbanComment } from 'src/types/kanban';
 
 import KanbanInputName from './kanban-input-name';
 import KanbanDetailsToolbar from './kanban-details-toolbar';
@@ -27,7 +28,9 @@ import KanbanDetailsAttachments from './kanban-details-attachments';
 import KanbanDetailsCommentList from './kanban-details-comment-list';
 import KanbanDetailsCommentInput from './kanban-details-comment-input';
 import TaskAssignee from './kanban-details-assignee-modal';
-import { array } from 'yup';
+import { Accordion, AccordionDetails, AccordionSummary, MenuItem, Select, Typography } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useTranslate } from 'src/locales';
 
 
 // ----------------------------------------------------------------------
@@ -46,10 +49,11 @@ type Props = {
   task: IKanbanTask;
   taskId: string;
   openDetails: boolean;
-  onCloseDetails: VoidFunction;
+  onCloseDetails: () => void;
   onUpdateTask: (updateTask: IKanbanTask) => void;
   onDeleteTask: VoidFunction;
 };
+
 
 export default function KanbanDetails({
   task,
@@ -59,12 +63,13 @@ export default function KanbanDetails({
   onUpdateTask,
   onDeleteTask,
 }: Props) {
+
+  const { t } = useTranslate();
   const [priority, setPriority] = useState(task.priority);
   const [quillFull, setQuillFull] = useState(task.description);
-
+  const [currentTask, setCurrentTask] = useState(task);
   const [taskName, setTaskName] = useState(task.title);
-
-  const [currentTask, setCurrentTask] = useState(null);
+  const [expanded, setExpanded] = useState(false);
 
   const like = useBoolean();
 
@@ -72,12 +77,11 @@ export default function KanbanDetails({
 
   const rangePicker = useDateRangePicker(task.due_date, task.due_date);
 
-  const [assignedUsers, setAssignedUsers] = useState(() => {
-    const savedAssignedUsers = localStorage.getItem(`assignedUsers_${taskId}`);
-    return savedAssignedUsers ? JSON.parse(savedAssignedUsers) : [];
-  });
-
  
+  useEffect(() => {
+    setCurrentTask(task);
+  }, [task]);
+
   const handleChangeTaskName = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setTaskName(event.target.value);
   }, []);
@@ -113,6 +117,31 @@ export default function KanbanDetails({
       taskStatus={task.status}
       onCloseDetails={onCloseDetails}
     />
+  );
+
+  const handleStatusChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const newStatus = event.target.value as number;
+    const updatedTask = {
+      ...task,
+      status: newStatus,
+    };
+    onUpdateTask(updatedTask);
+  };
+
+  const renderStatus = (
+    <Stack direction="row" alignItems="center">
+      <StyledLabel>{t('status')}</StyledLabel>
+      <Select
+        value={task.status}
+        onChange={handleStatusChange}
+        sx={{ width: '100%' }}
+      >
+        <MenuItem value={0}>{t('doing')}</MenuItem>
+        <MenuItem value={1}>{t('review')}</MenuItem>
+        <MenuItem value={2}>{t('test')}</MenuItem>
+        <MenuItem value={3}>{t('done')}</MenuItem>
+      </Select>
+    </Stack>
   );
 
   const renderName = (
@@ -198,7 +227,36 @@ export default function KanbanDetails({
     </Stack>
   );
 
-  const renderComments = <KanbanDetailsCommentList comments={task.comments} />;
+  const handleAddComment = useCallback((newComment: IKanbanComment) => {
+    const updatedTask = {
+      ...currentTask,
+      comments: [...(currentTask.comments || []), newComment],
+    };
+    setCurrentTask(updatedTask);
+    onUpdateTask(updatedTask);
+    setExpanded(true);
+  }, [currentTask, onUpdateTask]);
+
+  const handleExpand = (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded);
+  };
+
+  const renderComments = (
+    <Accordion expanded={expanded} onChange={handleExpand}>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls="comments-content"
+        id="comments-header"
+      >
+        <Typography variant="subtitle2">
+          {t('comment')} ({currentTask.comments?.length || 0})
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <KanbanDetailsCommentList comments={currentTask.comments || []} />
+      </AccordionDetails>
+    </Accordion>
+  );
 
   return (
     <Drawer
@@ -243,6 +301,8 @@ export default function KanbanDetails({
 
           {renderReporter}
 
+          {renderStatus}
+
           {/* {renderAssignee} */}
 
           {task && (
@@ -268,12 +328,15 @@ export default function KanbanDetails({
           {renderPriority}
 
           {renderDescription}
+
+          {renderComments}
         </Stack>
 
-        {!!task.comments.length && renderComments}
+        
       </Scrollbar>
 
-      <KanbanDetailsCommentInput />
+     
+      <KanbanDetailsCommentInput onAddComment={handleAddComment} />
     </Drawer>
   );
 }

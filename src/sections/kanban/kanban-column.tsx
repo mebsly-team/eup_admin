@@ -38,7 +38,7 @@ type Props = {
   onDeleteTask: (taskId: string) => void;
 };
 
-export default function KanbanColumn({ column, tasks, index, setBoardData, onDeleteTask }: Props) {
+export default function KanbanColumn({ column, tasks, index, setBoardData, onDeleteTask, onUpdateTask }: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const { t } = useTranslate();
 
@@ -159,6 +159,7 @@ export default function KanbanColumn({ column, tasks, index, setBoardData, onDel
     </Stack>
   );
 
+  
   return (
     <Droppable droppableId={column.id.toString()} type="TASK">
    {(provided, snapshot) => (

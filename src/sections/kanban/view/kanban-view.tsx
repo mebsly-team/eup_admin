@@ -32,6 +32,10 @@ export default function KanbanView() {
     },
     {
       id: 2,
+      name: t('test'),
+    },
+    {
+      id: 3,
       name: t('done'),
     },
   ];
@@ -65,6 +69,16 @@ export default function KanbanView() {
   const handleAddTask = useCallback((newTask: IKanbanTask) => {
     setBoardData((prevBoard) => [...prevBoard, newTask]);
   }, []);
+
+  const handleUpdateTask = useCallback((updatedTask: IKanbanTask) => {
+    console.log('handleUpdateTask çağrıldı', updatedTask);
+    setBoardData((prevBoard) =>
+      prevBoard.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+    );
+    localStorage.setItem('kanbanBoard', JSON.stringify(boardData.map(task => 
+      task.id === updatedTask.id ? updatedTask : task
+    )));
+  }, [boardData]);
 
   const handleDeleteTask = useCallback(async (taskId: string) => {
     try {
@@ -193,6 +207,7 @@ export default function KanbanView() {
                       tasks={boardData.filter((items) => items.status === col.id)}
                       setBoardData={setBoardData}
                       onDeleteTask={handleDeleteTask}
+                      onUpdateTask={handleUpdateTask}
                     >
                     <KanbanTaskAdd
                         status={col.id.toString()}

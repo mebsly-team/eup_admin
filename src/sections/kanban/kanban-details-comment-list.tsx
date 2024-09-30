@@ -34,16 +34,20 @@ export default function KanbanDetailsCommentList({ comments }: Props) {
       >
         {comments.map((comment) => (
           <Stack key={comment.id} direction="row" spacing={2}>
-            <Avatar src={comment.avatarUrl} />
-
+            <Avatar src={comment.avatarUrl} alt={comment.name} sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+              {comment.name.charAt(0).toUpperCase()}
+            </Avatar>
+            
             <Stack spacing={0.5}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                  {fToNow(comment.datetime)}
+                  {fToNow(comment.createdAt)}
                 </Typography>
               </Stack>
+              <Typography variant="subtitle2">{comment.name}</Typography>
 
-              <Typography variant="body2">{comment.comment}</Typography>
+
+              <Typography variant="body2">{comment.message}</Typography>
             </Stack>
           </Stack>
         ))}
