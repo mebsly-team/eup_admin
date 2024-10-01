@@ -28,7 +28,7 @@ export default function KanbanDetailsAttachments({ attachments }: Props) {
 
   const handleRemoveFile = useCallback(
     (inputFile: File | string) => {
-      const filtered = files.filter((file) => file !== inputFile);
+      const filtered = files?.filter((file) => file !== inputFile);
       setFiles(filtered);
     },
     [files]

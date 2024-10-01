@@ -78,7 +78,7 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
               height: ITEM_HEIGHT * 6,
             }}
           >
-            {dataFiltered.map((contact) => {
+            {dataFiltered?.map((contact) => {
               const checked = assignee.map((person) => person.name).includes(contact.name);
 
               return (
@@ -129,7 +129,7 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
 
 function applyFilter({ inputData, query }: { inputData: IKanbanAssignee[]; query: string }) {
   if (query) {
-    inputData = inputData.filter(
+    inputData = inputData?.filter(
       (contact) =>
         contact.name.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
         contact.email.toLowerCase().indexOf(query.toLowerCase()) !== -1

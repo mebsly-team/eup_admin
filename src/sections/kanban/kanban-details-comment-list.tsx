@@ -16,8 +16,8 @@ type Props = {
 
 export default function KanbanDetailsCommentList({ comments }: Props) {
   const slides = comments
-    .filter((comment) => comment.messageType === 'image')
-    .map((slide) => ({ src: slide.message }));
+    ?.filter((comment) => comment.messageType === 'image')
+    ?.map((slide) => ({ src: slide.message }));
 
   const lightbox = useLightBox(slides);
 
@@ -32,7 +32,7 @@ export default function KanbanDetailsCommentList({ comments }: Props) {
           bgcolor: 'background.neutral',
         }}
       >
-        {comments.map((comment) => (
+        {comments?.map((comment) => (
           <Stack key={comment.id} direction="row" spacing={2}>
             <Avatar src={comment.avatarUrl} alt={comment.name} sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
               {comment.name.charAt(0).toUpperCase()}

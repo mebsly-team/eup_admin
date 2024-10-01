@@ -61,7 +61,7 @@ export default function TaskAssignee({ taskId, assignedUsers, onUpdateAssignees 
       <StyledLabel sx={{ height: 40, lineHeight: '40px' }}>Assignee</StyledLabel>
 
       <Stack direction="row" flexWrap="wrap" alignItems="center" spacing={1}>
-        {assignedUsers.map((user) => (
+        {assignedUsers?.map((user) => (
           <Box key={user.id} sx={{ position: 'relative', display: 'inline-block' }}>
             <Tooltip title={user.fullname}>
               <Avatar alt={user.fullname} src={user.avatarUrl}  />
@@ -117,7 +117,7 @@ export default function TaskAssignee({ taskId, assignedUsers, onUpdateAssignees 
         >
           <h2>Assign a Person</h2>
           <List>
-            {userList.map((employee) => (
+            {userList?.map((employee) => (
               <ListItem key={employee.id} button onClick={() => handleAssignUser(employee)}>
                 <ListItemAvatar>
                   <Avatar alt={employee.fullname} src={employee.avatarUrl} />

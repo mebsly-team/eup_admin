@@ -103,7 +103,7 @@ export default function KanbanColumn({ column, tasks, index, setBoardData, onDel
     try {
       updateTask(updatedTask);
       setBoardData((prevBoard) =>
-        prevBoard.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+        prevBoard?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
       );
     } catch (error) {
       console.error(error);
