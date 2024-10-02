@@ -183,7 +183,7 @@ export default function KanbanColumn({ column, tasks, index, setBoardData, onDel
               onDeleteColumn={handleDeleteColumn}
             />
 
-        {tasks.map((item, taskIndex) => (
+        {tasks?.map((item, taskIndex) => (
           <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={taskIndex}>
             {(provided, snapshot) => (
               <div

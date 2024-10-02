@@ -79,7 +79,7 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
             }}
           >
             {dataFiltered?.map((contact) => {
-              const checked = assignee.map((person) => person.name).includes(contact.name);
+              const checked = assignee?.map((person) => person.name).includes(contact.name);
 
               return (
                 <ListItem

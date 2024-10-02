@@ -167,7 +167,7 @@ export default function KanbanDetails({
   //     <StyledLabel sx={{ height: 40, lineHeight: '40px' }}>Assignee</StyledLabel>
 
   //     <Stack direction="row" flexWrap="wrap" alignItems="center" spacing={1}>
-  //       {/* {task.assignee.map((user) => (
+  //       {/* {task.assignee?.map((user) => (
   //         <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
   //       ))} */}
 

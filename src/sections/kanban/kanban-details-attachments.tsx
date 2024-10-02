@@ -15,7 +15,7 @@ export default function KanbanDetailsAttachments({ attachments }: Props) {
 
   const handleDrop = useCallback(
     (acceptedFiles: File[]) => {
-      const newFiles = acceptedFiles.map((file: File) =>
+      const newFiles = acceptedFiles?.map((file: File) =>
         Object.assign(file, {
           preview: URL.createObjectURL(file),
         })
