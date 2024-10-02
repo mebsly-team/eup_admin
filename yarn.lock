@@ -853,6 +853,7 @@ __metadata:
     "@mui/x-data-grid": ^6.18.4
     "@mui/x-date-pickers": ^6.18.4
     "@mui/x-tree-view": ^6.17.0
+    "@playwright/test": ^1.47.2
     "@react-pdf/renderer": ^3.1.14
     "@types/autosuggest-highlight": ^3.2.3
     "@types/lodash": ^4.14.202
@@ -1342,6 +1343,17 @@ __metadata:
     picocolors: ^1.0.0
     tslib: ^2.6.0
   checksum: 24e04c121269317d259614cd32beea3af38277151c4002df5883c4be920b8e3490bb897748e844f9d46bf68230f86dabd4e8f093773130e7e60529a769a132fc
+  languageName: node
+  linkType: hard
+
+"@playwright/test@npm:^1.47.2":
+  version: 1.47.2
+  resolution: "@playwright/test@npm:1.47.2"
+  dependencies:
+    playwright: 1.47.2
+  bin:
+    playwright: cli.js
+  checksum: 4f149613c0fd4a40061425efdf5c7a257df09e1b6b797ad221597ddde52381edb69fce6645bf3b95a11eee74147a2025c1951041f29dbc717dab0cc46d9c3427
   languageName: node
   linkType: hard
 
@@ -4115,12 +4127,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fsevents@npm:2.3.2":
+  version: 2.3.2
+  resolution: "fsevents@npm:2.3.2"
+  dependencies:
+    node-gyp: latest
+  checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
+  conditions: os=darwin
+  languageName: node
+  linkType: hard
+
 "fsevents@npm:~2.3.2, fsevents@npm:~2.3.3":
   version: 2.3.3
   resolution: "fsevents@npm:2.3.3"
   dependencies:
     node-gyp: latest
   checksum: 11e6ea6fea15e42461fc55b4b0e4a0a3c654faa567f1877dbd353f39156f69def97a69936d1746619d656c4b93de2238bf731f6085a03a50cabf287c9d024317
+  conditions: os=darwin
+  languageName: node
+  linkType: hard
+
+"fsevents@patch:fsevents@2.3.2#~builtin<compat/fsevents>":
+  version: 2.3.2
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
+  dependencies:
+    node-gyp: latest
   conditions: os=darwin
   languageName: node
   linkType: hard
@@ -6686,6 +6717,30 @@ __metadata:
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
   checksum: 050c865ce81119c4822c45d3c84f1ced46f93a0126febae20737bd05ca20589c564d6e9226977df859ed5e03dc73f02584a2b0faad36e896936238238b0446cf
+  languageName: node
+  linkType: hard
+
+"playwright-core@npm:1.47.2":
+  version: 1.47.2
+  resolution: "playwright-core@npm:1.47.2"
+  bin:
+    playwright-core: cli.js
+  checksum: c06109a08dd672a92eb048ce7c9a1451ed701e62ff78f0d67c67ee6b06c88f0dc5422c2a7bb26e5fca05840e2adba154a25ca988e56f76c233affe61f42453a3
+  languageName: node
+  linkType: hard
+
+"playwright@npm:1.47.2":
+  version: 1.47.2
+  resolution: "playwright@npm:1.47.2"
+  dependencies:
+    fsevents: 2.3.2
+    playwright-core: 1.47.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    playwright: cli.js
+  checksum: 41ec99d62c9d7282a3d0dd2444892a379be2f4c61e9045a0b1cfc5897796747d220df5af11c6a7515c56c82df02a1025a46a5da7abc17485b4e981e133588261
   languageName: node
   linkType: hard
 
