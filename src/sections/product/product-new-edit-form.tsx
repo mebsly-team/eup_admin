@@ -354,6 +354,8 @@ export default function ProductNewEditForm({ id }: Props) {
       stock_at_supplier: currentProduct?.stock_at_supplier || 0,
       location: currentProduct?.location || '',
       extra_location: currentProduct?.extra_location || '',
+      location_stock: currentProduct?.location_stock || 0,
+      extra_location_stock: currentProduct?.extra_location_stock || 0,
       /* stock_alert_value: currentProduct?.stock_alert_value || '',
       stock_alert: currentProduct?.stock_alert || false,
       stock_disable_when_sold_out: currentProduct?.stock_disable_when_sold_out || false,
@@ -1688,7 +1690,9 @@ export default function ProductNewEditForm({ id }: Props) {
             }}
           >
             <RHFTextField name="location" label={t('location')} labelColor="violet" />
+            <RHFTextField name="location_stock" label={t('location_stock')} labelColor="violet" />
             <RHFTextField name="extra_location" label={t('extra_location')} labelColor="violet" />
+            <RHFTextField name="extra_location_stock" label={t('extra_location_stock')} labelColor="violet" />
             <RHFSelect name="delivery_time" label={t('delivery_time')}>
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
