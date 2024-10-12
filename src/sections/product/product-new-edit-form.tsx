@@ -1438,7 +1438,7 @@ export default function ProductNewEditForm({ id }: Props) {
             <RHFTextField
               name="price_cost"
               label={t('price_cost')}
-              disabled={['box', 'pallet_full', 'pallet_layer'].includes(currentProduct?.unit)}
+              // disabled={['box', 'pallet_full', 'pallet_layer'].includes(currentProduct?.unit)}
               placeholder="0.00"
               type="number"
               value={getValues('price_cost')}
