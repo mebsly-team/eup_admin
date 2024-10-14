@@ -798,6 +798,61 @@ export default function ProductNewEditForm({ id }: Props) {
     [enqueueSnackbar, router, t]
   );
 
+  const handleImportFromSnelstart = async ({ id }) => {
+    try {
+      const response = await axiosInstance.get(`/snelstart/product/?id=${id}`);
+      const snelProduct = response?.data?.[0] || {};
+      const valuesToSet = {
+        ...getValues(),
+        title: snelProduct?.omschrijving || '',
+        title_long:
+          snelProduct?.extraVelden?.find((v) => v.naam === 'ExtraOmschrijvingLang')?.waarde ||
+          snelProduct?.omschrijving ||
+          '',
+
+        min_price_to_sell: snelProduct?.verkoopprijs || 0,
+        ean: snelProduct?.artikelcode || '',
+        sku:
+          snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')?.waarde ||
+          '',
+        supplier_article_code:
+          snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')?.waarde ||
+          '',
+        brand:
+          snelProduct?.extraVelden?.find((v) => v.naam === 'Merk')?.waarde ||
+          currentProduct?.brand ||
+          null,
+
+        supplier:
+          snelProduct?.extraVelden?.find(
+            (v) =>
+              (v.naam === 'Leverancier1' && v.waarde !== null) ||
+              (v.naam === 'Leverancier2' && v.waarde !== null) ||
+              (v.naam === 'Leverancier3' && v.waarde !== null) ||
+              (v.naam === 'Leverancier4' && v.waarde !== null) ||
+              (v.naam === 'Leverancier5' && v.waarde !== null)
+          )?.waarde ||
+          currentProduct?.supplier ||
+          null,
+
+        quantity_per_unit: Number(
+          snelProduct?.extraVelden?.find((v) => v.naam === 'AantalPerVerpakking')?.waarde || 0
+        ),
+        price_per_piece: snelProduct?.verkoopprijs || 0,
+        price_consumers: Number(
+          snelProduct?.extraVelden?.find((v) => v.naam === 'ConsumentenPrijs')?.waarde || 0
+        ),
+        price_cost: snelProduct?.inkoopprijs || 0,
+        overall_stock: snelProduct?.technischeVoorraad || 0,
+        free_stock: snelProduct?.vrijeVoorraad || 0,
+      };
+
+      reset(valuesToSet);
+    } catch (error) {
+      enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+    }
+  };
+
   const renderTabs = (
     <Tabs
       value={activeTab}
@@ -903,6 +958,17 @@ export default function ProductNewEditForm({ id }: Props) {
             </Typography>
           )}
         </Box>
+        {!currentProduct?.is_variant && (
+          <Typography
+            fontSize="14px"
+            color="blue"
+            sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
+            // onClick={handleImportFromSnelstart}
+            onClick={() => handleImportFromSnelstart({ id: getValues('article_code') })}
+          >
+            {t('import_from_snelstart')}
+          </Typography>
+        )}
         {/* {currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
