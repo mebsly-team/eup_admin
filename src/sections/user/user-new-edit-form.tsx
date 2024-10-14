@@ -167,7 +167,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   const methods = useForm({
     resolver: yupResolver(NewUserSchema),
-    defaultValues,
+    defaultValues: currentUser ? defaultValues : {},
   });
 
   const {
@@ -190,7 +190,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
   useEffect(() => {
     console.log('useEffect');
     const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
-    if (savedData) {
+    if (savedData && !currentUser) {
       methods.reset(savedData); // Reset form with saved data
     }
   }, [methods]);

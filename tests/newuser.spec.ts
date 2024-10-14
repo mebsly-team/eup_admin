@@ -7,10 +7,10 @@ test.beforeAll(async ({ browser }) => {
   await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
   await page.waitForTimeout(2000);
   await page.getByLabel('Email address').click();
-    await page.getByLabel('Email address').fill('test7@test.com');
+    await page.getByLabel('Email address').fill('info1@info.com');
   await page.waitForTimeout(2000);
   await page.getByLabel('Password').click();
-  await page.getByLabel('Password').fill('Example1!');
+  await page.getByLabel('Password').fill('Test123456!');
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Login' }).click();
 });
@@ -68,7 +68,7 @@ await page.waitForTimeout(2000);
 
 await page.getByRole('button', { name: 'Nieuwe Gebruiker' }).click();
 await page.waitForTimeout(2000);
-await page.getByRole('row', { name: 'harsha a admin test@gmail.com' }).getByRole('button').click();
+await page.getByRole('row', { name: 'info1@info.com' }).getByRole('button').click();
 await page.waitForTimeout(2000);
 await page.getByRole('menuitem', { name: 'Bewerken' }).click();
 await page.waitForTimeout(2000);

@@ -7,10 +7,10 @@ test.beforeAll(async ({ browser }) => {
   await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
   await page.waitForTimeout(2000);
   await page.getByLabel('Email address').click();
-    await page.getByLabel('Email address').fill('test7@test.com');
+    await page.getByLabel('Email address').fill('info1@info.com');
   await page.waitForTimeout(2000);
   await page.getByLabel('Password').click();
-  await page.getByLabel('Password').fill('Example1!');
+  await page.getByLabel('Password').fill('Test123456!');
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Login' }).click();
 });
@@ -123,8 +123,8 @@ function generatePostalCode() {
 }
 
 const postcode = generatePostalCode();
-await page.getByLabel('Postcode').click();
-await page.getByLabel('Postcode').fill(postcode);
+await page.getByLabel('Postcode', {exact: true}).click();
+await page.getByLabel('Postcode', {exact: true}).fill(postcode);
 await page.waitForTimeout(2000);
 
 function generateCity() {
@@ -133,8 +133,8 @@ function generateCity() {
 }
 
 const plaats = generateCity();
-await page.getByLabel('Plaats').click();
-await page.getByLabel('Plaats').fill(plaats);
+await page.getByLabel('Plaats', {exact: true}).click();
+await page.getByLabel('Plaats', {exact: true}).fill(plaats);
 await page.waitForTimeout(2000);
 
 function generateProvince() {

@@ -7,10 +7,10 @@ test.beforeAll(async ({ browser }) => {
   await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
   await page.waitForTimeout(2000);
   await page.getByLabel('Email address').click();
-  await page.getByLabel('Email address').fill('test7@test.com');
+  await page.getByLabel('Email address').fill('info1@info.com');
   await page.waitForTimeout(2000);
   await page.getByLabel('Password').click();
-  await page.getByLabel('Password').fill('Example1!');
+  await page.getByLabel('Password').fill('Test123456!');
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Login' }).click();
 });
@@ -20,7 +20,7 @@ test.afterAll(async () => {
 });
 
 test('Product Page test', async ({}) => {
-  test.setTimeout(280000);
+  test.setTimeout(300000);
     await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
     await page.getByRole('button', { name: 'Lijst' }).click();
@@ -49,9 +49,9 @@ test('Product Page test', async ({}) => {
     await page.waitForTimeout(3000);
     await page.getByPlaceholder('Zoeken').click();
     await page.waitForTimeout(3000);
-    await page.getByPlaceholder('Zoeken').fill('title4403_test');
+    await page.getByPlaceholder('Zoeken').fill('Eda');
     await page.waitForTimeout(3000);
-    await page.getByRole('row', { name: 'title4403_test' }).getByRole('button').click();
+    await page.getByRole('row', { name: 'Eda' }).getByRole('button').click();
     await page.waitForTimeout(3000);
     await page.getByRole('menuitem', { name: 'Bewerken' }).click();
     await page.waitForTimeout(3000);
@@ -148,6 +148,8 @@ await page.getByRole('button', { name: 'Reset' }).click();
 await page.waitForTimeout(5000);
 })
 
+
+
 test(' Create New Product Page test', async ({}) => {
   test.setTimeout(280000);
     await page.getByRole('button', { name: 'Product' }).click();
@@ -168,8 +170,8 @@ test(' Create New Product Page test', async ({}) => {
     return Math.floor(1000000000 + Math.random() * 9000000000).toString();
 }
   const ean = generateEAN();
-  await page.getByLabel('EAN').click();
-  await page.getByLabel('EAN').fill(ean);
+  await page.getByLabel('EAN', {exact: true}).click();
+  await page.getByLabel('EAN', {exact: true}).fill(ean);
   await page.waitForTimeout(2000);
   function generateSKU() {
     const adjectives = ['Fast', 'Slick', 'Soft', 'Smooth', 'Strong'];
@@ -327,19 +329,19 @@ await page.getByLabel('Gewichtseenheid').click();
 await page.getByRole('option', { name: 'kg' }).click();
 await page.waitForTimeout(2000);
 
-function generatePalletQuantity() {
-  return Math.floor(Math.random() * 100).toString();
-}
-const palletLaagAantal = generatePalletQuantity();
+// function generatePalletQuantity() {
+//   return Math.floor(Math.random() * 100).toString();
+// }
+// const palletLaagAantal = generatePalletQuantity();
 
-await page.getByLabel('Pallet Laag Aantal').click();
-await page.getByLabel('Pallet Laag Aantal').fill(palletLaagAantal);
-await page.waitForTimeout(2000);
+// await page.getByLabel('Pallet Laag Aantal').click();
+// await page.getByLabel('Pallet Laag Aantal').fill(palletLaagAantal);
+// await page.waitForTimeout(2000);
 
-const palletVolleAantal = generatePalletQuantity();
-await page.getByLabel('Pallet Volle Aantal').click();
-await page.getByLabel('Pallet Volle Aantal').fill(palletVolleAantal);
-await page.waitForTimeout(2000);
+// const palletVolleAantal = generatePalletQuantity();
+// await page.getByLabel('Pallet Volle Aantal').click();
+// await page.getByLabel('Pallet Volle Aantal').fill(palletVolleAantal);
+// await page.waitForTimeout(2000);
 
 function generateLocation() {
   const locations = ['US', 'NL', 'DE', 'FR', 'IT', 'ES'];

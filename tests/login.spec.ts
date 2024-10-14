@@ -9,6 +9,7 @@ test.describe('Login Page', () => {
     await page.waitForURL('http://52.28.100.129:3001/dashboard');
     await expect(page).toHaveURL('http://52.28.100.129:3001/dashboard');
   });
+  
 
   test('should show error for invalid credentials', async ({ page }) => {
     await page.goto('http://52.28.100.129:3001/auth/jwt/login');

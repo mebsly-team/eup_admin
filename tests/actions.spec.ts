@@ -4,7 +4,7 @@ let page;
 test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext();
   page = await context.newPage();
-  await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
+  await page.goto('http://localhost:3000/dashboard');
   await page.waitForTimeout(2000);
   await page.getByLabel('Email address').click();
   await page.getByLabel('Email address').fill('info1@info.com');

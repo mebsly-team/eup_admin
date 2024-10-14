@@ -114,7 +114,7 @@ export default function BrandListView() {
       const { data } = await axiosInstance.delete(`/brands/${id}/`);
       enqueueSnackbar(t('delete_success'));
       getAll();
-      // setTableData(deleteRow);
+      setTableData(deleteRow);
 
       // table.onUpdatePageDeleteRow(dataInPage?.length);
     },
