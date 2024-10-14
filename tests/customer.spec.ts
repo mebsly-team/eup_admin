@@ -7,10 +7,10 @@ test.beforeAll(async ({ browser }) => {
   await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
   await page.waitForTimeout(2000);
   await page.getByLabel('Email address').click();
-    await page.getByLabel('Email address').fill('test7@test.com');
+    await page.getByLabel('Email address').fill('info1@info.com');
   await page.waitForTimeout(2000);
   await page.getByLabel('Password').click();
-  await page.getByLabel('Password').fill('Example1!');
+  await page.getByLabel('Password').fill('Test123456!');
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Login' }).click();
 });
@@ -119,8 +119,8 @@ await page.waitForTimeout(2000);
 
 const randomcontact_person_phone_number = String(Math.floor(1000000000 + Math.random() * 9000000000)).slice(0, 10);
 
-await page.getByLabel('Contactpersoon telefoon').click();
-await page.getByLabel('Contactpersoon telefoon').fill(randomcontact_person_phone_number);
+await page.getByLabel('Contactpersoon Tel').click();
+await page.getByLabel('Contactpersoon Tel').fill(randomcontact_person_phone_number);
 await page.waitForTimeout(2000);
 
 function generateEmail() {
@@ -346,7 +346,7 @@ await page.getByLabel('Incasseren').check();
 await page.getByLabel('Betalingstermijn activeren').check();
 await page.getByLabel('Levertijd').check();
 await page.getByLabel('Geen betaling/Alleen factuur').check();
-await page.getByLabel('inform_when_new_products').check();
+await page.getByLabel('Informeer bij nieuwe producten').first().check();
 await page.getByLabel('Aanmanen').check();
 
 const facebook = 'https://www.facebook.com/';
@@ -396,9 +396,88 @@ await page.getByRole('row', { name: generatedUserName }).getByRole('button').cli
 await page.waitForTimeout(2000);
 await page.getByRole('menuitem', { name: 'Bewerken' }).click();
 await page.waitForTimeout(2000);
+
 await page.getByLabel('Notities').click();
-await page.getByLabel('Notities').fill('New Customer');
+await page.getByLabel('Notities').fill('New Customers');
 await page.waitForTimeout(2000);
+
+await page.getByLabel('Bedrijfsnaam').click();
+await page.getByLabel('Bedrijfsnaam').fill(randombusiness_name);
+await page.waitForTimeout(2000);
+await page.getByLabel('Classification').click();
+await page.getByLabel('Classification').fill(classification);
+await page.waitForTimeout(2000);
+await page.getByLabel('branch').click();
+await page.getByLabel('branch').fill(branch);
+await page.waitForTimeout(2000);
+await page.getByLabel('IBAN').click();
+await page.getByLabel('IBAN').fill(iban);
+await page.waitForTimeout(2000);
+await page.getByLabel('BIC').click();
+await page.getByLabel('BIC').fill(bic);
+await page.waitForTimeout(2000);
+await page.getByLabel('Naam rekeninghouder').click();
+await page.getByLabel('Naam rekeninghouder').fill(naamRekeninghouder);
+await page.waitForTimeout(2000);
+
+await page.getByLabel('Rekeninghouder stad').click();
+await page.getByLabel('Rekeninghouder stad').fill(rekeninghouderStad);
+await page.waitForTimeout(2000);
+await page.getByLabel('BTW').click();
+await page.getByLabel('BTW').fill(btw);
+await page.waitForTimeout(2000);
+await page.getByLabel('KVK').click();
+await page.getByLabel('KVK').fill(kvk);
+await page.waitForTimeout(2000);
+await page.getByLabel('Betalingsmethode').click();
+await page.getByRole('option', { name: 'Geen' }).click();
+await page.waitForTimeout(2000);
+await page.getByLabel('Betalingsmethode').click();
+await page.getByRole('option', { name: 'bank' }).click();
+await page.waitForTimeout(2000);
+
+await page.getByLabel('Klant Percentage').click();
+await page.getByLabel('Klant Percentage').fill(klantPercentage);
+await page.waitForTimeout(2000);
+await page.getByLabel('Factuur korting').click();
+await page.getByLabel('Factuur korting').fill(factuurKorting);
+await page.waitForTimeout(2000);
+await page.getByLabel('Betalingstermijn', { exact: true }).click();
+await page.getByLabel('Betalingstermijn', { exact: true }).fill(betalingstermijn);
+await page.waitForTimeout(2000);
+await page.getByLabel('Krediet limiet').click();
+await page.getByLabel('Krediet limiet').fill(kredietLimiet);
+await page.waitForTimeout(2000);
+await page.getByLabel('Factuur adres').click();
+await page.getByLabel('Factuur adres').fill(factuurAdres);
+await page.waitForTimeout(2000);
+
+await page.getByLabel('Factuur Taal').click();
+await page.getByLabel('Factuur Taal').fill(factuurTaal);
+await page.waitForTimeout(2000);
+await page.getByLabel('Kortingsgroep').click();
+await page.getByLabel('Kortingsgroep').fill(kortingsgroep);
+await page.waitForTimeout(2000);
+
+await page.getByLabel('Informeer via').click();
+await page.getByLabel('Informeer via').fill(informeerVia);
+await page.waitForTimeout(2000);
+await page.getByLabel('Klantkleur').click();
+await page.getByRole('option', { name: klantkleur }).click();
+await page.waitForTimeout(2000);
+await page.getByLabel('Relatie type').click();
+await page.getByLabel('Relatie type').fill(relatieType);
+await page.waitForTimeout(2000);
+await page.getByLabel('relation_via').click();
+await page.getByLabel('relation_via').fill(relationVia);
+await page.waitForTimeout(2000);
+await page.getByLabel('Gesloten dagen').click();
+await page.getByLabel('Gesloten dagen').fill(geslotenDagen);
+await page.waitForTimeout(2000);
+await page.getByLabel('Dagen niet leveren').click();
+await page.getByLabel('Dagen niet leveren').fill(dagenNietLeveren);
+await page.waitForTimeout(2000);
+
 await page.getByRole('button', { name: 'Opslaan' }).click();
 await page.waitForTimeout(2000);
 await page.getByPlaceholder('Zoeken...').click();
