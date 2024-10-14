@@ -99,7 +99,7 @@ export default function KanbanTaskItem({
           },
         }}
       >
-        {task.assignee?.map((user) => (
+        {task?.assignee?.map((user) => (
           <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
         ))}
       </AvatarGroup>

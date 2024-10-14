@@ -309,7 +309,7 @@ export default function KanbanDetails({
         <TaskAssignee 
           taskId={task.id} 
           
-          assignedUsers={Array.isArray(task.assignee) ? task.assignee : []}
+          assignedUsers={Array.isArray(task?.assignee) ? task?.assignee : []}
           
           onUpdateAssignees={(updatedAssignees) => {
             if (typeof onUpdateTask === 'function') {
