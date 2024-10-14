@@ -205,6 +205,7 @@ export default function KanbanView() {
                       key={index}
                       column={col}
                       tasks={boardData?.filter((items) => items.status === col.id)}
+
                       setBoardData={setBoardData}
                       onDeleteTask={handleDeleteTask}
                       onUpdateTask={handleUpdateTask}

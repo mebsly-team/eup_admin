@@ -8,7 +8,16 @@ import SaveIcon from '@mui/icons-material/Save';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { Chip, Select, Switch, Button, MenuItem, TextField, FormControl } from '@mui/material';
+import {
+  Chip,
+  Select,
+  Switch,
+  Button,
+  MenuItem,
+  TextField,
+  FormControl,
+  useMediaQuery,
+} from '@mui/material';
 import {
   DataGrid,
   GridRowId,
@@ -66,7 +75,6 @@ const styles = {
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
 export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
-  console.log('currentProduct', currentProduct);
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -80,6 +88,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   const [currentProductVariantRows, setCurrentProductVariantRows] = useState([]);
   const currentProductVariantIdList =
     currentProduct?.variants.map((item: { id: any }) => item.id) || [];
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
@@ -243,6 +252,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const handleEditClick = (id: GridRowId) => () => {
     router.push(`${paths.dashboard.product.edit(id)}?tab=0`);
+    window.location.reload();
   };
 
   const handleActiveSwitchChange = (row) => async (e) => {
@@ -498,10 +508,28 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       },
     },
   ];
-
+  const mobileColumns = columns.filter(
+    (col) =>
+      col.field !== 'color' &&
+      col.field !== 'size' &&
+      col.field !== 'unit' &&
+      col.field !== 'ean' &&
+      col.field !== 'quantity_per_unit' &&
+      col.field !== 'free_stock' &&
+      col.field !== 'price_per_piece'
+  );
   const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
-  const sortedRows = [...currentProductVariantRows];
+  const mainProduct = currentProductVariantRows.find((item) => !item.is_variant);
+  const updatedVariants = currentProductVariantRows.map((item) =>
+    item.is_variant
+      ? {
+          ...item,
+          free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
+        }
+      : item
+  );
+  const sortedRows = [...updatedVariants];
   sortedRows?.sort((a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit));
   return (
     <>
@@ -627,7 +655,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
         >
           <DataGrid
             rows={sortedRows}
-            columns={columns}
+            columns={isMobile ? mobileColumns : columns}
             editMode="row"
             rowModesModel={rowModesModel}
             onRowModesModelChange={handleRowModesModelChange}

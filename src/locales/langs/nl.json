@@ -610,6 +610,7 @@
   "failed": "Mislukt",
   "canceled": "Geannuleerd",
   "expired": "Verlopen",
+  "geen_resultaten": "Geen resultaten.",
   "unit_in_pallet": "Eenheid voor pallet",
   "pallet_x_value": "Pallet Lengte",
   "pallet_y_value": "Pallet Breedte",

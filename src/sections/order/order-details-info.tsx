@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
@@ -5,8 +7,13 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+
+import axiosInstance from 'src/utils/axios';
 
 import Iconify from 'src/components/iconify';
 
@@ -27,13 +34,64 @@ type Props = {
   updateOrder: any;
 };
 
+const carriers = [
+  { value: 'DHL', label: 'DHL' },
+  { value: 'POSTNL', label: 'POSTNL' },
+  { value: 'DPD', label: 'DPD' },
+];
+
 export default function OrderDetailsInfo({
   customer,
   delivery,
   payment,
   shippingAddress,
   updateOrder,
+  orderId,
+  currentOrder,
 }: Props) {
+  const [updatedShippingAddress, setUpdatedShippingAddress] = useState(shippingAddress);
+  const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
+  const [isAddressEdit, setIsAddressEdit] = useState(false);
+  const [totalWeight, setTotalWeight] = useState('');
+  const [carrier, setCarrier] = useState('');
+
+  // Function to handle address update
+  const handleAddressEditClick = (e) => {
+    setUpdatedShippingAddress(shippingAddress);
+    setIsAddressEdit(!isAddressEdit);
+  };
+  const handleAddressUpdate = (e) => {
+    const newHistory = currentOrder.history;
+    newHistory.push({
+      date: new Date(),
+      event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${
+        currentOrder?.shipping_address?.email || currentOrder?.user?.email
+      }`,
+    });
+    updateOrder(orderId, {
+      shipping_address: { ...shippingAddress, ...updatedShippingAddress },
+      history: newHistory,
+    });
+    setIsAddressEdit(false);
+  };
+
+  const handleSendOrder = async () => {
+    try {
+      const response = await axiosInstance.post(`/orders/${orderId}/send`, {
+        carrier,
+        totalWeight,
+      });
+
+      if (response.status === 200) {
+        console.log('Order sent successfully');
+      } else {
+        console.error('Failed to send order:', response.status);
+      }
+    } catch (error) {
+      console.error('Error sending order:', error);
+    }
+  };
+
   const renderCustomer = (
     <>
       <CardHeader
@@ -80,11 +138,11 @@ export default function OrderDetailsInfo({
     <>
       <CardHeader
         title="Levering"
-        // action={
-        //   <IconButton>
-        //     <Iconify icon="solar:pen-bold" />
-        //   </IconButton>
-        // }
+        action={
+          <IconButton onClick={() => setIsDeliveryEdit(!isDeliveryEdit)}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+        }
       />
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row" alignItems="center">
@@ -102,6 +160,48 @@ export default function OrderDetailsInfo({
             {delivery.trackingNumber}
           </Link>
         </Stack>
+        {isDeliveryEdit ? (
+          <>
+            {/* Total Weight Input */}
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Totaalgewicht (kg):
+              </Box>
+              <TextField
+                type="number"
+                value={totalWeight}
+                onChange={(e) => setTotalWeight(e.target.value)}
+                sx={{ width: 100 }}
+              />
+            </Stack>
+
+            {/* Carrier Select Box */}
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Vervoerder:
+              </Box>
+              <TextField
+                select
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                sx={{ width: 150 }}
+              >
+                {carriers.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+
+            {/* Send Order Button */}
+            <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
+              <Button variant="contained" onClick={handleSendOrder}>
+                Stuur
+              </Button>
+            </Stack>
+          </>
+        ) : null}
       </Stack>
     </>
   );
@@ -110,30 +210,88 @@ export default function OrderDetailsInfo({
     <>
       <CardHeader
         title="Verzending"
-        // action={
-        //   <IconButton>
-        //     <Iconify icon="solar:pen-bold" />
-        //   </IconButton>
-        // }
+        action={
+          <IconButton onClick={handleAddressEditClick}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+        }
       />
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
-        <Stack direction="row">
-          <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Adres
-          </Box>
-          {shippingAddress.line1 || ''}
-          <br />
-          {`${shippingAddress.zip_code || ''} ${shippingAddress.city || ''}`}
-          <br />
-          {shippingAddress.country || ''}
-        </Stack>
+        {isAddressEdit ? (
+          <Stack spacing={1.5}>
+            <TextField
+              label="Adres"
+              value={updatedShippingAddress.line1}
+              onChange={(e) =>
+                setUpdatedShippingAddress({ ...updatedShippingAddress, line1: e.target.value })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Postcode"
+              value={updatedShippingAddress.zip_code}
+              onChange={(e) =>
+                setUpdatedShippingAddress({ ...updatedShippingAddress, zip_code: e.target.value })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Stad"
+              value={updatedShippingAddress.city}
+              onChange={(e) =>
+                setUpdatedShippingAddress({ ...updatedShippingAddress, city: e.target.value })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Land"
+              value={updatedShippingAddress.country}
+              onChange={(e) =>
+                setUpdatedShippingAddress({ ...updatedShippingAddress, country: e.target.value })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Telefoonnummer"
+              value={updatedShippingAddress.phone_number}
+              onChange={(e) =>
+                setUpdatedShippingAddress({
+                  ...updatedShippingAddress,
+                  phone_number: e.target.value,
+                })
+              }
+              fullWidth
+            />
+            <Stack direction="row" spacing={1}>
+              <Button onClick={handleAddressUpdate} variant="contained">
+                Opslaan
+              </Button>
+              <Button variant="outlined" onClick={() => setIsAddressEdit(false)}>
+                Annuleren
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          <>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Adres
+              </Box>
+              {shippingAddress.line1 || ''}
+              <br />
+              {`${shippingAddress.zip_code || ''} ${shippingAddress.city || ''}`}
+              <br />
+              {shippingAddress.country || ''}
+            </Stack>
 
-        <Stack direction="row">
-          <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Telefoonnummer
-          </Box>
-          {shippingAddress.phone_number}
-        </Stack>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Telefoonnummer
+              </Box>
+              {shippingAddress.phone_number}
+            </Stack>
+          </>
+        )}
       </Stack>
     </>
   );

@@ -5,12 +5,15 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 
+import axiosInstance from 'src/utils/axios';
 import { fCurrency } from 'src/utils/format-number';
 
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
@@ -18,25 +21,14 @@ import { IMAGE_FOLDER_PATH } from 'src/config-global';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 
-import { IOrderProductItem } from 'src/types/order';
-
-// ----------------------------------------------------------------------
-
-type Props = {
-  taxes: number;
-  shipping: number;
-  discount: number;
-  subTotal: number;
-  totalAmount: number;
-  items: IOrderProductItem[];
-};
-
 export default function OrderDetailsItems({ currentOrder, updateOrder }) {
-  const { cart, sub_total, total } = currentOrder;
+  const { cart } = currentOrder;
+  console.log('cart', cart);
 
-  // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
+  console.log('editedCart', editedCart);
+  const [ean, setEan] = useState(''); // New state for EAN
 
   useEffect(() => {
     if (cart) setEditedCart(cart);
@@ -46,11 +38,55 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     setIsEditing(!isEditing);
   };
 
+  // Fetch product details using EAN
+  const getProductDetails = async (eanSearch: string) => {
+    if (!eanSearch) return;
+    try {
+      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
+      if (response.status === 200) {
+        const product = response.data?.[0];
+        if (product) {
+          const newItem = {
+            id: product.id,
+            product,
+            quantity: 1,
+            completed: false,
+          };
+          setEditedCart((prev: { items: any }) => ({ ...prev, items: [...prev.items, newItem] }));
+          setEan('');
+        }
+      } else {
+        console.error('Failed to fetch product, status code:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    }
+  };
+
+  const handleVariantChange = async (item, variantId) => {
+    try {
+      const response = await axiosInstance.get(`/products/${variantId}/`);
+      if (response.status === 200) {
+        const product = response.data;
+        if (product) {
+          const newItem = {
+            id: product.id,
+            product,
+            quantity: 1,
+            completed: false,
+          };
+          const updatedItems = editedCart.items.filter((i) => item.id !== i.id);
+          console.log('updatedItems', updatedItems)
+          setEditedCart({ ...editedCart, items: [...updatedItems, newItem] });
+        }
+      } else {
+        console.error('Failed to fetch product, status code:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    }
+  };
   const handleItemChange = (id, key, value) => {
-    /* 
-    price_per_unit : 2
-    product_item_total_price: 49.95
-    */
     const updatedItems = editedCart.items.map((item) =>
       item.id === id ? { ...item, [key]: value } : item
     );
@@ -70,7 +106,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     const shippingFee = Number(editedCart?.shipping_fee) || 0;
     const transactionFee = Number(editedCart?.transaction_fee) || 0;
     const discount = Number(editedCart?.cart_discount) || 0;
-
     return subtotal + shippingFee + transactionFee - discount;
   };
 
@@ -81,7 +116,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     // Check for changes in items
     editedCart.items.forEach((editedItem) => {
       const originalItem = cart.items.find((item) => item.id === editedItem.id);
-
       if (!originalItem) {
         changes.push(`Toegevoegd item: ${editedItem.product.title}`);
         return;
@@ -97,7 +131,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         changes.push(
           `Prijs van ${editedItem.product.title} bijgewerkt van ${fCurrency(
             originalItem.product.price_per_unit
-          )} naar  ${fCurrency(editedItem.product.price_per_unit)}`
+          )} naar ${fCurrency(editedItem.product.price_per_unit)}`
         );
       }
 
@@ -114,7 +148,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         changes.push(`Verwijderd item: ${originalItem.product.title}`);
       }
     });
-
     // Check for changes in fees and discounts
     if (editedCart.shipping_fee !== cart.shipping_fee) {
       changes.push(
@@ -277,7 +310,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 variant="rounded"
                 sx={{ width: 48, height: 48, mr: 2 }}
               />
-
               <ListItemText
                 primary={item.product.title}
                 secondary={item.product.article_code}
@@ -287,6 +319,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
 
               {isEditing ? (
                 <>
+                  <Select
+                    value={item.product.id}
+                    onChange={(e) => handleVariantChange(item, e.target.value)}
+                    label=""
+                  >
+                    <MenuItem value={item.product.id}>{item.product.unit}</MenuItem>
+                    {item?.product?.variants.map((v, i) => (
+                      <MenuItem key={i} value={v.id}>
+                        {v.unit}
+                      </MenuItem>
+                    ))}
+                  </Select>
                   <TextField
                     type="number"
                     value={item.quantity}
@@ -318,14 +362,28 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             </Stack>
           ))}
         </Scrollbar>
-
+        {isEditing && (
+          <Stack direction="row" spacing={2} sx={{ my: 2 }}>
+            <TextField
+              label="EAN"
+              value={ean}
+              onChange={(e) => setEan(e.target.value)}
+              sx={{ width: 200 }}
+            />
+            <Button variant="contained" onClick={() => getProductDetails(ean)}>
+              Product toevoegen
+            </Button>
+          </Stack>
+        )}
         {renderTotal}
 
         {isEditing && (
-          <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ my: 2 }}>
-            <Button onClick={handleCancel}>Cancel</Button>
+          <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ px: 3, py: 2 }}>
+            <Button variant="outlined" color="error" onClick={handleCancel}>
+              Annuleren
+            </Button>
             <Button variant="contained" onClick={handleSave}>
-              Save
+              Opslaan
             </Button>
           </Stack>
         )}

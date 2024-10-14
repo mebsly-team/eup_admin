@@ -35,6 +35,7 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { countries } from 'src/assets/data';
+import { useGetProduct } from 'src/api/product';
 import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
@@ -52,15 +53,13 @@ import FormProvider, {
 
 import { CategorySelector } from 'src/sections/category/CategorySelector';
 
-import { IProductItem } from 'src/types/product';
-
 import Rating from './Rating';
 import ProductVariantForm from './product-variant-form';
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  currentProduct?: IProductItem;
+  id: string;
 };
 
 function updateQueryParams(key, value) {
@@ -68,8 +67,9 @@ function updateQueryParams(key, value) {
   url.searchParams.set(key, value);
   window.history.replaceState({}, '', url);
 }
-export default function ProductNewEditForm({ currentProduct }: Props) {
-  console.log('currentProduct', currentProduct);
+export default function ProductNewEditForm({ id }: Props) {
+  const { product: currentProduct } = useGetProduct(id);
+
   const router = useRouter();
   const location = useLocation();
   const isNewProduct = location?.pathname?.includes('/new');
@@ -331,12 +331,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             Number(parentProduct?.order_unit_amount || 0) /
               Number(currentProduct?.quantity_per_unit)
           )
-        : currentProduct?.min_stock_value || 0, // minimumvoorraad
+        : currentProduct?.order_unit_amount || 0, // minimumvoorraad
       min_order_amount: currentProduct?.is_variant
         ? Math.floor(
             Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
           )
-        : currentProduct?.min_stock_value || 0, // minimumvoorraad
+        : currentProduct?.min_order_amount || 0, // minimumvoorraad
       min_stock_value: currentProduct?.is_variant
         ? Math.floor(
             Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
@@ -360,8 +360,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
       delivery_time: currentProduct?.delivery_time || '',
       important_information: currentProduct?.important_information || '',
-      extra_etiket_nl: currentProduct?.extra_etiket_nl || '',
-      extra_etiket_fr: currentProduct?.extra_etiket_fr || '',
+      extra_etiket_nl: currentProduct?.is_variant
+        ? parentProduct?.extra_etiket_nl
+        : currentProduct?.extra_etiket_nl | '',
+      extra_etiket_fr: currentProduct?.is_variant
+        ? parentProduct?.extra_etiket_fr
+        : currentProduct?.extra_etiket_fr | '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
       sell_count: currentProduct?.is_variant
         ? Math.floor(
@@ -674,7 +678,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
     );
     setValue(
       'max_order_allowed_per_unit',
-      Math.round(Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(watch('quantity_per_unit')))
+      Math.round(
+        Number(parentProduct?.max_order_allowed_per_unit || 0) / Number(watch('quantity_per_unit'))
+      )
     );
     if (currentProduct?.is_variant) {
       setValue(
@@ -683,7 +689,9 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
       );
       setValue(
         'max_stock_at_rack',
-        Math.floor(Number(parentProduct?.max_stock_at_rack || 0) / Number(watch('quantity_per_unit')))
+        Math.floor(
+          Number(parentProduct?.max_stock_at_rack || 0) / Number(watch('quantity_per_unit'))
+        )
       );
       setValue(
         'free_stock',
@@ -704,7 +712,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   console.log('getValues', getValues());
 
   useEffect(() => {
-    if (currentProduct) {
+    if (currentProduct?.id) {
       reset(defaultValues);
     }
   }, [currentProduct, defaultValues, reset]);
@@ -733,10 +741,12 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
       if (activeAction === 'save_stay') {
         // Do nothing, stay on the same page
+        window.location.reload();
       } else if (activeAction === 'save_back') {
-        if (currentProduct?.is_variant)
+        if (currentProduct?.is_variant) {
           router.push(`/dashboard/product/${currentProduct?.parent_product}/edit?tab=1`);
-        else router.back();
+          window.location.reload();
+        } else router.back();
       }
     } catch (error) {
       console.log('error', error);
@@ -918,18 +928,20 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
             <RHFTextField name="ean" label={t('ean')} labelColor="violet" />
             <RHFTextField name="sku" label={t('sku')} />
             <RHFTextField name="hs_code" label={t('hs_code')} />
-            <RHFSelect name="unit" label={t('unit')} labelColor="violet">
-              <MenuItem value="piece">{t('piece')}</MenuItem>
-              <MenuItem value="package">{t('package')}</MenuItem>
-              <MenuItem value="rol">{t('rol')}</MenuItem>
-              <MenuItem value="box">{t('box')}</MenuItem>
-              {currentProduct?.is_variant && (
-                <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-              )}
-              {currentProduct?.is_variant && (
-                <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
-              )}
-            </RHFSelect>
+            {(!currentProduct?.id || (currentProduct?.id && getValues('unit'))) && (
+              <RHFSelect name="unit" label={t('unit')} labelColor="violet">
+                <MenuItem value="piece">{t('piece')}</MenuItem>
+                <MenuItem value="package">{t('package')}</MenuItem>
+                <MenuItem value="rol">{t('rol')}</MenuItem>
+                <MenuItem value="box">{t('box')}</MenuItem>
+                {currentProduct?.is_variant && (
+                  <>
+                    <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
+                    <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+                  </>
+                )}
+              </RHFSelect>
+            )}
 
             <RHFSelect
               name="color"
@@ -1015,6 +1027,14 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
   const renderDetails2 = (
     <Grid xs={12}>
       <Card>
+        <IconButton
+          onClick={() => {
+            getAllSuppliers();
+            getAllBrands();
+          }}
+        >
+          <Iconify icon="eva:refresh-fill" />
+        </IconButton>
         <CardHeader title={t('basic_information2')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
@@ -1039,8 +1059,16 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                     {brandList.find((item) => item.id === option)?.name || ''}
                   </li>
                 )}
+                noOptionsText={
+                  <span>
+                    {t('geen_resultaten')}
+                    <a target="_blank" href="/dashboard/brand/new">
+                      {t('create_brand')}
+                    </a>
+                  </span>
+                }
               />
-            ) : (
+            ) : currentProduct?.brand?.id ? (
               <Box>
                 <Link
                   href={paths.dashboard.brand.edit(currentProduct?.brand?.id)}
@@ -1051,7 +1079,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                     fontWeight: 'normal',
                     textDecoration: 'underline',
                     cursor: 'pointer',
-                    color: 'inherit',
+                    color: 'violet',
                   }}
                 >
                   {`${t('brand')}: ${getValues('brand') ? getValues('brand')?.name : '-'}`}
@@ -1059,9 +1087,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
                 <Typography
                   typography="caption"
-                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
                   onClick={handleBrandEditClick}
                 >{`${t('edit')}`}</Typography>
+              </Box>
+            ) : (
+              <Box>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
+                  onClick={handleBrandEditClick}
+                >{`${t('brand')} ${t('edit')}:`}</Typography>
               </Box>
             )}
 
@@ -1078,8 +1114,16 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                     {supplierList.find((item) => item.id === option)?.name || ''}
                   </li>
                 )}
+                noOptionsText={
+                  <span>
+                    {t('geen_resultaten')}
+                    <a target="_blank" href="/dashboard/supplier/new">
+                      {t('create_supplier')}
+                    </a>
+                  </span>
+                }
               />
-            ) : (
+            ) : currentProduct?.supplier?.id ? (
               <Box>
                 <Link
                   href={paths.dashboard.supplier.edit(currentProduct?.supplier?.id)}
@@ -1090,7 +1134,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                     fontWeight: 'normal',
                     textDecoration: 'underline',
                     cursor: 'pointer',
-                    color: 'inherit',
+                    color: 'violet',
                   }}
                 >
                   {`${t('supplier')}: ${
@@ -1100,9 +1144,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
 
                 <Typography
                   typography="caption"
-                  sx={{ alignSelf: 'center', color: 'blue', cursor: 'pointer' }}
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
                   onClick={handleSupplierEditClick}
                 >{`${t('edit')}`}</Typography>
+              </Box>
+            ) : (
+              <Box>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
+                  onClick={handleSupplierEditClick}
+                >{`${t('supplier')} ${t('edit')}:`}</Typography>{' '}
               </Box>
             )}
           </Box>
@@ -1271,7 +1323,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}
                 onSave={(ct) => {
-                  currentProduct.categories = ct;
+                  if (currentProduct?.id) currentProduct.categories = ct;
                   setValue('categories', ct);
                   setOpenDialogCategory(false); // Close the dialog after saving
                 }}
@@ -1282,11 +1334,17 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                 {t('selected_categories')}:
               </Typography>
               <ul>
-                {currentProduct?.categories?.map((category, index) => (
-                  <li key={index}>
-                    {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                  </li>
-                ))}
+                {currentProduct?.id
+                  ? currentProduct?.categories?.map((category, index) => (
+                      <li key={index}>
+                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                      </li>
+                    ))
+                  : getValues('categories')?.map((category, index) => (
+                      <li key={index}>
+                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                      </li>
+                    ))}
               </ul>
             </div>
             <Typography typography="caption" sx={{ color: 'error.main' }}>
@@ -1882,7 +1940,7 @@ export default function ProductNewEditForm({ currentProduct }: Props) {
                   {t('is_taken_from_another_package')}
                 </Typography>
               }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between', color: 'violet' }}
             />
             <RHFTextField
               sx={{ pointerEvents: getValues('is_taken_from_another_package') ? 'auto' : 'none' }}
