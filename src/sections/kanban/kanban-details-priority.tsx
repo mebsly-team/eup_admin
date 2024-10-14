@@ -14,7 +14,7 @@ type Props = {
 export default function KanbanDetailsPriority({ priority, onChangePriority }: Props) {
   return (
     <Stack direction="row" flexWrap="wrap" spacing={1}>
-      {['LOW', 'MEDIUM', 'HIGH'].map((option) => (
+      {['LOW', 'MEDIUM', 'HIGH']?.map((option) => (
         <ButtonBase
           key={option}
           onClick={() => onChangePriority(option)}

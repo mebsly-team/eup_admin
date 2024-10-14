@@ -15,7 +15,7 @@ export default function KanbanDetailsAttachments({ attachments }: Props) {
 
   const handleDrop = useCallback(
     (acceptedFiles: File[]) => {
-      const newFiles = acceptedFiles.map((file: File) =>
+      const newFiles = acceptedFiles?.map((file: File) =>
         Object.assign(file, {
           preview: URL.createObjectURL(file),
         })
@@ -28,7 +28,7 @@ export default function KanbanDetailsAttachments({ attachments }: Props) {
 
   const handleRemoveFile = useCallback(
     (inputFile: File | string) => {
-      const filtered = files.filter((file) => file !== inputFile);
+      const filtered = files?.filter((file) => file !== inputFile);
       setFiles(filtered);
     },
     [files]

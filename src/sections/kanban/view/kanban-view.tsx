@@ -45,7 +45,7 @@ export default function KanbanView() {
     if (savedBoard) {
       const parsedBoard = JSON.parse(savedBoard);
       // id'leri string'e çevir
-      return parsedBoard.map((task: IKanbanTask) => ({
+      return parsedBoard?.map((task: IKanbanTask) => ({
         ...task,
         id: task.id.toString()
       }));
@@ -73,9 +73,9 @@ export default function KanbanView() {
   const handleUpdateTask = useCallback((updatedTask: IKanbanTask) => {
     console.log('handleUpdateTask çağrıldı', updatedTask);
     setBoardData((prevBoard) =>
-      prevBoard.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+      prevBoard?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
     );
-    localStorage.setItem('kanbanBoard', JSON.stringify(boardData.map(task => 
+    localStorage.setItem('kanbanBoard', JSON.stringify(boardData?.map(task => 
       task.id === updatedTask.id ? updatedTask : task
     )));
   }, [boardData]);
@@ -83,8 +83,8 @@ export default function KanbanView() {
   const handleDeleteTask = useCallback(async (taskId: string) => {
     try {
       await deleteTask(taskId);
-      setBoardData((prevBoard) => prevBoard.filter((task) => task.id !== taskId));
-      localStorage.setItem('kanbanBoard', JSON.stringify(boardData.filter((task) => task.id !== taskId)));
+      setBoardData((prevBoard) => prevBoard?.filter((task) => task.id !== taskId));
+      localStorage.setItem('kanbanBoard', JSON.stringify(boardData?.filter((task) => task.id !== taskId)));
     } catch (error) {
       console.error('Görev silme hatası:', error);
     }
@@ -140,7 +140,7 @@ export default function KanbanView() {
 
   const renderSkeleton = (
     <Stack direction="row" alignItems="flex-start" spacing={3}>
-      {[...Array(4)].map((_, index) => (
+      {[...Array(4)]?.map((_, index) => (
         <KanbanColumnSkeleton key={index} index={index} />
       ))}
     </Stack>
@@ -204,7 +204,8 @@ export default function KanbanView() {
                       index={index}
                       key={index}
                       column={col}
-                      tasks={boardData.filter((items) => items.status === col.id)}
+                      tasks={boardData?.filter((items) => items.status === col.id)}
+
                       setBoardData={setBoardData}
                       onDeleteTask={handleDeleteTask}
                       onUpdateTask={handleUpdateTask}

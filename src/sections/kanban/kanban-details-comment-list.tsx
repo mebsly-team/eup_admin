@@ -16,8 +16,8 @@ type Props = {
 
 export default function KanbanDetailsCommentList({ comments }: Props) {
   const slides = comments
-    .filter((comment) => comment.messageType === 'image')
-    .map((slide) => ({ src: slide.message }));
+    ?.filter((comment) => comment.messageType === 'image')
+    ?.map((slide) => ({ src: slide.message }));
 
   const lightbox = useLightBox(slides);
 
