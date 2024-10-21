@@ -848,7 +848,7 @@ export default function ProductNewEditForm({ id }: Props) {
               null,
 
             quantity_per_unit: Number(
-              snelProduct?.extraVelden?.find((v) => v.naam === 'AantalPerVerpakking')?.waarde || 0
+              snelProduct?.extraVelden?.find((v) => v.naam === 'Aantal voor web')?.waarde || 0
             ),
             price_per_piece: snelProduct?.verkoopprijs || 0,
             price_consumers: Number(
