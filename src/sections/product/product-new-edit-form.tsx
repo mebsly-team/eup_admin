@@ -798,54 +798,72 @@ export default function ProductNewEditForm({ id }: Props) {
     [enqueueSnackbar, router, t]
   );
 
-  const handleImportFromSnelstart = async ({ id }) => {
+  const handleImportFromSnelstart = async ({ id, onlyStock = false }) => {
     try {
       const response = await axiosInstance.get(`/snelstart/product/?id=${id}`);
       const snelProduct = response?.data?.[0] || {};
-      const valuesToSet = {
-        ...getValues(),
-        title: snelProduct?.omschrijving || '',
-        title_long:
-          snelProduct?.extraVelden?.find((v) => v.naam === 'ExtraOmschrijvingLang')?.waarde ||
-          snelProduct?.omschrijving ||
-          '',
+      const valuesToSet = onlyStock
+        ? {
+            ...getValues(),
+            overall_stock: snelProduct?.technischeVoorraad || 0,
+            free_stock: snelProduct?.vrijeVoorraad || 0,
+          }
+        : {
+            ...getValues(),
+            title: snelProduct?.omschrijving || '',
+            title_long:
+              snelProduct?.extraVelden?.find((v) => v.naam === 'ExtraOmschrijvingLang')?.waarde ||
+              snelProduct?.omschrijving ||
+              '',
 
-        min_price_to_sell: snelProduct?.verkoopprijs || 0,
-        ean: snelProduct?.artikelcode || '',
-        sku:
-          snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')?.waarde ||
-          '',
-        supplier_article_code:
-          snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')?.waarde ||
-          '',
-        brand:
-          snelProduct?.extraVelden?.find((v) => v.naam === 'Merk')?.waarde ||
-          currentProduct?.brand ||
-          null,
+            min_price_to_sell: snelProduct?.verkoopprijs || 0,
+            ean: snelProduct?.artikelcode || '',
+            sku:
+              snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
+                ?.waarde || '',
+            supplier_article_code:
+              snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
+                ?.waarde || '',
+            brand:
+              brandList.find(
+                (item) =>
+                  item.name === snelProduct?.extraVelden?.find((v) => v.naam === 'Merk')?.waarde
+              ) ||
+              currentProduct?.brand ||
+              null,
+            supplier:
+              supplierList.find(
+                (item) =>
+                  item.name ===
+                  snelProduct?.extraVelden?.find(
+                    (v) =>
+                      (v.naam === 'Leverancier1' && v.waarde !== null) ||
+                      (v.naam === 'Leverancier2' && v.waarde !== null) ||
+                      (v.naam === 'Leverancier3' && v.waarde !== null) ||
+                      (v.naam === 'Leverancier4' && v.waarde !== null) ||
+                      (v.naam === 'Leverancier5' && v.waarde !== null)
+                  )?.waarde
+              ) ||
+              currentProduct?.supplier ||
+              null,
 
-        supplier:
-          snelProduct?.extraVelden?.find(
-            (v) =>
-              (v.naam === 'Leverancier1' && v.waarde !== null) ||
-              (v.naam === 'Leverancier2' && v.waarde !== null) ||
-              (v.naam === 'Leverancier3' && v.waarde !== null) ||
-              (v.naam === 'Leverancier4' && v.waarde !== null) ||
-              (v.naam === 'Leverancier5' && v.waarde !== null)
-          )?.waarde ||
-          currentProduct?.supplier ||
-          null,
-
-        quantity_per_unit: Number(
-          snelProduct?.extraVelden?.find((v) => v.naam === 'AantalPerVerpakking')?.waarde || 0
-        ),
-        price_per_piece: snelProduct?.verkoopprijs || 0,
-        price_consumers: Number(
-          snelProduct?.extraVelden?.find((v) => v.naam === 'ConsumentenPrijs')?.waarde || 0
-        ),
-        price_cost: snelProduct?.inkoopprijs || 0,
-        overall_stock: snelProduct?.technischeVoorraad || 0,
-        free_stock: snelProduct?.vrijeVoorraad || 0,
-      };
+            quantity_per_unit: Number(
+              snelProduct?.extraVelden?.find((v) => v.naam === 'AantalPerVerpakking')?.waarde || 0
+            ),
+            price_per_piece: snelProduct?.verkoopprijs || 0,
+            price_consumers: Number(
+              snelProduct?.extraVelden?.find((v) => v.naam === 'ConsumentenPrijs')?.waarde || 0
+            ),
+            price_cost: snelProduct?.inkoopprijs || 0,
+            overall_stock: snelProduct?.technischeVoorraad || 0,
+            free_stock: snelProduct?.vrijeVoorraad || 0,
+            location: snelProduct?.extraVelden?.find((v) => v.naam === 'Locatie')?.waarde || '',
+            extra_location:
+              snelProduct?.extraVelden?.find((v) => v.naam === 'Extra Locatie')?.waarde || '',
+            languages_on_item_package:
+              snelProduct?.extraVelden?.find((v) => v.naam === 'WelkeTaal')?.waarde?.split('/') ||
+              [],
+          };
 
       reset(valuesToSet);
     } catch (error) {
@@ -876,65 +894,6 @@ export default function ProductNewEditForm({ id }: Props) {
     </Tabs>
   );
 
-  // const handleImportMainProduct = async () => {
-  //   if (currentProduct?.parent_product) {
-  //     const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
-  //     const {
-  //       title,
-  //       images,
-  //       hs_code,
-  //       has_electronic_barcode,
-  //       sku,
-  //       brand,
-  //       supplier,
-  //       is_only_for_logged_in_user,
-  //       is_used,
-  //       location,
-  //       categories,
-  //       ...copyData
-  //     } = {
-  //       ...response?.data,
-  //     };
-  //     if (['box', 'pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
-  //       delete copyData.quantity_per_unit;
-  //       delete copyData.price_per_unit;
-  //       delete copyData.max_order_allowed_per_unit;
-  //       delete copyData.order_unit_amount;
-  //       delete copyData.min_order_amount;
-  //       delete copyData.min_stock_value;
-  //       delete copyData.max_stock_at_rack;
-  //       delete copyData.price_per_piece;
-  //       delete copyData.price_consumers;
-  //       delete copyData.price_cost;
-  //       delete copyData.size_unit;
-  //       delete copyData.size_x_value;
-  //       delete copyData.size_y_value;
-  //       delete copyData.size_z_value;
-  //       delete copyData.volume_unit;
-  //       delete copyData.liter;
-  //       delete copyData.pallet_layer_total_number;
-  //       delete copyData.weight;
-  //       delete copyData.pallet_full_total_number;
-  //       delete copyData.is_brief_box;
-  //     }
-  //     if (!['pallet_layer', 'pallet_full'].includes(copyData?.unit)) {
-  //       delete copyData.ean;
-  //       delete copyData.article_code;
-  //     }
-  //     reset({
-  //       title: getValues('title'),
-  //       ean: getValues('ean'),
-  //       article_code: getValues('article_code'),
-  //       hs_code: getValues('hs_code'),
-  //       sku: getValues('sku'),
-  //       supplier,
-  //       brand,
-  //       categories: categories || [],
-  //       ...copyData,
-  //     });
-  //   }
-  // };
-
   const handleBrandEditClick = () => {
     getAllBrands();
     setBrandEdit(true);
@@ -958,17 +917,16 @@ export default function ProductNewEditForm({ id }: Props) {
             </Typography>
           )}
         </Box>
-        {!currentProduct?.is_variant && (
-          <Typography
-            fontSize="14px"
-            color="blue"
-            sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
-            // onClick={handleImportFromSnelstart}
-            onClick={() => handleImportFromSnelstart({ id: getValues('article_code') })}
-          >
-            {t('import_from_snelstart')}
-          </Typography>
-        )}
+        <Typography
+          fontSize="14px"
+          color="blue"
+          sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
+          // onClick={handleImportFromSnelstart}
+          onClick={() => handleImportFromSnelstart({ id: getValues('article_code') })}
+        >
+          {t('import_from_snelstart')}
+        </Typography>
+
         {/* {currentProduct?.is_variant && (
           <Typography
             fontSize="14px"
@@ -1758,7 +1716,11 @@ export default function ProductNewEditForm({ id }: Props) {
             <RHFTextField name="location" label={t('location')} labelColor="violet" />
             <RHFTextField name="location_stock" label={t('location_stock')} labelColor="violet" />
             <RHFTextField name="extra_location" label={t('extra_location')} labelColor="violet" />
-            <RHFTextField name="extra_location_stock" label={t('extra_location_stock')} labelColor="violet" />
+            <RHFTextField
+              name="extra_location_stock"
+              label={t('extra_location_stock')}
+              labelColor="violet"
+            />
             <RHFSelect name="delivery_time" label={t('delivery_time')}>
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
@@ -2427,6 +2389,18 @@ export default function ProductNewEditForm({ id }: Props) {
       }}
     >
       <Card>
+        {' '}
+        <Typography
+          fontSize="14px"
+          color="blue"
+          sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
+          // onClick={handleImportFromSnelstart}
+          onClick={() =>
+            handleImportFromSnelstart({ id: getValues('article_code'), onlyStock: true })
+          }
+        >
+          {t('get_stock_from_snelstart')}
+        </Typography>
         <CardHeader title={t('stock')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box

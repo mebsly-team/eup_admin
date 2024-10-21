@@ -609,5 +609,7 @@
   "pallet_x_value": "Pallet Lengte",
   "pallet_y_value": "Pallet Breedte",
   "pallet_z_value": "Pallet Hoogte",
-  "pallet_max_weight_value": "Pallet Max Gewicht"
+  "pallet_max_weight_value": "Pallet Max Gewicht",
+  "import_from_snelstart": "import alles van snelstart",
+  "get_stock_from_snelstart": "voorraad van snelstart"
 }
