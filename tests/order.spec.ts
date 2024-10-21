@@ -27,23 +27,27 @@ test('Order test', async ({}) => {
     async function scrollElementIntoView(element: ElementHandle) {
         await element.scrollIntoViewIfNeeded();
     }
-    await page.getByRole('button', { name: 'Bestelling' }).click();
-    await page.waitForTimeout(2000);
-    await page.getByRole('button', { name: 'Lijst' }).click();
-    await page.waitForTimeout(2000);
-
-    const analyticsButton = await page.getByRole('button', { name: 'analytics' });
-    await scrollElementIntoView(analyticsButton);
-    await analyticsButton.click();
-    await page.waitForTimeout(2000);
-    const orderButton = await page.getByRole('button', { name: 'order' });
-    await scrollElementIntoView(orderButton);
-    await orderButton.click();
-    await page.waitForTimeout(2000);
-    const listButton = await page.getByRole('button', { name: 'list' });
-    await scrollElementIntoView(listButton);
-    await listButton.click();
-    await page.waitForTimeout(2000);
+    
+  await page.getByRole('button', { name: 'Bestelling' }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Lijst' }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole('tab', { name: 'Order', exact: true }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Clear' }).click();
+  await page.waitForTimeout(2000);
+    // const analyticsButton = await page.getByRole('button', { name: 'analytics' });
+    // await scrollElementIntoView(analyticsButton);
+    // await analyticsButton.click();
+    // await page.waitForTimeout(2000);
+    // const orderButton = await page.getByRole('button', { name: 'order' });
+    // await scrollElementIntoView(orderButton);
+    // await orderButton.click();
+    // await page.waitForTimeout(2000);
+    // const listButton = await page.getByRole('button', { name: 'list' });
+    // await scrollElementIntoView(listButton);
+    // await listButton.click();
+    // await page.waitForTimeout(2000);
     function generateRandomStartDate() {
         const startDate = new Date(2024, 0, 1).getTime();
         const endDate = new Date(2024, 1, 29).getTime();
@@ -55,10 +59,10 @@ test('Order test', async ({}) => {
     
         return `${month}/${day}/${year}`;
     }
-    await page.getByLabel('Start date').click();
+    await page.getByLabel('Begindatum').click();
     
     await page.waitForTimeout(2000);
-    await page.getByLabel('Start date').fill(generateRandomStartDate());
+    await page.getByLabel('Begindatum').fill(generateRandomStartDate());
     
     await page.waitForTimeout(3000);
     const currentDate = new Date();
@@ -67,38 +71,80 @@ test('Order test', async ({}) => {
     const currentYear = currentDate.getFullYear(); 
     const formattedCurrentDate = `${currentMonth}/${currentDay}/${currentYear}`;
     
-    await page.getByLabel('End date').click();
+    await page.getByLabel('Einddatum').click();
     
     await page.waitForTimeout(2000);
-    await page.getByLabel('End date').fill(formattedCurrentDate);
-    
-    
-
+    await page.getByLabel('Einddatum').fill(formattedCurrentDate);
     await page.waitForTimeout(3000);
-    
-    await page.getByPlaceholder('Search customer or order').click();
+    await page.getByLabel('rows per page').click();
     await page.waitForTimeout(2000);
-    await page.getByPlaceholder('Search customer or order').fill('Selina Boyer');
+    await page.getByRole('option', { name: '100' }).click();
     await page.waitForTimeout(2000);
-    await page.getByRole('row', { name: '#60117 S Selina Boyer dawn.' }).getByRole('button').first().click();
+    await page.getByPlaceholder('Zoeken...').click();
     await page.waitForTimeout(2000);
-    await page.getByRole('row', { name: '#60117 S Selina Boyer dawn.' }).getByRole('button').nth(1).click();
+    await page.getByPlaceholder('Zoeken...').fill('243f5093@anonymous.com');
     await page.waitForTimeout(2000);
-    await page.getByRole('menuitem', { name: 'View' }).click();
+
+    await page.getByRole('row', { name: '30 243f5093@anonymous.com' }).getByRole('checkbox').check();
     await page.waitForTimeout(2000);
-    await page.getByRole('button', { name: 'completed' }).click();
+    await page.getByRole('row', { name: '30 243f5093@anonymous.com' }).getByRole('button').first().click();
     await page.waitForTimeout(2000);
-    await page.getByRole('menuitem', { name: 'Completed' }).click();
+    await page.getByRole('row', { name: '30 243f5093@anonymous.com' }).getByRole('button').nth(1).click();
     await page.waitForTimeout(2000);
-    await page.getByRole('main').getByRole('link').click();
+    await page.getByRole('menuitem', { name: 'Bekijk' }).click();
     await page.waitForTimeout(2000);
-    await page.getByRole('tab', { name: 'Pending' }).click();
+    await page.locator('.MuiCardHeader-action > .MuiButtonBase-root').first().click();
     await page.waitForTimeout(2000);
-    await page.getByRole('tab', { name: 'Completed' }).click();
+    await page.getByRole('spinbutton').first().click();
     await page.waitForTimeout(2000);
-    await page.getByRole('tab', { name: 'Cancelled' }).click();
+    await page.getByRole('spinbutton').first().fill('12');
     await page.waitForTimeout(2000);
-    await page.getByRole('tab', { name: 'Refunded' }).click();
+    await page.getByRole('spinbutton').first().click();
     await page.waitForTimeout(2000);
+    await page.getByRole('spinbutton').first().fill('4.9');
+    await page.waitForTimeout(2000);
+    await page.getByRole('spinbutton').nth(1).click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('spinbutton').nth(1).fill('0.0');
+    await page.waitForTimeout(2000);
+    await page.getByRole('spinbutton').nth(2).click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('spinbutton').nth(2).fill('0.004');
+    await page.waitForTimeout(2000);
+    await page.getByRole('button', { name: 'Opslaan' }).click();
+    await page.waitForTimeout(2000);
+    await page.locator('div:nth-child(4) > .MuiCardHeader-action > .MuiButtonBase-root').click();
+    await page.waitForTimeout(2000);
+    await page.locator('div:nth-child(4) > .MuiCardHeader-action > .MuiButtonBase-root').click();
+    await page.waitForTimeout(2000);
+    await page.locator('div:nth-child(7) > .MuiCardHeader-action > .MuiButtonBase-root').click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('button', { name: 'Opslaan' }).click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('main').getByRole('link').first().click();
+    await page.waitForTimeout(2000);
+  
+    // await page.getByRole('row', { name: '3b1e1254@anonymous.com' }).getByRole('button').first().click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('row', { name: '3b1e1254@anonymous.com' }).getByRole('button').nth(1).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('menuitem', { name: 'Bekijk' }).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('button', { name: 'completed' }).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('menuitem', { name: 'Completed' }).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('main').getByRole('link').click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('tab', { name: 'Pending' }).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('tab', { name: 'Completed' }).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('tab', { name: 'Cancelled' }).click();
+    // await page.waitForTimeout(2000);
+    // await page.getByRole('tab', { name: 'Refunded' }).click();
+    // await page.waitForTimeout(2000);
+
+
 
   });

@@ -37,15 +37,7 @@ test('Product Page test', async ({}) => {
     await page.getByRole('button', { name: 'Reset' }).click();
     await page.waitForTimeout(3000);
     await page.getByLabel('Categorie').click();
-    // await page.getByRole('option', { name: 'Auto' }).click();
-    // await page.waitForTimeout(3000);
-    // await page.getByLabel('Categorie').click();
-    // await page.getByRole('option', { name: 'Baby & peuter' }).click();
-    // await page.waitForTimeout(3000);
-    // await page.getByLabel('Categorie').click();
-    // await page.getByRole('option', { name: 'Boeken' }).click();
-    // await page.waitForTimeout(3000);
-    // await page.getByRole('button', { name: 'Reset' }).click();
+
     await page.waitForTimeout(3000);
     await page.getByPlaceholder('Zoeken').click();
     await page.waitForTimeout(3000);
@@ -150,6 +142,8 @@ await page.waitForTimeout(5000);
 
 
 
+
+
 test(' Create New Product Page test', async ({}) => {
   test.setTimeout(280000);
     await page.getByRole('button', { name: 'Product' }).click();
@@ -202,18 +196,18 @@ await page.getByRole('option', { name: randomUnit }).click();
 await page.waitForTimeout(2000);
 
 const colors = [
-  'Rood', 'Blauw', 'Groen', 'Geel', 'Bruin', 'Roze', 'Paars', 'Zwart',
+  'Rood', 'Blauw', 'Geel', 'Bruin', 'Roze', 'Paars', 'Zwart',
   'Wit', 'Oranje', 'Grijs', 'Cyaan', 'Magenta', 'Turkoois', 'Goud',
   'Zilver', 'Lavendel', 'Teal', 'Indigo', 'Olijf',
   'Zalm', 'Perzik', 'Violet', 'Koraal', 'Limoen', 'Beige', 'Khaki',
-   'Fuchsia', 'Ivoor', 'Bruin', 'Mintgroen'
+   'Fuchsia', 'Ivoor'
 ];
 const randomIndex1 = Math.floor(Math.random() * colors.length);
 
 const randomColor = colors[randomIndex1];
 
 await page.getByLabel('Kleur', { exact: true }).click();
-await page.getByRole('option', { name: randomColor }).click();
+await page.getByRole('option', { name: "Oranje" }).click();
 await page.waitForTimeout(2000);
 
 function generateVariant() {
@@ -225,11 +219,48 @@ await page.getByLabel('Variant').click();
 await page.getByLabel('Variant').fill(variant);
 await page.waitForTimeout(2000);
 
+function generateProduct() {
+  const products = [
+    'Vanilla Fresh Laundry Detergent 2L',
+    'Tropical Breeze Dishwashing Liquid 1L',
+    'Fresh Mountain Air Freshener 500ml',
+    'Chamomile Hand Wash 300ml',
+    'Crystal Clear Glass Cleaner 750ml',
+    'Orange Blossom Multi-Surface Cleaner 2L',
+    'Extra Strength Floor Cleaner 1.5L',
+    'Cool Mint Toilet Gel 700ml',
+    'Silk Touch Fabric Softener 1L',
+    'Brilliant Shine Window Cleaner 500ml',
+    'Deep Action Bathroom Cleaner 600ml',
+    'Lemon Wood Polish 400ml',
+    'Hygienic Surface Spray 500ml',
+    'Grease Buster Oven Cleaner 750ml',
+    'Citrus Power Shower Cleaner 500ml',
+    'Green Earth Laundry Powder 1kg',
+    'Floral Breeze Fabric Softener 1.5L',
+    'Allergy Friendly Carpet Cleaner 1L',
+    'Stubborn Stain Remover 400ml',
+    'Auto Shine Car Wash Liquid 1L',
+    'Ocean Mist Room Spray 300ml',
+    'Coconut Milk Hand Soap Refill 1L',
+    'Tile & Grout Power Cleaner 750ml',
+    'Lime Fresh Antibacterial Wipes 100ct',
+    'Peppermint Toilet Cleaner 1L',
+    'Herbal Fresh Kitchen Cleaner 500ml',
+    'Citrus Power Degreaser Spray 750ml',
+    'Anti-Mold Bathroom Cleaner 400ml',
+    'Sensitive Skin Baby Laundry Detergent 2L',
+    'Spotless Window Wipes 80ct',
+    'Citrus Burst Garbage Disposal Cleaner 200ml'
+  ];
+  return products[Math.floor(Math.random() * products.length)];
+}
+const products = generateProduct();
 await page.getByLabel('Product Cardtitel').click();
-await page.getByLabel('Product Cardtitel').fill('Dreft Dishwashing Liquid Extra Hygiene Original 325 ml');
+await page.getByLabel('Product Cardtitel').fill(products);
 await page.waitForTimeout(2000);
 await page.getByLabel('Lange Producttitel').click();
-await page.getByLabel('Lange Producttitel').fill('Dreft Dishwashing Liquid Extra Hygiene Original 325 ml');
+await page.getByLabel('Lange Producttitel').fill(products);
 await page.waitForTimeout(2000);
 function generateMetaKeywords() {
   const products = [
@@ -266,7 +297,7 @@ await page.fill('input[name="price_per_piece"]', pricePerPieceValue);
 await page.waitForTimeout(2000);
 
 const vatoptions = ['0', '9', '21'];
-const randomIndex2 = Math.floor(Math.random() * options.length);
+const randomIndex2 = Math.floor(Math.random() * vatoptions.length);
 const randomVat = vatoptions[randomIndex2];
 await page.getByLabel('BTW').click();
 await page.getByRole('option', { name: randomVat }).click();
@@ -328,20 +359,6 @@ await page.waitForTimeout(2000);
 await page.getByLabel('Gewichtseenheid').click();
 await page.getByRole('option', { name: 'kg' }).click();
 await page.waitForTimeout(2000);
-
-// function generatePalletQuantity() {
-//   return Math.floor(Math.random() * 100).toString();
-// }
-// const palletLaagAantal = generatePalletQuantity();
-
-// await page.getByLabel('Pallet Laag Aantal').click();
-// await page.getByLabel('Pallet Laag Aantal').fill(palletLaagAantal);
-// await page.waitForTimeout(2000);
-
-// const palletVolleAantal = generatePalletQuantity();
-// await page.getByLabel('Pallet Volle Aantal').click();
-// await page.getByLabel('Pallet Volle Aantal').fill(palletVolleAantal);
-// await page.waitForTimeout(2000);
 
 function generateLocation() {
   const locations = ['US', 'NL', 'DE', 'FR', 'IT', 'ES'];
@@ -417,6 +434,35 @@ await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
 await page.waitForTimeout(2000);
 await page.getByRole('button', { name: 'Nieuwe Product' }).click();
 await page.waitForTimeout(3000);
+
+
+
+// function getRandomValue(min, max, decimals) {
+//      const str = (Math.random() * (max - min) + min).toFixed(decimals);
+//      return str;
+//    }
+//    const quantityValue = getRandomValue(1, 100, 0); // integer value between 1 and 100
+
+//    const pricePerPieceValue = getRandomValue(1, 100, 2); // decimal value between 1.00 and 100.00
+
+//    function generateDimension() {
+//        return Math.floor(Math.random() * 100).toString();
+//      }
+//      const lengte = generateDimension();
+//      const breedte = generateDimension();
+//      const hoogte = generateDimension();
+
+//      function generateVolume() {
+//          return Math.floor(Math.random() * 100).toString();
+//        }
+//        const liter = generateVolume();
+
+//        function generateWeight() {
+//            return Math.floor(Math.random() * 50).toString();
+//          }
+//          const gewicht = generateWeight();
+
+
 await page.getByPlaceholder('Zoeken').click();
 await page.waitForTimeout(3000);
 await page.getByPlaceholder('Zoeken').fill('Dreft Dishwashing Liquid Extra Hygiene Original 325 ml');
@@ -427,15 +473,11 @@ await page.getByRole('menuitem', { name: 'Bewerken' }).click();
 await page.waitForTimeout(3000);
 
 await page.getByLabel('Variant').click();
-await page.getByLabel('Variant').fill(variant);
+await page.getByLabel('Variant').fill('exclusive');
 await page.waitForTimeout(2000);
 
 await page.click('input[name="quantity_per_unit"]');
 await page.fill('input[name="quantity_per_unit"]', quantityValue);
-await page.waitForTimeout(2000);
-
-await page.click('input[name="price_cost"]');
-await page.fill('input[name="price_cost"]', priceCostValue);
 await page.waitForTimeout(2000);
 
 await page.click('input[name="price_per_piece"]');
@@ -470,33 +512,38 @@ await page.getByLabel('Gewichtseenheid').click();
 await page.getByRole('option', { name: 'kg' }).click();
 await page.waitForTimeout(2000);
 
-await page.getByPlaceholder('Zoeken').click();
-await page.waitForTimeout(3000);
-await page.getByPlaceholder('Zoeken').fill('Dreft Dishwashing Liquid Extra Hygiene Original 325 ml');
-await page.waitForTimeout(3000);
-await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByRole('button').click();
-await page.waitForTimeout(3000);
-await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-await page.waitForTimeout(3000);
+// await page.getByPlaceholder('Zoeken').click();
+// await page.waitForTimeout(3000);
+// await page.getByPlaceholder('Zoeken').fill('Dreft Dishwashing Liquid Extra Hygiene Original 325 ml');
+// await page.waitForTimeout(3000);
+// await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByRole('button').click();
+// await page.waitForTimeout(3000);
+// await page.getByRole('menuitem', { name: 'Bewerken' }).click();
+// await page.waitForTimeout(3000);
 await page.getByRole('tab', { name: 'Varianten' }).click();
 await page.getByRole('combobox').first().click();
 await page.getByRole('option', { name: 'Rood', exact: true }).click();
 await page.waitForTimeout(2000);
+await page.mouse.click(10, 10); 
+await page.waitForTimeout(2000);
 await page.getByRole('textbox').click();
 await page.getByRole('textbox').fill('Supream');
 await page.waitForTimeout(2000);
-await page.getByLabel('Pak', { exact: true }).click();
-await page.getByRole('option', { name: 'Rol' }).click();
+await page.getByLabel('', { exact: true }).click();
+await page.getByRole('option', { name: 'Pak' }).click();
 await page.waitForTimeout(2000);
-await page.locator('#menu-unit div').first().click();
-await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByLabel('Edit').click();
+await page.mouse.click(10, 10); 
+await page.waitForTimeout(2000);
+await page.getByRole('button', { name: 'Variant Genereren' }).click();
 await page.waitForTimeout(3000);
-await page.getByRole('button', { name: 'Opslaan & Blijven' }).click();
+await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).nth(0).getByLabel('Edit').click();
 await page.waitForTimeout(3000);
-await page.getByRole('button', { name: 'Opslaan & Terug' }).click();
-await page.waitForTimeout(3000);
-await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByRole('button').click();
-await page.waitForTimeout(3000);
+// await page.getByRole('button', { name: 'Opslaan & Blijven' }).click();
+// await page.waitForTimeout(3000);
+// await page.getByRole('button', { name: 'Opslaan & Terug' }).click();
+// await page.waitForTimeout(3000);
+// await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByRole('button').click();
+// await page.waitForTimeout(3000);
 await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
 await page.waitForTimeout(2000);
 await page.getByRole('button', { name: 'Verwijderen' }).click();

@@ -387,6 +387,8 @@ await page.waitForTimeout(2000);
 await page.getByLabel('Notities').click();
 await page.getByLabel('Notities').fill('abc');
 await page.waitForTimeout(2000);
+
+await page.getByLabel('Actief').check();
 await page.getByRole('button', { name: 'Nieuwe Klant' }).click();
 await page.waitForTimeout(2000);
 await page.getByPlaceholder('Zoeken...').click();

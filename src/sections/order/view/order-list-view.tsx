@@ -41,6 +41,7 @@ import { IOrderItem, IOrderTableFilters, IOrderTableFilterValue } from 'src/type
 import OrderTableRow from '../order-table-row';
 import OrderTableToolbar from '../order-table-toolbar';
 import OrderTableFiltersResult from '../order-table-filters-result';
+import Label from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
@@ -243,24 +244,24 @@ export default function OrderListView() {
                   fontSize: '0.725rem',
                   marginRight: '1rem!important',
                 }}
-                // icon={
-                //   <Label
-                //     variant={
-                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                //     }
-                //     color={
-                //       (tab.value === 'delivered' && 'success') ||
-                //       (tab.value === 'pending_order' && 'warning') ||
-                //       (tab.value === 'pending_offer' && 'warning') ||
-                //       (tab.value === 'cancelled' && 'error') ||
-                //       'default'
-                //     }
-                //   >
-                //     {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
-                //       ? tableData.filter((user) => user.status === tab.value).length
-                //       : tableData.length}
-                //   </Label>
-                // }
+                 icon={
+                  <Label
+                    variant={
+                      ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
+                    }
+                     color={
+                       (tab.value === 'delivered' && 'success') ||
+                      (tab.value === 'pending_order' && 'warning') ||
+                       (tab.value === 'pending_offer' && 'warning') ||
+                       (tab.value === 'cancelled' && 'error') ||
+                       'default'
+                     }
+                   >
+                     {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
+                       ? tableData.filter((user) => user.status === tab.value).length
+                       : tableData.length}
+                   </Label>
+                 }
               />
             ))}
           </Tabs>

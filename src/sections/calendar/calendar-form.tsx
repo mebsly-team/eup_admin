@@ -76,10 +76,12 @@ export default function CalendarForm({ currentEvent, colorOptions, onClose }: Pr
     try {
       if (!dateError) {
         if (currentEvent?.id) {
-          await updateEvent(eventData);
+          const response = await updateEvent(eventData);
+          console.log('Update Response:', response);
           enqueueSnackbar('Update success!');
         } else {
-          await createEvent(eventData);
+          const response = await createEvent(eventData);
+          console.log('Create Response:', response);
           enqueueSnackbar('Create success!');
         }
         onClose();

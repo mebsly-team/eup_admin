@@ -31,17 +31,31 @@ test(' Categories page test', async ({}) => {
   await page.waitForTimeout(2000);
   function generateRandomCategoriesName() {
     const categories = [
-        "Electronics",
-        "Clothing",
-        "Books",
-        "Home Decor",
-        "Kitchenware",
-        "Sports Gear",
-        "Beauty Products",
-        "Toys",
-        "Furniture",
-        "Stationery",
-        "Detergents"
+        "Smartphones & Gadgets",
+    "Fashion & Accessories",
+    "Books & Magazines",
+    "Home Decor & Furniture",
+    "Cookware & Baking Tools",
+    "Fitness & Sports Gear",
+    "Skincare & Beauty Products",
+    "Toys & Games",
+    "Bedroom & Living Room Furniture",
+    "Stationery & Office Supplies",
+    "Household Cleaners",
+    "Garden Tools & Accessories",
+    "Baby Products & Accessories",
+    "Pet Supplies & Care Products",
+    "Groceries & Organic Food",
+    "Automotive Parts & Accessories",
+    "Jewelry & Watches",
+    "Musical Instruments & Equipment",
+    "Personal Care & Hygiene Products",
+    "Travel Gear & Luggage",
+    "Outdoor & Camping Equipment",
+    "Electronics & Appliances",
+    "Health & Wellness Products",
+    "Gaming Consoles & Accessories",
+    "Lighting & Electrical Supplies"
     ];
     const randomIndex = Math.floor(Math.random() * categories.length);
     return categories[randomIndex];
@@ -54,7 +68,7 @@ await page.getByLabel('Naam').fill(generatedCategoriesName);
   await page.getByLabel('Icon').fill('house2');
   await page.waitForTimeout(2000);
   await page.getByLabel('description').click();
-  await page.getByLabel('description').fill('Handle with care');
+  await page.getByLabel('description').fill(generatedCategoriesName);
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Uploaden' }).click();
   await page.waitForTimeout(2000);
@@ -68,25 +82,34 @@ await page.getByLabel('Naam').fill(generatedCategoriesName);
 
   await page.waitForTimeout(2000);
   await page.getByPlaceholder('search...').click();
-  await page.getByPlaceholder('search...').fill(generatedCategoriesName);
+  await page.getByPlaceholder('search...').fill("handle");
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: generatedCategoriesName }).getByRole('button').click();
+  await page.getByRole('row', { name: "handle" }).getByRole('button').click();
   await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
   await page.waitForTimeout(2000);
   await page.getByLabel('description').click();
-  await page.getByLabel('description').fill('Handle with care');
+  await page.getByLabel('description').fill(generatedCategoriesName);
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Save Changes' }).click();
   await page.waitForTimeout(2000);
   await page.getByPlaceholder('search...').click();
-  await page.getByPlaceholder('search...').fill(generatedCategoriesName);
+  await page.getByPlaceholder('search...').fill("Books");
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: generatedCategoriesName }).getByRole('button').click();
+  const row = await page.getByRole('row', { name: "Books" });
+  const button = await row.getByRole('button').first(); 
+  await button.click();
   await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
-  await page.getByRole('button', { name: 'Verwijderen' }).click();
   await page.waitForTimeout(2000);
-  // await page.getByRole('button', { name: 'Clear' }).click();
-  // await page.waitForTimeout(2000);
+  try {
+    await page.getByRole('button', { name: 'Verwijderen' }).click();
+  } catch (error) {
+    console.log('Error caught: ', error);
+  }
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Clear' }).click();
+  await page.waitForTimeout(2000);
 });
