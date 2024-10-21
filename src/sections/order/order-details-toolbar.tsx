@@ -88,7 +88,10 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={() => handleDownloadInvoice({ doc: 'werkbon' })}
+            onClick={() => {
+              handleDownloadInvoice({ doc: 'werkbon' });
+              onChangeStatus('werkbon');
+            }}
           >
             {t('werkbon')}
           </Button>
@@ -96,7 +99,10 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={() => handleDownloadInvoice({ doc: 'pakbon' })}
+            onClick={() => {
+              handleDownloadInvoice({ doc: 'pakbon' });
+              onChangeStatus('packing');
+            }}
           >
             {t('packing')}
           </Button>
