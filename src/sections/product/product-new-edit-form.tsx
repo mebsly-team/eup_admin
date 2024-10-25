@@ -1055,15 +1055,21 @@ export default function ProductNewEditForm({ id }: Props) {
   const renderDetails2 = (
     <Grid xs={12}>
       <Card>
-        <IconButton
-          onClick={() => {
-            getAllSuppliers();
-            getAllBrands();
-          }}
-        >
-          <Iconify icon="eva:refresh-fill" />
-        </IconButton>
-        <CardHeader title={t('basic_information2')} />
+        <CardHeader
+          title={
+            <>
+              {t('basic_information2')}
+              <IconButton
+                onClick={() => {
+                  getAllSuppliers();
+                  getAllBrands();
+                }}
+              >
+                <Iconify icon="eva:refresh-fill" />
+              </IconButton>
+            </>
+          }
+        />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
             columnGap={2}
@@ -1078,23 +1084,27 @@ export default function ProductNewEditForm({ id }: Props) {
               <RHFAutocomplete
                 name="brand"
                 placeholder={t('brand')}
-                options={brandList?.map((item) => item.id)}
+                options={[
+                  { id: 'create_brand', name: t('create_brand') },
+                  ...(brandList || []).map((item) => ({ id: item.id, name: item.name })),
+                ]}
                 getOptionLabel={(option) =>
-                  brandList.find((item) => item.id === option)?.name || ''
+                  option.id === 'create_brand'
+                    ? ''
+                    : brandList.find((item) => item.id === option.id)?.name || ''
                 }
                 renderOption={(props, option) => (
-                  <li {...props} key={option}>
-                    {brandList.find((item) => item.id === option)?.name || ''}
+                  <li {...props} key={option.id}>
+                    {option.id === 'create_brand' ? (
+                      <a target="_blank" href="/dashboard/brand/new">
+                        {option.name}
+                      </a>
+                    ) : (
+                      option.name
+                    )}
                   </li>
                 )}
-                noOptionsText={
-                  <span>
-                    {t('geen_resultaten')}
-                    <a target="_blank" href="/dashboard/brand/new">
-                      {t('create_brand')}
-                    </a>
-                  </span>
-                }
+                noOptionsText={<span>{t('geen_resultaten')}</span>}
               />
             ) : currentProduct?.brand?.id ? (
               <Box>
@@ -1133,23 +1143,27 @@ export default function ProductNewEditForm({ id }: Props) {
               <RHFAutocomplete
                 name="supplier"
                 placeholder={t('supplier')}
-                options={supplierList?.map((item) => item.id)}
+                options={[
+                  { id: 'create_supplier', name: t('create_supplier') },
+                  ...(supplierList || []).map((item) => ({ id: item.id, name: item.name })),
+                ]}
                 getOptionLabel={(option) =>
-                  supplierList.find((item) => item.id === option)?.name || ''
+                  option.id === 'create_supplier'
+                    ? ''
+                    : supplierList.find((item) => item.id === option.id)?.name || ''
                 }
                 renderOption={(props, option) => (
-                  <li {...props} key={option}>
-                    {supplierList.find((item) => item.id === option)?.name || ''}
+                  <li {...props} key={option.id}>
+                    {option.id === 'create_supplier' ? (
+                      <a target="_blank" href="/dashboard/supplier/new">
+                        {option.name}
+                      </a>
+                    ) : (
+                      option.name
+                    )}
                   </li>
                 )}
-                noOptionsText={
-                  <span>
-                    {t('geen_resultaten')}
-                    <a target="_blank" href="/dashboard/supplier/new">
-                      {t('create_supplier')}
-                    </a>
-                  </span>
-                }
+                noOptionsText={<span>{t('geen_resultaten')}</span>}
               />
             ) : currentProduct?.supplier?.id ? (
               <Box>
