@@ -156,7 +156,7 @@ export default function ProductNewEditForm({ id }: Props) {
     unit: Yup.string().required(t('required')),
     price_per_piece: Yup.number()
       .when('min_price_to_sell', (min_price_to_sell, schema) =>
-        min_price_to_sell ? schema.moreThan(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
+        min_price_to_sell ? schema.min(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
       )
       .test(
         'is-decimal',
@@ -1722,7 +1722,7 @@ export default function ProductNewEditForm({ id }: Props) {
               label={t('extra_location_stock')}
               labelColor="violet"
             />
-            <RHFSelect name="delivery_time" label={t('delivery_time')}>
+            <RHFSelect name="delivery_time" label={t('delivery_time')} labelColor="violet">
               <MenuItem value="">--</MenuItem>
               <Divider sx={{ borderStyle: 'dashed' }} />
               {DELIVERY_CHOICES.map((option) => (
