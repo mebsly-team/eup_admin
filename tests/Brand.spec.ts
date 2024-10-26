@@ -79,9 +79,7 @@ const generatedCategoriesName = generateRandomCategoriesName();
   await page.waitForTimeout(2000);
   // await page.getByRole('row', { name: 'Arc' }).getByRole('button').click();
   // await page.waitForTimeout(2000);
-  const rows = await page.getByRole('row').all();
-  const randomIndex = Math.floor(Math.random() * rows.length);
-  await rows[randomIndex].getByRole('button').click();
+  await page.getByRole('row', { name: 'Fitness Equipment Fitness' }).getByRole('button').click();
   await page.waitForTimeout(2000);
 
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();

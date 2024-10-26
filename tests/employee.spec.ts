@@ -65,35 +65,30 @@ test('employee page test', async () => {
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Nieuwe Gebruiker' }).click();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'a b admin a@a.com' }).locator('input[name="is_active"]').evaluate((checkbox) => {
-    return checkbox.checked; 
-  }).then(async (isChecked) => {
-    if (isChecked) {
-      await page.getByRole('row', { name: 'a b admin a@a.com' }).locator('input[name="is_active"]').uncheck(); 
-    }
-  });
+  await page.getByRole('row', { name: 'a b admin user389@example.com' }).locator('input[name="is_active"]').uncheck(); 
   await page.waitForTimeout(2000);
   await page.getByRole('tab', { name: 'Actief', exact: true }).click();
+  await page.waitForTimeout(2000);
   await page.getByRole('tab', { name: 'Inactief' }).click();
   await page.waitForTimeout(2000);
   await page.getByRole('checkbox').nth(1).check();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'a b admin a@a.com' }).getByRole('button').click();
+  await page.getByRole('row', { name: 'a b admin user389@example.com' }).getByRole('button').click();
   await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
   await page.waitForTimeout(2000);
-  await page.getByLabel('Naam', { exact: true }).click();
-  await page.getByLabel('Naam', { exact: true }).fill('ab');
+  await page.getByLabel('Telefoon', { exact: true }).click();
+  await page.getByLabel('Telefoon', { exact: true }).fill('05551111111');
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Opslaan' }).click();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'Harsha user admin user_770@test.com' }).getByRole('button').click();
+  await page.getByRole('row', { name: 'a b admin user389@example.com' }).getByRole('button').click();
   await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Verwijderen' }).click();
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'Harsha user admin user_770@test.com' }).getByRole('checkbox').first().check();
+  await page.getByRole('row', { name: 'a b admin user389@example.com' }).getByRole('checkbox').first().check();
   await page.getByLabel('Verwijderen').click();
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Verwijderen' }).click();
