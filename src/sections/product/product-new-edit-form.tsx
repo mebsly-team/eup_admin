@@ -105,6 +105,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const [activeTab, setActiveTab] = useState(tab || 0);
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
   const [isBrandEdit, setBrandEdit] = useState(false);
+  const [isUnitEdit, setUnitEdit] = useState(false);
   const [isDeleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
   const [brandList, setBrandList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
@@ -956,7 +957,8 @@ export default function ProductNewEditForm({ id }: Props) {
             <RHFTextField name="ean" label={t('ean')} labelColor="violet" />
             <RHFTextField name="sku" label={t('sku')} />
             <RHFTextField name="hs_code" label={t('hs_code')} />
-            {(!currentProduct?.id || (currentProduct?.id && getValues('unit'))) && (
+
+            {isUnitEdit ? (
               <RHFSelect name="unit" label={t('unit')} labelColor="violet">
                 <MenuItem value="piece">{t('piece')}</MenuItem>
                 <MenuItem value="package">{t('package')}</MenuItem>
@@ -969,6 +971,24 @@ export default function ProductNewEditForm({ id }: Props) {
                   </>
                 )}
               </RHFSelect>
+            ) : getValues('unit') ? (
+              <Box>
+                {`${t('unit')}: ${t(getValues('unit'))}`}
+
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
+                  onClick={() => setUnitEdit(true)}
+                >{`${t('edit')}`}</Typography>
+              </Box>
+            ) : (
+              <Box>
+                <Typography
+                  typography="caption"
+                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
+                  onClick={() => setUnitEdit(true)}
+                >{`${t('unit')} ${t('edit')}`}</Typography>
+              </Box>
             )}
 
             <RHFSelect
@@ -1024,8 +1044,7 @@ export default function ProductNewEditForm({ id }: Props) {
               style={{
                 textDecoration: 'underline',
                 cursor: 'pointer',
-                display: 'block',
-                // marginLeft: '1.5rem',
+                maxWidth: 'fit-content',
               }}
             >
               Zoek op Google
@@ -1135,7 +1154,7 @@ export default function ProductNewEditForm({ id }: Props) {
                   typography="caption"
                   sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
                   onClick={handleBrandEditClick}
-                >{`${t('brand')} ${t('edit')}:`}</Typography>
+                >{`${t('brand')} ${t('edit')}`}</Typography>
               </Box>
             )}
 
@@ -1196,7 +1215,7 @@ export default function ProductNewEditForm({ id }: Props) {
                   typography="caption"
                   sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
                   onClick={handleSupplierEditClick}
-                >{`${t('supplier')} ${t('edit')}:`}</Typography>{' '}
+                >{`${t('supplier')} ${t('edit')}`}</Typography>{' '}
               </Box>
             )}
           </Box>
