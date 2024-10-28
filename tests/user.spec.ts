@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-let page;
+import { test, expect, Page } from '@playwright/test';
+let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext();
@@ -19,7 +19,7 @@ test.afterAll(async () => {
   await page.context().close();
 });
 
-test(' Customer Type  page test', async ({}) => {
+test('User Type  page test', async ({}) => {
   test.setTimeout(280000);
   await page.getByRole('button', { name: 'Klant' }).click();
   await page.waitForTimeout(2000);

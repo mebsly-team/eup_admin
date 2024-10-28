@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-let page;
+import { test, expect, Page } from '@playwright/test';
+let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext();
@@ -418,7 +418,9 @@ await page.getByLabel('Sluiten').click();
 await page.waitForTimeout(2000);
 await page.getByRole('heading', { name: 'Geselecteerde categorieën:' }).click();
 await page.getByRole('button', { name: 'Categorieën toevoegen/' }).click();
+await page.waitForTimeout(2000);
 await page.getByText('Auto').click();
+await page.waitForTimeout(2000);
 await page.getByText('Auto-accessoires').click();
 await page.getByText('Aanhangeronderdelen').click();
 await page.getByText('Acculaders').click();
@@ -465,9 +467,9 @@ await page.waitForTimeout(3000);
 
 await page.getByPlaceholder('Zoeken').click();
 await page.waitForTimeout(3000);
-await page.getByPlaceholder('Zoeken').fill('Dreft Dishwashing Liquid Extra Hygiene Original 335 ml');
+await page.getByPlaceholder('Zoeken').fill(products);
 await page.waitForTimeout(3000);
-await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 335 ml' }).getByRole('button').click();
+await page.getByRole('row', { name: products }).getByRole('button').click();
 await page.waitForTimeout(3000);
 await page.getByRole('menuitem', { name: 'Bewerken' }).click();
 await page.waitForTimeout(3000);
@@ -536,7 +538,7 @@ await page.mouse.click(10, 10);
 await page.waitForTimeout(2000);
 await page.getByRole('button', { name: 'Variant Genereren' }).click();
 await page.waitForTimeout(3000);
-await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).nth(0).getByLabel('Edit').click();
+await page.getByRole('row', { name: products }).nth(0).getByLabel('Edit').click();
 await page.waitForTimeout(3000);
 // await page.getByRole('button', { name: 'Opslaan & Blijven' }).click();
 // await page.waitForTimeout(3000);

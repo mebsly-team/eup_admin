@@ -35,7 +35,7 @@ export default function KanbanTaskItem({
   sx,
   ...other
 }: Props) {
-  console.log('task', task)
+  console.log('task', task);
   const theme = useTheme();
 
   const openDetails = useBoolean();
@@ -103,11 +103,10 @@ export default function KanbanTaskItem({
           <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
         ))}
       </AvatarGroup>
-      
     </Stack>
   );
 
-  console.log('kanbantaskitem render edildi', {onUpdateTask});
+  console.log('assignee', task.assignee);
   return (
     <>
       <Draggable draggableId={task.id.toString()} index={index}>

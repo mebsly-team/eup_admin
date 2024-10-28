@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { ElementHandle } from 'playwright';
-let page;
+let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext();

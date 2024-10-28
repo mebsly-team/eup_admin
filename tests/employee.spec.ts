@@ -1,6 +1,6 @@
 
-import { test, expect } from '@playwright/test';
-let page;
+import { test, expect, Page } from '@playwright/test';
+let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext();
@@ -65,7 +65,13 @@ test('employee page test', async () => {
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Nieuwe Gebruiker' }).click();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'a b admin user389@example.com' }).locator('input[name="is_active"]').uncheck(); 
+  const checkbox = page
+  .getByRole('row', { name: randomEmails[0] })
+  .locator('input[name="is_active"]');
+
+if (await checkbox.isChecked()) {
+  await checkbox.click();
+} 
   await page.waitForTimeout(2000);
   await page.getByRole('tab', { name: 'Actief', exact: true }).click();
   await page.waitForTimeout(2000);
@@ -73,7 +79,7 @@ test('employee page test', async () => {
   await page.waitForTimeout(2000);
   await page.getByRole('checkbox').nth(1).check();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'a b admin user389@example.com' }).getByRole('button').click();
+  await page.getByRole('row', { name: randomEmails[0] }).getByRole('button').click();
   await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
   await page.waitForTimeout(2000);
@@ -82,13 +88,13 @@ test('employee page test', async () => {
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Opslaan' }).click();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'a b admin user389@example.com' }).getByRole('button').click();
+  await page.getByRole('row', { name: randomEmails[0] }).getByRole('button').click();
   await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Verwijderen' }).click();
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'a b admin user389@example.com' }).getByRole('checkbox').first().check();
+  await page.getByRole('row', { name: randomEmails[0] }).getByRole('checkbox').first().check();
   await page.getByLabel('Verwijderen').click();
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Verwijderen' }).click();

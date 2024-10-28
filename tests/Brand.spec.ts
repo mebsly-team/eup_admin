@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-let page;
+import { test, expect, Page } from '@playwright/test';
+let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext();
