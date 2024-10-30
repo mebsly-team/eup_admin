@@ -366,10 +366,10 @@ export default function ProductNewEditForm({ id }: Props) {
       important_information: currentProduct?.important_information || '',
       extra_etiket_nl: currentProduct?.is_variant
         ? parentProduct?.extra_etiket_nl
-        : currentProduct?.extra_etiket_nl | '',
+        : currentProduct?.extra_etiket_nl || '',
       extra_etiket_fr: currentProduct?.is_variant
         ? parentProduct?.extra_etiket_fr
-        : currentProduct?.extra_etiket_fr | '',
+        : currentProduct?.extra_etiket_fr || '',
       languages_on_item_package: currentProduct?.languages_on_item_package || [],
       sell_count: currentProduct?.is_variant
         ? Math.floor(
@@ -819,9 +819,7 @@ export default function ProductNewEditForm({ id }: Props) {
 
             min_price_to_sell: snelProduct?.verkoopprijs || 0,
             ean: snelProduct?.artikelcode || '',
-            sku:
-              snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
-                ?.waarde || '',
+            sku: snelProduct?.artikelcode || '',
             supplier_article_code:
               snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
                 ?.waarde || '',
