@@ -370,7 +370,10 @@ export default function ProductNewEditForm({ id }: Props) {
       extra_etiket_fr: currentProduct?.is_variant
         ? parentProduct?.extra_etiket_fr
         : currentProduct?.extra_etiket_fr || '',
-      languages_on_item_package: currentProduct?.languages_on_item_package || [],
+      languages_on_item_package:
+        typeof currentProduct?.languages_on_item_package === 'string'
+          ? currentProduct.languages_on_item_package.split('/')
+          : currentProduct?.languages_on_item_package || [],
       sell_count: currentProduct?.is_variant
         ? Math.floor(
             Number(parentProduct?.sell_count || 0) / Number(currentProduct?.quantity_per_unit)
