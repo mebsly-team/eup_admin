@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Droppable, DropResult, DragDropContext } from '@hello-pangea/dnd';
+import { Droppable, DropResult, DragDropContext, Draggable } from '@hello-pangea/dnd';
 
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
@@ -14,13 +14,13 @@ import KanbanColumn from '../kanban-column';
 import KanbanTaskAdd from '../kanban-task-add';
 import { KanbanColumnSkeleton } from '../kanban-skeleton';
 import { useTranslate } from 'src/locales';
+import { IKanbanTask } from 'src/types/kanban';
 
 // ----------------------------------------------------------------------
 
-
 export default function KanbanView() {
   const { t } = useTranslate();
-  
+
   const columns = [
     {
       id: 0,
@@ -47,7 +47,7 @@ export default function KanbanView() {
       // id'leri string'e çevir
       return parsedBoard?.map((task: IKanbanTask) => ({
         ...task,
-        id: task.id.toString()
+        id: task.id.toString(),
       }));
     }
     return [];
@@ -67,37 +67,50 @@ export default function KanbanView() {
   }, [boardData]);
 
   const handleAddTask = useCallback((newTask: IKanbanTask) => {
-    setBoardData((prevBoard) => [...prevBoard, newTask]);
+    setBoardData((prevBoard: any) => [...prevBoard, newTask]);
   }, []);
 
-  const handleUpdateTask = useCallback((updatedTask: IKanbanTask) => {
-    console.log('handleUpdateTask çağrıldı', updatedTask);
-    setBoardData((prevBoard) =>
-      prevBoard?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
-    localStorage.setItem('kanbanBoard', JSON.stringify(boardData?.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    )));
-  }, [boardData]);
+  const handleUpdateTask = useCallback(
+    (updatedTask: IKanbanTask) => {
+      console.log('handleUpdateTask çağrıldı', updatedTask);
+      setBoardData((prevBoard: any[]) =>
+        prevBoard?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+      );
+      localStorage.setItem(
+        'kanbanBoard',
+        JSON.stringify(
+          boardData?.map((task: { id: string }) =>
+            task.id === updatedTask.id ? updatedTask : task
+          )
+        )
+      );
+    },
+    [boardData]
+  );
 
-  const handleDeleteTask = useCallback(async (taskId: string) => {
-    try {
-      await deleteTask(taskId);
-      setBoardData((prevBoard) => prevBoard?.filter((task) => task.id !== taskId));
-      localStorage.setItem('kanbanBoard', JSON.stringify(boardData?.filter((task) => task.id !== taskId)));
-    } catch (error) {
-      console.error('Görev silme hatası:', error);
-    }
-  }, [boardData]);
-  
+  const handleDeleteTask = useCallback(
+    async (taskId: string, columnId: string) => {
+      try {
+        await deleteTask(taskId, columnId);
+        setBoardData((prevBoard: any[]) =>
+          prevBoard?.filter((task: { id: string }) => task.id !== taskId)
+        );
+        localStorage.setItem(
+          'kanbanBoard',
+          JSON.stringify(boardData?.filter((task: { id: string }) => task.id !== taskId))
+        );
+      } catch (error) {
+        console.error('Görev silme hatası:', error);
+      }
+    },
+    [boardData]
+  );
+
   const onDragEnd = useCallback(
     async ({ destination, source, draggableId, type }: DropResult) => {
       if (!destination) return;
 
-      if (
-        destination.droppableId === source.droppableId &&
-        destination.index === source.index
-      ) {
+      if (destination.droppableId === source.droppableId && destination.index === source.index) {
         return;
       }
 
@@ -105,23 +118,18 @@ export default function KanbanView() {
         const newOrdered = [...columns];
         newOrdered.splice(source.index, 1);
         newOrdered.splice(destination.index, 0, columns[source.index]);
-  
+
         return;
       }
-
-      
 
       const updatedBoard = [...boardData];
       const taskToMove = updatedBoard.find((task) => task.id === draggableId);
 
       if (taskToMove) {
-     
         updatedBoard.splice(updatedBoard.indexOf(taskToMove), 1);
 
-  
         taskToMove.status = parseInt(destination.droppableId, 10);
 
-      
         updatedBoard.splice(destination.index, 0, taskToMove);
 
         setBoardData(updatedBoard);
@@ -131,7 +139,6 @@ export default function KanbanView() {
           await moveTask(updatedBoard);
         } catch (error) {
           console.error('Görev taşıma hatası:', error);
-     
         }
       }
     },
@@ -140,9 +147,7 @@ export default function KanbanView() {
 
   const renderSkeleton = (
     <Stack direction="row" alignItems="flex-start" spacing={3}>
-      {[...Array(4)]?.map((_, index) => (
-        <KanbanColumnSkeleton key={index} index={index} />
-      ))}
+      {[...Array(4)]?.map((_, index) => <KanbanColumnSkeleton key={index} index={index} />)}
     </Stack>
   );
 
@@ -181,7 +186,7 @@ export default function KanbanView() {
             {(provided) => (
               <Scrollbar
                 sx={{
-                  height: 1,
+                  height: '100%',
                   minHeight: {
                     xs: '80vh',
                     md: 'unset',
@@ -190,32 +195,42 @@ export default function KanbanView() {
               >
                 <Stack
                   {...provided.droppableProps}
-                  ref={provided.innerRef} 
+                  ref={provided.innerRef}
                   spacing={3}
                   direction="row"
                   alignItems="flex-start"
                   sx={{
                     p: 0.25,
-                    height: 1,
+                    height: 'auto',
                   }}
                 >
                   {columns?.map((col, index) => (
-                    <KanbanColumn
-                      index={index}
-                      key={index}
-                      column={col}
-                      tasks={boardData?.filter((items) => items.status === col.id)}
-
-                      setBoardData={setBoardData}
-                      onDeleteTask={handleDeleteTask}
-                      onUpdateTask={handleUpdateTask}
-                    >
-                    <KanbanTaskAdd
-                        status={col.id.toString()}
-                        onAddTask={handleAddTask}
-                        onCloseAddTask={() => {}}
-                      />
-                    </KanbanColumn>
+                    <Draggable key={col.id} draggableId={col.id.toString()} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <KanbanColumn
+                            index={index}
+                            column={col}
+                            tasks={boardData?.filter(
+                              (items: { status: number }) => items.status === col.id
+                            )}
+                            setBoardData={setBoardData}
+                            onDeleteTask={handleDeleteTask}
+                            onUpdateTask={handleUpdateTask}
+                          >
+                            <KanbanTaskAdd
+                              status={col.id.toString()}
+                              onAddTask={handleAddTask}
+                              onCloseAddTask={() => {}}
+                            />
+                          </KanbanColumn>
+                        </div>
+                      )}
+                    </Draggable>
                   ))}
 
                   {provided.placeholder}

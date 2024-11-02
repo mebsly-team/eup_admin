@@ -1,4 +1,4 @@
-import { Draggable } from '@hello-pangea/dnd';
+import { Draggable, Droppable, DragDropContext } from '@hello-pangea/dnd';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -25,6 +25,7 @@ type Props = PaperProps & {
   task: IKanbanTask;
   onUpdateTask: (updateTask: IKanbanTask) => void;
   onDeleteTask: () => void;
+  onDragEnd: (result: DropResult) => void;
 };
 
 export default function KanbanTaskItem({
@@ -32,6 +33,7 @@ export default function KanbanTaskItem({
   index,
   onDeleteTask,
   onUpdateTask,
+  onDragEnd,
   sx,
   ...other
 }: Props) {
@@ -99,68 +101,76 @@ export default function KanbanTaskItem({
           },
         }}
       >
-        {task?.assignee?.map((user) => (
-          <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
-        ))}
+        {Array.isArray(task.assignee) ? (
+          task.assignee.map((user) => <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />)
+        ) : (
+          <Avatar />
+        )}
       </AvatarGroup>
     </Stack>
   );
 
-  console.log('assignee', task.assignee);
   return (
-    <>
-      <Draggable draggableId={task.id.toString()} index={index}>
-        {(provided, snapshot) => (
-          <Paper
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            onClick={openDetails.onTrue}
-            sx={{
-              width: 1,
-              borderRadius: 1.5,
-              overflow: 'hidden',
-              position: 'relative',
-              bgcolor: 'background.default',
-              boxShadow: theme.customShadows.z1,
-              '&:hover': {
-                boxShadow: theme.customShadows.z20,
-              },
-              ...(openDetails.value && {
-                boxShadow: theme.customShadows.z20,
-              }),
-              ...(snapshot.isDragging && {
-                boxShadow: theme.customShadows.z20,
-                ...bgBlur({
-                  opacity: 0.48,
-                  color: theme.palette.background.default,
-                }),
-              }),
-              ...sx,
-            }}
-            {...other}
-          >
-            {/* {renderImg} */}
+    <DragDropContext onDragEnd={onDragEnd}>
+      <Droppable droppableId="kanbanDroppable" type="TASK">
+        {(provided) => (
+          <div ref={provided.innerRef} {...provided.droppableProps}>
+            <Draggable draggableId={task.id.toString()} index={index}>
+              {(provided, snapshot) => (
+                <Paper
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}
+                  onClick={openDetails.onTrue}
+                  sx={{
+                    width: 1,
+                    borderRadius: 1.5,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    bgcolor: 'background.default',
+                    boxShadow: theme.customShadows.z1,
+                    mb: 2,
+                    '&:hover': {
+                      boxShadow: theme.customShadows.z20,
+                    },
+                    ...(openDetails.value && {
+                      boxShadow: theme.customShadows.z20,
+                    }),
+                    ...(snapshot.isDragging && {
+                      boxShadow: theme.customShadows.z20,
+                      ...bgBlur({
+                        opacity: 0.48,
+                        color: theme.palette.background.default,
+                      }),
+                    }),
+                    ...sx,
+                  }}
+                  {...other}
+                >
+                  {/* {renderImg} */}
 
-            <Stack spacing={2} sx={{ px: 2, py: 2.5, position: 'relative' }}>
-              {renderPriority}
+                  <Stack spacing={2} sx={{ px: 2, py: 2.5, position: 'relative' }}>
+                    {renderPriority}
 
-              <Typography variant="subtitle2">{task.title}</Typography>
+                    <Typography variant="subtitle2">{task.title}</Typography>
 
-              {renderInfo}
-            </Stack>
-          </Paper>
+                    {renderInfo}
+                  </Stack>
+                </Paper>
+              )}
+            </Draggable>
+            <KanbanDetails
+              task={task}
+              taskId={task.id.toString()}
+              openDetails={openDetails.value}
+              onCloseDetails={openDetails.onFalse}
+              onUpdateTask={onUpdateTask}
+              onDeleteTask={onDeleteTask}
+            />
+            {provided.placeholder} {/* Bırakma alanı için yer tutucu */}
+          </div>
         )}
-      </Draggable>
-
-      <KanbanDetails
-        task={task}
-        taskId={task.id.toString()}
-        openDetails={openDetails.value}
-        onCloseDetails={openDetails.onFalse}
-        onUpdateTask={onUpdateTask}
-        onDeleteTask={onDeleteTask}
-      />
-    </>
+      </Droppable>
+    </DragDropContext>
   );
 }

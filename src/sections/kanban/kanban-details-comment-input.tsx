@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import {Paper, Stack, Button, Avatar, InputBase, IconButton} from '@mui/material';
+import { Paper, Stack, Button, Avatar, InputBase, IconButton } from '@mui/material';
 import { IKanbanComment } from 'src/types/kanban';
 
 import { useAuthContext } from 'src/auth/hooks';
@@ -7,12 +7,10 @@ import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
 import { useTranslate } from 'src/locales';
 
-
 // ----------------------------------------------------------------------
 
 type Props = {
   onAddComment: (comment: IKanbanComment) => void;
-  
 };
 
 export default function KanbanDetailsCommentInput({ onAddComment }: Props) {
@@ -23,7 +21,6 @@ export default function KanbanDetailsCommentInput({ onAddComment }: Props) {
   const handleChangeMessage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(event.target.value);
   }, []);
-
 
   const handleSubmit = useCallback(() => {
     if (!message.trim()) return;
@@ -36,7 +33,11 @@ export default function KanbanDetailsCommentInput({ onAddComment }: Props) {
       name: user?.displayName || '',
       avatarUrl: user?.photoURL || '',
     };
-   
+
+    const existingComments = localStorage.getItem('kanbanComments');
+    const commentsArray = existingComments ? JSON.parse(existingComments) : [];
+    commentsArray.push(newComment);
+    localStorage.setItem('kanbanComments', JSON.stringify(commentsArray));
 
     onAddComment(newComment);
     setMessage('');
@@ -56,7 +57,14 @@ export default function KanbanDetailsCommentInput({ onAddComment }: Props) {
       </Avatar>
 
       <Paper variant="outlined" sx={{ p: 1, flexGrow: 1, bgcolor: 'transparent' }}>
-        <InputBase fullWidth multiline rows={2} placeholder="Type a message" sx={{ px: 1 }} onChange={handleChangeMessage} />
+        <InputBase
+          fullWidth
+          multiline
+          rows={2}
+          placeholder="Type a message"
+          sx={{ px: 1 }}
+          onChange={handleChangeMessage}
+        />
 
         <Stack direction="row" alignItems="center">
           <Stack direction="row" flexGrow={1}>
@@ -69,7 +77,9 @@ export default function KanbanDetailsCommentInput({ onAddComment }: Props) {
             </IconButton>
           </Stack>
 
-          <Button variant="contained" onClick={handleSubmit} >{t('comment')}</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            {t('comment')}
+          </Button>
         </Stack>
       </Paper>
     </Stack>

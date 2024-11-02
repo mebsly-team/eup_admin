@@ -51,4 +51,6 @@ await page.locator('div:nth-child(3) > .MuiPaper-root > span > .PrivateSwitchBas
 await page.waitForTimeout(2000);
 await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
 await page.waitForTimeout(2000);
+await page.getByRole('button', { name: 'Nieuwe Actie' }).click();
+await page.waitForTimeout(2000);
 });

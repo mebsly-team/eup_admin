@@ -38,7 +38,7 @@ type Props = {
   onDeleteTask: (taskId: string) => void;
 };
 
-export default function KanbanColumn({ column, tasks, index, setBoardData, onDeleteTask, onUpdateTask }: Props) {
+export default function KanbanColumn({ column, tasks, index, setBoardData, onDeleteTask }: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const { t } = useTranslate();
 
@@ -99,16 +99,19 @@ export default function KanbanColumn({ column, tasks, index, setBoardData, onDel
     [column.id, openAddTask, setBoardData]
   );
 
-  const handleUpdateTask = useCallback(async (updatedTask: IKanbanTask) => {
-    try {
-      updateTask(updatedTask);
-      setBoardData((prevBoard) =>
-        prevBoard?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  }, [setBoardData]);
+  const handleUpdateTask = useCallback(
+    async (updatedTask: IKanbanTask) => {
+      try {
+        updateTask(updatedTask);
+        setBoardData((prevBoard) =>
+          prevBoard?.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [setBoardData]
+  );
 
   const handleDeleteTask = useCallback(
     async (taskId: string) => {
@@ -159,53 +162,54 @@ export default function KanbanColumn({ column, tasks, index, setBoardData, onDel
     </Stack>
   );
 
-  
   return (
     <Droppable droppableId={column.id.toString()} type="TASK">
-   {(provided, snapshot) => (
-    <Paper
-      ref={provided.innerRef}
-      {...provided.droppableProps}
-      sx={{
-        px: 2,
-        borderRadius: 2,
-        bgcolor: 'background.neutral',
-        ...(snapshot.isDragging && {
-          bgcolor: (theme) => alpha(theme.palette.grey[500], 0.24),
-        }),
-      }}
-    >
-      <Stack {...provided.dragHandleProps}>
-          <KanbanColumnToolBar
+      {(provided, snapshot) => (
+        <Paper
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          sx={{
+            px: 2,
+            borderRadius: 2,
+            bgcolor: 'background.neutral',
+            ...(snapshot.isDragging && {
+              bgcolor: (theme) => alpha(theme.palette.grey[500], 0.24),
+            }),
+          }}
+        >
+          <Stack {...provided.dragHandleProps}>
+            <KanbanColumnToolBar
               columnName={column.name}
               onUpdateColumn={handleUpdateColumn}
               onClearColumn={handleClearColumn}
               onDeleteColumn={handleDeleteColumn}
             />
 
-        {tasks?.map((item, taskIndex) => (
-          <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={taskIndex}>
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.draggableProps}
-                {...provided.dragHandleProps}
-              >
-                <KanbanTaskItem
-                  task={item}
-                  onDeleteTask={() => onDeleteTask(item.id)}
-                  onUpdateTask={handleUpdateTask}
-                />
-              </div>
-            )}
-          </Draggable>
-        ))}
-        {provided.placeholder}
-      
-        {renderAddTask}
+            {tasks?.map((item: IKanbanTask, index: number) => (
+              <Draggable key={item.id.toString()} draggableId={item.id.toString()} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    <KanbanTaskItem
+                      key={item.id}
+                      task={item}
+                      index={index}
+                      onDeleteTask={() => onDeleteTask(item.id)}
+                      onUpdateTask={(updatedTask) => handleUpdateTask(updatedTask)}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+
+            {renderAddTask}
           </Stack>
         </Paper>
-    )}
-  </Droppable>
+      )}
+    </Droppable>
   );
 }

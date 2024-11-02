@@ -35,7 +35,7 @@ export default function KanbanDetailsCommentList({ comments }: Props) {
         {comments?.map((comment) => (
           <Stack key={comment.id} direction="row" spacing={2}>
             <Avatar src={comment.avatarUrl} alt={comment.name} sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-              {comment.name.charAt(0).toUpperCase()}
+              {comment.name? comment.name.charAt(0).toUpperCase(): "?"}
             </Avatar>
             
             <Stack spacing={0.5}>
