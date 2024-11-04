@@ -965,12 +965,9 @@ export default function ProductNewEditForm({ id }: Props) {
                 <MenuItem value="package">{t('package')}</MenuItem>
                 <MenuItem value="rol">{t('rol')}</MenuItem>
                 <MenuItem value="box">{t('box')}</MenuItem>
-                {currentProduct?.is_variant && (
-                  <>
-                    <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-                    <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
-                  </>
-                )}
+
+                <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
+                <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
               </RHFSelect>
             ) : getValues('unit') ? (
               <Box>
