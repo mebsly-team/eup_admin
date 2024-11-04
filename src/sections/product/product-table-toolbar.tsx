@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import { useSnackbar } from 'notistack';
-import { useState, useEffect, useCallback, SetStateAction } from 'react'; // Import debounce function
+import { useState, useEffect, useCallback } from 'react';
 import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 
 import Stack from '@mui/material/Stack';
@@ -76,7 +76,7 @@ export default function ProductTableToolbar({
   const debouncedSearch = useCallback(
     debounce((value: string) => {
       onFilters('name', value);
-    }, 500), // Adjust the debounce delay as needed
+    }, 750),
     [onFilters]
   );
 
