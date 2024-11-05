@@ -530,6 +530,8 @@
   "is_clearance": "Is opruiming",
   "is_party_sale": "Is partijhandel",
   "sell_from_supplier": "Wordt verkocht via leverancier",
+  "is_follow_stock_with_ean": "Volg voorraad met EAN",
+  "ean_to_follow_stock": "EAN volgt",
   "is_taken_from_another_package": "Wordt uit een andere verpakking gehaald",
   "is_taken_from_another_package_ean": "Andere verpakking EAN",
   "whatsapp_only": "Alleen whatsappen",

@@ -399,6 +399,8 @@ export default function ProductNewEditForm({ id }: Props) {
       is_clearance: currentProduct?.is_clearance || false,
       is_party_sale: currentProduct?.is_party_sale || false,
       sell_from_supplier: currentProduct?.sell_from_supplier || false,
+      ean_to_follow_stock: currentProduct?.ean_to_follow_stock || '',
+      is_follow_stock_with_ean: !!currentProduct?.ean_to_follow_stock || false,
       is_taken_from_another_package: currentProduct?.is_taken_from_another_package || false,
       is_taken_from_another_package_ean: currentProduct?.is_taken_from_another_package_ean || '',
       size_z_value: currentProduct?.size_z_value || 0,
@@ -2011,6 +2013,31 @@ export default function ProductNewEditForm({ id }: Props) {
               sx={{ pointerEvents: getValues('is_taken_from_another_package') ? 'auto' : 'none' }}
               name="is_taken_from_another_package_ean"
               label={t('is_taken_from_another_package_ean')}
+            />
+          </Box>
+          <Box
+            columnGap={2}
+            rowGap={3}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFSwitch
+              name="is_follow_stock_with_ean"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {t('is_follow_stock_with_ean')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between', color: 'violet' }}
+            />
+            <RHFTextField
+              sx={{ pointerEvents: getValues('ean_to_follow_stock') ? 'auto' : 'none' }}
+              name="ean_to_follow_stock"
+              label={t('ean_to_follow_stock')}
             />
           </Box>
         </Stack>
