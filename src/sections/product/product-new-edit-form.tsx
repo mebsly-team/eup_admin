@@ -2035,7 +2035,7 @@ export default function ProductNewEditForm({ id }: Props) {
               sx={{ mx: 0, width: 1, justifyContent: 'space-between', color: 'violet' }}
             />
             <RHFTextField
-              sx={{ pointerEvents: getValues('ean_to_follow_stock') ? 'auto' : 'none' }}
+              sx={{ pointerEvents: getValues('is_follow_stock_with_ean') ? 'auto' : 'none' }}
               name="ean_to_follow_stock"
               label={t('ean_to_follow_stock')}
             />
