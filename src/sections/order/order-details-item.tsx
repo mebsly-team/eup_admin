@@ -99,7 +99,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
   };
 
   const calculateSubtotal = () =>
-    editedCart?.items.reduce((acc, item) => acc + item.product.price_per_unit * item.quantity, 0);
+    editedCart?.items.reduce((acc, item) => acc + item.product.price_per_vat * item.quantity, 0);
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
@@ -127,11 +127,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         );
       }
 
-      if (editedItem.product.price_per_unit !== originalItem.product.price_per_unit) {
+      if (editedItem.product.price_per_vat !== originalItem.product.price_per_vat) {
         changes.push(
           `Prijs van ${editedItem.product.title} bijgewerkt van ${fCurrency(
-            originalItem.product.price_per_unit
-          )} naar ${fCurrency(editedItem.product.price_per_unit)}`
+            originalItem.product.price_per_vat
+          )} naar ${fCurrency(editedItem.product.price_per_vat)}`
         );
       }
 
@@ -341,9 +341,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                   />
                   <TextField
                     type="number"
-                    value={item.product.price_per_unit}
+                    value={item.product.price_per_vat}
                     onChange={(e) =>
-                      handleItemChange(item.id, 'price_per_unit', parseFloat(e.target.value))
+                      handleItemChange(item.id, 'price_per_vat', parseFloat(e.target.value))
                     }
                     sx={{ width: 80, mr: 2, textAlign: 'right' }}
                   />
@@ -355,7 +355,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 <>
                   <Box sx={{ typography: 'body2' }}>x{item.quantity}</Box>
                   <Box sx={{ width: 110, textAlign: 'right', typography: 'subtitle2' }}>
-                    {fCurrency(item.product.price_per_unit)}
+                    {fCurrency(item.product.price_per_vat)}
                   </Box>
                 </>
               )}
