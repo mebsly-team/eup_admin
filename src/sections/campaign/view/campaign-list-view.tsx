@@ -182,7 +182,7 @@ export default function CampaignListView() {
         />
 
         <Card>
-          <CampaignTableToolbar filters={filters} onFilters={handleFilters} />
+          <CampaignTableToolbar filters={filters} onFilters={handleFilters} roleOptions={[]} />
 
           {canReset && (
             <CampaignTableFiltersResult

@@ -22,7 +22,7 @@ import { useGetCategories } from 'src/api/category';
 
 import Image from 'src/components/image';
 import { useSnackbar } from 'src/components/snackbar';
-import ImageGallery from 'src/components/imageGallery/index.tsx';
+import ImageGallery from 'src/components/imageGallery/index';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 import { findCategory } from 'src/sections/category/findCategory';
@@ -30,6 +30,7 @@ import { findCategory } from 'src/sections/category/findCategory';
 import { ICampaignItem } from 'src/types/campaign';
 
 import { CategorySelector } from '../category/CategorySelector';
+import { IBrandItem } from 'src/types/brand';
 
 type Props = {
   currentCampaign?: ICampaignItem;
@@ -176,7 +177,7 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                 >
                   <CategorySelector
                     t={t}
-                    categories={categories}
+                    categories={categories as IBrandItem[]}
                     defaultSelectedCategories={getValues('categories')}
                     open={openDialogCategory}
                     onClose={() => setOpenDialogCategory(false)}
@@ -188,7 +189,7 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                   <div>
                     <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
                     <ul>
-                      {getValues('categories')?.map((categoryId) => {
+                      {getValues('categories')?.map((categoryId: string) => {
                         const category = findCategory(categories, categoryId);
                         return (
                           <li key={categoryId}>
