@@ -34,12 +34,6 @@ type Props = {
   updateOrder: any;
 };
 
-const carriers = [
-  { value: 'DHL', label: 'DHL' },
-  { value: 'POSTNL', label: 'POSTNL' },
-  { value: 'DPD', label: 'DPD' },
-];
-
 export default function OrderDetailsInfo({
   customer,
   delivery,
@@ -53,12 +47,44 @@ export default function OrderDetailsInfo({
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
   const [totalWeight, setTotalWeight] = useState('');
-  const [carrier, setCarrier] = useState('');
+  const [shipmentMethods, setShipmentMethods] = useState([]);
+  const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
+  const deliveryDetails = currentOrder.delivery_details;
+  console.log('deliveryDetails', deliveryDetails);
+  const handleGetShipmentMethods = async () => {
+    try {
+      const response = await axiosInstance.get(`/get_sendcloud_shipment_methods/`);
+
+      if (response.status === 200) {
+        setShipmentMethods(
+          response.data?.shipping_methods?.map((item) => {
+            const countryData = item.countries.find(
+              (c) =>
+                c.iso_2 === updatedShippingAddress?.country || c.iso_2 === shippingAddress?.country
+            );
+            return {
+              value: item.id,
+              label: `${item.name} - (€${countryData?.price || '-'}) - (${item?.min_weight}-${item?.max_weight} kg)`,
+            };
+          })
+        );
+      } else {
+        console.error('Failed to send order:', response.status);
+      }
+    } catch (error) {
+      console.error('Error sending order:', error);
+    }
+  };
 
   // Function to handle address update
   const handleAddressEditClick = (e) => {
     setUpdatedShippingAddress(shippingAddress);
     setIsAddressEdit(!isAddressEdit);
+  };
+  // Function to handle delivery update
+  const handleDeliveryEditClick = () => {
+    if (!shipmentMethods?.length) handleGetShipmentMethods();
+    setIsDeliveryEdit(!isDeliveryEdit);
   };
   const handleAddressUpdate = (e) => {
     const newHistory = currentOrder.history;
@@ -75,15 +101,26 @@ export default function OrderDetailsInfo({
     setIsAddressEdit(false);
   };
 
-  const handleSendOrder = async () => {
+  const handleSendToSendCloud = async () => {
     try {
-      const response = await axiosInstance.post(`/orders/${orderId}/send`, {
-        carrier,
-        totalWeight,
+      const response = await axiosInstance.post(`/shipment_send/${orderId}/`, {
+        total_weight: totalWeight || 0.001,
+        shipping_method_id: selectedShipmentMethod,
       });
 
       if (response.status === 200) {
-        console.log('Order sent successfully');
+        console.log('response', response);
+        const newHistory = currentOrder.history;
+        newHistory.push({
+          date: new Date(),
+          event: `Sendcloud: Totaalgewicht-${JSON.stringify(totalWeight)} - Methode-${JSON.stringify(selectedShipmentMethod)}, door ${
+            currentOrder?.shipping_address?.email || currentOrder?.user?.email
+          }`,
+        });
+        updateOrder(orderId, {
+          delivery_details: response.data.parcel,
+          history: newHistory,
+        });
       } else {
         console.error('Failed to send order:', response.status);
       }
@@ -139,7 +176,7 @@ export default function OrderDetailsInfo({
       <CardHeader
         title="Levering"
         action={
-          <IconButton onClick={() => setIsDeliveryEdit(!isDeliveryEdit)}>
+          <IconButton onClick={handleDeliveryEditClick}>
             <Iconify icon="solar:pen-bold" />
           </IconButton>
         }
@@ -147,9 +184,9 @@ export default function OrderDetailsInfo({
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Verzonden door:
+            Verzonden Methode:
           </Box>
-          {delivery.shipBy}
+          {deliveryDetails?.shipment?.name}
         </Stack>
 
         <Stack direction="row" alignItems="center">
@@ -157,7 +194,7 @@ export default function OrderDetailsInfo({
             Volgen No.
           </Box>
           <Link underline="always" color="inherit">
-            {delivery.trackingNumber}
+            {deliveryDetails?.tracking_number}
           </Link>
         </Stack>
         {isDeliveryEdit ? (
@@ -182,11 +219,11 @@ export default function OrderDetailsInfo({
               </Box>
               <TextField
                 select
-                value={carrier}
-                onChange={(e) => setCarrier(e.target.value)}
+                value={selectedShipmentMethod}
+                onChange={(e) => setSelectedShipmentMethod(e.target.value)}
                 sx={{ width: 150 }}
               >
-                {carriers.map((option) => (
+                {shipmentMethods.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
                   </MenuItem>
@@ -196,8 +233,11 @@ export default function OrderDetailsInfo({
 
             {/* Send Order Button */}
             <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-              <Button variant="contained" onClick={handleSendOrder}>
+              <Button variant="contained" onClick={handleSendToSendCloud}>
                 Stuur
+              </Button>
+              <Button variant="outlined" onClick={() => setIsDeliveryEdit(false)}>
+                Annuleren
               </Button>
             </Stack>
           </>
