@@ -24,6 +24,13 @@ export type IOrderHistory = {
 };
 
 export type IOrderShippingAddress = {
+  country: any;
+  street_name: unknown;
+  house_number: unknown;
+  house_suffix: unknown;
+  zip_code: unknown;
+  city: unknown;
+  phone_number: unknown;
   fullAddress: string;
   phoneNumber: string;
 };

@@ -304,9 +304,34 @@ export default function OrderDetailsInfo({
           <Stack spacing={1.5}>
             <TextField
               label="Adres"
-              value={updatedShippingAddress.line1}
+              value={updatedShippingAddress.street_name}
               onChange={(e) =>
-                setUpdatedShippingAddress({ ...updatedShippingAddress, line1: e.target.value })
+                setUpdatedShippingAddress({
+                  ...updatedShippingAddress,
+                  street_name: e.target.value,
+                })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Adres"
+              value={updatedShippingAddress.house_number}
+              onChange={(e) =>
+                setUpdatedShippingAddress({
+                  ...updatedShippingAddress,
+                  house_number: e.target.value,
+                })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Adres"
+              value={updatedShippingAddress.house_suffix}
+              onChange={(e) =>
+                setUpdatedShippingAddress({
+                  ...updatedShippingAddress,
+                  house_suffix: e.target.value,
+                })
               }
               fullWidth
             />
@@ -360,7 +385,8 @@ export default function OrderDetailsInfo({
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Adres
               </Box>
-              {shippingAddress.line1 || ''}
+              {shippingAddress.street_name || ''} {shippingAddress.house_number || ''}{' '}
+              {shippingAddress.house_suffix || ''}
               <br />
               {`${shippingAddress.zip_code || ''} ${shippingAddress.city || ''}`}
               <br />
