@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -49,8 +49,27 @@ export default function OrderDetailsInfo({
   const [totalWeight, setTotalWeight] = useState('');
   const [shipmentMethods, setShipmentMethods] = useState([]);
   const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
-  const deliveryDetails = currentOrder.delivery_details;
-  console.log('deliveryDetails', deliveryDetails);
+  const [updatedDeliveryDetails, setUpdatedDeliveryDetails] = useState();
+  const deliveryDetails = currentOrder?.delivery_details;
+
+  useEffect(() => {
+    if (deliveryDetails?.id) setUpdatedDeliveryDetails(updatedDeliveryDetails);
+    if (deliveryDetails?.id && !deliveryDetails?.tracking_number) getParcelDetails();
+  }, [deliveryDetails]);
+
+  const getParcelDetails = async () => {
+    try {
+      console.log('deliveryDetails', deliveryDetails);
+      const response = await axiosInstance.get(`/get_parcel_details/${deliveryDetails?.id}/`);
+      if (response.status === 200) {
+        setUpdatedDeliveryDetails(response.data?.parcel);
+      } else {
+        console.error('Failed to send order:', response.status);
+      }
+    } catch (error) {
+      console.error('Error sending order:', error);
+    }
+  };
   const handleGetShipmentMethods = async () => {
     try {
       const response = await axiosInstance.get(`/get_sendcloud_shipment_methods/`);
@@ -121,6 +140,7 @@ export default function OrderDetailsInfo({
           delivery_details: response.data.parcel,
           history: newHistory,
         });
+        setIsDeliveryEdit(false);
       } else {
         console.error('Failed to send order:', response.status);
       }
@@ -186,7 +206,7 @@ export default function OrderDetailsInfo({
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
             Verzonden Methode:
           </Box>
-          {deliveryDetails?.shipment?.name}
+          {updatedDeliveryDetails?.shipment?.name}
         </Stack>
 
         <Stack direction="row" alignItems="center">
@@ -194,7 +214,7 @@ export default function OrderDetailsInfo({
             Volgen No.
           </Box>
           <Link underline="always" color="inherit">
-            {deliveryDetails?.tracking_number}
+            {updatedDeliveryDetails?.tracking_number}
           </Link>
         </Stack>
         {isDeliveryEdit ? (
