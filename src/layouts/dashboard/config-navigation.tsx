@@ -4,8 +4,6 @@ import { paths } from 'src/routes/paths';
 
 import { useTranslate } from 'src/locales';
 
-import Label from 'src/components/label';
-import Iconify from 'src/components/iconify';
 import SvgColor from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
@@ -54,26 +52,26 @@ export function useNavData() {
     () => [
       // OVERVIEW
       // ----------------------------------------------------------------------
-      {
-        subheader: t('overview'),
-        items: [
-          {
-            title: t('app'),
-            path: paths.dashboard.root,
-            icon: ICONS.dashboard,
-          },
-          // {
-          //   title: t('analytics'),
-          //   path: paths.dashboard.general.analytics,
-          //   icon: ICONS.analytics,
-          // },
-        ],
-      },
+      // {
+      //   subheader: t('overview'),
+      //   items: [
+      //     {
+      //       title: t('app'),
+      //       path: paths.dashboard.root,
+      //       icon: ICONS.dashboard,
+      //     },
+      //     // {
+      //     //   title: t('analytics'),
+      //     //   path: paths.dashboard.general.analytics,
+      //     //   icon: ICONS.analytics,
+      //     // },
+      //   ],
+      // },
 
       // MANAGEMENT
       // ----------------------------------------------------------------------
       {
-        subheader: t('management'),
+        // subheader: t('management'),
         items: [
           // PRODUCT
           {
