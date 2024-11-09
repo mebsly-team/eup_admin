@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -62,6 +63,9 @@ export default function OrderDetailsInfo({
       console.log('deliveryDetails', deliveryDetails);
       const response = await axiosInstance.get(`/get_parcel_details/${deliveryDetails?.id}/`);
       if (response.status === 200) {
+        updateOrder(orderId, {
+          delivery_details: response.data.parcel,
+        });
         setUpdatedDeliveryDetails(response.data?.parcel);
       } else {
         console.error('Failed to send order:', response.status);
@@ -213,9 +217,28 @@ export default function OrderDetailsInfo({
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
             Volgen No.
           </Box>
-          <Link underline="always" color="inherit">
-            {updatedDeliveryDetails?.tracking_number}
-          </Link>
+
+          {updatedDeliveryDetails?.carrier?.code === 'dpd' ? (
+            <Link
+              href={`https://www.dpdgroup.com/nl/mydpd/my-parcels/incoming?parcelNumber=${updatedDeliveryDetails?.tracking_number}`}
+              target="_blank"
+              rel="noopener"
+              sx={{ ml: 0.5 }}
+            >
+              {updatedDeliveryDetails?.tracking_number}
+            </Link>
+          ) : updatedDeliveryDetails?.carrier?.code === 'dhl' ? (
+            <Link
+              href={`https://my.dhlecommerce.nl/home/tracktrace/${updatedDeliveryDetails?.tracking_number}/${updatedDeliveryDetails?.postal_code}`}
+              target="_blank"
+              rel="noopener"
+              sx={{ ml: 0.5 }}
+            >
+              {updatedDeliveryDetails?.tracking_number}
+            </Link>
+          ) : (
+            updatedDeliveryDetails?.tracking_number
+          )}
         </Stack>
         {isDeliveryEdit ? (
           <>
