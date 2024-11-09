@@ -276,7 +276,11 @@ export default function OrderDetailsInfo({
 
             {/* Send Order Button */}
             <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-              <Button variant="contained" onClick={handleSendToSendCloud}>
+              <Button
+                variant="contained"
+                onClick={handleSendToSendCloud}
+                disabled={!totalWeight || !selectedShipmentMethod}
+              >
                 Stuur
               </Button>
               <Button variant="outlined" onClick={() => setIsDeliveryEdit(false)}>
