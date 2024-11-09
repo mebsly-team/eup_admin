@@ -55,8 +55,11 @@ export default function OrderDetailsInfo({
 
   useEffect(() => {
     if (deliveryDetails?.id) setUpdatedDeliveryDetails(updatedDeliveryDetails);
-    if (deliveryDetails?.id && !deliveryDetails?.tracking_number) getParcelDetails();
   }, [deliveryDetails]);
+
+  useEffect(() => {
+    if (deliveryDetails?.id && !deliveryDetails?.tracking_number) getParcelDetails();
+  }, [deliveryDetails?.id]);
 
   const getParcelDetails = async () => {
     try {
@@ -144,6 +147,7 @@ export default function OrderDetailsInfo({
           delivery_details: response.data.parcel,
           history: newHistory,
         });
+        setUpdatedDeliveryDetails(response.data?.parcel);
         setIsDeliveryEdit(false);
       } else {
         console.error('Failed to send order:', response.status);
