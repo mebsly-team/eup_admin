@@ -8,7 +8,19 @@ import SaveIcon from '@mui/icons-material/Save';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { Select, Switch, Button, MenuItem, FormControl, useMediaQuery } from '@mui/material';
+import {
+  Chip,
+  Radio,
+  Select,
+  Switch,
+  Button,
+  MenuItem,
+  TextField,
+  RadioGroup,
+  FormControl,
+  useMediaQuery,
+  FormControlLabel,
+} from '@mui/material';
 import {
   DataGrid,
   GridRowId,
@@ -65,7 +77,7 @@ const styles = {
 };
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
-export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
+export default function ProductSiblingForm({ currentProduct, activeTab }: Props) {
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -73,52 +85,54 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   const [isWaiting, setIsWaiting] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
   const [selectedValues1, setSelectedValues1] = useState([]);
-  const [colorValues, setColorValues] = useState([]);
-  const [currentColorValue, setCurrentColorValue] = useState('');
+  const [optionValues, setOptionValues] = useState([]);
+  const [currentOptionValue, setCurrentOptionValue] = useState('');
   const [selectedUnitValues, setSelectedUnitValues] = useState([]);
-  const [currentProductVariantRows, setCurrentProductVariantRows] = useState([]);
-  const currentProductVariantIdList =
-    currentProduct?.variants.map((item: { id: any }) => item.id) || [];
+  const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState([]);
+  console.log('currentProductSiblingRows', currentProductSiblingRows);
+  const currentProductSiblingIdList =
+    currentProduct?.sibling_products.map((item: { id: any }) => item) || [];
   const isMobile = useMediaQuery('(max-width:600px)');
+  const [radioValue, setRadioValue] = useState(0);
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
   const handleKeyUp = (e: { keyCode: number; target: { value: any } }) => {
     if (e.keyCode === 13) {
-      setColorValues((oldState) => [...oldState, e.target.value]);
-      setCurrentColorValue('');
+      setOptionValues((oldState) => [...oldState, e.target.value]);
+      setCurrentOptionValue('');
     }
   };
   const handleChange = (e: { target: { value: SetStateAction<string> } }) => {
-    setCurrentColorValue(e.target.value);
+    setCurrentOptionValue(e.target.value);
   };
   const handleDelete = (item: never, index: number) => {
-    const arr = [...colorValues];
+    const arr = [...optionValues];
     arr.splice(index, 1);
-    setColorValues(arr);
+    setOptionValues(arr);
   };
-  const getVariants = async () => {
+  const getSiblings = async () => {
     try {
       setIsLoading(true); // Show the spinner
-      if (currentProductVariantIdList?.length) {
-        const variantPromises = currentProductVariantIdList.map(async (item: any) => {
+      if (currentProductSiblingIdList?.length) {
+        const siblingPromises = currentProductSiblingIdList.map(async (item: any) => {
           try {
             const { data } = await axiosInstance.get(`/products/${item}/`);
             return data;
           } catch (error) {
-            console.error(`Error fetching variant ${item}:`, error);
+            console.error(`Error fetching siblings ${item}:`, error);
             // Handle the error as needed (e.g., show an error message)
-            return null; // Return null for this variant
+            return null; // Return null for this siblings
           }
         });
 
-        const variantList = await Promise.all(variantPromises);
-        variantList.push(currentProduct);
-        const filteredVariants = variantList.filter((variant) => variant !== null);
-        setCurrentProductVariantRows(filteredVariants);
+        const siblingList = await Promise.all(siblingPromises);
+        siblingList.push(currentProduct);
+        const filteredSiblings = siblingList.filter((sibling) => sibling !== null);
+        setCurrentProductSiblingRows(filteredSiblings);
       }
     } catch (error) {
-      console.error('Error fetching variants:', error);
+      console.error('Error fetching siblings:', error);
       // Handle the error as needed (e.g., show an error message)
     } finally {
       setIsLoading(false); // Hide the spinner when done
@@ -126,10 +140,13 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   };
 
   useEffect(() => {
-    getVariants();
-  }, [activeTab, currentProductVariantIdList?.length]);
+    getSiblings();
+  }, [activeTab, currentProductSiblingIdList?.length]);
 
-  const createVariantsCall = async (parentProduct, value1, value2, unitValue) => {
+  const createSiblingsCall = async (parentProduct, value1, value2, unitValue) => {
+    console.log('unitValue', unitValue);
+    console.log('value2', value2);
+    console.log('value1', value1);
     const discount =
       unitValue === 'package'
         ? 5
@@ -146,9 +163,8 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     }-${t(unitValue)}`;
     const data = {
       title,
-      is_variant: true,
       title_long: title,
-      parent_product: parentProduct?.id,
+      sibling_products: [parentProduct?.id],
       extra_location: parentProduct?.extra_location,
       location: parentProduct?.location,
       color: value1?.replace(/\s+/g, '%'),
@@ -178,7 +194,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     if (parentProduct?.is_regular !== null) data.is_regular = parentProduct?.is_regular;
     data.price_cost = parentProduct?.price_cost;
     if (discount) {
-      data.variant_discount = discount;
+      data.sibling_discount = discount;
       data.price_per_piece = parseFloat(
         Number(parentProduct?.price_per_piece) * (1 - discount / 100)
       ).toFixed(2);
@@ -190,7 +206,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
     try {
       const response = await axiosInstance.post('/products/', data);
-      return response?.data; // Return the created variant
+      return response?.data; // Return the created siblings
     } catch (error) {
       console.error('Error:', error);
       // Handle error here if needed
@@ -198,31 +214,35 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     }
   };
 
-  const createVariants = async () => {
+  const createSiblings = async () => {
     setIsLoading(true); // Show the spinner
+    const values1 = selectedValues1.length > 0 ? selectedValues1 : [null]; // colors
+    const values2 = optionValues.length > 0 ? optionValues : [null];
     let parentProduct = {};
     try {
       const response = await axiosInstance.get(`/products/${currentProduct?.id}/`);
       parentProduct = response?.data;
 
-      const variantPromises: any[] = [];
+      const siblingPromises: any[] = [];
 
-      [parentProduct.size].forEach((value1) => {
-        [parentProduct.color].forEach((value2) => {
-          selectedUnitValues.forEach((unitValue) => {
-            variantPromises.push(createVariantsCall(parentProduct, value1, value2, unitValue));
+      values1.forEach((value1) => {
+        values2.forEach((value2) => {
+          [parentProduct.unit].forEach((unitValue) => {
+            siblingPromises.push(createSiblingsCall(parentProduct, value1, value2, unitValue));
           });
         });
       });
 
-      const newVariants = await Promise.all(variantPromises);
+      const newSiblings = await Promise.all(siblingPromises);
+      const successfulSiblings = newSiblings.filter((sibling) => sibling !== null);
+      console.log('successfulSiblings', successfulSiblings);
 
-      // Filter out any null results (errors)
-      newVariants.push(currentProduct);
-      const successfulVariants = newVariants.filter((variant) => variant !== null);
-
-      if (successfulVariants.length > 0) {
-        setCurrentProductVariantRows((prevRows) => [...prevRows, ...successfulVariants]);
+      if (successfulSiblings.length > 0) {
+        const allSiblings = [...currentProductSiblingRows, ...successfulSiblings];
+        const data = allSiblings.map((item) => item.id);
+        const response = await axiosInstance.post('/add_sibling_products/', { product_ids: data });
+        console.log('response', response);
+        setCurrentProductSiblingRows(allSiblings);
       }
 
       setSelectedUnitValues([]);
@@ -253,21 +273,21 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
         is_visible_particular: newStatus,
         title: row.title,
       });
-      setCurrentProductVariantRows((prevRows) => {
-        // Find the index of the existing variant
-        const variantIndex = prevRows.findIndex((variant) => variant.id === row.id);
+      setCurrentProductSiblingRows((prevRows) => {
+        // Find the index of the existing sibling
+        const siblingIndex = prevRows.findIndex((sibling) => sibling.id === row.id);
         const updatedRows = [...prevRows];
-        updatedRows[variantIndex] = { ...row, is_visible_particular: newStatus };
+        updatedRows[siblingIndex] = { ...row, is_visible_particular: newStatus };
         return updatedRows;
       });
     } catch (error) {
       console.error('Missing Fields:', error);
       const missingFields = Object.values(error)?.[0] || [];
       missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        enqueueSnackbar({ sibling: 'error', message: `${t(element)} verplicht` });
       });
     } finally {
-      // getVariants();
+      // getSiblings();
       setIsWaiting(false);
     }
   };
@@ -282,21 +302,21 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
         is_visible_B2B: e.target.checked,
         title: row.title,
       });
-      setCurrentProductVariantRows((prevRows) => {
-        // Find the index of the existing variant
-        const variantIndex = prevRows.findIndex((variant) => variant.id === row.id);
+      setCurrentProductSiblingRows((prevRows) => {
+        // Find the index of the existing sibling
+        const siblingIndex = prevRows.findIndex((sibling) => sibling.id === row.id);
         const updatedRows = [...prevRows];
-        updatedRows[variantIndex] = { ...row, is_visible_B2B: newStatus };
+        updatedRows[siblingIndex] = { ...row, is_visible_B2B: newStatus };
         return updatedRows;
       });
     } catch (error) {
       console.error('Missing Fields:', error);
       const missingFields = Object.values(error)?.[0] || [];
       missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        enqueueSnackbar({ sibling: 'error', message: `${t(element)} verplicht` });
       });
     } finally {
-      // getVariants();
+      // getSiblings();
       setIsWaiting(false);
     }
   };
@@ -304,11 +324,11 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     try {
       const { data } = await axiosInstance.delete(`/products/${id}/`);
       enqueueSnackbar(t('delete_success'));
-      setCurrentProductVariantRows(currentProductVariantRows.filter((row) => row.id !== id));
+      setCurrentProductSiblingRows(currentProductSiblingRows.filter((row) => row.id !== id));
     } catch (error) {
-      enqueueSnackbar({ variant: 'error', message: t('error') });
+      enqueueSnackbar({ siblings: 'error', message: t('error') });
     } finally {
-      getVariants();
+      getSiblings();
     }
   };
 
@@ -318,16 +338,20 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       [id]: { mode: GridRowModes.View, ignoreModifications: true },
     });
 
-    const editedRow = currentProductVariantRows.find((row) => row.id === id);
+    const editedRow = currentProductSiblingRows.find((row) => row.id === id);
     if (editedRow!.isNew) {
-      setCurrentProductVariantRows(currentProductVariantRows.filter((row) => row.id !== id));
+      setCurrentProductSiblingRows(currentProductSiblingRows.filter((row) => row.id !== id));
     }
+  };
+
+  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRadioValue((event.target as HTMLInputElement).value);
   };
 
   const processRowUpdate = (newRow: GridRowModel) => {
     const updatedRow = { ...newRow, isNew: false };
-    setCurrentProductVariantRows(
-      currentProductVariantRows.map((row) => (row.id === newRow.id ? updatedRow : row))
+    setCurrentProductSiblingRows(
+      currentProductSiblingRows.map((row) => (row.id === newRow.id ? updatedRow : row))
     );
     return updatedRow;
   };
@@ -469,7 +493,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
           ];
         }
 
-        return row.is_variant
+        return row.id === currentProduct?.id
           ? [
               <GridActionsCellItem
                 icon={<EditIcon />}
@@ -507,22 +531,24 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       col.field !== 'free_stock' &&
       col.field !== 'price_per_piece'
   );
-  const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
+  const getRowClassName = (row: GridRowModel) =>
+    !row.row.id === currentProduct?.id ? 'sibling-row' : '';
 
-  const mainProduct = currentProductVariantRows.find((item) => !item.is_variant);
-  const updatedVariants = currentProductVariantRows.map((item) =>
-    item.is_variant
-      ? {
-          ...item,
-          free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
-        }
-      : item
-  );
-  const sortedRows = [...updatedVariants];
-  sortedRows?.sort((a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit));
   return (
     <>
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
+        <Typography sx={{ mb: 2 }}>{t('selectSiblingType')}</Typography>
+
+        <RadioGroup value={radioValue} onChange={handleRadioChange}>
+          <FormControlLabel
+            value="color"
+            control={<Radio size="medium" />}
+            label={t('color')}
+            sx={{ textTransform: 'capitalize' }}
+          />
+          <FormControlLabel value="option" control={<Radio size="medium" />} label={t('option')} />
+        </RadioGroup>
+
         <Box
           sx={{
             display: 'grid',
@@ -532,26 +558,77 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
             borderBottom: `solid 1px ${theme.palette.divider}`,
           }}
         >
-          <Typography sx={{ mb: 2 }}>{t('selectBundles')}</Typography>
-          <FormControl sx={{ minWidth: 300 }}>
-            <Select
-              name="unit"
-              multiple
-              value={selectedUnitValues}
-              onChange={(e) => setSelectedUnitValues(e.target.value)}
+          {radioValue === 'color' ? (
+            <FormControl sx={{ minWidth: 300 }}>
+              <Select
+                multiple
+                value={selectedValues1}
+                onChange={(e) => setSelectedValues1(e.target.value)}
+              >
+                <MenuItem value="red">{t('red')}</MenuItem>
+                <MenuItem value="blue">{t('blue')}</MenuItem>
+                <MenuItem value="green">{t('green')}</MenuItem>
+                <MenuItem value="yellow">{t('yellow')}</MenuItem>
+                <MenuItem value="brown">{t('brown')}</MenuItem>
+                <MenuItem value="pink">{t('pink')}</MenuItem>
+                <MenuItem value="purple">{t('purple')}</MenuItem>
+                <MenuItem value="black">{t('black')}</MenuItem>
+                <MenuItem value="white">{t('white')}</MenuItem>
+                <MenuItem value="orange">{t('orange')}</MenuItem>
+                <MenuItem value="gray">{t('gray')}</MenuItem>
+                <MenuItem value="cyan">{t('cyan')}</MenuItem>
+                <MenuItem value="magenta">{t('magenta')}</MenuItem>
+                <MenuItem value="turquoise">{t('turquoise')}</MenuItem>
+                <MenuItem value="gold">{t('gold')}</MenuItem>
+                <MenuItem value="silver">{t('silver')}</MenuItem>
+                <MenuItem value="lavender">{t('lavender')}</MenuItem>
+                <MenuItem value="maroon">{t('maroon')}</MenuItem>
+                <MenuItem value="teal">{t('teal')}</MenuItem>
+                <MenuItem value="navy">{t('navy')}</MenuItem>
+                <MenuItem value="indigo">{t('indigo')}</MenuItem>
+                <MenuItem value="olive">{t('olive')}</MenuItem>
+                <MenuItem value="salmon">{t('salmon')}</MenuItem>
+                <MenuItem value="peach">{t('peach')}</MenuItem>
+                <MenuItem value="violet">{t('violet')}</MenuItem>
+                <MenuItem value="coral">{t('coral')}</MenuItem>
+                <MenuItem value="lime">{t('lime')}</MenuItem>
+                <MenuItem value="beige">{t('beige')}</MenuItem>
+                <MenuItem value="khaki">{t('khaki')}</MenuItem>
+                <MenuItem value="azure">{t('azure')}</MenuItem>
+                <MenuItem value="orchid">{t('orchid')}</MenuItem>
+                <MenuItem value="crimson">{t('crimson')}</MenuItem>
+                <MenuItem value="fuchsia">{t('fuchsia')}</MenuItem>
+                <MenuItem value="ivory">{t('ivory')}</MenuItem>
+                <MenuItem value="tan">{t('tan')}</MenuItem>
+                <MenuItem value="mint">{t('mint')}</MenuItem>
+              </Select>
+            </FormControl>
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: '0.2rem',
+              }}
             >
-              <MenuItem value="piece">{t('piece')}</MenuItem>
-              <MenuItem value="package">{t('package')}</MenuItem>
-              <MenuItem value="rol">{t('rol')}</MenuItem>
-              <MenuItem value="box">{t('box')}</MenuItem>
-              <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-              <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
-            </Select>
-          </FormControl>
+              <FormControl sx={styles}>
+                <TextField
+                  value={currentOptionValue}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyUp}
+                />
+              </FormControl>{' '}
+              <div className="container">
+                {optionValues.map((item, index) => (
+                  <Chip size="small" onDelete={() => handleDelete(item, index)} label={item} />
+                ))}
+              </div>
+            </Box>
+          )}
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button onClick={createVariants} color="primary" disabled={!selectedUnitValues?.length}>
-            {t('generate2')}
+          <Button onClick={createSiblings} color="primary">
+            {t('generate')}
           </Button>
         </Box>
       </Box>
@@ -569,14 +646,14 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
             '& .textPrimary': {
               color: 'text.primary',
             },
-            '& .variant-row': {
+            '& .sibling-row': {
               backgroundColor: 'grey',
               // pointerEvents: 'none',
             },
           }}
         >
           <DataGrid
-            rows={sortedRows}
+            rows={currentProductSiblingRows}
             columns={isMobile ? mobileColumns : columns}
             editMode="row"
             rowModesModel={rowModesModel}

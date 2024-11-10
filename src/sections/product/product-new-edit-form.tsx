@@ -55,6 +55,7 @@ import { CategorySelector } from 'src/sections/category/CategorySelector';
 
 import Rating from './Rating';
 import ProductVariantForm from './product-variant-form';
+import ProductSiblingForm from './product-sibling-form';
 
 // ----------------------------------------------------------------------
 
@@ -893,6 +894,13 @@ export default function ProductNewEditForm({ id }: Props) {
         iconPosition="end"
         id={1}
         value={1}
+        label={`${t('bundles')}`}
+        disabled={!currentProduct}
+      />
+      <Tab
+        iconPosition="end"
+        id={2}
+        value={2}
         label={`${t('variants')}`}
         disabled={!currentProduct}
       />
@@ -1034,7 +1042,7 @@ export default function ProductNewEditForm({ id }: Props) {
               <MenuItem value="mint">{t('mint')}</MenuItem>
             </RHFSelect>
 
-            <RHFTextField name="size" label={t('variant')} />
+            <RHFTextField name="size" label={t('option')} />
           </Box>
           {getValues('article_code') ? (
             <a
@@ -2619,8 +2627,10 @@ export default function ProductNewEditForm({ id }: Props) {
             </Card>
           </Grid>
         </Grid>
-      ) : (
+      ) : activeTab === 1 ? (
         <ProductVariantForm currentProduct={currentProduct} activeTab={activeTab} />
+      ) : (
+        <ProductSiblingForm currentProduct={currentProduct} activeTab={activeTab} />
       )}
 
       {isImageGalleryOpen ? (
