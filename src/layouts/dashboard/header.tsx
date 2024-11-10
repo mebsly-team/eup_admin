@@ -7,9 +7,12 @@ import IconButton from '@mui/material/IconButton';
 import { useOffSetTop } from 'src/hooks/use-off-set-top';
 import { useResponsive } from 'src/hooks/use-responsive';
 
+import axiosInstance from 'src/utils/axios';
+
 import { bgBlur } from 'src/theme/css';
 
 import Logo from 'src/components/logo';
+import Iconify from 'src/components/iconify';
 import SvgColor from 'src/components/svg-color';
 import { useSettingsContext } from 'src/components/settings';
 
@@ -17,9 +20,6 @@ import Searchbar from '../common/searchbar';
 import { NAV, HEADER } from '../config-layout';
 import SettingsButton from '../common/settings-button';
 import AccountPopover from '../common/account-popover';
-import ContactsPopover from '../common/contacts-popover';
-import LanguagePopover from '../common/language-popover';
-import NotificationsPopover from '../common/notifications-popover';
 
 // ----------------------------------------------------------------------
 
@@ -42,6 +42,11 @@ export default function Header({ onOpenNav }: Props) {
 
   const offsetTop = offset && !isNavHorizontal;
 
+  const handleCleanClick = async () => {
+    response = await axiosInstance.post(`/clear-redis-cache/`, {});
+    console.log('response', response);
+  };
+
   const renderContent = (
     <>
       {lgUp && isNavHorizontal && <Logo sx={{ mr: 2.5 }} />}
@@ -61,12 +66,16 @@ export default function Header({ onOpenNav }: Props) {
         justifyContent="flex-end"
         spacing={{ xs: 0.5, sm: 1 }}
       >
-        <LanguagePopover />
+        {/* <LanguagePopover />
 
         <NotificationsPopover />
 
-        <ContactsPopover />
-
+        <ContactsPopover /> */}
+        <Iconify
+          icon="solar:trash-bin-trash-bold"
+          style={{ cursor: 'pointer' }}
+          onClick={handleCleanClick}
+        />
         <SettingsButton />
 
         <AccountPopover />
