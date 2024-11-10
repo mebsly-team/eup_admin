@@ -2023,7 +2023,7 @@ export default function ProductNewEditForm({ id }: Props) {
               label={t('is_taken_from_another_package_ean')}
             />
           </Box>
-          <Box
+          {/* <Box
             columnGap={2}
             rowGap={3}
             display="grid"
@@ -2047,7 +2047,7 @@ export default function ProductNewEditForm({ id }: Props) {
               name="ean_to_follow_stock"
               label={t('ean_to_follow_stock')}
             />
-          </Box>
+          </Box> */}
         </Stack>
       </Card>
     </Grid>
