@@ -1951,13 +1951,15 @@ export default function ProductNewEditForm({ id }: Props) {
               options={countries?.map((option) => option.code) || []}
               getOptionLabel={(option) => option}
             />
-            {!getValues('languages_on_item_package')?.includes('NL') && (
+            {(!getValues('languages_on_item_package')?.includes('NL') ||
+              getValues('extra_etiket_fr')) && (
               <>
                 <Typography variant="subtitle2">{t('extra_etiket_nl')}:</Typography>
                 <RHFEditor simple name="extra_etiket_nl" />
               </>
             )}
-            {!getValues('languages_on_item_package')?.includes('FR') && (
+            {(!getValues('languages_on_item_package')?.includes('FR') ||
+              getValues('extra_etiket_fr')) && (
               <>
                 <Typography variant="subtitle2">{t('extra_etiket_fr')}:</Typography>
                 <RHFEditor simple name="extra_etiket_fr" />
