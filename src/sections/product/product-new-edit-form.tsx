@@ -302,7 +302,15 @@ export default function ProductNewEditForm({ id }: Props) {
       quantity_per_unit: currentProduct?.quantity_per_unit || 0,
       variant_discount: currentProduct?.variant_discount || 0,
       price_per_piece: currentProduct?.price_per_piece || 0,
-      price_per_unit: currentProduct?.price_per_unit || 0,
+      price_per_unit: currentProduct?.price_per_unit,
+      price_per_piece_vat: (
+        Number(currentProduct?.price_per_piece || 0) *
+        (1 + Number(currentProduct?.vat || 0) / 100)
+      ).toFixed(2),
+      price_per_unit_vat: (
+        Number(currentProduct?.price_per_unit || 0) *
+        (1 + Number(currentProduct?.vat || 0) / 100)
+      ).toFixed(2),
       price_consumers: currentProduct?.price_consumers || 0,
       price_cost: currentProduct?.price_cost || 0,
       vat: Number(currentProduct?.vat || 0),
@@ -2423,7 +2431,7 @@ export default function ProductNewEditForm({ id }: Props) {
                   >
                     {getValues('price_per_piece') ? (
                       <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                        €{roundUp(getValues('price_per_piece') * (1 + getValues('vat') / 100))}
+                        €{roundUp(getValues('price_per_unit_vat'))}
                       </Typography>
                     ) : null}
                     <Typography
@@ -2431,7 +2439,7 @@ export default function ProductNewEditForm({ id }: Props) {
                       ml={1}
                       sx={{ color: 'grey', textDecoration: 'line-through' }}
                     >
-                      {roundUp(getValues('price_consumers') * (1 + getValues('vat') / 100))}
+                      {roundUp(getValues('price_per_unit_vat') * 1.75)}
                     </Typography>
                   </Box>
                   <Typography variant="subtitle2" sx={{ color: 'grey' }}>
