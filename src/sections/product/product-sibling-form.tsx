@@ -603,7 +603,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
                 <MenuItem value="mint">{t('mint')}</MenuItem>
               </Select>
             </FormControl>
-          ) : (
+          ) : radioValue === 'option' ? (
             <Box
               sx={{
                 display: 'grid',
@@ -624,7 +624,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
                 ))}
               </div>
             </Box>
-          )}
+          ) : null}
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button onClick={createSiblings} color="primary">
