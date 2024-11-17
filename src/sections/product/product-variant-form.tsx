@@ -469,7 +469,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
           ];
         }
 
-        return [
+        return row.id !== currentProduct?.id ? [
           <GridActionsCellItem
             icon={<EditIcon />}
             label="Edit"
@@ -483,7 +483,16 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
             onClick={handleDeleteClick(id)}
             color="inherit"
           />,
-        ];
+        ]
+          : [
+            <GridActionsCellItem
+              icon={<EditIcon />}
+              label="Edit"
+              className="textPrimary"
+              onClick={handleEditClick(id)}
+              color="inherit"
+            />,
+          ];
       },
     },
   ];

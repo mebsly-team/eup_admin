@@ -45,6 +45,7 @@ import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 
 import { IProductItem } from 'src/types/product';
+import { useGetProduct } from 'src/api/product';
 
 type Props = {
   currentProduct?: IProductItem;
@@ -77,17 +78,16 @@ const styles = {
 };
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 
-export default function ProductSiblingForm({ currentProduct, activeTab }: Props) {
+export default function ProductSiblingForm({ currentProduct: defaultProduct, activeTab }: Props) {
+  const { product: currentProduct } = useGetProduct(defaultProduct.id);
   const router = useRouter();
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [isWaiting, setIsWaiting] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
-  const [selectedValues1, setSelectedValues1] = useState([]);
-  const [optionValues, setOptionValues] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
   const [currentOptionValue, setCurrentOptionValue] = useState('');
-  const [selectedUnitValues, setSelectedUnitValues] = useState([]);
   const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState([]);
   console.log('currentProductSiblingRows', currentProductSiblingRows);
   const currentProductSiblingIdList =
@@ -97,20 +97,12 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
-  const handleKeyUp = (e: { keyCode: number; target: { value: any } }) => {
-    if (e.keyCode === 13) {
-      setOptionValues((oldState) => [...oldState, e.target.value]);
-      setCurrentOptionValue('');
-    }
-  };
-  const handleChange = (e: { target: { value: SetStateAction<string> } }) => {
+
+
+  const handleChangeOption = (e: { target: { value: SetStateAction<string> } }) => {
     setCurrentOptionValue(e.target.value);
   };
-  const handleDelete = (item: never, index: number) => {
-    const arr = [...optionValues];
-    arr.splice(index, 1);
-    setOptionValues(arr);
-  };
+
   const getSiblings = async () => {
     try {
       setIsLoading(true); // Show the spinner
@@ -143,32 +135,31 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
     getSiblings();
   }, [activeTab, currentProductSiblingIdList?.length]);
 
-  const createSiblingsCall = async (parentProduct, value1, value2, unitValue) => {
-    console.log('unitValue', unitValue);
-    console.log('value2', value2);
-    console.log('value1', value1);
+  const createSiblingsCall = async (parentProduct, clr, sz, unitValue) => {
+
     const discount =
       unitValue === 'package'
-        ? 5
-        : unitValue === 'box'
-          ? 10
-          : unitValue === 'pallet_layer'
-            ? 15
-            : unitValue === 'pallet_full'
-              ? 20
-              : null;
+        ? 5 :
+        unitValue === 'rol'
+          ? 5
+          : unitValue === 'box'
+            ? 10
+            : unitValue === 'pallet_layer'
+              ? 15
+              : unitValue === 'pallet_full'
+                ? 20
+                : null;
     const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
-    const title = `${parentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
-      value2 ? `-${t(value2)}` : ''
-    }-${t(unitValue)}`;
+    const title = `${parentProduct?.title}${clr ? `-${t(clr)}` : ''}${sz ? `-${t(sz)}` : ''
+      }-${t(unitValue)}`;
     const data = {
       title,
       title_long: title,
       sibling_products: [parentProduct?.id],
       extra_location: parentProduct?.extra_location,
       location: parentProduct?.location,
-      color: value1?.replace(/\s+/g, '%'),
-      size: value2?.replace(/\s+/g, '%'),
+      color: clr?.replace(/\s+/g, '%'),
+      size: sz?.replace(/\s+/g, '%'),
       unit: unitValue,
       categories: parentProduct?.categories?.map((item) => item.id) || [],
       languages_on_item_package: parentProduct?.languages_on_item_package,
@@ -216,8 +207,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
 
   const createSiblings = async () => {
     setIsLoading(true); // Show the spinner
-    const values1 = selectedValues1.length > 0 ? selectedValues1 : [null]; // colors
-    const values2 = optionValues.length > 0 ? optionValues : [null];
+    const colorValues = selectedColors.length > 0 ? selectedColors : [null]; // colors
     let parentProduct = {};
     try {
       const response = await axiosInstance.get(`/products/${currentProduct?.id}/`);
@@ -225,14 +215,15 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
 
       const siblingPromises: any[] = [];
 
-      values1.forEach((value1) => {
-        values2.forEach((value2) => {
-          [parentProduct.unit].forEach((unitValue) => {
-            siblingPromises.push(createSiblingsCall(parentProduct, value1, value2, unitValue));
-          });
-        });
+      colorValues.forEach((clr) => {
+        siblingPromises.push(createSiblingsCall(parentProduct, clr, null, parentProduct.unit));
+
       });
 
+      if (currentOptionValue) {
+        siblingPromises.push(createSiblingsCall(parentProduct, parentProduct.color, currentOptionValue, parentProduct.unit));
+
+      }
       const newSiblings = await Promise.all(siblingPromises);
       const successfulSiblings = newSiblings.filter((sibling) => sibling !== null);
       console.log('successfulSiblings', successfulSiblings);
@@ -245,7 +236,8 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
         setCurrentProductSiblingRows(allSiblings);
       }
 
-      setSelectedUnitValues([]);
+      window.location.reload();
+
     } catch (error) {
       console.log('error', error);
     } finally {
@@ -284,7 +276,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
       console.error('Missing Fields:', error);
       const missingFields = Object.values(error)?.[0] || [];
       missingFields.forEach((element) => {
-        enqueueSnackbar({ sibling: 'error', message: `${t(element)} verplicht` });
+        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
       });
     } finally {
       // getSiblings();
@@ -313,7 +305,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
       console.error('Missing Fields:', error);
       const missingFields = Object.values(error)?.[0] || [];
       missingFields.forEach((element) => {
-        enqueueSnackbar({ sibling: 'error', message: `${t(element)} verplicht` });
+        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
       });
     } finally {
       // getSiblings();
@@ -375,7 +367,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
     },
     {
       field: 'size',
-      headerName: t('size'),
+      headerName: t('option'),
       // type: 'number',
       width: 80,
       align: 'left',
@@ -481,7 +473,7 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
               sx={{
                 color: 'primary.main',
               }}
-              // onClick={handleSaveClick(id)}
+            // onClick={handleSaveClick(id)}
             />,
             <GridActionsCellItem
               icon={<CancelIcon />}
@@ -493,31 +485,31 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
           ];
         }
 
-        return row.id === currentProduct?.id
+        return row.id !== currentProduct?.id
           ? [
-              <GridActionsCellItem
-                icon={<EditIcon />}
-                label="Edit"
-                className="textPrimary"
-                onClick={handleEditClick(id)}
-                color="inherit"
-              />,
-              <GridActionsCellItem
-                icon={<DeleteIcon />}
-                label="Delete"
-                onClick={handleDeleteClick(id)}
-                color="inherit"
-              />,
-            ]
+            <GridActionsCellItem
+              icon={<EditIcon />}
+              label="Edit"
+              className="textPrimary"
+              onClick={handleEditClick(id)}
+              color="inherit"
+            />,
+            <GridActionsCellItem
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={handleDeleteClick(id)}
+              color="inherit"
+            />,
+          ]
           : [
-              <GridActionsCellItem
-                icon={<EditIcon />}
-                label="Edit"
-                className="textPrimary"
-                onClick={handleEditClick(id)}
-                color="inherit"
-              />,
-            ];
+            <GridActionsCellItem
+              icon={<EditIcon />}
+              label="Edit"
+              className="textPrimary"
+              onClick={handleEditClick(id)}
+              color="inherit"
+            />,
+          ];
       },
     },
   ];
@@ -562,8 +554,8 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
             <FormControl sx={{ minWidth: 300 }}>
               <Select
                 multiple
-                value={selectedValues1}
-                onChange={(e) => setSelectedValues1(e.target.value)}
+                value={selectedColors}
+                onChange={(e) => setSelectedColors(e.target.value)}
               >
                 <MenuItem value="red">{t('red')}</MenuItem>
                 <MenuItem value="blue">{t('blue')}</MenuItem>
@@ -614,15 +606,9 @@ export default function ProductSiblingForm({ currentProduct, activeTab }: Props)
               <FormControl sx={styles}>
                 <TextField
                   value={currentOptionValue}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyUp}
+                  onChange={handleChangeOption}
                 />
-              </FormControl>{' '}
-              <div className="container">
-                {optionValues.map((item, index) => (
-                  <Chip size="small" onDelete={() => handleDelete(item, index)} label={item} />
-                ))}
-              </div>
+              </FormControl>
             </Box>
           ) : null}
         </Box>
