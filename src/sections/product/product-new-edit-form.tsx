@@ -82,7 +82,6 @@ export default function ProductNewEditForm({ id }: Props) {
     totalVolume: 0,
   });
 
-  console.log('results', results);
   // Now you can access query parameters from the location object
   const queryParams = new URLSearchParams(location.search);
   const tab = Number(queryParams.get('tab') || 0);
@@ -157,26 +156,28 @@ export default function ProductNewEditForm({ id }: Props) {
     title: Yup.string().required(t('required')),
     unit: Yup.string().required(t('required')),
     price_per_piece: Yup.number()
-    .when('min_price_to_sell', (min_price_to_sell, schema) =>
-      min_price_to_sell ? schema.min(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
-    )
-    .test(
-      'is-decimal',
-      t('Max. 2 decimale posities'),
-      (value) =>
-        value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
-    )
-    .when('price_cost', (price_cost, schema) =>
-      price_cost
-        ? schema.min(price_cost * 1.15, `Prijs per stuk moet minstens 15% meer zijn dan de kostprijs`)
-        : schema
-    ),
-    quantity_per_unit: Yup.number().required(t('required')),
+
+
+      .when('price_cost', (price_cost, schema) => {
+        console.log("pc:", price_cost);
+        return price_cost
+          ? schema.min(price_cost * 1.15, `Prijs per stuk moet minstens 15% meer zijn dan de kostprijs`)
+          : schema
+      }
+      ).test(
+        'is-decimal',
+        t('Max. 2 decimale posities'),
+        (value) =>
+          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+      ),
+    quantity_per_unit: Yup.number()
+      .required(t('required'))
+      .min(1, t('Moet groter zijn dan 0')),
     variant_discount: Yup.number().test(
       'is-decimal',
-      t('Max. 2 decimale posities'),
+      t('Max. 2 decimal places'),
       (value) =>
-        value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+        value === undefined || value === null || /^-?[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
     ),
     price_per_unit: Yup.number()
       .required(t('required'))
@@ -308,14 +309,6 @@ export default function ProductNewEditForm({ id }: Props) {
       variant_discount: currentProduct?.variant_discount || 0,
       price_per_piece: currentProduct?.price_per_piece || 0,
       price_per_unit: currentProduct?.price_per_unit,
-      price_per_piece_vat: (
-        Number(currentProduct?.price_per_piece || 0) *
-        (1 + Number(currentProduct?.vat || 0) / 100)
-      ).toFixed(2),
-      price_per_unit_vat: (
-        Number(currentProduct?.price_per_unit || 0) *
-        (1 + Number(currentProduct?.vat || 0) / 100)
-      ).toFixed(2),
       price_consumers: currentProduct?.price_consumers || 0,
       price_cost: currentProduct?.price_cost || 0,
       vat: Number(currentProduct?.vat || 0),
@@ -326,13 +319,13 @@ export default function ProductNewEditForm({ id }: Props) {
 
       overall_stock: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.overall_stock || 0) / Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.overall_stock || 0) / Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.overall_stock || 0, // # Huidege Voorraad
       free_stock: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.free_stock || 0) / Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.free_stock || 0) / Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.free_stock || 0, // # Vrije Voorraad
       ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0, // # Voorraad Aantal in bestelling
 
@@ -344,25 +337,25 @@ export default function ProductNewEditForm({ id }: Props) {
       number_in_other: currentProduct?.number_in_other || 0, // Aantal in anders
       order_unit_amount: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.order_unit_amount || 0) /
-              Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.order_unit_amount || 0) /
+          Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.order_unit_amount || 0, // minimumvoorraad
       min_order_amount: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.min_order_amount || 0, // minimumvoorraad
       min_stock_value: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.min_stock_value || 0, // minimumvoorraad
       max_stock_at_rack: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.max_stock_at_rack || 0) /
-              Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.max_stock_at_rack || 0) /
+          Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
       stock_check: currentProduct?.stock_check || false, // voorraadcontrole
 
@@ -390,8 +383,8 @@ export default function ProductNewEditForm({ id }: Props) {
           : currentProduct?.languages_on_item_package || [],
       sell_count: currentProduct?.is_variant
         ? Math.floor(
-            Number(parentProduct?.sell_count || 0) / Number(currentProduct?.quantity_per_unit)
-          )
+          Number(parentProduct?.sell_count || 0) / Number(currentProduct?.quantity_per_unit)
+        )
         : currentProduct?.sell_count || 0,
       is_only_for_logged_in_user: currentProduct?.is_only_for_logged_in_user || false,
       is_used: currentProduct?.is_used || false,
@@ -442,7 +435,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const methods = useForm({
     resolver: yupResolver(NewProductSchema),
     defaultValues,
-    mode: 'onBlur', 
+    mode: 'onBlur',
   });
 
   const {
@@ -635,7 +628,6 @@ export default function ProductNewEditForm({ id }: Props) {
 
           // Determine the feasible number of layers considering both height and weight constraints
           const layers = Math.min(layers_by_height, max_layers_by_weight);
-          console.log('layers', layers);
 
           const total_items_full_pallet = items_per_layer * layers;
           const total_weight_full_pallet = total_items_full_pallet * weight;
@@ -763,6 +755,16 @@ export default function ProductNewEditForm({ id }: Props) {
       data.brand = typeof data.brand === 'object' ? data.brand?.id : data.brand;
       data.supplier = typeof data.supplier === 'object' ? data.supplier?.id : data.supplier;
       data.categories = data?.categories.map((item) => item?.id);
+      data.order_unit_amount = data.order_unit_amount || 0
+      data.min_order_amount = data.min_order_amount || 0
+      data.price_per_piece_vat = (
+        Number(data?.price_per_piece || 0) *
+        (1 + Number(data?.vat || 0) / 100)
+      ).toFixed(2)
+      data.price_per_unit_vat = (
+        Number(data?.price_per_unit || 0) *
+        (1 + Number(data?.vat || 0) / 100)
+      ).toFixed(2)
       let response;
       if (currentProduct?.id) {
         response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
@@ -837,65 +839,65 @@ export default function ProductNewEditForm({ id }: Props) {
       const snelProduct = response?.data?.[0] || {};
       const valuesToSet = onlyStock
         ? {
-            ...getValues(),
-            overall_stock: snelProduct?.technischeVoorraad || 0,
-            free_stock: snelProduct?.vrijeVoorraad || 0,
-          }
+          ...getValues(),
+          overall_stock: snelProduct?.technischeVoorraad || 0,
+          free_stock: snelProduct?.vrijeVoorraad || 0,
+        }
         : {
-            ...getValues(),
-            title: snelProduct?.omschrijving || '',
-            title_long:
-              snelProduct?.extraVelden?.find((v) => v.naam === 'ExtraOmschrijvingLang')?.waarde ||
-              snelProduct?.omschrijving ||
-              '',
+          ...getValues(),
+          title: snelProduct?.omschrijving || '',
+          title_long:
+            snelProduct?.extraVelden?.find((v) => v.naam === 'ExtraOmschrijvingLang')?.waarde ||
+            snelProduct?.omschrijving ||
+            '',
 
-            min_price_to_sell: snelProduct?.verkoopprijs || 0,
-            ean: snelProduct?.artikelcode || '',
-            sku: snelProduct?.artikelcode || '',
-            supplier_article_code:
-              snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
-                ?.waarde || '',
-            brand:
-              brandList.find(
-                (item) =>
-                  item.name === snelProduct?.extraVelden?.find((v) => v.naam === 'Merk')?.waarde
-              ) ||
-              currentProduct?.brand ||
-              null,
-            supplier:
-              supplierList.find(
-                (item) =>
-                  item.name ===
-                  snelProduct?.extraVelden?.find(
-                    (v) =>
-                      (v.naam === 'Leverancier1' && v.waarde !== null) ||
-                      (v.naam === 'Leverancier2' && v.waarde !== null) ||
-                      (v.naam === 'Leverancier3' && v.waarde !== null) ||
-                      (v.naam === 'Leverancier4' && v.waarde !== null) ||
-                      (v.naam === 'Leverancier5' && v.waarde !== null)
-                  )?.waarde
-              ) ||
-              currentProduct?.supplier ||
-              null,
+          min_price_to_sell: snelProduct?.verkoopprijs || 0,
+          ean: snelProduct?.artikelcode || '',
+          sku: snelProduct?.artikelcode || '',
+          supplier_article_code:
+            snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
+              ?.waarde || '',
+          brand:
+            brandList.find(
+              (item) =>
+                item.name === snelProduct?.extraVelden?.find((v) => v.naam === 'Merk')?.waarde
+            ) ||
+            currentProduct?.brand ||
+            null,
+          supplier:
+            supplierList.find(
+              (item) =>
+                item.name ===
+                snelProduct?.extraVelden?.find(
+                  (v) =>
+                    (v.naam === 'Leverancier1' && v.waarde !== null) ||
+                    (v.naam === 'Leverancier2' && v.waarde !== null) ||
+                    (v.naam === 'Leverancier3' && v.waarde !== null) ||
+                    (v.naam === 'Leverancier4' && v.waarde !== null) ||
+                    (v.naam === 'Leverancier5' && v.waarde !== null)
+                )?.waarde
+            ) ||
+            currentProduct?.supplier ||
+            null,
 
-            quantity_per_unit: Number(
-              snelProduct?.extraVelden?.find((v) => v.naam === 'Aantal voor web')?.waarde || 0
-            ),
-            price_per_piece: snelProduct?.verkoopprijs || 0,
-            price_per_unit: snelProduct?.verkoopprijs || 0,
-            price_consumers: Number(
-              snelProduct?.extraVelden?.find((v) => v.naam === 'ConsumentenPrijs')?.waarde || 0
-            ),
-            price_cost: snelProduct?.inkoopprijs || 0,
-            overall_stock: snelProduct?.technischeVoorraad || 0,
-            free_stock: snelProduct?.vrijeVoorraad || 0,
-            location: snelProduct?.extraVelden?.find((v) => v.naam === 'Locatie')?.waarde || '',
-            extra_location:
-              snelProduct?.extraVelden?.find((v) => v.naam === 'Extra Locatie')?.waarde || '',
-            languages_on_item_package:
-              snelProduct?.extraVelden?.find((v) => v.naam === 'WelkeTaal')?.waarde?.split('/') ||
-              [],
-          };
+          quantity_per_unit: Number(
+            snelProduct?.extraVelden?.find((v) => v.naam === 'Aantal voor web')?.waarde || 0
+          ),
+          price_per_piece: snelProduct?.verkoopprijs || 0,
+          price_per_unit: snelProduct?.verkoopprijs || 0,
+          price_consumers: Number(
+            snelProduct?.extraVelden?.find((v) => v.naam === 'ConsumentenPrijs')?.waarde || 0
+          ),
+          price_cost: snelProduct?.inkoopprijs || 0,
+          overall_stock: snelProduct?.technischeVoorraad || 0,
+          free_stock: snelProduct?.vrijeVoorraad || 0,
+          location: snelProduct?.extraVelden?.find((v) => v.naam === 'Locatie')?.waarde || '',
+          extra_location:
+            snelProduct?.extraVelden?.find((v) => v.naam === 'Extra Locatie')?.waarde || '',
+          languages_on_item_package:
+            snelProduct?.extraVelden?.find((v) => v.naam === 'WelkeTaal')?.waarde?.split('/') ||
+            [],
+        };
 
       reset(valuesToSet);
     } catch (error) {
@@ -1232,9 +1234,8 @@ export default function ProductNewEditForm({ id }: Props) {
                     color: 'violet',
                   }}
                 >
-                  {`${t('supplier')}: ${
-                    getValues('supplier') ? getValues('supplier')?.supplier_code : ''
-                  }-${getValues('supplier') ? getValues('supplier')?.name : ''}`}{' '}
+                  {`${t('supplier')}: ${getValues('supplier') ? getValues('supplier')?.supplier_code : ''
+                    }-${getValues('supplier') ? getValues('supplier')?.name : ''}`}{' '}
                 </Link>
 
                 <Typography
@@ -1431,15 +1432,15 @@ export default function ProductNewEditForm({ id }: Props) {
               <ul>
                 {currentProduct?.id
                   ? currentProduct?.categories?.map((category, index) => (
-                      <li key={index}>
-                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                      </li>
-                    ))
+                    <li key={index}>
+                      {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                    </li>
+                  ))
                   : getValues('categories')?.map((category, index) => (
-                      <li key={index}>
-                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                      </li>
-                    ))}
+                    <li key={index}>
+                      {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                    </li>
+                  ))}
               </ul>
             </div>
             <Typography typography="caption" sx={{ color: 'error.main' }}>
@@ -1486,17 +1487,17 @@ export default function ProductNewEditForm({ id }: Props) {
                     'price_per_unit',
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
-                        Number(getValues('quantity_per_unit')) *
-                        parent_price_per_piece
+                      Number(getValues('quantity_per_unit')) *
+                      parent_price_per_piece
                     )
                   );
                   setValue(
                     'price_consumers',
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
-                        Number(getValues('quantity_per_unit')) *
-                        1.75 *
-                        parent_price_per_piece
+                      Number(getValues('quantity_per_unit')) *
+                      1.75 *
+                      parent_price_per_piece
                     )
                   );
                 }}
@@ -1543,43 +1544,43 @@ export default function ProductNewEditForm({ id }: Props) {
                   'variant_discount',
                   currentProduct?.is_variant
                     ? roundUp(
-                        100 *
-                          ((parent_price_per_piece -
-                            (Number(e.target.value) +
-                              (Number(e.target.value) *
-                                Number(getValues('supplier')?.percentage_to_add)) /
-                                100)) /
-                            parent_price_per_piece)
-                      )
+                      100 *
+                      ((parent_price_per_piece -
+                        (Number(e.target.value) +
+                          (Number(e.target.value) *
+                            Number(getValues('supplier')?.percentage_to_add)) /
+                          100)) /
+                        parent_price_per_piece)
+                    )
                     : 0
                 );
                 setValue(
                   'price_per_piece',
                   roundUp(
                     Number(e.target.value) +
-                      (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
-                        100
+                    (Number(e.target.value) * Number(getValues('supplier')?.percentage_to_add)) /
+                    100
                   )
                 );
                 setValue(
                   'price_per_unit',
                   roundUp(
                     Number(getValues('quantity_per_unit')) *
-                      (Number(e.target.value) +
-                        (Number(e.target.value) *
-                          Number(getValues('supplier')?.percentage_to_add)) /
-                          100)
+                    (Number(e.target.value) +
+                      (Number(e.target.value) *
+                        Number(getValues('supplier')?.percentage_to_add)) /
+                      100)
                   )
                 );
                 setValue(
                   'price_consumers',
                   roundUp(
                     Number(getValues('quantity_per_unit')) *
-                      (Number(e.target.value) +
-                        (Number(e.target.value) *
-                          Number(getValues('supplier')?.percentage_to_add)) /
-                          100) *
-                      1.75
+                    (Number(e.target.value) +
+                      (Number(e.target.value) *
+                        Number(getValues('supplier')?.percentage_to_add)) /
+                      100) *
+                    1.75
                   )
                 );
                 setValue(
@@ -1589,7 +1590,7 @@ export default function ProductNewEditForm({ id }: Props) {
                       (Number(e.target.value) +
                         (Number(e.target.value) *
                           Number(getValues('supplier')?.percentage_to_add)) /
-                          100)) /
+                        100)) /
                     Number(getValues('inhoud_number') || 1)
                   ).toFixed(4)
                 );
@@ -1629,10 +1630,10 @@ export default function ProductNewEditForm({ id }: Props) {
                   'variant_discount',
                   currentProduct?.is_variant
                     ? roundUp(
-                        100 *
-                          ((parent_price_per_piece - Number(e.target.value)) /
-                            parent_price_per_piece)
-                      )
+                      100 *
+                      ((parent_price_per_piece - Number(e.target.value)) /
+                        parent_price_per_piece)
+                    )
                     : 0
                 );
                 setValue(
@@ -1979,18 +1980,18 @@ export default function ProductNewEditForm({ id }: Props) {
             />
             {(!getValues('languages_on_item_package')?.includes('NL') ||
               getValues('extra_etiket_nl')) && (
-              <>
-                <Typography variant="subtitle2">{t('extra_etiket_nl')}:</Typography>
-                <RHFEditor simple name="extra_etiket_nl" />
-              </>
-            )}
+                <>
+                  <Typography variant="subtitle2">{t('extra_etiket_nl')}:</Typography>
+                  <RHFEditor simple name="extra_etiket_nl" />
+                </>
+              )}
             {(!getValues('languages_on_item_package')?.includes('FR') ||
               getValues('extra_etiket_fr')) && (
-              <>
-                <Typography variant="subtitle2">{t('extra_etiket_fr')}:</Typography>
-                <RHFEditor simple name="extra_etiket_fr" />
-              </>
-            )}
+                <>
+                  <Typography variant="subtitle2">{t('extra_etiket_fr')}:</Typography>
+                  <RHFEditor simple name="extra_etiket_fr" />
+                </>
+              )}
           </Box>
           <Divider sx={{ borderStyle: 'dashed' }} />
           <Box
@@ -2354,9 +2355,8 @@ export default function ProductNewEditForm({ id }: Props) {
       {currentProduct?.id && currentProduct?.is_visible_particular ? (
         <Link
           target="_blank"
-          href={`http://${
-            HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
-          }/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          href={`http://${HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
+            }/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{
@@ -2374,9 +2374,8 @@ export default function ProductNewEditForm({ id }: Props) {
       {currentProduct?.id && currentProduct?.is_visible_B2B ? (
         <Link
           target="_blank"
-          href={`http://${
-            HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
-          }/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          href={`http://${HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
+            }/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{

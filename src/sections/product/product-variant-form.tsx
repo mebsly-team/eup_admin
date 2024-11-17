@@ -133,17 +133,19 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     const discount =
       unitValue === 'package'
         ? 5
-        : unitValue === 'box'
-          ? 10
-          : unitValue === 'pallet_layer'
-            ? 15
-            : unitValue === 'pallet_full'
-              ? 20
-              : null;
+        :
+        unitValue === 'rol'
+          ? 5
+          : unitValue === 'box'
+            ? 10
+            : unitValue === 'pallet_layer'
+              ? 15
+              : unitValue === 'pallet_full'
+                ? 20
+                : null;
     const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
-    const title = `${parentProduct?.title}${value1 ? `-${t(value1)}` : ''}${
-      value2 ? `-${t(value2)}` : ''
-    }-${t(unitValue)}`;
+    const title = `${parentProduct?.title}${value1 ? `-${t(value1)}` : ''}${value2 ? `-${t(value2)}` : ''
+      }-${t(unitValue)}`;
     const data = {
       title,
       is_variant: true,
@@ -207,12 +209,8 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
       const variantPromises: any[] = [];
 
-      [parentProduct.size].forEach((value1) => {
-        [parentProduct.color].forEach((value2) => {
-          selectedUnitValues.forEach((unitValue) => {
-            variantPromises.push(createVariantsCall(parentProduct, value1, value2, unitValue));
-          });
-        });
+      selectedUnitValues.forEach((unitValue) => {
+        variantPromises.push(createVariantsCall(parentProduct, parentProduct.color, parentProduct.size, unitValue));
       });
 
       const newVariants = await Promise.all(variantPromises);
@@ -226,6 +224,8 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       }
 
       setSelectedUnitValues([]);
+      window.location.reload();
+
     } catch (error) {
       console.log('error', error);
     } finally {
@@ -351,7 +351,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     },
     {
       field: 'size',
-      headerName: t('size'),
+      headerName: t('option'),
       // type: 'number',
       width: 80,
       align: 'left',
@@ -457,7 +457,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
               sx={{
                 color: 'primary.main',
               }}
-              // onClick={handleSaveClick(id)}
+            // onClick={handleSaveClick(id)}
             />,
             <GridActionsCellItem
               icon={<CancelIcon />}
@@ -503,9 +503,9 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   const updatedVariants = currentProductVariantRows.map((item) =>
     item.is_variant
       ? {
-          ...item,
-          free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
-        }
+        ...item,
+        free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
+      }
       : item
   );
   const sortedRows = [...updatedVariants];
