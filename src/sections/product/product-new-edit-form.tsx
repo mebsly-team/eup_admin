@@ -157,15 +157,20 @@ export default function ProductNewEditForm({ id }: Props) {
     title: Yup.string().required(t('required')),
     unit: Yup.string().required(t('required')),
     price_per_piece: Yup.number()
-      .when('min_price_to_sell', (min_price_to_sell, schema) =>
-        min_price_to_sell ? schema.min(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
-      )
-      .test(
-        'is-decimal',
-        t('Max. 2 decimale posities'),
-        (value) =>
-          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
-      ),
+    .when('min_price_to_sell', (min_price_to_sell, schema) =>
+      min_price_to_sell ? schema.min(min_price_to_sell, `min: ${min_price_to_sell}`) : schema
+    )
+    .test(
+      'is-decimal',
+      t('Max. 2 decimale posities'),
+      (value) =>
+        value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+    )
+    .when('price_cost', (price_cost, schema) =>
+      price_cost
+        ? schema.min(price_cost * 1.15, `Prijs per stuk moet minstens 15% meer zijn dan de kostprijs`)
+        : schema
+    ),
     quantity_per_unit: Yup.number().required(t('required')),
     variant_discount: Yup.number().test(
       'is-decimal',
@@ -437,6 +442,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const methods = useForm({
     resolver: yupResolver(NewProductSchema),
     defaultValues,
+    mode: 'onBlur', 
   });
 
   const {
@@ -734,6 +740,18 @@ export default function ProductNewEditForm({ id }: Props) {
       reset(defaultValues);
     }
   }, [currentProduct, defaultValues, reset]);
+
+  const handleFormSubmit = () => {
+    // Check for errors
+    if (Object.keys(errors).length > 0) {
+      // Display each validation error as a toast
+      Object.values(errors).forEach((error) => {
+        enqueueSnackbar({ variant: 'error', message: error?.message });
+      });
+      return;
+    }
+    onSubmit();
+  };
 
   const onSubmit = handleSubmit(async (data) => {
     console.log('handleSubmit data', data);
@@ -1960,7 +1978,7 @@ export default function ProductNewEditForm({ id }: Props) {
               getOptionLabel={(option) => option}
             />
             {(!getValues('languages_on_item_package')?.includes('NL') ||
-              getValues('extra_etiket_fr')) && (
+              getValues('extra_etiket_nl')) && (
               <>
                 <Typography variant="subtitle2">{t('extra_etiket_nl')}:</Typography>
                 <RHFEditor simple name="extra_etiket_nl" />
@@ -2261,7 +2279,7 @@ export default function ProductNewEditForm({ id }: Props) {
 
   const handleActionClick = (action) => {
     activeAction = action;
-    onSubmit();
+    handleFormSubmit();
   };
   const renderActions = (
     <Grid
@@ -2597,7 +2615,7 @@ export default function ProductNewEditForm({ id }: Props) {
       </div>
     );
   return (
-    <FormProvider methods={methods} onSubmit={onSubmit}>
+    <FormProvider methods={methods} onSubmit={handleFormSubmit}>
       {!currentProduct?.is_variant ? renderTabs : null}
 
       {activeTab === 0 ? (
