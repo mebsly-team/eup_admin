@@ -495,12 +495,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="facebook" label={t('facebook')} />
-              <RHFTextField name="linkedin" label={t('linkedin')} />
-              <RHFTextField name="twitter" label={t('twitter')} />
-              <RHFTextField name="instagram" label={t('instagram')} />
-              <RHFTextField name="pinterest" label={t('pinterest')} />
-              <RHFTextField name="tiktok" label={t('tiktok')} />
+              <RHFTextField name="facebook" label={t('facebook')} placeholder='https://www.facebook.com/yourprofile' />
+              <RHFTextField name="linkedin" label={t('linkedin')} placeholder='https://www.linkedin.com/in/yourprofile' />
+              <RHFTextField name="twitter" label={t('twitter')} placeholder='https://www.twitter.com/yourhandle' />
+              <RHFTextField name="instagram" label={t('instagram')} placeholder='https://www.instagram.com/yourprofile' />
+              <RHFTextField name="pinterest" label={t('pinterest')} placeholder='https://www.pinterest.com/yourprofile' />
+              <RHFTextField name="tiktok" label={t('tiktok')} placeholder='https://www.tiktok.com/@yourusername' />
             </Box>
           </Card>
           <Card sx={{ p: 3, mt: 5 }}>
