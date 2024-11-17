@@ -64,6 +64,7 @@ export default function ProductTableRow({
     slug,
     is_visible_particular,
     is_visible_B2B,
+    siblings_count
   } = row;
   const { enqueueSnackbar } = useSnackbar();
 
@@ -199,6 +200,9 @@ export default function ProductTableRow({
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
           {variants_count || '-'}
         </TableCell>
+        <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
+          {siblings_count || '-'}
+        </TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>{ean}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
           {free_stock}/{overall_stock}
@@ -243,7 +247,7 @@ export default function ProductTableRow({
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
-        // sx={{ width: 140 }}
+      // sx={{ width: 140 }}
       >
         <MenuItem
           onClick={() => {
