@@ -20,6 +20,7 @@ import {
   FormControl,
   useMediaQuery,
   FormControlLabel,
+  ListItemIcon,
 } from '@mui/material';
 import {
   DataGrid,
@@ -557,42 +558,41 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
                 value={selectedColors}
                 onChange={(e) => setSelectedColors(e.target.value)}
               >
-                <MenuItem value="red">{t('red')}</MenuItem>
-                <MenuItem value="blue">{t('blue')}</MenuItem>
-                <MenuItem value="green">{t('green')}</MenuItem>
-                <MenuItem value="yellow">{t('yellow')}</MenuItem>
-                <MenuItem value="brown">{t('brown')}</MenuItem>
-                <MenuItem value="pink">{t('pink')}</MenuItem>
-                <MenuItem value="purple">{t('purple')}</MenuItem>
-                <MenuItem value="black">{t('black')}</MenuItem>
-                <MenuItem value="white">{t('white')}</MenuItem>
-                <MenuItem value="orange">{t('orange')}</MenuItem>
-                <MenuItem value="gray">{t('gray')}</MenuItem>
-                <MenuItem value="cyan">{t('cyan')}</MenuItem>
-                <MenuItem value="magenta">{t('magenta')}</MenuItem>
-                <MenuItem value="turquoise">{t('turquoise')}</MenuItem>
-                <MenuItem value="gold">{t('gold')}</MenuItem>
-                <MenuItem value="silver">{t('silver')}</MenuItem>
-                <MenuItem value="lavender">{t('lavender')}</MenuItem>
-                <MenuItem value="maroon">{t('maroon')}</MenuItem>
-                <MenuItem value="teal">{t('teal')}</MenuItem>
-                <MenuItem value="navy">{t('navy')}</MenuItem>
-                <MenuItem value="indigo">{t('indigo')}</MenuItem>
-                <MenuItem value="olive">{t('olive')}</MenuItem>
-                <MenuItem value="salmon">{t('salmon')}</MenuItem>
-                <MenuItem value="peach">{t('peach')}</MenuItem>
-                <MenuItem value="violet">{t('violet')}</MenuItem>
-                <MenuItem value="coral">{t('coral')}</MenuItem>
-                <MenuItem value="lime">{t('lime')}</MenuItem>
-                <MenuItem value="beige">{t('beige')}</MenuItem>
-                <MenuItem value="khaki">{t('khaki')}</MenuItem>
-                <MenuItem value="azure">{t('azure')}</MenuItem>
-                <MenuItem value="orchid">{t('orchid')}</MenuItem>
-                <MenuItem value="crimson">{t('crimson')}</MenuItem>
-                <MenuItem value="fuchsia">{t('fuchsia')}</MenuItem>
-                <MenuItem value="ivory">{t('ivory')}</MenuItem>
-                <MenuItem value="tan">{t('tan')}</MenuItem>
-                <MenuItem value="mint">{t('mint')}</MenuItem>
+                {[
+                  "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
+                  "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
+                  "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkkhaki",
+                  "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen",
+                  "darkslateblue", "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray",
+                  "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold",
+                  "goldenrod", "gray", "green", "greenyellow", "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki",
+                  "lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+                  "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+                  "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta", "maroon",
+                  "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue",
+                  "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
+                  "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
+                  "palegreen", "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
+                  "purple", "red", "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell",
+                  "sienna", "silver", "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan", "teal",
+                  "thistle", "tomato", "turquoise", "violet", "wheat", "white", "whitesmoke", "yellow", "yellowgreen"
+                ].map(color => (
+                  <MenuItem key={color} value={color}>
+                    <ListItemIcon>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          backgroundColor: color,
+                          borderRadius: 0.5,
+                          border: '1px solid #ccc'
+                        }}
+                      />
+                    </ListItemIcon>
+                    {t(color)}
+                  </MenuItem>
+                ))}
+
               </Select>
             </FormControl>
           ) : radioValue === 'option' ? (
