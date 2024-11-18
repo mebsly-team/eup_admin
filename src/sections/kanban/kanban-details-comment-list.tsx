@@ -14,7 +14,7 @@ type Props = {
   comments: IKanbanComment[];
 };
 
-export default function KanbanDetailsCommentList({ comments }: Props) {
+export default function KanbanDetailsCommentList({ comments, userList }: Props) {
   const slides = comments
     .filter((comment) => comment.messageType === 'image')
     .map((slide) => ({ src: slide.message }));
@@ -32,21 +32,34 @@ export default function KanbanDetailsCommentList({ comments }: Props) {
           bgcolor: 'background.neutral',
         }}
       >
-        {comments.map((comment) => (
-          <Stack key={comment.id} direction="row" spacing={2}>
-            <Avatar src={comment.avatarUrl} />
+        {comments.map((comment) => {
+          const commenter = userList.find(item => item.id === comment.commenter)
+          return (
+            <Stack key={comment.id} direction="row" spacing={2}>
+              <Avatar
+                src={commenter?.url}
+                alt={commenter?.fullname}
+                sx={{
+                  width: 36,
+                  height: 36,
+                  border: (theme) => `solid 2px ${theme.palette.background.default}`,
+                  fontSize: "0.75rem"
+                }}
+              >
+                {commenter?.first_name?.charAt(0).toUpperCase()} {commenter?.last_name?.charAt(0).toUpperCase()}
+              </Avatar>
+              <Stack spacing={0.5}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                    {fToNow(comment.datetime)}
+                  </Typography>
+                </Stack>
 
-            <Stack spacing={0.5}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                  {fToNow(comment.datetime)}
-                </Typography>
+                <Typography variant="body2">{comment.comment}</Typography>
               </Stack>
-
-              <Typography variant="body2">{comment.comment}</Typography>
             </Stack>
-          </Stack>
-        ))}
+          )
+        })}
       </Stack>
 
       <Lightbox

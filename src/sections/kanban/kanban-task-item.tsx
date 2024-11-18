@@ -22,6 +22,8 @@ import KanbanDetails from './kanban-details';
 
 type Props = PaperProps & {
   index: number;
+  assignee: any;
+  reporter: any;
   task: IKanbanTask;
   onUpdateTask: (updateTask: IKanbanTask) => void;
   onDeleteTask: VoidFunction;
@@ -33,9 +35,11 @@ export default function KanbanTaskItem({
   onDeleteTask,
   onUpdateTask,
   sx,
+  assignee,
+  reporter, userList, column, handleAddComment,
   ...other
 }: Props) {
-  console.log('task', task)
+
   const theme = useTheme();
 
   const openDetails = useBoolean();
@@ -90,19 +94,18 @@ export default function KanbanTaskItem({
           {task.comments.length}
         </Box>
       </Stack>
-
-      {/* <AvatarGroup
+      <Avatar
+        src={assignee?.url}
+        alt={assignee?.fullname}
         sx={{
-          [`& .${avatarGroupClasses.avatar}`]: {
-            width: 24,
-            height: 24,
-          },
+          width: 36,
+          height: 36,
+          border: (theme) => `solid 2px ${theme.palette.background.default}`,
+          fontSize: "0.75rem"
         }}
       >
-        {task.assignee.map((user) => (
-          <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
-        ))}
-      </AvatarGroup> */}
+        {assignee?.first_name?.charAt(0).toUpperCase()} {assignee?.last_name?.charAt(0).toUpperCase()}
+      </Avatar>
     </Stack>
   );
 
@@ -154,10 +157,15 @@ export default function KanbanTaskItem({
 
       <KanbanDetails
         task={task}
+        assignee={assignee}
+        reporter={reporter}
         openDetails={openDetails.value}
         onCloseDetails={openDetails.onFalse}
         onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
+        userList={userList}
+        column={column}
+        handleAddComment={handleAddComment}
       />
     </>
   );

@@ -13,7 +13,6 @@ import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 
-import { _contacts } from 'src/_mock';
 import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
@@ -32,7 +31,7 @@ type Props = {
   assignee?: IKanbanAssignee[];
 };
 
-export default function KanbanContactsDialog({ assignee = [], open, onClose }: Props) {
+export default function KanbanContactsDialog({ assignee = [], open, onClose, onCancel, userList }: Props) {
   const [searchContact, setSearchContact] = useState('');
   const { t, onChangeLang } = useTranslate();
   const handleSearchContacts = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,16 +39,16 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
   }, []);
 
   const dataFiltered = applyFilter({
-    inputData: _contacts,
+    inputData: userList,
     query: searchContact,
   });
 
   const notFound = !dataFiltered.length && !!searchContact;
 
   return (
-    <Dialog fullWidth maxWidth="xs" open={open} onClose={onClose}>
+    <Dialog fullWidth maxWidth="xs" open={open} onClose={onCancel}>
       <DialogTitle sx={{ pb: 0 }}>
-        Contacts <Typography component="span">({_contacts.length})</Typography>
+        Users <Typography component="span">({userList.length})</Typography>
       </DialogTitle>
 
       <Box sx={{ px: 3, py: 2.5 }}>
@@ -79,14 +78,14 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
             }}
           >
             {dataFiltered.map((contact) => {
-              const checked = assignee.map((person) => person.name).includes(contact.name);
-
+              const checked = assignee.map((person) => person?.first_name).includes(contact?.first_name);
               return (
                 <ListItem
-                  key={contact.id}
+                  key={contact?.id}
                   disableGutters
                   secondaryAction={
                     <Button
+                      onClick={() => onClose({ id: contact?.id })}
                       size="small"
                       color={checked ? 'primary' : 'inherit'}
                       startIcon={
@@ -103,7 +102,18 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
                   sx={{ height: ITEM_HEIGHT }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={contact.avatarUrl} />
+                    <Avatar
+                      src={contact?.url}
+                      alt={contact?.fullname}
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        border: (theme) => `solid 2px ${theme.palette.background.default}`,
+                        fontSize: "0.75rem"
+                      }}
+                    >
+                      {contact?.first_name?.charAt(0).toUpperCase()} {contact?.last_name?.charAt(0).toUpperCase()}
+                    </Avatar>
                   </ListItemAvatar>
 
                   <ListItemText
@@ -112,8 +122,8 @@ export default function KanbanContactsDialog({ assignee = [], open, onClose }: P
                       sx: { mb: 0.25 },
                     }}
                     secondaryTypographyProps={{ typography: 'caption' }}
-                    primary={contact.name}
-                    secondary={contact.email}
+                    primary={contact?.fullname}
+                    secondary={contact?.email}
                   />
                 </ListItem>
               );
@@ -131,8 +141,8 @@ function applyFilter({ inputData, query }: { inputData: IKanbanAssignee[]; query
   if (query) {
     inputData = inputData.filter(
       (contact) =>
-        contact.name.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
-        contact.email.toLowerCase().indexOf(query.toLowerCase()) !== -1
+        contact?.first_name.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
+        contact?.email.toLowerCase().indexOf(query.toLowerCase()) !== -1
     );
   }
 

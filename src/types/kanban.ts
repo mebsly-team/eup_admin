@@ -22,8 +22,10 @@ export type IKanbanAssignee = {
 };
 
 export type IKanbanTask = {
+  due_date: any;
   id: string;
-  name: string;
+  title: string;
+  name?: string;
   status: string;
   priority: string;
   labels: string[];
@@ -40,12 +42,14 @@ export type IKanbanTask = {
 };
 
 export type IKanbanColumn = {
-  id: string;
+  id: string | number;
   name: string;
-  taskIds: string[];
+  taskIds?: string[];
 };
 
 export type IKanban = {
+  length: any;
+  filter(arg0: (items: any) => boolean): Record<string, IKanbanTask>;
   tasks: Record<string, IKanbanTask>;
   columns: Record<string, IKanbanColumn>;
   ordered: string[];

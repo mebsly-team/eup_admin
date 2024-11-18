@@ -17,7 +17,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 type Props = {
   liked: boolean;
-  taskName: string;
+  task: any;
   taskStatus: string;
   onLike: VoidFunction;
   onDelete: VoidFunction;
@@ -27,10 +27,10 @@ type Props = {
 export default function KanbanDetailsToolbar({
   liked,
   onLike,
-  taskName,
+  task,
   onDelete,
   taskStatus,
-  onCloseDetails,
+  onCloseDetails, onUpdateTask
 }: Props) {
   const smUp = useResponsive('up', 'sm');
 
@@ -41,9 +41,12 @@ export default function KanbanDetailsToolbar({
   const [status, setStatus] = useState(taskStatus);
 
   const handleChangeStatus = useCallback(
-    (newValue: string) => {
+    (newValue) => {
       popover.onClose();
-      setStatus(newValue);
+      onUpdateTask(task.id, {
+        ...task,
+        status: newValue,
+      });
     },
     [popover]
   );
@@ -99,12 +102,12 @@ export default function KanbanDetailsToolbar({
         arrow="top-right"
         sx={{ width: 140 }}
       >
-        {['To Do', 'In Progress', 'Ready To Test', 'Done'].map((option) => (
+        {['DOEN', 'ONDERHANDEN', 'KLAAR'].map((option, i) => (
           <MenuItem
             key={option}
             selected={status === option}
             onClick={() => {
-              handleChangeStatus(option);
+              handleChangeStatus(i);
             }}
           >
             {option}
@@ -118,7 +121,7 @@ export default function KanbanDetailsToolbar({
         title="Delete"
         content={
           <>
-            Are you sure want to delete <strong> {taskName} </strong>?
+            Are you sure want to delete <strong> {task.title} </strong>?
           </>
         }
         action={

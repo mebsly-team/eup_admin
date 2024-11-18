@@ -8,6 +8,7 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import { alpha, styled } from '@mui/material/styles';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import moment from 'moment';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
@@ -24,6 +25,8 @@ import KanbanDetailsPriority from './kanban-details-priority';
 import KanbanDetailsAttachments from './kanban-details-attachments';
 import KanbanDetailsCommentList from './kanban-details-comment-list';
 import KanbanDetailsCommentInput from './kanban-details-comment-input';
+import KanbanContactsDialog from './kanban-contacts-dialog';
+import { Button } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +47,8 @@ type Props = {
   //
   onUpdateTask: (updateTask: IKanbanTask) => void;
   onDeleteTask: VoidFunction;
+  assignee: any;
+  reporter: any;
 };
 
 export default function KanbanDetails({
@@ -53,8 +58,12 @@ export default function KanbanDetails({
   //
   onUpdateTask,
   onDeleteTask,
+  assignee,
+  reporter,
+  userList,
+  column, handleAddComment
 }: Props) {
-  const [priority, setPriority] = useState(task.priority);
+
   const [quillFull, setQuillFull] = useState(task.description);
 
   const [taskName, setTaskName] = useState(task.title);
@@ -69,14 +78,14 @@ export default function KanbanDetails({
     setTaskName(event.target.value);
   }, []);
 
-  const handleUpdateTask = useCallback(
+  const handleUpdateTaskName = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       try {
         if (event.key === 'Enter') {
           if (taskName) {
-            onUpdateTask({
+            onUpdateTask(task.id, {
               ...task,
-              name: taskName,
+              title: taskName,
             });
           }
         }
@@ -87,18 +96,38 @@ export default function KanbanDetails({
     [onUpdateTask, task, taskName]
   );
 
-  const handleChangePriority = useCallback((newValue: string) => {
-    setPriority(newValue);
+  const handleChangePriority = (newValue: string) => {
+    onUpdateTask(task.id, {
+      ...task,
+      priority: newValue
+    });
+  }
+
+  const handleSaveDescription = useCallback(() => {
+    onUpdateTask(task.id, {
+      ...task,
+      description: quillFull
+    });
+  }, [quillFull]);
+
+  const handleDateChange = useCallback((newValue: string) => {
+    onUpdateTask(task.id, {
+      ...task,
+      due_date: moment.isDate(newValue)
+        ? moment(newValue).format('YYYY-MM-DD')
+        : null
+    });
   }, []);
 
   const renderHead = (
     <KanbanDetailsToolbar
       liked={like.value}
-      taskName={task.title}
+      task={task}
       onLike={like.onToggle}
       onDelete={onDeleteTask}
-      taskStatus={task.status}
+      taskStatus={column.name}
       onCloseDetails={onCloseDetails}
+      onUpdateTask={onUpdateTask}
     />
   );
 
@@ -107,43 +136,75 @@ export default function KanbanDetails({
       placeholder="Taaknaam"
       value={taskName}
       onChange={handleChangeTaskName}
-      onKeyUp={handleUpdateTask}
+      onKeyUp={handleUpdateTaskName}
     />
   );
 
   const renderReporter = (
     <Stack direction="row" alignItems="center">
       <StyledLabel>Reporter</StyledLabel>
-      <Avatar alt={task.reporter.name} src={task.reporter.avatarUrl} />
+      <Avatar
+        src={reporter?.url}
+        alt={reporter?.fullname}
+        sx={{
+          width: 36,
+          height: 36,
+          border: (theme) => `solid 2px ${theme.palette.background.default}`,
+          fontSize: "0.75rem"
+        }}
+      >
+        {reporter?.first_name?.charAt(0).toUpperCase()} {reporter?.last_name?.charAt(0).toUpperCase()}
+      </Avatar>
     </Stack>
   );
 
+  const handleDialogClose = ({ id }) => {
+    onUpdateTask(task.id, {
+      ...task,
+      assignee: id,
+    });
+    contacts.onFalse()
+  }
   const renderAssignee = (
     <Stack direction="row">
       <StyledLabel sx={{ height: 40, lineHeight: '40px' }}>Assignee</StyledLabel>
 
       <Stack direction="row" flexWrap="wrap" alignItems="center" spacing={1}>
-        {/* {task.assignee.map((user) => (
-          <Avatar key={user.id} alt={user.name} src={user.avatarUrl} />
-        ))} */}
 
-        <Tooltip title="Add assignee">
-          <IconButton
-            onClick={contacts.onTrue}
-            sx={{
-              bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
-              border: (theme) => `dashed 1px ${theme.palette.divider}`,
-            }}
-          >
-            <Iconify icon="mingcute:add-line" />
-          </IconButton>
-        </Tooltip>
+        {assignee ? <Avatar
+          src={assignee?.url}
+          alt={assignee?.fullname}
+          onClick={contacts.onTrue}
+          sx={{
+            width: 36,
+            height: 36,
+            border: (theme) => `solid 2px ${theme.palette.background.default}`,
+            fontSize: "0.75rem",
+            cursor: "pointer"
+          }}
+        >
+          {assignee?.first_name?.charAt(0).toUpperCase()} {assignee?.last_name?.charAt(0).toUpperCase()}
+        </Avatar>
+          :
+          <Tooltip title="Add assignee">
+            <IconButton
+              onClick={contacts.onTrue}
+              sx={{
+                bgcolor: (theme) => alpha(theme.palette.grey[500], 0.08),
+                border: (theme) => `dashed 1px ${theme.palette.divider}`,
+              }}
+            >
+              <Iconify icon="mingcute:add-line" />
+            </IconButton>
+          </Tooltip>}
 
-        {/* <KanbanContactsDialog
-          assignee={task.assignee}
+        <KanbanContactsDialog
+          assignee={[assignee]}
           open={contacts.value}
-          onClose={contacts.onFalse}
-        /> */}
+          onClose={handleDialogClose}
+          onCancel={contacts.onFalse}
+          userList={userList}
+        />
       </Stack>
     </Stack>
   );
@@ -154,9 +215,10 @@ export default function KanbanDetails({
 
       <DatePicker
         value={new Date(task.due_date)}
-        // onChange={(newValue) => {
-        //   setValue(newValue);
-        // }}
+        onChange={(newValue) => {
+          handleDateChange(newValue);
+        }}
+        format="dd/MM/yyyy"
         slotProps={{
           textField: {
             fullWidth: true,
@@ -170,16 +232,18 @@ export default function KanbanDetails({
   const renderPriority = (
     <Stack direction="row" alignItems="center">
       <StyledLabel>Priority</StyledLabel>
-
-      <KanbanDetailsPriority priority={priority} onChangePriority={handleChangePriority} />
+      <KanbanDetailsPriority priority={task.priority} onChangePriority={handleChangePriority} />
     </Stack>
   );
 
   const renderDescription = (
-    <Stack direction="row">
-      <StyledLabel> Description </StyledLabel>
-      <Editor id="full-editor" value={quillFull} onChange={(value) => setQuillFull(value)} />
-    </Stack>
+    <>
+      <Stack direction="column">
+        <StyledLabel> Description </StyledLabel>
+        <Editor id="full-editor" value={quillFull} onChange={(value) => setQuillFull(value)} />
+        <Button variant="text" onClick={handleSaveDescription}>Save Description</Button>
+      </Stack>
+    </>
   );
 
   const renderAttachments = (
@@ -189,7 +253,7 @@ export default function KanbanDetails({
     </Stack>
   );
 
-  const renderComments = <KanbanDetailsCommentList comments={task.comments} />;
+  const renderComments = <KanbanDetailsCommentList comments={task.comments} userList={userList} />;
 
   return (
     <Drawer
@@ -219,6 +283,7 @@ export default function KanbanDetails({
             height: 1,
             display: 'flex',
             flexDirection: 'column',
+            justifyItems: "center"
           },
         }}
       >
@@ -246,7 +311,8 @@ export default function KanbanDetails({
         {!!task.comments.length && renderComments}
       </Scrollbar>
 
-      <KanbanDetailsCommentInput />
+      <KanbanDetailsCommentInput task={task} onUpdateTask={onUpdateTask} handleAddComment={handleAddComment}
+      />
     </Drawer>
   );
 }

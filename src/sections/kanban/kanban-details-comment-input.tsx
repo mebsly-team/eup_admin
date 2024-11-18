@@ -8,11 +8,20 @@ import IconButton from '@mui/material/IconButton';
 import { useAuthContext } from 'src/auth/hooks';
 
 import Iconify from 'src/components/iconify';
+import { useCallback, useState } from 'react';
 
 // ----------------------------------------------------------------------
 
-export default function KanbanDetailsCommentInput() {
+export default function KanbanDetailsCommentInput({ onUpdateTask, task, handleAddComment }
+) {
   const { user } = useAuthContext();
+  const [commentInput, setCommentInput] = useState();
+  const handleSaveComment = useCallback(() => {
+    handleAddComment(task.id, {
+      commenter: user?.id,
+      comment: commentInput
+    });
+  }, [commentInput, user]);
 
   return (
     <Stack
@@ -23,15 +32,20 @@ export default function KanbanDetailsCommentInput() {
         px: 2.5,
       }}
     >
-      <Avatar src={user?.photoURL} alt={user?.displayName}>
+      <Avatar src={user?.photoURL} alt={user?.displayName} sx={{
+        width: 36,
+        height: 36,
+        border: (theme) => `solid 2px ${theme.palette.background.default}`,
+        fontSize: "0.75rem"
+      }}>
         {user?.displayName?.charAt(0).toUpperCase()}
       </Avatar>
 
       <Paper variant="outlined" sx={{ p: 1, flexGrow: 1, bgcolor: 'transparent' }}>
-        <InputBase fullWidth multiline rows={2} placeholder="Type a message" sx={{ px: 1 }} />
+        <InputBase fullWidth multiline rows={2} placeholder="Type a message" sx={{ px: 1 }} onChange={(e) => setCommentInput(e.target.value)} />
 
         <Stack direction="row" alignItems="center">
-          <Stack direction="row" flexGrow={1}>
+          {/* <Stack direction="row" flexGrow={1}>
             <IconButton>
               <Iconify icon="solar:gallery-add-bold" />
             </IconButton>
@@ -39,9 +53,9 @@ export default function KanbanDetailsCommentInput() {
             <IconButton>
               <Iconify icon="eva:attach-2-fill" />
             </IconButton>
-          </Stack>
+          </Stack> */}
 
-          <Button variant="contained">Comment</Button>
+          <Button variant="contained" onClick={handleSaveComment}>Comment</Button>
         </Stack>
       </Paper>
     </Stack>

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Droppable, DropResult, DragDropContext } from '@hello-pangea/dnd';
 
 import Stack from '@mui/material/Stack';
@@ -13,6 +13,8 @@ import EmptyContent from 'src/components/empty-content';
 import KanbanColumn from '../kanban-column';
 import KanbanColumnAdd from '../kanban-column-add';
 import { KanbanColumnSkeleton } from '../kanban-skeleton';
+import { IUserItem } from 'src/types/user';
+import axiosInstance from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 const columns = [
@@ -30,7 +32,32 @@ const columns = [
   },
 ];
 export default function KanbanView() {
-  const { board, boardLoading, boardEmpty } = useGetBoard();
+  const [userList, setUserList] = useState<IUserItem[]>([]);
+  const [isLoading, setLoading] = useState(false);
+  const [board, setBoard] = useState([]);
+
+  useEffect(() => {
+    getAllTasks();
+    if (!userList?.length) getAllUsers();
+  }, []);
+
+
+  const getAllTasks = async () => {
+    setLoading(true)
+    const { data } = await axiosInstance.get(
+      `/kanban/`
+    );
+    setBoard(data || []);
+    setLoading(false)
+
+  };
+  const getAllUsers = async () => {
+    const typeFilter = `&type=admin`;
+    const { data } = await axiosInstance.get(
+      `/users/?${typeFilter}`
+    );
+    setUserList(data || []);
+  };
 
   const onDragEnd = useCallback(
     async ({ destination, source, draggableId, type }: DropResult) => {
@@ -135,9 +162,9 @@ export default function KanbanView() {
         Kanban
       </Typography>
 
-      {boardLoading && renderSkeleton}
+      {isLoading && renderSkeleton}
 
-      {boardEmpty && (
+      {/* {!board?.length && (
         <EmptyContent
           filled
           title="No Data"
@@ -146,50 +173,52 @@ export default function KanbanView() {
             maxHeight: { md: 480 },
           }}
         />
-      )}
+      )} */}
 
-      {!!board?.length && (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="board" type="COLUMN" direction="horizontal">
-            {(provided) => (
-              <Scrollbar
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="board" type="COLUMN" direction="horizontal">
+          {(provided) => (
+            <Scrollbar
+              sx={{
+                height: 1,
+                minHeight: {
+                  xs: '80vh',
+                  md: 'unset',
+                },
+              }}
+            >
+              <Stack
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                spacing={3}
+                direction="row"
+                alignItems="flex-start"
                 sx={{
+                  p: 0.25,
                   height: 1,
-                  minHeight: {
-                    xs: '80vh',
-                    md: 'unset',
-                  },
                 }}
               >
-                <Stack
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  spacing={3}
-                  direction="row"
-                  alignItems="flex-start"
-                  sx={{
-                    p: 0.25,
-                    height: 1,
-                  }}
-                >
-                  {columns?.map((col, index) => (
+                {columns?.map((col, index) => {
+                  return (
                     <KanbanColumn
                       index={index}
                       key={index}
                       column={col}
                       tasks={board.filter((items) => items.status === col.id)}
+                      userList={userList}
+                      getAllTasks={getAllTasks}
                     />
-                  ))}
+                  )
+                })}
 
-                  {provided.placeholder}
+                {provided.placeholder}
 
-                  {/* <KanbanColumnAdd /> */}
-                </Stack>
-              </Scrollbar>
-            )}
-          </Droppable>
-        </DragDropContext>
-      )}
+                {/* <KanbanColumnAdd /> */}
+              </Stack>
+            </Scrollbar>
+          )}
+        </Droppable>
+      </DragDropContext>
     </Container>
   );
 }
