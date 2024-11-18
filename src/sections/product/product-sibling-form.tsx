@@ -208,7 +208,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
 
   const createSiblings = async () => {
     setIsLoading(true); // Show the spinner
-    const colorValues = selectedColors.length > 0 ? selectedColors : [null]; // colors
+    const colorValues = selectedColors.length > 0 ? selectedColors : []; // colors
     let parentProduct = {};
     try {
       const response = await axiosInstance.get(`/products/${currentProduct?.id}/`);
