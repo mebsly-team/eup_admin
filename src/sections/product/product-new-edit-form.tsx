@@ -2697,6 +2697,18 @@ export default function ProductNewEditForm({ id }: Props) {
         />
       ) : null}
       <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
+      <div>
+        ERRORS:
+        <br />
+        {Object.keys(errors).map((field) => {
+          const error = errors[field];
+          return (
+            <div key={field}>
+              "{t(field)}"{'=>'} {error.message}
+            </div>
+          );
+        })}
+      </div>
     </FormProvider>
   );
 }
