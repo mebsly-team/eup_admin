@@ -13,6 +13,7 @@ import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import Autocomplete from '@mui/material/Autocomplete';
 
 import axiosInstance from 'src/utils/axios';
 
@@ -35,6 +36,14 @@ type Props = {
   updateOrder: any;
 };
 
+const countryOptions = [
+  { label: "Nederland", value: "NL" },
+  { label: "België", value: "BE" },
+  { label: "Frankrijk", value: "FR" },
+  { label: "Duitsland", value: "DE" },
+  { label: "Verenigd Koninkrijk", value: "GB" },
+];
+
 export default function OrderDetailsInfo({
   customer,
   delivery,
@@ -48,8 +57,13 @@ export default function OrderDetailsInfo({
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
   const [totalWeight, setTotalWeight] = useState('');
+  const [options, setOptions] = useState([]);
+
+  const [addressSearchText, setAddressSearchText] = useState('');
   const [shipmentMethods, setShipmentMethods] = useState([]);
   const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
+  const [selectedCountry, setSelectedCountry] = useState(updatedShippingAddress?.country || shippingAddress?.country || "NL");
+
   const [updatedDeliveryDetails, setUpdatedDeliveryDetails] = useState();
   const deliveryDetails = currentOrder?.delivery_details;
 
@@ -116,9 +130,8 @@ export default function OrderDetailsInfo({
     const newHistory = currentOrder.history;
     newHistory.push({
       date: new Date(),
-      event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${
-        currentOrder?.shipping_address?.email || currentOrder?.user?.email
-      }`,
+      event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
+        }`,
     });
     updateOrder(orderId, {
       shipping_address: { ...shippingAddress, ...updatedShippingAddress },
@@ -139,9 +152,8 @@ export default function OrderDetailsInfo({
         const newHistory = currentOrder.history;
         newHistory.push({
           date: new Date(),
-          event: `Sendcloud: Totaalgewicht-${JSON.stringify(totalWeight)} - Methode-${JSON.stringify(selectedShipmentMethod)}, door ${
-            currentOrder?.shipping_address?.email || currentOrder?.user?.email
-          }`,
+          event: `Sendcloud: Totaalgewicht-${JSON.stringify(totalWeight)} - Methode-${JSON.stringify(selectedShipmentMethod)}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
+            }`,
         });
         updateOrder(orderId, {
           delivery_details: response.data.parcel,
@@ -157,15 +169,57 @@ export default function OrderDetailsInfo({
     }
   };
 
+  const handleAddressFetch = async ({ searchText }: any) => {
+    setAddressSearchText(searchText); // Update search text state
+
+    // Extract 'input' query parameter
+    const input = searchText;
+    let country = selectedCountry;
+
+    if (input) {
+      try {
+        const response = await axiosInstance.get(`/get-address-details/?input=${input}&country=${country}`);
+        const data = response.data;
+
+        // Set options from the response (matches array)
+        setOptions(data.matches || []); // Store fetched matches in state
+      } catch (error) {
+        console.error('Error fetching address data:', error);
+      }
+    }
+  };
+
+
+  const handleAddressDetails = async ({ context }: any) => {
+    const searchContext = context;
+    if (searchContext) {
+      try {
+        const response = await axiosInstance.get(`/get-address-details/?context=${searchContext}`);
+        const data = response.data;
+        setUpdatedShippingAddress({
+          ...updatedShippingAddress,
+          house_number: data?.address?.buildingNumber,
+          house_suffix: data?.address?.buildingNumberAddition,
+          zip_code: data?.address?.postcode,
+          city: data?.address?.locality,
+          street_name: data?.address?.street,
+          country: selectedCountry, // Country is already set in the selectedCountry state
+        });
+      } catch (error) {
+        console.error('Error fetching address details:', error);
+      }
+    }
+  };
+
   const renderCustomer = (
     <>
       <CardHeader
         title="Klanten info"
-        // action={
-        //   <IconButton>
-        //     <Iconify icon="solar:pen-bold" />
-        //   </IconButton>
-        // }
+      // action={
+      //   <IconButton>
+      //     <Iconify icon="solar:pen-bold" />
+      //   </IconButton>
+      // }
       />
       <Stack direction="row" sx={{ p: 3 }}>
         <Avatar
@@ -310,63 +364,48 @@ export default function OrderDetailsInfo({
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         {isAddressEdit ? (
           <Stack spacing={1.5}>
-            <TextField
-              label="Adres"
-              value={updatedShippingAddress.street_name}
-              onChange={(e) =>
-                setUpdatedShippingAddress({
-                  ...updatedShippingAddress,
-                  street_name: e.target.value,
-                })
-              }
-              fullWidth
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Land:
+              </Box>
+              <TextField
+                select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                sx={{ width: "auto" }}
+              >
+                {countryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <Autocomplete
+              freeSolo
+              options={options} // Display matches as options
+              getOptionLabel={(option: any) => option.value || ''} // Display full address in the dropdown
+              onInputChange={(e, newValue) => {
+                console.log("🚀 ~ newValue:", newValue)
+                handleAddressFetch({ searchText: newValue })
+              }} // Fetch on input change
+              onChange={(e, selectedOption) => {
+                console.log("🚀 ~ selectedOption:", selectedOption)
+                // When an option is selected, call handleAddressDetails with the context
+                handleAddressDetails({ context: selectedOption?.context });
+              }}
+              renderInput={(params) => <TextField {...params} label="Adres" fullWidth />}
+              renderOption={(props, option: any) => (
+                <li {...props}>
+                  {option.value} {/* Display full address in the dropdown */}
+                </li>
+              )}
             />
-            <TextField
-              label="Adres"
-              value={updatedShippingAddress.house_number}
-              onChange={(e) =>
-                setUpdatedShippingAddress({
-                  ...updatedShippingAddress,
-                  house_number: e.target.value,
-                })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Adres"
-              value={updatedShippingAddress.house_suffix}
-              onChange={(e) =>
-                setUpdatedShippingAddress({
-                  ...updatedShippingAddress,
-                  house_suffix: e.target.value,
-                })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Postcode"
-              value={updatedShippingAddress.zip_code}
-              onChange={(e) =>
-                setUpdatedShippingAddress({ ...updatedShippingAddress, zip_code: e.target.value })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Stad"
-              value={updatedShippingAddress.city}
-              onChange={(e) =>
-                setUpdatedShippingAddress({ ...updatedShippingAddress, city: e.target.value })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Land"
-              value={updatedShippingAddress.country}
-              onChange={(e) =>
-                setUpdatedShippingAddress({ ...updatedShippingAddress, country: e.target.value })
-              }
-              fullWidth
-            />
+
+            <Box component="span" sx={{ color: 'text.secondary', width: "auto", flexShrink: 0 }}>
+              {`${updatedShippingAddress.street_name} ${updatedShippingAddress.house_number} ${updatedShippingAddress.house_suffix}, ${updatedShippingAddress.zip_code}, ${updatedShippingAddress.city}, ${updatedShippingAddress.country}`}
+            </Box>
+
             <TextField
               label="Telefoonnummer"
               value={updatedShippingAddress.phone_number}
@@ -417,11 +456,11 @@ export default function OrderDetailsInfo({
     <>
       <CardHeader
         title="Betaling"
-        // action={
-        //   <IconButton>
-        //     <Iconify icon="solar:pen-bold" />
-        //   </IconButton>
-        // }
+      // action={
+      //   <IconButton>
+      //     <Iconify icon="solar:pen-bold" />
+      //   </IconButton>
+      // }
       />
       <Stack direction="row" alignItems="center" sx={{ p: 3, typography: 'body2' }}>
         <Box component="span" sx={{ color: 'text.secondary', flexGrow: 1 }}>
