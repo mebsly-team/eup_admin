@@ -19,7 +19,7 @@ type Props = {
   onAddTask: (task: IKanbanTask) => void;
 };
 
-export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask, reporter }: Props) {
+export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Props) {
   const [name, setName] = useState('');
 
   const defaultTask: IKanbanTask = useMemo(
@@ -33,7 +33,11 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask, repor
       assignee: 0,
       due_date: moment(new Date()).format('YYYY-MM-DD'),
       due: [null, null],
-      reporter,
+      reporter: {
+        id: _mock.id(16),
+        name: _mock.fullName(16),
+        avatarUrl: _mock.image.avatar(16),
+      },
     }),
     [name, status]
   );
