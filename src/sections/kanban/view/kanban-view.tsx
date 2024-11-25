@@ -28,6 +28,10 @@ const columns = [
   },
   {
     id: 2,
+    name: 'TESTEN',
+  },
+  {
+    id: 3,
     name: 'KLAAR',
   },
 ];
@@ -41,21 +45,15 @@ export default function KanbanView() {
     if (!userList?.length) getAllUsers();
   }, []);
 
-
   const getAllTasks = async () => {
-    setLoading(true)
-    const { data } = await axiosInstance.get(
-      `/kanban/`
-    );
+    setLoading(true);
+    const { data } = await axiosInstance.get(`/kanban/`);
     setBoard(data || []);
-    setLoading(false)
-
+    setLoading(false);
   };
   const getAllUsers = async () => {
     const typeFilter = `&type=admin`;
-    const { data } = await axiosInstance.get(
-      `/users/?${typeFilter}`
-    );
+    const { data } = await axiosInstance.get(`/users/?${typeFilter}`);
     setUserList(data || []);
   };
 
@@ -162,7 +160,7 @@ export default function KanbanView() {
         Kanban
       </Typography>
 
-      {isLoading && renderSkeleton}
+      {!isLoading && renderSkeleton}
 
       {/* {!board?.length && (
         <EmptyContent
@@ -191,25 +189,24 @@ export default function KanbanView() {
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 spacing={3}
-                direction="row"
-                alignItems="flex-start"
+                direction={{ xs: 'column', md: 'row' }}
+                alignItems={{ xs: 'center', md: 'flex-start' }} 
                 sx={{
-                  p: 0.25,
+                  p: 0.25,            
                   height: 1,
                 }}
               >
-                {columns?.map((col, index) => {
-                  return (
-                    <KanbanColumn
-                      index={index}
-                      key={index}
-                      column={col}
-                      tasks={board.filter((items) => items.status === col.id)}
-                      userList={userList}
-                      getAllTasks={getAllTasks}
-                    />
-                  )
-                })}
+                {columns?.map((col, index) => (
+                  <KanbanColumn
+                    index={index}
+                    key={index}
+                    column={col}
+                    tasks={board.filter((items) => items.status === col.id)}
+                    userList={userList}
+                    getAllTasks={getAllTasks}
+                  />
+                  
+                ))}
 
                 {provided.placeholder}
 
