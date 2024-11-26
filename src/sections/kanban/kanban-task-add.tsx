@@ -26,7 +26,7 @@ export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask }: Pro
     () => ({
       status,
       title: name.trim(),
-      priority: "MEDIUM",
+      priority: 'MEDIUM',
       attachments: [],
       labels: [],
       comments: [],
