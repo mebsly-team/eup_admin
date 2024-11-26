@@ -15,6 +15,7 @@ import KanbanColumnAdd from '../kanban-column-add';
 import { KanbanColumnSkeleton } from '../kanban-skeleton';
 import { IUserItem } from 'src/types/user';
 import axiosInstance from 'src/utils/axios';
+import { fontSize, fontWeight, width } from '@mui/system';
 
 // ----------------------------------------------------------------------
 const columns = [
@@ -160,7 +161,7 @@ export default function KanbanView() {
         Kanban
       </Typography>
 
-      {!isLoading && renderSkeleton}
+      {isLoading && renderSkeleton}
 
       {/* {!board?.length && (
         <EmptyContent
@@ -203,7 +204,7 @@ export default function KanbanView() {
                     column={col}
                     tasks={board.filter((items) => items.status === col.id)}
                     userList={userList}
-                    getAllTasks={getAllTasks}
+                    getAllTasks={getAllTasks} 
                   />
 
                 ))}

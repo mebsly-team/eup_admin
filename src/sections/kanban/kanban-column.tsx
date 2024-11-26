@@ -158,17 +158,19 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                     >
-                      <KanbanTaskItem
-                        column={column}
-                        task={item}
-                        assignee={userList?.find((u) => u.id === item.assignee)}
-                        reporter={userList?.find((u) => u.id === item.reporter)}
-                        onDeleteTask={() => handleDeleteTask(item.id)}
-                        index={taskIndex}
-                        onUpdateTask={handleUpdateTask}
-                        userList={userList}
-                        handleAddComment={handleAddComment}
-                      />
+                      <Box sx={{ mb: 1 }}>
+                        <KanbanTaskItem
+                          column={column}
+                          task={item}
+                          assignee={userList?.find((u) => u.id === item.assignee)}
+                          reporter={userList?.find((u) => u.id === item.reporter)}
+                          onDeleteTask={() => handleDeleteTask(item.id)}
+                          index={taskIndex}
+                          onUpdateTask={handleUpdateTask}
+                          userList={userList}
+                          handleAddComment={handleAddComment}
+                        />
+                      </Box>
                     </div>
                   )}
                 </Draggable>
