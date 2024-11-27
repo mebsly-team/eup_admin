@@ -23,8 +23,8 @@ test('Product Page test', async ({}) => {
   test.setTimeout(300000);
     await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
-    await page.getByRole('button', { name: 'Lijst' }).click();
-    await page.waitForTimeout(3000);
+    // await page.getByRole('button', { name: 'Lijst' }).click();
+    // await page.waitForTimeout(3000);
     await page.getByText('Actieve Lijst').click();
     await page.getByRole('option', { name: 'Particulier zal zien' }).click();
     await page.waitForTimeout(3000);
@@ -148,8 +148,8 @@ test(' Create New Product Page test', async ({}) => {
   test.setTimeout(280000);
     await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
-    await page.getByRole('button', { name: 'Lijst' }).click();
-    await page.waitForTimeout(3000);
+    // await page.getByRole('button', { name: 'Lijst' }).click();
+    // await page.waitForTimeout(3000);
     await page.locator('a:has-text("Nieuw Product")').click();
   await page.waitForTimeout(2000);
     function generateArtikelcode() {
@@ -294,8 +294,8 @@ await page.waitForTimeout(2000);
 await page.getByLabel('Kostprijs per stuk').click();
 await page.getByLabel('Kostprijs per stuk').fill(priceCostValue);
 await page.waitForTimeout(2000);
-await page.getByLabel('Prijs per Stuk', {exact: true}).click();
-await page.getByLabel('Prijs per Stuk', {exact: true}).fill(pricePerPieceValue);
+await page.locator('input[name="price_per_piece"]').click();
+await page.locator('input[name="price_per_piece"]').fill(pricePerPieceValue);
 await page.waitForTimeout(2000);
 
 const vatoptions = ['0', '9', '21'];
@@ -433,7 +433,8 @@ await page.waitForTimeout(2000);
 await page.getByPlaceholder('Typ hier...').click();
 await page.getByPlaceholder('Typ hier...').fill('bref');
 await page.waitForTimeout(2000);
-await page.getByRole('checkbox').check();
+await page.locator('.MuiButtonBase-root.MuiCheckbox-root').click();
+await page.waitForTimeout(2000);
 await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
 await page.waitForTimeout(2000);
 await page.getByRole('button', { name: 'Nieuwe Product' }).click();
