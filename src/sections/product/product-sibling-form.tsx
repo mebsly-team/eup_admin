@@ -92,7 +92,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState([]);
   console.log('currentProductSiblingRows', currentProductSiblingRows);
   const currentProductSiblingIdList =
-    currentProduct?.sibling_products.map((item: { id: any }) => item) || [];
+    currentProduct?.sibling_products.map((item: { id: any }) => item?.id) || [];
   const isMobile = useMediaQuery('(max-width:600px)');
   const [radioValue, setRadioValue] = useState(0);
 
