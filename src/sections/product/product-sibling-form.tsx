@@ -34,6 +34,7 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
+import { HOST_API } from 'src/config-global';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -78,6 +79,7 @@ const styles = {
   },
 };
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
+const hostUrl = HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000';
 
 export default function ProductSiblingForm({ currentProduct: defaultProduct, activeTab }: Props) {
   const { product: currentProduct } = useGetProduct(defaultProduct.id);
@@ -88,21 +90,16 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const [isWaiting, setIsWaiting] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
   const [selectedColors, setSelectedColors] = useState([]);
-  const [currentOptionValue, setCurrentOptionValue] = useState('');
+  const [currentOptionValues, setCurrentOptionValues] = useState<string[]>([]);
   const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState([]);
   console.log('currentProductSiblingRows', currentProductSiblingRows);
   const currentProductSiblingIdList =
-    currentProduct?.sibling_products.map((item: { id: any }) => item?.id) || [];
+    currentProduct?.sibling_products.map((item: { id: any }) => item?.id || item) || [];
   const isMobile = useMediaQuery('(max-width:600px)');
-  const [radioValue, setRadioValue] = useState(0);
+  const [radioValue, setRadioValue] = useState(currentProduct?.color ? "color" : "no_color");
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
-
-
-  const handleChangeOption = (e: { target: { value: SetStateAction<string> } }) => {
-    setCurrentOptionValue(e.target.value);
-  };
 
   const getSiblings = async () => {
     try {
@@ -136,23 +133,10 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     getSiblings();
   }, [activeTab, currentProductSiblingIdList?.length]);
 
-  const createSiblingsCall = async (parentProduct, clr, sz, unitValue) => {
-
-    const discount =
-      unitValue === 'package'
-        ? 5 :
-        unitValue === 'rol'
-          ? 5
-          : unitValue === 'box'
-            ? 10
-            : unitValue === 'pallet_layer'
-              ? 15
-              : unitValue === 'pallet_full'
-                ? 20
-                : null;
-    const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
-    const title = `${parentProduct?.title}${clr ? `-${t(clr)}` : ''}${sz ? `-${t(sz)}` : ''
-      }-${t(unitValue)}`;
+  const createSiblingsCall = async (parentProduct, clr, sz) => {
+    const discount = unitOrder.includes(parentProduct.unit) ? unitOrder.indexOf(parentProduct.unit) * 5 : null;
+    const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(parentProduct.unit);
+    const title = `${parentProduct?.title}${clr ? `-${t(clr)}` : ''}${sz ? `-${t(sz)}` : ''}-${t(parentProduct.unit)}`;
     const data = {
       title,
       title_long: title,
@@ -161,7 +145,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       location: parentProduct?.location,
       color: clr?.replace(/\s+/g, '%'),
       size: sz?.replace(/\s+/g, '%'),
-      unit: unitValue,
+      unit: parentProduct.unit,
       categories: parentProduct?.categories?.map((item) => item.id) || [],
       languages_on_item_package: parentProduct?.languages_on_item_package,
       meta_title: parentProduct?.meta_title,
@@ -178,6 +162,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       extra_etiket_nl: parentProduct?.extra_etiket_nl,
       extra_etiket_fr: parentProduct?.extra_etiket_fr,
     };
+
     if (parentProduct?.supplier?.id) data.supplier = parentProduct?.supplier?.id;
     if (parentProduct?.brand?.id) data.brand = parentProduct?.brand?.id;
     if (parentProduct?.delivery_time) data.delivery_time = parentProduct?.delivery_time;
@@ -185,12 +170,14 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     if (parentProduct?.vat) data.vat = parentProduct?.vat;
     if (parentProduct?.is_regular !== null) data.is_regular = parentProduct?.is_regular;
     data.price_cost = parentProduct?.price_cost;
+
     if (discount) {
       data.sibling_discount = discount;
       data.price_per_piece = parseFloat(
         Number(parentProduct?.price_per_piece) * (1 - discount / 100)
       ).toFixed(2);
     }
+
     if (isPalletOrBox) {
       data.ean = parentProduct?.ean;
       data.article_code = parentProduct?.article_code;
@@ -198,51 +185,51 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
 
     try {
       const response = await axiosInstance.post('/products/', data);
-      return response?.data; // Return the created siblings
+      return response?.data;
     } catch (error) {
       console.error('Error:', error);
-      // Handle error here if needed
-      return null; // Return null on error
+      return null;
     }
   };
 
   const createSiblings = async () => {
-    setIsLoading(true); // Show the spinner
-    const colorValues = selectedColors.length > 0 ? selectedColors : []; // colors
-    let parentProduct = {};
+    setIsLoading(true);
     try {
-      const response = await axiosInstance.get(`/products/${currentProduct?.id}/`);
-      parentProduct = response?.data;
+      const { data: parentProduct } = await axiosInstance.get(`/products/${currentProduct?.id}/`);
+      const siblingPromises = [];
 
-      const siblingPromises: any[] = [];
-
-      colorValues.forEach((clr) => {
-        siblingPromises.push(createSiblingsCall(parentProduct, clr, null, parentProduct.unit));
-
-      });
-
-      if (currentOptionValue) {
-        siblingPromises.push(createSiblingsCall(parentProduct, parentProduct.color, currentOptionValue, parentProduct.unit));
-
+      if (radioValue === 'no_color' && currentOptionValues.length > 0) {
+        currentOptionValues.forEach((ov) => {
+          siblingPromises.push(createSiblingsCall(parentProduct, null, ov));
+        });
+      } else if (selectedColors.length && currentOptionValues.length > 0) {
+        selectedColors.forEach((color) => {
+          currentOptionValues.forEach((ov) => {
+            siblingPromises.push(createSiblingsCall(parentProduct, color, ov));
+          });
+        });
+      } else if (selectedColors.length) {
+        selectedColors.forEach((color) => {
+          siblingPromises.push(createSiblingsCall(parentProduct, color, null));
+        });
+      } else {
+        return;
       }
+
       const newSiblings = await Promise.all(siblingPromises);
       const successfulSiblings = newSiblings.filter((sibling) => sibling !== null);
-      console.log('successfulSiblings', successfulSiblings);
 
       if (successfulSiblings.length > 0) {
         const allSiblings = [...currentProductSiblingRows, ...successfulSiblings];
         const data = allSiblings.map((item) => item.id);
-        const response = await axiosInstance.post('/add_sibling_products/', { product_ids: data });
-        console.log('response', response);
+        await axiosInstance.post('/add_sibling_products/', { product_ids: data });
         setCurrentProductSiblingRows(allSiblings);
       }
-
       window.location.reload();
-
     } catch (error) {
       console.log('error', error);
     } finally {
-      setIsLoading(false); // Hide the spinner
+      setIsLoading(false);
     }
   };
 
@@ -436,11 +423,23 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       width: 100,
       cellClassName: 'actions',
       getActions: ({ id, row }) => [
-        <Switch
-          size="small"
-          checked={row?.is_visible_particular}
-          onChange={handleActiveSwitchChange(row)}
-        />,
+        <>
+          <Switch
+            size="small"
+            checked={row?.is_visible_particular}
+            onChange={handleActiveSwitchChange(row)}
+          />
+          {row?.is_visible_particular && (
+            <Iconify
+              icon="mdi:open-in-new"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`http://${hostUrl}/product/${row?.id}/${row?.slug}`, '_blank');
+              }}
+              sx={{ cursor: 'pointer' }}
+            />
+          )}
+        </>
       ],
     },
     {
@@ -531,71 +530,69 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     <>
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
         <Typography sx={{ mb: 2 }}>{t('selectSiblingType')}</Typography>
+        <Box>
+          <RadioGroup value={radioValue} onChange={handleRadioChange}>
+            <FormControlLabel
+              value="color"
+              control={<Radio size="medium" />}
+              label={t('color')}
+              sx={{ textTransform: 'capitalize' }}
+              disabled={!!currentProduct?.color}
+            />
+            <FormControlLabel value="no_color" control={<Radio size="medium" />} label={t('no_color')} disabled={!!currentProduct?.color}
+            />
+          </RadioGroup>
 
-        <RadioGroup value={radioValue} onChange={handleRadioChange}>
-          <FormControlLabel
-            value="color"
-            control={<Radio size="medium" />}
-            label={t('color')}
-            sx={{ textTransform: 'capitalize' }}
-          />
-          <FormControlLabel value="option" control={<Radio size="medium" />} label={t('option')} />
-        </RadioGroup>
+          <Box
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: '100px 1fr',
-            gap: '1rem',
-            p: 3,
-            borderBottom: `solid 1px ${theme.palette.divider}`,
-          }}
-        >
-          {radioValue === 'color' ? (
-            <FormControl sx={{ minWidth: 300 }}>
-              <Select
-                multiple
-                value={selectedColors}
-                onChange={(e) => setSelectedColors(e.target.value)}
-              >
-                {[
-                  "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
-                  "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
-                  "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkkhaki",
-                  "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen",
-                  "darkslateblue", "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray",
-                  "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold",
-                  "goldenrod", "gray", "green", "greenyellow", "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki",
-                  "lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
-                  "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
-                  "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta", "maroon",
-                  "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue",
-                  "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
-                  "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
-                  "palegreen", "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
-                  "purple", "red", "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell",
-                  "sienna", "silver", "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan", "teal",
-                  "thistle", "tomato", "turquoise", "violet", "wheat", "white", "whitesmoke", "yellow", "yellowgreen"
-                ].map(color => (
-                  <MenuItem key={color} value={color}>
-                    <ListItemIcon>
-                      <Box
-                        sx={{
-                          width: 16,
-                          height: 16,
-                          backgroundColor: color,
-                          borderRadius: 0.5,
-                          border: '1px solid #ccc'
-                        }}
-                      />
-                    </ListItemIcon>
-                    {t(color)}
-                  </MenuItem>
-                ))}
+          >
+            {radioValue === 'color' ? (
+              <FormControl sx={{ minWidth: 300 }}>
+                <Select
+                  multiple
+                  value={selectedColors}
+                  onChange={(e) => setSelectedColors(e.target.value)}
+                >
+                  {[
+                    "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
+                    "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
+                    "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkkhaki",
+                    "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen",
+                    "darkslateblue", "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray",
+                    "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold",
+                    "goldenrod", "gray", "green", "greenyellow", "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki",
+                    "lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+                    "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+                    "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta", "maroon",
+                    "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue",
+                    "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
+                    "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
+                    "palegreen", "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
+                    "purple", "red", "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell",
+                    "sienna", "silver", "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan", "teal",
+                    "thistle", "tomato", "turquoise", "violet", "wheat", "white", "whitesmoke", "yellow", "yellowgreen"
+                  ].map(color => (
+                    <MenuItem key={color} value={color}>
+                      <ListItemIcon>
+                        <Box
+                          sx={{
+                            width: 16,
+                            height: 16,
+                            backgroundColor: color,
+                            borderRadius: 0.5,
+                            border: '1px solid #ccc'
+                          }}
+                        />
+                      </ListItemIcon>
+                      {t(color)}
+                    </MenuItem>
+                  ))}
 
-              </Select>
-            </FormControl>
-          ) : radioValue === 'option' ? (
+                </Select>
+              </FormControl>
+            ) : null}
+          </Box>
+          <Box>
             <Box
               sx={{
                 display: 'grid',
@@ -603,17 +600,60 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
                 gap: '0.2rem',
               }}
             >
-              <FormControl sx={styles}>
-                <TextField
-                  value={currentOptionValue}
-                  onChange={handleChangeOption}
-                />
-              </FormControl>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                {currentOptionValues.map((value, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
+                    <TextField
+                      value={value}
+                      onChange={(e) => {
+                        const newValues = [...currentOptionValues];
+                        newValues[index] = e.target.value;
+                        setCurrentOptionValues(newValues);
+                      }}
+                      sx={{ flex: 1 }}
+                    />
+                    <Iconify
+                      icon="mdi:delete"
+                      onClick={() => {
+                        const newValues = currentOptionValues.filter((_, i) => i !== index);
+                        setCurrentOptionValues(newValues);
+                      }}
+                      sx={{
+                        cursor: 'pointer',
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        fontSize: '16px',
+                        color: 'color',
+                      }}
+                    />
+                  </Box>
+                ))}
+                {(radioValue === 'no_color' || selectedColors.length > 0) && (
+                  <>
+                    <Button
+                      onClick={() => setCurrentOptionValues([...currentOptionValues, ""])}
+                      sx={{ minWidth: 'auto' }}
+                    >
+                      <Iconify icon="mdi:plus" />
+                    </Button>
+                    {currentOptionValues.length === 0 && (
+                      <Typography variant="body2" color="textSecondary">
+                        {t('add_option')}
+                      </Typography>
+                    )}
+                  </>
+                )}
+              </Box>
             </Box>
-          ) : null}
+          </Box>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button onClick={createSiblings} color="primary">
+          <Button
+            onClick={createSiblings}
+            color="primary"
+            disabled={radioValue === 'color' && selectedColors.length === 0}
+          >
             {t('generate')}
           </Button>
         </Box>
