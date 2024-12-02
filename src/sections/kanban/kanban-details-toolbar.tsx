@@ -102,7 +102,7 @@ export default function KanbanDetailsToolbar({
         arrow="top-right"
         sx={{ width: 140 }}
       >
-        {['DOEN', 'ONDERHANDEN', 'KLAAR'].map((option, i) => (
+        {['DOEN', 'ONDERHANDEN', 'TESTEN', 'KLAAR'].map((option, i) => (
           <MenuItem
             key={option}
             selected={status === option}

@@ -53,7 +53,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
         getAllTasks();
       } catch (error) {
         console.error(error);
-        enqueueSnackbar({ variant: 'error', message: t('error') });
+        enqueueSnackbar({ variant: 'error', message: 'error' });
       }
     },
     [column.id, openAddTask]
@@ -92,7 +92,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
     },
     [column.id, enqueueSnackbar]
   );
-
+  
   const renderAddTask = (
     <Stack
       spacing={2}
@@ -129,11 +129,12 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
   );
 
   return (
-    <Droppable droppableId={column.id} type="TASK">
+    <Droppable droppableId={String(column.id)} type="TASK">
       {(provided, snapshot) => (
         <Paper
           ref={provided.innerRef}
           {...provided.draggableProps}
+          {...provided.dragHandleProps}
           sx={{
             px: 2,
             borderRadius: 2,
@@ -149,9 +150,9 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
             <Box sx={{ p: 1, borderBottom: `solid 1px black`, textAlign: 'center' }}>
               {column.name}
             </Box>
-            {tasks.map((item, taskIndex) => {
+            {Object.values(tasks).map((item, taskIndex) => {
               return (
-                <Draggable key={item.id} draggableId={item.id} index={taskIndex}>
+                <Draggable key={item.id} draggableId={String(item.id)} index={taskIndex}>
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
