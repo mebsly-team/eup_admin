@@ -732,5 +732,12 @@
   "pallet_z_value": "Pallet Hoogte",
   "pallet_max_weight_value": "Pallet Max Gewicht",
   "import_from_snelstart": "import alles van snelstart",
-  "get_stock_from_snelstart": "voorraad van snelstart"
+  "get_stock_from_snelstart": "voorraad van snelstart",
+  "btw0": "BTW null",
+  "omzetBinnenEU": "Omzet binnen EU",
+  "omzetBuitenEU": "Omzet buiten EU",
+  "omzetNL": "Omzet NL",
+  "inkoopBinnenEU": "Inkoop binnen EU",
+  "inkoopBuitenEU": "Inkoop buiten EU",
+  "inkoopNL": " Inkoop NL"
 }
