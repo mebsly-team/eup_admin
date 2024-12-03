@@ -69,6 +69,13 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
       icon: currentCategory?.icon || '',
       description: currentCategory?.description || '',
       image: currentCategory?.image || null,
+      data0: currentCategory?.data0 || null,
+      data1: currentCategory?.data1 || null,
+      data2: currentCategory?.data2 || null,
+      data3: currentCategory?.data3 || null,
+      data4: currentCategory?.data4 || null,
+      data5: currentCategory?.data5 || null,
+      data6: currentCategory?.data6 || null,
       parent_category: parentId || currentCategory?.parent_category,
     }),
     [currentCategory]
@@ -190,7 +197,34 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                 </RadioGroup>
               )}
               <RHFTextField name="name" label={t('name')} />
-              {radioValue === 'parent' ? <RHFTextField name="icon" label={t('icon')} /> : null}
+              {radioValue === 'parent' && (
+                <Grid container spacing={2}>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data0" label={t('btw0')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data1" label={t('omzetNL')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data2" label={t('omzetBinnenEU')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data3" label={t('omzetBuitenEU')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data4" label={t('inkoopNL')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data5" label={t('inkoopBinnenEU')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="data6" label={t('inkoopBuitenEU')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
+                    <RHFTextField name="icon" label={t('icon')} />
+                  </Grid>
+                </Grid>
+              )}
               <RHFTextField name="description" label={t('description')} />
               {radioValue === 'sub' ? (
                 <Stack spacing={1.5}>
