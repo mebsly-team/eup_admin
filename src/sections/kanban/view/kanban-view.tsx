@@ -22,18 +22,22 @@ const columns = [
   {
     id: 0,
     name: 'DOEN',
+    taskIds: [] as string[],
   },
   {
     id: 1,
     name: 'ONDERHANDEN',
+    taskIds: [] as string[],
   },
   {
     id: 2,
     name: 'TESTEN',
+    taskIds: [] as string[],
   },
   {
     id: 3,
     name: 'KLAAR',
+    taskIds: [] as string[],
   },
 ];
 export default function KanbanView() {
@@ -71,7 +75,7 @@ export default function KanbanView() {
 
         // Moving column
         if (type === 'COLUMN') {
-          const newOrdered = [...board];
+          const newOrdered: string[] = [...board];
 
           newOrdered.splice(source.index, 1);
 
@@ -81,9 +85,9 @@ export default function KanbanView() {
           return;
         }
 
-        const sourceColumn = columns[source.droppableId];
+        const sourceColumn = columns[Number(source.droppableId)];
 
-        const destinationColumn = columns[destination.droppableId];
+        const destinationColumn = columns[Number(destination.droppableId)];
 
         // Moving task to same list
         if (sourceColumn.id === destinationColumn.id) {
