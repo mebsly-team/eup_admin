@@ -156,6 +156,7 @@ export default function KanbanView() {
         variant="h4"
         sx={{
           mb: { xs: 3, md: 5 },
+          mx: 'auto'
         }}
       >
         Kanban
@@ -192,6 +193,7 @@ export default function KanbanView() {
                 spacing={3}
                 direction={{ xs: 'column', md: 'row' }}
                 alignItems={{ xs: 'center', md: 'flex-start' }}
+                justifyContent={{xs: 'center', md: 'center'}}
                 sx={{
                   p: 0.25,
                   height: 1,

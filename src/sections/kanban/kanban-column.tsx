@@ -137,7 +137,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
           sx={{
             px: 2,
             borderRadius: 2,
-            width: '250px',
+            width: '300px',
             minWidth: '100px',
             bgcolor: 'background.neutral',
             ...(snapshot.isDragging && {
