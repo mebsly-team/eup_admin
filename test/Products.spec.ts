@@ -140,7 +140,65 @@ await page.getByRole('button', { name: 'Reset' }).click();
 await page.waitForTimeout(5000);
 })
 
+test('Product Bundels Test', async ({}) => {
+  test.setTimeout(280000);
+  await page.getByRole('button', { name: 'Product' }).click();
+    await page.waitForTimeout(2000);
+    await page.getByPlaceholder('Zoeken').click();
+    await page.waitForTimeout(2000);
+    await page.getByPlaceholder('Zoeken').fill('Eda');
+    await page.waitForTimeout(2000);
+    await page.getByRole('row', { name: 'Eda' }).getByRole('button').nth(0).click();
+    await page.waitForTimeout(3000);
+    await page.getByRole('menuitem', { name: 'Bewerken' }).click();
+    await page.waitForTimeout(3000);
+    await page.getByRole('tab', { name: 'Bundels' }).click();
+    await page.waitForTimeout(2000);
+  await page.getByLabel('', { exact: true }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole('option', { name: 'Rol' }).click();
+  await page.waitForTimeout(2000);
+  await page.locator('body').click({ position: { x: 50, y: 20 } });
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Bundel Genereren' }).click();
+  await page.waitForTimeout(2000);
+  await page.getByLabel('Delete').click();
+})
 
+
+test('Product Variant Test', async ({}) => {
+  test.setTimeout(280000);
+  await page.getByRole('button', { name: 'Product' }).click();
+    await page.waitForTimeout(2000);
+    await page.getByPlaceholder('Zoeken').click();
+    await page.waitForTimeout(2000);
+    await page.getByPlaceholder('Zoeken').fill('Eda');
+    await page.waitForTimeout(2000);
+    await page.getByRole('row', { name: 'Eda' }).getByRole('button').nth(0).click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('menuitem', { name: 'Bewerken' }).click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('tab', { name: 'Varianten' }).click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('radiogroup').getByText('Optie').click();
+    await page.waitForTimeout(2000);
+  await page.getByRole('textbox').click();
+  await page.getByRole('textbox').fill('55');
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Variant Genereren' }).click();
+  await page.waitForTimeout(2000);
+    await page.getByRole('radio', { name: 'Kleur' }).check();
+    await page.waitForTimeout(2000);
+    await page.getByRole('combobox').click();
+    await page.waitForTimeout(2000);
+    await page.getByRole('option', { name: 'Bisque' }).click();
+    await page.waitForTimeout(2000);
+    await page.locator('body').click({ position: { x: 50, y: 20 } });
+  await page.waitForTimeout(2000);
+    await page.getByRole('button', { name: 'Variant Genereren' }).click();
+    await page.waitForTimeout(2000);
+    await page.getByLabel('Edit').click();
+})
 
 
 
