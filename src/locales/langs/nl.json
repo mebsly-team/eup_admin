@@ -709,6 +709,7 @@
   "line1": "Straatnaam, huisnummer & toe.",
   "required": "Dit veld is verplicht",
   "not_delivered": "Niet afgeleverd",
+  "user_pending": "Op klant",
   "pending_order": "Order",
   "pending_offer": "Offer",
   "confirmed": "Bevestigd",
