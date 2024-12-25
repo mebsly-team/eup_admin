@@ -835,7 +835,7 @@ export default function ProductNewEditForm({ id }: Props) {
 
   const handleImportFromSnelstart = async ({ id, onlyStock = false }) => {
     try {
-      const response = await axiosInstance.get(`/snelstart/product/?id=${id}`);
+      const response = await axiosInstance.get(`/snelstart/?id=${id}`);
       const snelProduct = response?.data?.[0] || {};
       const valuesToSet = onlyStock
         ? {
