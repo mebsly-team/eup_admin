@@ -35,6 +35,7 @@ export default function OrderDetailsToolbar({
   statusOptions,
   onChangeStatus,
   handleDownloadInvoice,
+  sendToSnelstart
 }: Props) {
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
@@ -113,6 +114,14 @@ export default function OrderDetailsToolbar({
             onClick={handleDownloadInvoice}
           >
             {t('invoice')}
+          </Button>
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
+            onClick={() => sendToSnelstart({ id })}
+          >
+            {t('sendToSnelstart')}
           </Button>
 
           {/* <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
