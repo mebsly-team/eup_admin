@@ -233,7 +233,7 @@ export default function OrderDetailsInfo({
 
           <Box sx={{ color: 'text.secondary' }}>{customer.email}</Box>
 
-          <Box>
+          {/* <Box>
             IP Adres:
             <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
               {customer.ipAddress}
@@ -247,7 +247,7 @@ export default function OrderDetailsInfo({
             sx={{ mt: 1 }}
           >
             Toevoegen aan zwarte lijst
-          </Button>
+          </Button> */}
         </Stack>
       </Stack>
     </>

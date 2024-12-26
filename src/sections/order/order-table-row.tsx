@@ -222,14 +222,14 @@ export default function OrderTableRow({
                   product: {
                     images: (string | undefined)[];
                     title:
-                      | string
-                      | number
-                      | boolean
-                      | ReactElement<any, string | JSXElementConstructor<any>>
-                      | Iterable<ReactNode>
-                      | ReactPortal
-                      | null
-                      | undefined;
+                    | string
+                    | number
+                    | boolean
+                    | ReactElement<any, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | ReactPortal
+                    | null
+                    | undefined;
                     article_code: any;
                     categories: { name: any }[];
                     location: any;
@@ -261,7 +261,7 @@ export default function OrderTableRow({
 
                   <ListItemText
                     primary={item.product?.title}
-                    secondary={`${t('article_code')}: ${item.product?.article_code}`}
+                    // secondary={`${t('article_code')}: ${item.product?.article_code}`}
                     primaryTypographyProps={{
                       typography: 'caption',
                       noWrap: false,
@@ -275,7 +275,7 @@ export default function OrderTableRow({
                     }}
                   />
 
-                  <ListItemText
+                  {/* <ListItemText
                     sx={{ padding: 1, ...styles.hideOnLg }}
                     primary={t('categories')}
                     secondary={item.product?.categories
@@ -291,10 +291,10 @@ export default function OrderTableRow({
                         wordBreak: 'break-all', // This is the correct CSS property to use
                       },
                     }}
-                  />
+                  /> */}
                   <ListItemText
-                    primary={`${t('location')}: ${item.product?.location}`}
-                    secondary={`${t('location')}2: ${item.product?.extra_location}`}
+                    primary={`${t('free_stock')}: ${item.product?.free_stock}`}
+                    // secondary={`${t('location')}2: ${item.product?.extra_location}`}
                     primaryTypographyProps={{
                       typography: 'caption',
                     }}
@@ -304,8 +304,8 @@ export default function OrderTableRow({
                   />
 
                   <ListItemText
-                    primary={t('price_per_piece')}
-                    secondary={fCurrency(item.product?.price_per_piece)}
+                    primary={t('price_per_unit_vat') + ":"}
+                    secondary={`${item.quantity} x ${fCurrency(item.product?.price_per_unit_vat)}`}
                     primaryTypographyProps={{
                       typography: 'caption',
                     }}
@@ -313,19 +313,17 @@ export default function OrderTableRow({
                       typography: 'caption',
                     }}
                   />
-                  <ListItemText
+                  {/* <ListItemText
                     primary={`${t('amount')}: x${item.quantity}`}
-                    secondary={`${t('quantity_per_unit')}: ${item.product?.quantity_per_unit}`}
+                    // secondary={`${t('quantity_per_unit')}: ${item.product?.quantity_per_unit}`}
                     primaryTypographyProps={{
                       typography: 'caption',
                     }}
                     secondaryTypographyProps={{
                       typography: 'caption',
                     }}
-                  />
-                  <Box sx={{ width: 110, textAlign: 'right' }}>
-                    {`${item.quantity} x ${fCurrency(item.product?.price_per_unit)}`}
-                  </Box>
+                  /> */}
+
                 </Stack>
               )
             )}
