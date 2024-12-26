@@ -106,15 +106,27 @@ export default function OrderDetailsView({ id }: Props) {
       console.error('Error fetching order:', error);
     }
   };
+  const sendToSnelstart = async ({ id }) => {
+    try {
+      const response = await axiosInstance.post(`/snelstart/`, { order_id: id });
+      if (response.status === 200) {
+        console.log("🚀 ~ sendToSnelstart ~ response:", response)
+        console.log("🚀 ~ sendToSnelstart ~ response:", response)
+      } else {
+        console.error('Failed to send order to snelstart, status code:', response.status);
+      }
+    } catch (error) {
+      console.error('Error sending order to snelstart:', error);
+    }
+  };
 
   const handleChangeStatus = useCallback(
     (newValue: string) => {
       const newHistory = currentOrder.history;
       newHistory.push({
         date: new Date(),
-        event: `Status gewijzigd in ${t(newValue)} door ${
-          currentOrder?.shipping_address?.email || currentOrder?.user?.email
-        }`,
+        event: `Status gewijzigd in ${t(newValue)} door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
+          }`,
       });
       updateOrder(id, {
         status: newValue,
@@ -124,6 +136,7 @@ export default function OrderDetailsView({ id }: Props) {
     [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
   );
   if (!currentOrder) return <></>;
+
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <OrderDetailsToolbar
@@ -132,6 +145,7 @@ export default function OrderDetailsView({ id }: Props) {
         onChangeStatus={handleChangeStatus}
         statusOptions={ORDER_STATUS_OPTIONS}
         handleDownloadInvoice={handleDownloadInvoice}
+        sendToSnelstart={sendToSnelstart}
       />
 
       <Grid container spacing={3}>

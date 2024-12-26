@@ -726,6 +726,7 @@
   "failed": "Mislukt",
   "canceled": "Geannuleerd",
   "expired": "Verlopen",
+  "sendToSnelstart": "Naar Snelstart",
   "geen_resultaten": "Geen resultaten.",
   "unit_in_pallet": "Eenheid voor pallet",
   "pallet_x_value": "Pallet Lengte",
