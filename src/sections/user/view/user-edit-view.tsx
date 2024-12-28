@@ -42,11 +42,11 @@ export default function UserEditView({ id }: Props) {
         links={[
           {
             name: t('dashboard'),
-            href: paths.dashboard.root,
+            href: paths.dashboard.user.list,
           },
           {
             name: t('user'),
-            href: paths.dashboard.user.root,
+            href: paths.dashboard.user.list,
           },
           { name: currentUser?.first_name },
         ]}

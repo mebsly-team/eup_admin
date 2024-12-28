@@ -22,11 +22,11 @@ export default function UserCreateView() {
         links={[
           {
             name: t('dashboard'),
-            href: paths.dashboard.root,
+            href: paths.dashboard.employee.list,
           },
           {
             name: t('employee'),
-            href: paths.dashboard.employee.root,
+            href: paths.dashboard.employee.list,
           },
           { name: t('new_employee') },
         ]}
