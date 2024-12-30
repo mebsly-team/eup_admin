@@ -35,7 +35,7 @@ export default function UserTableFiltersResult({
   const { t, onChangeLang } = useTranslate();
 
   const handleRemoveKeyword = useCallback(() => {
-    onFilters('first_name', '');
+    onFilters('name', '');
   }, [onFilters]);
 
   const handleRemoveStatus = useCallback(() => {

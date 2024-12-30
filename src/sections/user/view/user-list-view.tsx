@@ -54,7 +54,7 @@ const defaultFilters: IUserTableFilters = {
 
 export default function UserListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable();
+  const table = useTable({ defaultOrderBy: "relation_code" });
   const settings = useSettingsContext();
   const router = useRouter();
   const confirm = useBoolean();
@@ -68,7 +68,7 @@ export default function UserListView() {
     { id: 'relation_code', label: t('id') },
     { id: 'name', label: t('name_type') },
     { id: 'email', label: t('email_phone'), width: 180 },
-    { id: 'company', label: t('poc'), width: 220 },
+    // { id: 'company', label: t('poc'), width: 220 },
     { id: 'type', label: t('kvk_vat'), width: 180 },
     { id: 'is_active', label: `${t('active')}?`, width: 100 },
     { id: '', width: 88 },
@@ -111,12 +111,11 @@ export default function UserListView() {
       filters.status !== 'all' ? `&is_active=${filters.status === 'active'}` : '';
     const orderByParam = table.orderBy
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
-      : '';
+      : '-relation_code';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const { data } = await axiosInstance.get(
-      `/users/?is_staff=false&limit=${table.rowsPerPage}&page=${
-        table.page + 1
+      `/users/?is_staff=false&limit=${table.rowsPerPage}&page=${table.page + 1
       }&offset=0${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
     );
     setCount(data.count || 0);
@@ -227,23 +226,23 @@ export default function UserListView() {
                 iconPosition="end"
                 value={tab.value}
                 label={tab.label}
-                // icon={
-                //   <Label
-                //     variant={
-                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                //     }
-                //     color={
-                //       (tab.value === 'active' && 'success') ||
-                //       (tab.value === 'pending' && 'warning') ||
-                //       (tab.value === 'banned' && 'error') ||
-                //       'default'
-                //     }
-                //   >
-                //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                //       ? tableData.filter((user) => user.status === tab.value).length
-                //       : tableData.length}
-                //   </Label>
-                // }
+              // icon={
+              //   <Label
+              //     variant={
+              //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
+              //     }
+              //     color={
+              //       (tab.value === 'active' && 'success') ||
+              //       (tab.value === 'pending' && 'warning') ||
+              //       (tab.value === 'banned' && 'error') ||
+              //       'default'
+              //     }
+              //   >
+              //     {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
+              //       ? tableData.filter((user) => user.status === tab.value).length
+              //       : tableData.length}
+              //   </Label>
+              // }
               />
             ))}
           </Tabs>

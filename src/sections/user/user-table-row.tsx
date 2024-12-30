@@ -80,8 +80,8 @@ export default function UserTableRow({
 
         <TableCell>
           <ListItemText
-            primary={`ID: ${id}`}
-            secondary={`Relaticode: ${relation_code || '-'}`}
+            primary={`ID: ${relation_code || '-'}`}
+            // secondary={`Relaticode: ${relation_code || '-'}`}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
               component: 'span',
@@ -116,7 +116,7 @@ export default function UserTableRow({
           />
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+        {/* <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
             primary={contact_person_name || '-'}
             secondary={contact_person_phone_number}
@@ -126,7 +126,7 @@ export default function UserTableRow({
               color: 'text.disabled',
             }}
           />
-        </TableCell>
+        </TableCell> */}
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
