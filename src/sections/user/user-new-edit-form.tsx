@@ -39,6 +39,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   const NewUserSchema = Yup.object().shape({
     type: Yup.string().required(t('required')),
+    relation_code: Yup.string().required(t('required')),
     first_name: !isBusiness && Yup.string().required(t('required')),
     last_name: !isBusiness && Yup.string().required(t('required')),
     password: currentUser ? null : Yup.string().required(t('required')),
@@ -130,6 +131,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const defaultValues = useMemo(
     () => ({
       // id: currentUser?.id || null,
+      relation_code: currentUser?.relation_code || '',
       first_name: currentUser?.first_name || '',
       last_name: currentUser?.last_name || '',
       email: currentUser?.email || '',
@@ -252,6 +254,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
+              <RHFTextField name="relation_code" label={t('relation_code')} />
               <RHFSelect
                 name="type"
                 label={t('user_type')}
@@ -346,144 +349,142 @@ export default function UserNewEditForm({ currentUser }: Props) {
             </Box>
           </Card>
 
-          {isBusiness ? (
-            <Card sx={{ p: 3, mt: 5 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-              >
-                <RHFTextField name="business_name" label={t('business_name')} />
-                <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
-                <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
-                <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
-                <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
-                <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
-                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
-                <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
-                <RHFTextField
-                  name="contact_person_department"
-                  label={t('contact_person_department')}
-                />
-                <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
-                <RHFTextField name="classification" label={t('classification')} />
-                <RHFTextField
-                  name="contact_person_nationality"
-                  label={t('contact_person_nationality')}
-                />
-                <RHFTextField name="branch" label={t('branch')} />
-                <RHFTextField name="iban" label={t('iban')} />
-                <RHFTextField name="bic" label={t('bic')} />
-                <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
-                <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
-                <RHFTextField name="vat" label={t('vat')} />
-                <RHFTextField name="kvk" label={t('kvk')} />
-                <RHFSelect name="payment_method" label={t('payment_method')}>
-                  <MenuItem value="">{t('none')}</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  {PAYMENT_METHOD_TYPES.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
+          <Card sx={{ p: 3, mt: 5 }}>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(2, 1fr)',
+              }}
+            >
+              <RHFTextField name="business_name" label={t('business_name')} />
+              <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
+              <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
+              <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
+              <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
+              <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
+              <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
+              <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
+              <RHFTextField
+                name="contact_person_department"
+                label={t('contact_person_department')}
+              />
+              <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
+              <RHFTextField name="classification" label={t('classification')} />
+              <RHFTextField
+                name="contact_person_nationality"
+                label={t('contact_person_nationality')}
+              />
+              <RHFTextField name="branch" label={t('branch')} />
+              <RHFTextField name="iban" label={t('iban')} />
+              <RHFTextField name="bic" label={t('bic')} />
+              <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
+              <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
+              <RHFTextField name="vat" label={t('vat')} />
+              <RHFTextField name="kvk" label={t('kvk')} />
+              <RHFSelect name="payment_method" label={t('payment_method')}>
+                <MenuItem value="">{t('none')}</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                {PAYMENT_METHOD_TYPES.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
 
-                <RHFTextField
-                  name="customer_percentage"
-                  label={t('customer_percentage')}
-                  type="number"
-                />
-                <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
-                <RHFTextField name="payment_termin" label={t('payment_termin')} />
-                <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
-                <RHFTextField name="invoice_address" label={t('invoice_address')} />
-                <RHFTextField name="invoice_language" label={t('invoice_language')} />
-                <RHFTextField name="discount_group" label={t('discount_group')} />
-                <RHFTextField name="inform_via" label={t('inform_via')} />
-                <RHFSelect name="customer_color" label={t('customer_color')}>
-                  <MenuItem value="">{t('none')}</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  {CUSTOMER_COLORS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
+              <RHFTextField
+                name="customer_percentage"
+                label={t('customer_percentage')}
+                type="number"
+              />
+              <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
+              <RHFTextField name="payment_termin" label={t('payment_termin')} />
+              <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
+              <RHFTextField name="invoice_address" label={t('invoice_address')} />
+              <RHFTextField name="invoice_language" label={t('invoice_language')} />
+              <RHFTextField name="discount_group" label={t('discount_group')} />
+              <RHFTextField name="inform_via" label={t('inform_via')} />
+              <RHFSelect name="customer_color" label={t('customer_color')}>
+                <MenuItem value="">{t('none')}</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                {CUSTOMER_COLORS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
 
-                <RHFTextField name="relation_type" label={t('relation_type')} />
-                <RHFTextField name="relation_via" label={t('relation_via')} />
-                <RHFTextField name="days_closed" label={t('days_closed')} />
-                <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
-                <RHFTextField name="fax" label={t('fax')} />
-                <RHFTextField name="website" label={t('website')} />
-                <RHFSwitch
-                  name="incasseren"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('incasseren')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="is_payment_termin_active"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('is_payment_termin_active')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="is_eligible_to_work_with"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('is_eligible_to_work_with')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="is_no_payment"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('is_no_payment')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="inform_when_new_products"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('inform_when_new_products')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
+              <RHFTextField name="relation_type" label={t('relation_type')} />
+              <RHFTextField name="relation_via" label={t('relation_via')} />
+              <RHFTextField name="days_closed" label={t('days_closed')} />
+              <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
+              <RHFTextField name="fax" label={t('fax')} />
+              <RHFTextField name="website" label={t('website')} />
+              <RHFSwitch
+                name="incasseren"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('incasseren')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_payment_termin_active"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('is_payment_termin_active')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_eligible_to_work_with"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('is_eligible_to_work_with')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="is_no_payment"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('is_no_payment')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+              <RHFSwitch
+                name="inform_when_new_products"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('inform_when_new_products')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
 
-                <RHFSwitch
-                  name="notify"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('notify')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-              </Box>
-            </Card>
-          ) : null}
+              <RHFSwitch
+                name="notify"
+                labelPlacement="start"
+                label={
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    {t('notify')}
+                  </Typography>
+                }
+                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              />
+            </Box>
+          </Card>
 
           <Card sx={{ p: 3, mt: 5 }}>
             <Box

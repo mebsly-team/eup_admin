@@ -31,7 +31,7 @@ export default function UserTableFiltersResult({
   ...other
 }: Props) {
   const handleRemoveKeyword = useCallback(() => {
-    onFilters('first_name', '');
+    onFilters('name', '');
   }, [onFilters]);
 
   const handleRemoveStatus = useCallback(() => {
