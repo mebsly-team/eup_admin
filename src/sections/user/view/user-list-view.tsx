@@ -115,8 +115,8 @@ export default function UserListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const { data } = await axiosInstance.get(
-      `/users/?is_staff=false&limit=${table.rowsPerPage}&page=${table.page + 1
-      }&offset=0${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
+      `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}
+        ${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
     );
     setCount(data.count || 0);
     setUserList(data.results || []);

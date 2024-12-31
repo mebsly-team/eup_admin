@@ -103,9 +103,7 @@ export default function UserListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = `&type=admin`;
     const { data } = await axiosInstance.get(
-      `/users/?limit=${table.rowsPerPage}&page=${
-        table.page + 1
-      }&offset=0${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
+      `/users/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
     );
     setCount(data.count || 0);
     setUserList(data.results || []);
