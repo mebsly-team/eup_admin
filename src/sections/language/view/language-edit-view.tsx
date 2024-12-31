@@ -25,7 +25,7 @@ export default function LanguageEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentLanguage, setCurrentLanguage] = useState<ILanguageItem>();
   const getLanguageInfo = async (languageId: string) => {
-    const { data } = await axiosInstance.get(`/language/${languageId}/`);
+    const { data } = await axiosInstance.get(`/language/${languageId}/?nocache=true`);
     setCurrentLanguage(data);
   };
   const { t, onChangeLang } = useTranslate();

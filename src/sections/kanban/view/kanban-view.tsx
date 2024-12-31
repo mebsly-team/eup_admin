@@ -45,7 +45,7 @@ export default function KanbanView() {
   const getAllTasks = async () => {
     setLoading(true)
     const { data } = await axiosInstance.get(
-      `/kanban/`
+      `/kanban/?nocache=true`
     );
     setBoard(data || []);
     setLoading(false)

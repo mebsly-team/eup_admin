@@ -107,7 +107,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       if (currentProductSiblingIdList?.length) {
         const siblingPromises = currentProductSiblingIdList.map(async (item: any) => {
           try {
-            const { data } = await axiosInstance.get(`/products/${item}/`);
+            const { data } = await axiosInstance.get(`/products/${item}/?nocache=true`);
             return data;
           } catch (error) {
             console.error(`Error fetching siblings ${item}:`, error);
@@ -195,7 +195,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const createSiblings = async () => {
     setIsLoading(true);
     try {
-      const { data: parentProduct } = await axiosInstance.get(`/products/${currentProduct?.id}/`);
+      const { data: parentProduct } = await axiosInstance.get(`/products/${currentProduct?.id}/?nocache=true`);
       const siblingPromises = [];
 
       if (radioValue === 'no_color' && currentOptionValues.length > 0) {

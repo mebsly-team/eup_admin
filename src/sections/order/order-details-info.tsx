@@ -78,7 +78,7 @@ export default function OrderDetailsInfo({
   const getParcelDetails = async () => {
     try {
       console.log('deliveryDetails', deliveryDetails);
-      const response = await axiosInstance.get(`/get_parcel_details/${deliveryDetails?.id}/`);
+      const response = await axiosInstance.get(`/get_parcel_details/${deliveryDetails?.id}/?nocache=true`);
       if (response.status === 200) {
         updateOrder(orderId, {
           delivery_details: response.data.parcel,
@@ -93,7 +93,7 @@ export default function OrderDetailsInfo({
   };
   const handleGetShipmentMethods = async () => {
     try {
-      const response = await axiosInstance.get(`/get_sendcloud_shipment_methods/`);
+      const response = await axiosInstance.get(`/get_sendcloud_shipment_methods/?nocache=true`);
 
       if (response.status === 200) {
         setShipmentMethods(

@@ -119,7 +119,7 @@ export default function ProductTableToolbar({
 
   const handleDownload = async () => {
     try {
-      const response = await axiosInstance.get('export/products/', { responseType: 'blob' });
+      const response = await axiosInstance.get('export/products/?nocache=true', { responseType: 'blob' });
       console.log('response', response);
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
