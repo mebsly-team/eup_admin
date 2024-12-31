@@ -53,19 +53,16 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
     products: Yup.array().min(1, t('validation_images')),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      // id: currentCampaign?.id || null,
-      name: currentCampaign?.name || '',
-      description: currentCampaign?.description || '',
-      discount_percentage: currentCampaign?.discount_percentage || null,
-      images: currentCampaign?.images || [],
-      products: currentCampaign?.products || [],
-      start_date: currentCampaign?.start_date || null,
-      end_date: currentCampaign?.end_date || null,
-    }),
-    [currentCampaign]
-  );
+  const defaultValues = {
+    // id: currentCampaign?.id || null,
+    name: currentCampaign?.name || '',
+    description: currentCampaign?.description || '',
+    discount_percentage: currentCampaign?.discount_percentage || null,
+    images: currentCampaign?.images || [],
+    products: currentCampaign?.products || [],
+    start_date: currentCampaign?.start_date || null,
+    end_date: currentCampaign?.end_date || null,
+  }
 
   const methods = useForm({
     resolver: yupResolver(NewCampaignSchema),

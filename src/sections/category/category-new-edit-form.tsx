@@ -62,24 +62,21 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
     image: radioValue === 'parent' && Yup.mixed().required(t('image_required')),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      // id: currentCategory?.id || null,
-      name: currentCategory?.name || '',
-      icon: currentCategory?.icon || '',
-      description: currentCategory?.description || '',
-      image: currentCategory?.image || null,
-      data0: currentCategory?.data0 || null,
-      data1: currentCategory?.data1 || null,
-      data2: currentCategory?.data2 || null,
-      data3: currentCategory?.data3 || null,
-      data4: currentCategory?.data4 || null,
-      data5: currentCategory?.data5 || null,
-      data6: currentCategory?.data6 || null,
-      parent_category: parentId || currentCategory?.parent_category,
-    }),
-    [currentCategory]
-  );
+  const defaultValues = {
+    // id: currentCategory?.id || null,
+    name: currentCategory?.name || '',
+    icon: currentCategory?.icon || '',
+    description: currentCategory?.description || '',
+    image: currentCategory?.image || null,
+    data0: currentCategory?.data0 || null,
+    data1: currentCategory?.data1 || null,
+    data2: currentCategory?.data2 || null,
+    data3: currentCategory?.data3 || null,
+    data4: currentCategory?.data4 || null,
+    data5: currentCategory?.data5 || null,
+    data6: currentCategory?.data6 || null,
+    parent_category: parentId || currentCategory?.parent_category,
+  };
 
   const methods = useForm({
     resolver: yupResolver(NewCategorySchema),

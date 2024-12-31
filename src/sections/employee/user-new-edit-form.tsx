@@ -39,20 +39,17 @@ export default function UserNewEditForm({ currentUser }: Props) {
     email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      // id: currentUser?.id || null,
-      first_name: currentUser?.first_name || '',
-      last_name: currentUser?.last_name || '',
-      email: currentUser?.email || '',
-      phone_number: currentUser?.phone_number || '',
-      type: 'admin',
-      notes: currentUser?.notes || null,
-      is_active: currentUser?.is_active || true,
-      is_staff: currentUser?.is_staff || true,
-    }),
-    [currentUser]
-  );
+  const defaultValues = {
+    // id: currentUser?.id || null,
+    first_name: currentUser?.first_name || '',
+    last_name: currentUser?.last_name || '',
+    email: currentUser?.email || '',
+    phone_number: currentUser?.phone_number || '',
+    type: 'admin',
+    notes: currentUser?.notes || null,
+    is_active: currentUser?.is_active || true,
+    is_staff: currentUser?.is_staff || true,
+  }
 
   const methods = useForm({
     resolver: yupResolver(NewUserSchema),

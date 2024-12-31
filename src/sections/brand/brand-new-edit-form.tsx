@@ -42,15 +42,12 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
     logo: Yup.mixed<any>().required(t('image_required')),
   });
 
-  const defaultValues = useMemo(
-    () => ({
+  const defaultValues = {
       // id: currentBrand?.id || null,
       name: currentBrand?.name || '',
       description: currentBrand?.description || '',
       logo: currentBrand?.logo || null,
-    }),
-    [currentBrand]
-  );
+    }
 
   const methods = useForm({
     resolver: yupResolver(NewBrandSchema),
