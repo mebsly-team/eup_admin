@@ -30,7 +30,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
   }, []);
 
   const getAll = async () => {
-    const { data } = await axiosInstance.get(`/sections/`);
+    const { data } = await axiosInstance.get(`/sections/?nocache=true`);
     const sortedSections = data.sort((a, b) => {
       const nameA = a.section_name.toLowerCase();
       const nameB = b.section_name.toLowerCase();

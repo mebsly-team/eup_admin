@@ -65,7 +65,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
 
   const handleVariantChange = async (item, variantId) => {
     try {
-      const response = await axiosInstance.get(`/products/${variantId}/`);
+      const response = await axiosInstance.get(`/products/${variantId}/?nocache=true`);
       if (response.status === 200) {
         const product = response.data;
         if (product) {

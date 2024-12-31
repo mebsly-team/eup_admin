@@ -70,7 +70,7 @@ export default function UserTableToolbar({
 
   const handleDownload = async () => {
     try {
-      const response = await axiosInstance.get('export/suppliers/', { responseType: 'blob' });
+      const response = await axiosInstance.get('export/suppliers/?nocache=true', { responseType: 'blob' });
       console.log('response', response);
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);

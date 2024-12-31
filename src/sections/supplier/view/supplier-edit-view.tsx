@@ -25,7 +25,7 @@ export default function SupplierEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentSupplier, setSupplierBrand] = useState<ISupplierItem>();
   const getSupplierInfo = async (supplierId: string) => {
-    const { data } = await axiosInstance.get(`/suppliers/${supplierId}/`);
+    const { data } = await axiosInstance.get(`/suppliers/${supplierId}/?nocache=true`);
     setSupplierBrand(data);
   };
   const { t, onChangeLang } = useTranslate();

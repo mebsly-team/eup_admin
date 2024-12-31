@@ -25,7 +25,7 @@ export default function CampaignEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentCampaign, setCurrentCampaign] = useState<ICampaignItem>();
   const getCampaignInfo = async (campaignId: string) => {
-    const { data } = await axiosInstance.get(`/campaigns/${campaignId}/`);
+    const { data } = await axiosInstance.get(`/campaigns/${campaignId}/?nocache=true`);
     setCurrentCampaign(data);
   };
   const { t, onChangeLang } = useTranslate();

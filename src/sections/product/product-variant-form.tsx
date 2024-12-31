@@ -103,7 +103,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       if (currentProductVariantIdList?.length) {
         const variantPromises = currentProductVariantIdList.map(async (item: any) => {
           try {
-            const { data } = await axiosInstance.get(`/products/${item}/`);
+            const { data } = await axiosInstance.get(`/products/${item}/?nocache=true`);
             return data;
           } catch (error) {
             console.error(`Error fetching variant ${item}:`, error);
@@ -204,7 +204,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     setIsLoading(true); // Show the spinner
     let parentProduct = {};
     try {
-      const response = await axiosInstance.get(`/products/${currentProduct?.id}/`);
+      const response = await axiosInstance.get(`/products/${currentProduct?.id}/?nocache=true`);
       parentProduct = response?.data;
 
       const variantPromises: any[] = [];

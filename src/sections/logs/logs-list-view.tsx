@@ -74,7 +74,7 @@ export default function UserListView() {
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
   const getAll = async () => {
-    const { data } = await axiosInstance.get(`/last-n-days-logs/2/`);
+    const { data } = await axiosInstance.get(`/last-n-days-logs/2/?nocache=true`);
     console.log('data', data);
     setCount(data.count || 0);
     setUserList(data || []);

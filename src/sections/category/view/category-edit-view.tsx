@@ -25,7 +25,7 @@ export default function CategoryEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentCategory, setCurrentCategory] = useState<ICategoryItem>();
   const getCategoryInfo = async (categoryId: string) => {
-    const { data } = await axiosInstance.get(`/categories/${categoryId}/`);
+    const { data } = await axiosInstance.get(`/categories/${categoryId}/?nocache=true`);
     setCurrentCategory(data);
   };
   const { t, onChangeLang } = useTranslate();

@@ -25,7 +25,7 @@ export default function BrandEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentBrand, setCurrentBrand] = useState<IBrandItem>();
   const getBrandInfo = async (brandId: string) => {
-    const { data } = await axiosInstance.get(`/brands/${brandId}/`);
+    const { data } = await axiosInstance.get(`/brands/${brandId}/?nocache=true`);
     setCurrentBrand(data);
   };
   const { t, onChangeLang } = useTranslate();

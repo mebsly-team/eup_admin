@@ -122,7 +122,7 @@ export default function ProductNewEditForm({ id }: Props) {
 
   const getParentProduct = async () => {
     try {
-      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/`);
+      const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/?nocache=true`);
       setParentProduct(response?.data);
     } catch (error) {
       setParentProduct({});
@@ -137,11 +137,11 @@ export default function ProductNewEditForm({ id }: Props) {
   }, [currentProduct?.parent_product]);
 
   const getAllSuppliers = async () => {
-    const { data } = await axiosInstance.get(`/suppliers/`);
+    const { data } = await axiosInstance.get(`/suppliers/?nocache=true`);
     setSupplierList(data || []);
   };
   const getAllBrands = async () => {
-    const { data } = await axiosInstance.get(`/brands/`);
+    const { data } = await axiosInstance.get(`/brands/?nocache=true`);
     setBrandList(data || []);
   };
 
@@ -469,7 +469,7 @@ export default function ProductNewEditForm({ id }: Props) {
       if (currentProduct?.variants?.length) {
         const variantPromises = currentProduct.variants.map(async (item: any) => {
           try {
-            const { data } = await axiosInstance.get(`/products/${item.id}/`);
+            const { data } = await axiosInstance.get(`/products/${item.id}/?nocache=true`);
             return data;
           } catch (error) {
             console.error(`Error fetching variant ${item.id}:`, error);

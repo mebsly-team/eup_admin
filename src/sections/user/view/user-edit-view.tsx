@@ -24,7 +24,7 @@ export default function UserEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentUser, setCurrentUser] = useState<IUserItem>();
   const getUserInfo = async (userId) => {
-    const { data } = await axiosInstance.get(`/users/${userId}/`);
+    const { data } = await axiosInstance.get(`/users/${userId}/?nocache=true`);
     setCurrentUser(data);
   };
   const { t, onChangeLang } = useTranslate();
