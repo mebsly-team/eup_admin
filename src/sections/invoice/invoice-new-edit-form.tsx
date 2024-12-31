@@ -66,31 +66,28 @@ export default function InvoiceNewEditForm({ currentInvoice }: Props) {
     invoiceNumber: Yup.string(),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      invoiceNumber: currentInvoice?.invoiceNumber || 'INV-1990',
-      createDate: currentInvoice?.createDate || new Date(),
-      dueDate: currentInvoice?.dueDate || null,
-      taxes: currentInvoice?.taxes || 0,
-      shipping: currentInvoice?.shipping || 0,
-      status: currentInvoice?.status || 'draft',
-      discount: currentInvoice?.discount || 0,
-      invoiceFrom: currentInvoice?.invoiceFrom || _addressBooks[0],
-      invoiceTo: currentInvoice?.invoiceTo || null,
-      items: currentInvoice?.items || [
-        {
-          title: '',
-          description: '',
-          service: '',
-          quantity: 1,
-          price: 0,
-          total: 0,
-        },
-      ],
-      totalAmount: currentInvoice?.totalAmount || 0,
-    }),
-    [currentInvoice]
-  );
+  const defaultValues = {
+    invoiceNumber: currentInvoice?.invoiceNumber || 'INV-1990',
+    createDate: currentInvoice?.createDate || new Date(),
+    dueDate: currentInvoice?.dueDate || null,
+    taxes: currentInvoice?.taxes || 0,
+    shipping: currentInvoice?.shipping || 0,
+    status: currentInvoice?.status || 'draft',
+    discount: currentInvoice?.discount || 0,
+    invoiceFrom: currentInvoice?.invoiceFrom || _addressBooks[0],
+    invoiceTo: currentInvoice?.invoiceTo || null,
+    items: currentInvoice?.items || [
+      {
+        title: '',
+        description: '',
+        service: '',
+        quantity: 1,
+        price: 0,
+        total: 0,
+      },
+    ],
+    totalAmount: currentInvoice?.totalAmount || 0,
+  }
 
   const methods = useForm({
     resolver: yupResolver(NewInvoiceSchema),

@@ -282,156 +282,153 @@ export default function ProductNewEditForm({ id }: Props) {
     inhoud_number: Yup.number().required(t('required')),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      is_variant: currentProduct?.is_variant,
-      unit: currentProduct?.unit,
-      color: currentProduct?.color || '',
-      size: currentProduct?.size,
-      variants: currentProduct?.variants,
-      title: currentProduct?.title || '',
-      title_long: currentProduct?.title_long || '',
-      // description: currentProduct?.description || '',
-      parent_product: currentProduct?.parent_product || '',
-      min_price_to_sell: currentProduct?.min_price_to_sell || '',
-      ean: currentProduct?.ean || '',
-      article_code: currentProduct?.article_code || '',
-      sku: currentProduct?.sku || '',
-      hs_code: currentProduct?.hs_code || '',
-      chip: currentProduct?.chip || '',
-      supplier_article_code: currentProduct?.supplier_article_code || '',
-      categories: currentProduct?.categories || [],
-      brand: currentProduct?.brand || null,
-      supplier: currentProduct?.supplier || null,
-      // tags: currentProduct?.tags || [],
-      images: currentProduct?.images || [],
-      quantity_per_unit: currentProduct?.quantity_per_unit || 0,
-      variant_discount: currentProduct?.variant_discount || 0,
-      price_per_piece: currentProduct?.price_per_piece || 0,
-      price_per_unit: currentProduct?.price_per_unit,
-      price_consumers: currentProduct?.price_consumers || 0,
-      price_cost: currentProduct?.price_cost || 0,
-      vat: Number(currentProduct?.vat || 0),
-      expiry_date: currentProduct?.expiry_date || null,
-      unit_in_pallet: currentProduct?.unit_in_pallet || '',
-      has_no_expiry_date: !currentProduct?.expiry_date,
-      comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || 'all',
+  const defaultValues = {
+    is_variant: currentProduct?.is_variant,
+    unit: currentProduct?.unit,
+    color: currentProduct?.color || '',
+    size: currentProduct?.size,
+    variants: currentProduct?.variants,
+    title: currentProduct?.title || '',
+    title_long: currentProduct?.title_long || '',
+    // description: currentProduct?.description || '',
+    parent_product: currentProduct?.parent_product || '',
+    min_price_to_sell: currentProduct?.min_price_to_sell || '',
+    ean: currentProduct?.ean || '',
+    article_code: currentProduct?.article_code || '',
+    sku: currentProduct?.sku || '',
+    hs_code: currentProduct?.hs_code || '',
+    chip: currentProduct?.chip || '',
+    supplier_article_code: currentProduct?.supplier_article_code || '',
+    categories: currentProduct?.categories || [],
+    brand: currentProduct?.brand || null,
+    supplier: currentProduct?.supplier || null,
+    // tags: currentProduct?.tags || [],
+    images: currentProduct?.images || [],
+    quantity_per_unit: currentProduct?.quantity_per_unit || 0,
+    variant_discount: currentProduct?.variant_discount || 0,
+    price_per_piece: currentProduct?.price_per_piece || 0,
+    price_per_unit: currentProduct?.price_per_unit,
+    price_consumers: currentProduct?.price_consumers || 0,
+    price_cost: currentProduct?.price_cost || 0,
+    vat: Number(currentProduct?.vat || 0),
+    expiry_date: currentProduct?.expiry_date || null,
+    unit_in_pallet: currentProduct?.unit_in_pallet || '',
+    has_no_expiry_date: !currentProduct?.expiry_date,
+    comm_channel_after_out_of_stock: currentProduct?.comm_channel_after_out_of_stock || 'all',
 
-      overall_stock: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.overall_stock || 0) / Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.overall_stock || 0, // # Huidege Voorraad
-      free_stock: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.free_stock || 0) / Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.free_stock || 0, // # Vrije Voorraad
-      ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0, // # Voorraad Aantal in bestelling
+    overall_stock: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.overall_stock || 0) / Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.overall_stock || 0, // # Huidege Voorraad
+    free_stock: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.free_stock || 0) / Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.free_stock || 0, // # Vrije Voorraad
+    ordered_in_progress_stock: currentProduct?.ordered_in_progress_stock || 0, // # Voorraad Aantal in bestelling
 
-      number_in_order: currentProduct?.number_in_order || 0, // Aantal in order
-      number_in_offer: currentProduct?.number_in_offer || 0, // Aantal in offerte
-      number_in_pakbon: currentProduct?.number_in_pakbon || 0, // Aantal in pakbon
-      number_in_confirmation: currentProduct?.number_in_confirmation || 0, // Aantal in bevestiging
-      number_in_werkbon: currentProduct?.number_in_werkbon || 0, //  Aantal in werkbon
-      number_in_other: currentProduct?.number_in_other || 0, // Aantal in anders
-      order_unit_amount: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.order_unit_amount || 0) /
-          Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.order_unit_amount || 0, // minimumvoorraad
-      min_order_amount: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.min_order_amount || 0, // minimumvoorraad
-      min_stock_value: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.min_stock_value || 0, // minimumvoorraad
-      max_stock_at_rack: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.max_stock_at_rack || 0) /
-          Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
-      stock_check: currentProduct?.stock_check || false, // voorraadcontrole
+    number_in_order: currentProduct?.number_in_order || 0, // Aantal in order
+    number_in_offer: currentProduct?.number_in_offer || 0, // Aantal in offerte
+    number_in_pakbon: currentProduct?.number_in_pakbon || 0, // Aantal in pakbon
+    number_in_confirmation: currentProduct?.number_in_confirmation || 0, // Aantal in bevestiging
+    number_in_werkbon: currentProduct?.number_in_werkbon || 0, //  Aantal in werkbon
+    number_in_other: currentProduct?.number_in_other || 0, // Aantal in anders
+    order_unit_amount: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.order_unit_amount || 0) /
+        Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.order_unit_amount || 0, // minimumvoorraad
+    min_order_amount: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.min_order_amount || 0) / Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.min_order_amount || 0, // minimumvoorraad
+    min_stock_value: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.min_stock_value || 0, // minimumvoorraad
+    max_stock_at_rack: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.max_stock_at_rack || 0) /
+        Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
+    stock_check: currentProduct?.stock_check || false, // voorraadcontrole
 
-      stock_at_supplier: currentProduct?.stock_at_supplier || 0,
-      location: currentProduct?.location || '',
-      extra_location: currentProduct?.extra_location || '',
-      location_stock: currentProduct?.location_stock || 0,
-      extra_location_stock: currentProduct?.extra_location_stock || 0,
-      /* stock_alert_value: currentProduct?.stock_alert_value || '',
-      stock_alert: currentProduct?.stock_alert || false,
-      stock_disable_when_sold_out: currentProduct?.stock_disable_when_sold_out || false,
-      */
-      max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
-      delivery_time: currentProduct?.delivery_time || '',
-      important_information: currentProduct?.important_information || '',
-      extra_etiket_nl: currentProduct?.is_variant
-        ? parentProduct?.extra_etiket_nl
-        : currentProduct?.extra_etiket_nl || '',
-      extra_etiket_fr: currentProduct?.is_variant
-        ? parentProduct?.extra_etiket_fr
-        : currentProduct?.extra_etiket_fr || '',
-      languages_on_item_package:
-        typeof currentProduct?.languages_on_item_package === 'string'
-          ? currentProduct.languages_on_item_package.split('/')
-          : currentProduct?.languages_on_item_package || [],
-      sell_count: currentProduct?.is_variant
-        ? Math.floor(
-          Number(parentProduct?.sell_count || 0) / Number(currentProduct?.quantity_per_unit)
-        )
-        : currentProduct?.sell_count || 0,
-      is_only_for_logged_in_user: currentProduct?.is_only_for_logged_in_user || false,
-      is_used: currentProduct?.is_used || false,
-      is_regular: currentProduct?.is_regular ?? true,
-      is_featured: currentProduct?.is_featured || false,
-      is_only_for_export: currentProduct?.is_only_for_export || false,
-      // is_only_for_B2B: currentProduct?.is_only_for_B2B || false,
-      is_listed_on_marktplaats: currentProduct?.is_listed_on_marktplaats || false,
-      is_listed_on_2dehands: currentProduct?.is_listed_on_2dehands || false,
-      has_electronic_barcode: currentProduct?.has_electronic_barcode || false,
-      size_x_value: currentProduct?.size_x_value || 0,
-      size_y_value: currentProduct?.size_y_value || 0,
-      pallet_x_value: 120,
-      pallet_y_value: 80,
-      pallet_z_value: 144,
-      pallet_max_weight_value: 400,
-      liter: currentProduct?.liter || 0,
-      liter_unit: currentProduct?.liter_unit || '',
-      is_clearance: currentProduct?.is_clearance || false,
-      is_party_sale: currentProduct?.is_party_sale || false,
-      sell_from_supplier: currentProduct?.sell_from_supplier || false,
-      ean_to_follow_stock: currentProduct?.ean_to_follow_stock || '',
-      is_follow_stock_with_ean: !!currentProduct?.ean_to_follow_stock || false,
-      is_taken_from_another_package: currentProduct?.is_taken_from_another_package || false,
-      is_taken_from_another_package_ean: currentProduct?.is_taken_from_another_package_ean || '',
-      size_z_value: currentProduct?.size_z_value || 0,
-      size_unit: currentProduct?.size_unit || '',
-      weight: currentProduct?.weight || 0,
-      weight_unit: currentProduct?.weight_unit || '',
-      volume_unit: currentProduct?.volume_unit || '',
-      volume: currentProduct?.volume || '',
-      pallet_full_total_number: currentProduct?.pallet_full_total_number || 0,
-      pallet_layer_total_number: currentProduct?.pallet_layer_total_number || 0,
-      is_brief_box: currentProduct?.is_brief_box || false,
-      meta_title: currentProduct?.meta_title || '',
-      meta_description: currentProduct?.meta_description || '',
-      meta_keywords: currentProduct?.meta_keywords || '',
-      url: currentProduct?.url || '',
-      is_visible_particular: currentProduct?.is_visible_particular,
-      is_visible_B2B: currentProduct?.is_visible_B2B,
+    stock_at_supplier: currentProduct?.stock_at_supplier || 0,
+    location: currentProduct?.location || '',
+    extra_location: currentProduct?.extra_location || '',
+    location_stock: currentProduct?.location_stock || 0,
+    extra_location_stock: currentProduct?.extra_location_stock || 0,
+    /* stock_alert_value: currentProduct?.stock_alert_value || '',
+    stock_alert: currentProduct?.stock_alert || false,
+    stock_disable_when_sold_out: currentProduct?.stock_disable_when_sold_out || false,
+    */
+    max_order_allowed_per_unit: currentProduct?.max_order_allowed_per_unit || 0, // max verkoopaantal
+    delivery_time: currentProduct?.delivery_time || '',
+    important_information: currentProduct?.important_information || '',
+    extra_etiket_nl: currentProduct?.is_variant
+      ? parentProduct?.extra_etiket_nl
+      : currentProduct?.extra_etiket_nl || '',
+    extra_etiket_fr: currentProduct?.is_variant
+      ? parentProduct?.extra_etiket_fr
+      : currentProduct?.extra_etiket_fr || '',
+    languages_on_item_package:
+      typeof currentProduct?.languages_on_item_package === 'string'
+        ? currentProduct.languages_on_item_package.split('/')
+        : currentProduct?.languages_on_item_package || [],
+    sell_count: currentProduct?.is_variant
+      ? Math.floor(
+        Number(parentProduct?.sell_count || 0) / Number(currentProduct?.quantity_per_unit)
+      )
+      : currentProduct?.sell_count || 0,
+    is_only_for_logged_in_user: currentProduct?.is_only_for_logged_in_user || false,
+    is_used: currentProduct?.is_used || false,
+    is_regular: currentProduct?.is_regular ?? true,
+    is_featured: currentProduct?.is_featured || false,
+    is_only_for_export: currentProduct?.is_only_for_export || false,
+    // is_only_for_B2B: currentProduct?.is_only_for_B2B || false,
+    is_listed_on_marktplaats: currentProduct?.is_listed_on_marktplaats || false,
+    is_listed_on_2dehands: currentProduct?.is_listed_on_2dehands || false,
+    has_electronic_barcode: currentProduct?.has_electronic_barcode || false,
+    size_x_value: currentProduct?.size_x_value || 0,
+    size_y_value: currentProduct?.size_y_value || 0,
+    pallet_x_value: 120,
+    pallet_y_value: 80,
+    pallet_z_value: 144,
+    pallet_max_weight_value: 400,
+    liter: currentProduct?.liter || 0,
+    liter_unit: currentProduct?.liter_unit || '',
+    is_clearance: currentProduct?.is_clearance || false,
+    is_party_sale: currentProduct?.is_party_sale || false,
+    sell_from_supplier: currentProduct?.sell_from_supplier || false,
+    ean_to_follow_stock: currentProduct?.ean_to_follow_stock || '',
+    is_follow_stock_with_ean: !!currentProduct?.ean_to_follow_stock || false,
+    is_taken_from_another_package: currentProduct?.is_taken_from_another_package || false,
+    is_taken_from_another_package_ean: currentProduct?.is_taken_from_another_package_ean || '',
+    size_z_value: currentProduct?.size_z_value || 0,
+    size_unit: currentProduct?.size_unit || '',
+    weight: currentProduct?.weight || 0,
+    weight_unit: currentProduct?.weight_unit || '',
+    volume_unit: currentProduct?.volume_unit || '',
+    volume: currentProduct?.volume || '',
+    pallet_full_total_number: currentProduct?.pallet_full_total_number || 0,
+    pallet_layer_total_number: currentProduct?.pallet_layer_total_number || 0,
+    is_brief_box: currentProduct?.is_brief_box || false,
+    meta_title: currentProduct?.meta_title || '',
+    meta_description: currentProduct?.meta_description || '',
+    meta_keywords: currentProduct?.meta_keywords || '',
+    url: currentProduct?.url || '',
+    is_visible_particular: currentProduct?.is_visible_particular,
+    is_visible_B2B: currentProduct?.is_visible_B2B,
 
-      inhoud_number: currentProduct?.inhoud_number || 1,
-      inhoud_unit: currentProduct?.inhoud_unit || '',
-      inhoud_price: currentProduct?.inhoud_price || 0,
-    }),
-    [currentProduct, parentProduct]
-  );
+    inhoud_number: currentProduct?.inhoud_number || 1,
+    inhoud_unit: currentProduct?.inhoud_unit || '',
+    inhoud_price: currentProduct?.inhoud_price || 0,
+  };
   const methods = useForm({
     resolver: yupResolver(NewProductSchema),
     defaultValues,

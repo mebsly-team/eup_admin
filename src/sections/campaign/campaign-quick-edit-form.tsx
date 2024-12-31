@@ -36,13 +36,10 @@ export default function UserQuickEditForm({ currentUser, open, onClose }: Props)
     name: Yup.string().required('Name is required'),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      name: currentUser?.name || '',
-  
-    }),
-    [currentUser]
-  );
+  const defaultValues = {
+    name: currentUser?.name || '',
+
+  };
 
   const methods = useForm({
     resolver: yupResolver(NewUserSchema),

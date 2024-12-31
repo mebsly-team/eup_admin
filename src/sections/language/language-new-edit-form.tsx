@@ -33,14 +33,11 @@ export default function BrandNewEditForm({ currentLanguage }: Props) {
     code: Yup.string(),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      // id: currentLanguage?.id || null,
-      name: currentLanguage?.name || '',
-      code: currentLanguage?.code || '',
-    }),
-    [currentLanguage]
-  );
+  const defaultValues = {
+    // id: currentLanguage?.id || null,
+    name: currentLanguage?.name || '',
+    code: currentLanguage?.code || '',
+  }
 
   const methods = useForm({
     resolver: yupResolver(NewUserSchema),
