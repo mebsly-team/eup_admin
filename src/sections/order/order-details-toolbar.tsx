@@ -35,8 +35,11 @@ export default function OrderDetailsToolbar({
   statusOptions,
   onChangeStatus,
   handleDownloadInvoice,
-  sendToSnelstart
+  sendToSnelstart,
+  paymentStatusOptions,
+  onPaymentChangeStatus
 }: Props) {
+  const popoverStatus = usePopover();
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
   const { id, is_paid, ordered_date, status } = currentOrder;
@@ -58,7 +61,7 @@ export default function OrderDetailsToolbar({
           <Stack spacing={0.5}>
             <Stack spacing={1} direction="row" alignItems="center">
               <Typography variant="h4"> Order {id} </Typography>
-              <Label variant="soft" color={is_paid ? 'success' : 'error'}>
+              <Label variant="soft" color={is_paid ? 'success' : 'error'} onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>
                 {t(is_paid ? 'paid' : 'unpaid')}
               </Label>
               <Button
@@ -143,6 +146,25 @@ export default function OrderDetailsToolbar({
             onClick={() => {
               popover.onClose();
               onChangeStatus(option.value);
+            }}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </CustomPopover>
+      <CustomPopover
+        open={popoverStatus.open}
+        onClose={popoverStatus.onClose}
+        arrow="top-right"
+        sx={{ width: 140 }}
+      >
+        {paymentStatusOptions.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={option.value === status}
+            onClick={() => {
+              popoverStatus.onClose();
+              onPaymentChangeStatus(option.value);
             }}
           >
             {option.label}
