@@ -37,6 +37,10 @@ export const ORDER_STATUS_OPTIONS = [
   { value: 'confirmed', label: 'Bevestigd' },
   { value: 'other', label: 'Anders' },
 ];
+export const PAYMENT_STATUS_OPTIONS = [
+  { value: 'paid', label: 'Betaald' },
+  { value: 'unpaid', label: 'Onbetaald' }
+];
 
 export default function OrderDetailsView({ id }: Props) {
   const [currentOrder, setCurrentOrder] = useState({});
@@ -135,6 +139,22 @@ export default function OrderDetailsView({ id }: Props) {
     },
     [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
   );
+  const onPaymentChangeStatus = useCallback(
+    (newValue: string) => {
+      const newHistory = currentOrder.history;
+      newHistory.push({
+        date: new Date(),
+        event: `Betaling status gewijzigd in ${t(newValue)} door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
+          }`,
+      });
+      updateOrder(id, {
+        is_paid: newValue === 'paid',
+        history: newHistory,
+      });
+    },
+    [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
+  );
+
   if (!currentOrder) return <></>;
 
   return (
@@ -143,7 +163,9 @@ export default function OrderDetailsView({ id }: Props) {
         backLink={paths.dashboard.order.root}
         currentOrder={currentOrder}
         onChangeStatus={handleChangeStatus}
+        onPaymentChangeStatus={onPaymentChangeStatus}
         statusOptions={ORDER_STATUS_OPTIONS}
+        paymentStatusOptions={PAYMENT_STATUS_OPTIONS}
         handleDownloadInvoice={handleDownloadInvoice}
         sendToSnelstart={sendToSnelstart}
       />
