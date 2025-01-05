@@ -50,11 +50,10 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
         const response = await axiosInstance.post(`/kanban/`, taskData);
 
         openAddTask.onFalse();
-        getAllTasks()
+        getAllTasks();
       } catch (error) {
         console.error(error);
         enqueueSnackbar({ variant: 'error', message: t('error') });
-
       }
     },
     [column.id, openAddTask]
@@ -63,8 +62,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
   const handleUpdateTask = useCallback(async (id, taskData: IKanbanTask) => {
     try {
       const response = await axiosInstance.put(`/kanban/${id}/`, taskData);
-      getAllTasks()
-
+      getAllTasks();
     } catch (error) {
       console.error(error);
     }
@@ -73,8 +71,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
   const handleAddComment = useCallback(async (id, taskData: IKanbanTask) => {
     try {
       const response = await axiosInstance.post(`/kanban/${id}/add_comment/`, taskData);
-      getAllTasks()
-
+      getAllTasks();
     } catch (error) {
       console.error(error);
     }
@@ -84,7 +81,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
     async (taskId: string) => {
       try {
         const response = await axiosInstance.delete(`/kanban/${taskId}/`);
-        getAllTasks()
+        getAllTasks();
 
         enqueueSnackbar('Delete success!', {
           anchorOrigin: { vertical: 'top', horizontal: 'center' },
@@ -140,6 +137,8 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
           sx={{
             px: 2,
             borderRadius: 2,
+            width: '250px',
+            minWidth: '100px',
             bgcolor: 'background.neutral',
             ...(snapshot.isDragging && {
               bgcolor: (theme) => alpha(theme.palette.grey[500], 0.24),
@@ -147,7 +146,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
           }}
         >
           <Stack {...provided.dragHandleProps}>
-            <Box sx={{ p: 1, borderBottom: `solid 1px black`, textAlign: "center" }}>
+            <Box sx={{ p: 1, borderBottom: `solid 1px black`, textAlign: 'center' }}>
               {column.name}
             </Box>
             {tasks.map((item, taskIndex) => {
@@ -162,8 +161,8 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
                       <KanbanTaskItem
                         column={column}
                         task={item}
-                        assignee={userList?.find(u => u.id === item.assignee)}
-                        reporter={userList?.find(u => u.id === item.reporter)}
+                        assignee={userList?.find((u) => u.id === item.assignee)}
+                        reporter={userList?.find((u) => u.id === item.reporter)}
                         onDeleteTask={() => handleDeleteTask(item.id)}
                         index={taskIndex}
                         onUpdateTask={handleUpdateTask}
@@ -173,7 +172,7 @@ export default function KanbanColumn({ column, tasks, index, userList, getAllTas
                     </div>
                   )}
                 </Draggable>
-              )
+              );
             })}
             {provided.placeholder}
 
