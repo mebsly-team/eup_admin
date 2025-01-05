@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
@@ -19,7 +20,7 @@ test.afterAll(async () => {
   await page.context().close();
 });
 
-test(' Supplier page test', async ({}) => {
+test(' Supplier page test', async () => {
   test.setTimeout(280000);
 await page.getByRole('button', { name: 'Leverancier' }).click();
 // await page.getByRole('button', { name: 'Lijst' }).click();

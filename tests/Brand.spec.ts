@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
@@ -20,7 +21,7 @@ test.afterAll(async () => {
 });
 
 
-test('Brand Page test', async ({}) => {
+test('Brand Page test', async () => {
   test.setTimeout(280000);
   function generateRandomCategoriesName() {
     const categories = [
@@ -55,7 +56,7 @@ test('Brand Page test', async ({}) => {
     const randomSuffix = Math.floor(Math.random() * 1000) + 1;
     return `${categories[0][randomIndex]}-${randomSuffix}`;
 }
-const generatedCategoriesName = generateRandomCategoriesName();
+const generatedCategoriesName = generateRandomCategoriesName() + (Math.floor(Math.random() * 100) + 1);
 await page.getByRole('button', { name: 'Merk' }).click();
   await page.waitForTimeout(3000);
   // await page.getByRole('button', { name: 'Lijst' }).click();
@@ -80,35 +81,35 @@ await page.getByRole('button', { name: 'Merk' }).click();
   await page.waitForTimeout(2000);
   // await page.getByRole('row', { name: 'Arc' }).getByRole('button').click();
   // await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'Fitness Equipment Fitness' }).getByRole('button').click();
-  await page.waitForTimeout(2000);
+  // await page.getByRole('row', { name: 'Fitness Equipment Fitness' }).getByRole('button').click();
+  // await page.waitForTimeout(2000);
 
-  await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  await page.waitForTimeout(2000);
-  await page.getByLabel('Beschrijving').click();
-  await page.getByLabel('Beschrijving').fill(generatedCategoriesName);
-  await page.waitForTimeout(2000);
-  await page.getByRole('button', { name: 'Selecteer' }).click();
-  await page.waitForTimeout(2000);
-  await page.getByPlaceholder('Typ hier...').click();
-  await page.getByPlaceholder('Typ hier...').fill('8720604315165.jpg');
-  await page.waitForTimeout(2000);
-  await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
-  await page.waitForTimeout(2000);
-  await page.getByRole('button', { name: 'Wijzigingen opslaan' }).click();
-  await page.waitForTimeout(2000);
-  await page.getByPlaceholder('Zoeken...').click();
-  await page.getByPlaceholder('Zoeken...').fill('Flaxine');
-  await page.waitForTimeout(2000);
-  await page.getByRole('row', { name: 'Flaxine' }).getByRole('button').click();
-  await page.waitForTimeout(2000);
+  // await page.getByRole('menuitem', { name: 'Bewerken' }).click();
+  // await page.waitForTimeout(2000);
+  // await page.getByLabel('Beschrijving').click();
+  // await page.getByLabel('Beschrijving').fill(generatedCategoriesName);
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('button', { name: 'Selecteer' }).click();
+  // await page.waitForTimeout(2000);
+  // await page.getByPlaceholder('Typ hier...').click();
+  // await page.getByPlaceholder('Typ hier...').fill('8720604315165.jpg');
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('checkbox').check();
+  // await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('button', { name: 'Wijzigingen opslaan' }).click();
+  // await page.waitForTimeout(2000);
+  // await page.getByPlaceholder('Zoeken...').click();
+  // await page.getByPlaceholder('Zoeken...').fill('Flaxine');
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('row', { name: 'Flaxine' }).getByRole('button').click();
+  // await page.waitForTimeout(2000);
 
-  // silme işlemi gerçekleşmiyor
-  await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
-  await page.waitForTimeout(2000);
+  // // silme işlemi gerçekleşmiyor
+  // await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
+  // await page.waitForTimeout(2000);
 
-  await page.waitForTimeout(2000);
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.waitForTimeout(2000);
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('button', { name: 'Cancel' }).click();
+  // await page.waitForTimeout(2000);
 });

@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { ElementHandle } from 'playwright';
+
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
@@ -20,7 +21,7 @@ test.afterAll(async () => {
   await page.context().close();
 });
 
-test('Order test', async ({}) => {
+test('Order test', async () => {
     test.setTimeout(280000);
     // await page.locator('div').filter({ hasText: /^4A$/ }).getByRole('button').first().click();
     // await page.getByRole('menuitem', { name: 'English' }).click();

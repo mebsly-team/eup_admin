@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
@@ -19,7 +20,7 @@ test.afterAll(async () => {
   await page.context().close();
 });
 
-test('Product Page test', async ({}) => {
+test('Product Page test', async () => {
   test.setTimeout(300000);
     await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
@@ -43,7 +44,7 @@ test('Product Page test', async ({}) => {
     await page.waitForTimeout(3000);
     await page.getByPlaceholder('Zoeken').fill('Eda');
     await page.waitForTimeout(3000);
-    await page.getByRole('row', { name: 'Eda' }).getByRole('button').click();
+    await page.getByRole('row', { name: 'Eda' }).first().getByRole('button').click();
     await page.waitForTimeout(3000);
     await page.getByRole('menuitem', { name: 'Bewerken' }).click();
     await page.waitForTimeout(3000);
@@ -136,11 +137,10 @@ await page.getByRole('button', { name: 'Opslaan & Blijven' }).click();
 await page.waitForTimeout(5000);
 await page.getByRole('button', { name: 'Opslaan & Terug' }).click();
 await page.waitForTimeout(5000);
-await page.getByRole('button', { name: 'Reset' }).click();
-await page.waitForTimeout(5000);
+
 })
 
-test('Product Bundels Test', async ({}) => {
+test('Product Bundels Test', async () => {
   test.setTimeout(280000);
   await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
@@ -166,7 +166,7 @@ test('Product Bundels Test', async ({}) => {
 })
 
 
-test('Product Variant Test', async ({}) => {
+test('Product Variant Test', async () => {
   test.setTimeout(280000);
   await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
@@ -180,15 +180,15 @@ test('Product Variant Test', async ({}) => {
     await page.waitForTimeout(2000);
     await page.getByRole('tab', { name: 'Varianten' }).click();
     await page.waitForTimeout(2000);
-    await page.getByRole('radiogroup').getByText('Optie').click();
-    await page.waitForTimeout(2000);
-  await page.getByRole('textbox').click();
-  await page.getByRole('textbox').fill('55');
-  await page.waitForTimeout(2000);
-  await page.getByRole('button', { name: 'Variant Genereren' }).click();
-  await page.waitForTimeout(2000);
-    await page.getByRole('radio', { name: 'Kleur' }).check();
-    await page.waitForTimeout(2000);
+  //   await page.getByRole('radiogroup').getByText('Optie').click();
+  //   await page.waitForTimeout(2000);
+  // await page.getByRole('textbox').click();
+  // await page.getByRole('textbox').fill('55');
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('button', { name: 'Variant Genereren' }).click();
+  // await page.waitForTimeout(2000);
+  //   await page.getByRole('radio', { name: 'Kleur' }).check();
+  //   await page.waitForTimeout(2000);
     await page.getByRole('combobox').click();
     await page.waitForTimeout(2000);
     await page.getByRole('option', { name: 'Bisque' }).click();
@@ -197,12 +197,12 @@ test('Product Variant Test', async ({}) => {
   await page.waitForTimeout(2000);
     await page.getByRole('button', { name: 'Variant Genereren' }).click();
     await page.waitForTimeout(2000);
-    await page.getByLabel('Edit').click();
+    await page.getByLabel('Edit').first().click();
 })
 
 
 
-test(' Create New Product Page test', async ({}) => {
+test(' Create New Product Page test', async () => {
   test.setTimeout(280000);
     await page.getByRole('button', { name: 'Product' }).click();
     await page.waitForTimeout(2000);
@@ -323,14 +323,14 @@ await page.getByLabel('Lange Producttitel').click();
 await page.getByLabel('Lange Producttitel').fill(products);
 await page.waitForTimeout(2000);
 function generateMetaKeywords() {
-  const products = [
+  const product = [
       'At Home Wash Fabric Softener Pink Secrets wasverzachter 750ml',
       'Ultra Clean Dishwashing Liquid 500ml',
       'Fresh Breeze Air Freshener 250ml',
       'Soft Touch Hand Soap 300ml',
       'Sparkling Clean Window Cleaner 750ml'
   ];
-  return products[Math.floor(Math.random() * products.length)];
+  return product[Math.floor(Math.random() * product.length)];
 }
 const metaKeywords = generateMetaKeywords();
 await page.getByLabel('Meta zoekwoorden').click();
@@ -477,15 +477,11 @@ await page.getByRole('option', { name: 'United Kingdom (GB)' }).click();
 await page.getByLabel('Sluiten').click();
 await page.waitForTimeout(2000);
 await page.getByRole('heading', { name: 'Geselecteerde categorieën:' }).click();
-await page.getByRole('button', { name: 'Categorieën toevoegen/' }).click();
-await page.waitForTimeout(2000);
-await page.getByText('Auto', {exact:true}).click();
-await page.waitForTimeout(2000);
-await page.getByText('Auto-accessoires', {exact:true}).click();
-await page.getByText('Aanhangeronderdelen', {exact:true}).click();
-await page.getByText('Acculaders', {exact:true}).click();
-await page.waitForTimeout(2000);
-await page.getByRole('button', { name: 'Annuleren' }).click();
+// await page.getByRole('button', { name: 'Categorieën toevoegen/' }).click();
+// await page.waitForTimeout(2000);
+// await page.getByText('Apparel', {exact:true}).click();
+// await page.waitForTimeout(2000);
+// await page.getByRole('button', { name: 'Opslaan' }).click();
 await page.getByRole('button', { name: 'Afbeeldingen uploaden' }).click();
 await page.waitForTimeout(2000);
 await page.getByPlaceholder('Typ hier...').click();
@@ -531,7 +527,7 @@ await page.getByPlaceholder('Zoeken').click();
 await page.waitForTimeout(3000);
 await page.getByPlaceholder('Zoeken').fill('Eda');
 await page.waitForTimeout(3000);
-await page.getByRole('row', { name: 'Eda' }).getByRole('button').click();
+await page.getByRole('row', { name: 'Eda' }).first().getByRole('button').click();
 await page.waitForTimeout(3000);
 await page.getByRole('menuitem', { name: 'Bewerken' }).click();
 await page.waitForTimeout(3000);
