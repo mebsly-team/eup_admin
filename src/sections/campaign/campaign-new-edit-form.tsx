@@ -2,6 +2,7 @@ import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { useMemo, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { add, format } from 'date-fns';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -30,6 +31,7 @@ import { findCategory } from 'src/sections/category/findCategory';
 import { ICampaignItem } from 'src/types/campaign';
 
 import { CategorySelector } from '../category/CategorySelector';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 type Props = {
   currentCampaign?: ICampaignItem;
@@ -50,22 +52,22 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
     start_date: Yup.string(),
     end_date: Yup.string(),
     images: Yup.array().min(1, t('validation_images')),
-    products: Yup.array().min(1, t('validation_images')),
+    // products: Yup.array().min(1, t('validation_images')),
   });
 
-  const defaultValues = useMemo(
-    () => ({
-      // id: currentCampaign?.id || null,
-      name: currentCampaign?.name || '',
-      description: currentCampaign?.description || '',
-      discount_percentage: currentCampaign?.discount_percentage || null,
-      images: currentCampaign?.images || [],
-      products: currentCampaign?.products || [],
-      start_date: currentCampaign?.start_date || null,
-      end_date: currentCampaign?.end_date || null,
-    }),
-    [currentCampaign]
-  );
+  const defaultValues = {
+    name: currentCampaign?.name || '',
+    description: currentCampaign?.description || '',
+    discount_percentage: currentCampaign?.discount_percentage || null,
+    images: currentCampaign?.images || [],
+    products: currentCampaign?.products || [],
+    start_date: currentCampaign?.start_date
+      ? new Date(currentCampaign?.start_date).toISOString()
+      : new Date().toISOString(),
+    end_date: currentCampaign?.end_date
+      ? new Date(currentCampaign?.end_date).toISOString()
+      : add(new Date(), { days: 30 }).toISOString(),
+  };
 
   const methods = useForm({
     resolver: yupResolver(NewCampaignSchema),
@@ -89,7 +91,12 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
   };
 
   const onSubmit = handleSubmit(async (data) => {
-    const finalData = { ...data };
+    const finalData = {
+      ...data,
+      start_date: new Date(data.start_date).toISOString(),
+      end_date: new Date(data.end_date).toISOString(),
+    };
+
     try {
       let response;
       if (currentCampaign) {
@@ -97,23 +104,21 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
       } else {
         response = await axiosInstance.post(`/campaigns/`, finalData);
       }
+
       enqueueSnackbar(currentCampaign ? t('update_success') : t('create_success'));
       reset();
       router.push(paths.dashboard.campaign.root);
     } catch (error) {
-      if (error) {
-        console.log('error', error);
-        const errorData = error;
-        if (errorData) {
-          Object.entries(errorData).forEach(([fieldName, errors]) => {
-            errors.forEach((errorMsg) => {
-              enqueueSnackbar({
-                variant: 'error',
-                message: `${t(fieldName)}: ${errorMsg}`,
-              });
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        Object.entries(errorData).forEach(([fieldName, errors]) => {
+          errors.forEach((errorMsg) => {
+            enqueueSnackbar({
+              variant: 'error',
+              message: `${t(fieldName)}: ${errorMsg}`,
             });
           });
-        }
+        });
       } else {
         console.error('Error:', error.message);
         enqueueSnackbar({ variant: 'error', message: t('error') });
@@ -123,6 +128,7 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
+      {JSON.stringify(errors)}
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
           <Card sx={{ p: 3 }}>
@@ -144,21 +150,23 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
               />
               <DatePicker
                 label={t('start_date')}
-                value={getValues('start_date') ? new Date(getValues('start_date')) : new Date()}
+                value={getValues('start_date') ? new Date(getValues('start_date')) : null}
                 format="dd/MM/yyyy"
-                onChange={(newValue) => setValue('start_date', newValue)}
+                onChange={(newValue) => setValue('start_date', newValue.toISOString())}
               />
               <DatePicker
                 label={t('end_date')}
-                value={getValues('end_date') ? new Date(getValues('end_date')) : new Date()}
+                value={getValues('end_date') ? new Date(getValues('end_date')) : null}
                 format="dd/MM/yyyy"
-                onChange={(newValue) => setValue('end_date', newValue)}
+                onChange={(newValue) => setValue('end_date', newValue.toISOString())}
               />
             </Box>
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">{t('image')}</Typography>
-              <Image src={getValues('images')?.[0]} />
-              <Button onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
+              <Image src={`${IMAGE_FOLDER_PATH}${getValues('images')?.[0]}`} />
+              <Button
+                data-testId="campaign-image-upload-button"
+                onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
               {errors?.images && <Typography color="error">{errors?.images?.message}</Typography>}
             </Stack>
 
@@ -175,8 +183,6 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                   }}
                 >
                   <CategorySelector
-                    t={t}
-                    categories={categories}
                     defaultSelectedCategories={getValues('categories')}
                     open={openDialogCategory}
                     onClose={() => setOpenDialogCategory(false)}
@@ -187,26 +193,20 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                   />
                   <div>
                     <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
+
                     <ul>
-                      {getValues('categories')?.map((categoryId) => {
-                        const category = findCategory(categories, categoryId);
-                        return (
-                          <li key={categoryId}>
-                            {category ? (
-                              <strong>{category.name}</strong>
-                            ) : (
-                              `Category Not Found: ${categoryId}`
-                            )}
-                          </li>
-                        );
-                      })}
+                      {getValues('categories')?.map((category, index) => (
+                        <li key={index}>
+                          {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                        </li>
+                      ))}
                     </ul>
+
                   </div>
                   <Typography typography="caption" sx={{ color: 'error.main' }}>
                     {(errors.categories as any)?.message}
                   </Typography>
                 </Box>
-                {/* Add Image button */}
                 <Button onClick={() => setOpenDialogCategory(true)}>{t('select_category')}</Button>
               </Stack>
             </Card>

@@ -731,7 +731,7 @@ export default function ProductNewEditForm({ id }: Props) {
     if (currentProduct?.id) {
       reset(defaultValues);
     }
-  }, [currentProduct, defaultValues, reset]);
+  }, [currentProduct, reset]);
 
   const handleFormSubmit = () => {
     // Check for errors
@@ -1414,7 +1414,6 @@ export default function ProductNewEditForm({ id }: Props) {
           >
             {openDialogCategory && (
               <CategorySelector
-                t={t}
                 defaultSelectedCategories={getValues('categories')}
                 open={openDialogCategory}
                 onClose={() => setOpenDialogCategory(false)}

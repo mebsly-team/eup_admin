@@ -11,9 +11,9 @@ import {
 } from '@mui/material';
 
 import { useGetCategories } from 'src/api/category';
+import { useTranslate } from 'src/locales';
 
 export const CategorySelector = ({
-  t,
   defaultSelectedCategories = [],
   open,
   onClose,
@@ -22,6 +22,7 @@ export const CategorySelector = ({
 }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   console.log('selectedCategories', selectedCategories);
+  const { t, onChangeLang } = useTranslate();
 
   const cachedCategories = JSON.parse(localStorage.getItem('categories'));
   let categories = cachedCategories || [];
@@ -30,7 +31,7 @@ export const CategorySelector = ({
   if (categoriesNew?.length) categories = categoriesNew;
 
   useEffect(() => {
-    if (defaultSelectedCategories) {
+    if (defaultSelectedCategories.length) {
       const selectedIds = defaultSelectedCategories.map((item) => item?.id).filter((item) => item);
       setSelectedCategories(selectedIds);
     }
