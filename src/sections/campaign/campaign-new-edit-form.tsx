@@ -128,7 +128,6 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
-      {JSON.stringify(errors)}
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
           <Card sx={{ p: 3 }}>

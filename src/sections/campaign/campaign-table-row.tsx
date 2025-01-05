@@ -8,6 +8,7 @@ import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
@@ -74,7 +75,7 @@ export default function CampaignTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image alt={name} src={images?.[0]} />
+          <Image src={`${IMAGE_FOLDER_PATH}${images?.[0]}`} />
         </TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
