@@ -87,6 +87,7 @@ const NavItem = forwardRef<HTMLDivElement, NavItemProps>(
     if (externalLink)
       return (
         <Link
+          data-testid={title}
           href={path}
           target="_blank"
           rel="noopener"
@@ -104,6 +105,7 @@ const NavItem = forwardRef<HTMLDivElement, NavItemProps>(
 
     return (
       <Link
+        data-testid={title}
         component={RouterLink}
         href={path}
         color="inherit"

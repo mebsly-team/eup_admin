@@ -80,9 +80,10 @@ export default function JwtLoginView() {
 
   const renderForm = (
     <Stack spacing={2.5}>
-      <RHFTextField name="email" label="Email address" />
+      <RHFTextField name="email" label="Email address" dataTestId="login-email-input"/>
 
       <RHFTextField
+        dataTestId="login-password-input"
         name="password"
         label="Password"
         type={password.value ? 'text' : 'password'}
@@ -98,6 +99,7 @@ export default function JwtLoginView() {
       />
 
       <LoadingButton
+        data-testid="login-button"
         fullWidth
         color="inherit"
         size="large"

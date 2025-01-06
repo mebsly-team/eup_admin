@@ -140,20 +140,23 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="name" label={t('name')} />
-              <RHFTextField name="description" label={t('description')} />
+              <RHFTextField name="name" label={t('name')} dataTestId="campaign-name-input" />
+              <RHFTextField name="description" label={t('description')} dataTestId="campaign-description-input" />
               <RHFTextField
+                dataTestId="campaign-discount_percentage-input"
                 name="discount_percentage"
                 label={t('discount_percentage')}
                 type="number"
               />
               <DatePicker
+                data-testId="campaign-start_date-input"
                 label={t('start_date')}
                 value={getValues('start_date') ? new Date(getValues('start_date')) : null}
                 format="dd/MM/yyyy"
                 onChange={(newValue) => setValue('start_date', newValue.toISOString())}
               />
               <DatePicker
+                data-testId="campaign-end_date-input"
                 label={t('end_date')}
                 value={getValues('end_date') ? new Date(getValues('end_date')) : null}
                 format="dd/MM/yyyy"

@@ -37,6 +37,7 @@ export default function NavList({ data, depth, slotProps }: NavListProps) {
   return (
     <>
       <NavItem
+        data-testid={data.title}
         open={openMenu}
         onClick={handleToggleMenu}
         //

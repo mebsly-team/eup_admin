@@ -8,9 +8,10 @@ import TextField, { TextFieldProps } from '@mui/material/TextField';
 type Props = TextFieldProps & {
   name: string;
   labelColor?: any; // Add labelColor prop
+  dataTestId?: string;//+
 };
 
-export default function RHFTextField({ name, helperText, type, labelColor, ...other }: Props) {
+export default function RHFTextField({ name, helperText, type, labelColor, dataTestId, ...other }: Props) {
   const { control } = useFormContext();
   const labelSx: SxProps<Theme> = {
     color: `${labelColor} !important`, // Set the label color with !important
@@ -22,6 +23,7 @@ export default function RHFTextField({ name, helperText, type, labelColor, ...ot
       render={({ field, fieldState: { error } }) => (
         <TextField
           {...field}
+          data-testid={dataTestId}
           fullWidth
           type={type}
           value={field.value}

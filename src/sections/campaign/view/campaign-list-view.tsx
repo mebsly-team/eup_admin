@@ -172,6 +172,7 @@ export default function CampaignListView() {
               href={paths.dashboard.campaign.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
+              data-testid="new-campaign-button"
             >
               {t('new_campaign')}
             </Button>

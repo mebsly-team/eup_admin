@@ -83,15 +83,17 @@ export const CategorySelector = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{t('select_category')}</DialogTitle>
       <DialogContent>
-        <TreeView selected={selectedCategories.map((id) => id.toString())}>
+        <TreeView data-testid="tree-view" selected={selectedCategories.map((id) => id.toString())}>
           {categories?.map((category) => renderTree(category))}
         </TreeView>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
+        <Button
+          data-testid="cancel-button"
+          onClick={onClose} color="primary">
           {t('cancel')}
         </Button>
-        <Button onClick={handleSave} color="primary">
+        <Button data-testid="save-button" onClick={handleSave} color="primary">
           {t('save')}
         </Button>
       </DialogActions>

@@ -40,6 +40,7 @@ export default function NavList({ data, depth, slotProps }: NavListProps) {
   return (
     <>
       <NavItem
+        data-testid={data.title}
         ref={navRef}
         open={openMenu}
         onMouseEnter={handleOpenMenu}

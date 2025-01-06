@@ -39,11 +39,11 @@ export default function ImageGallery({
   gallery = [],
   variant = 'input',
   open = true,
-  onClose = () => {},
+  onClose = () => { },
   error,
   maxNumberOfSelectedImages = 1,
   onlyPreviewOneImage = true,
-  onSelect = () => {},
+  onSelect = () => { },
   itemsPerPage = 9,
   name = '',
 }: Props) {
@@ -166,6 +166,7 @@ export default function ImageGallery({
       <DialogContent>
         <Box sx={{ marginBottom: 2 }}>
           <TextField
+            data-testid="iamge-search-input"
             name="ean"
             variant="filled"
             fullWidth
@@ -207,6 +208,7 @@ export default function ImageGallery({
                 onDoubleClick={() => onSelect([`${image.name}`])}
               >
                 <Checkbox
+                  data-testid="image-checkbox"
                   checked={selectedImages.includes(`${image.name}`)}
                   onChange={() => handleSelect(`${image.name}`)}
                   sx={{
@@ -292,6 +294,7 @@ export default function ImageGallery({
             <div style={{ display: 'flex', justifyContent: 'left', alignItems: 'top' }}>
               <label htmlFor="upload-input">
                 <input
+                  data-testid="image-upload-label"
                   id="upload-input"
                   type="file"
                   accept="image/*"
@@ -299,6 +302,7 @@ export default function ImageGallery({
                   style={{ display: 'none' }}
                 />
                 <Button
+                  data-testid="image-upload-button"
                   variant="outlined"
                   color="primary"
                   component="span"
@@ -309,6 +313,7 @@ export default function ImageGallery({
               </label>
 
               <Button
+                data-testid="image-delete-button"
                 variant="contained"
                 color="primary"
                 onClick={handleImageUpload}
@@ -334,11 +339,14 @@ export default function ImageGallery({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'top' }}>
-          <Button variant="outlined" onClick={onClose} sx={{ marginRight: 1, marginLeft: 1 }}>
+          <Button
+            data-testid="image-close-button"
+            variant="outlined" onClick={onClose} sx={{ marginRight: 1, marginLeft: 1 }}>
             {t('cancel')}
           </Button>
 
           <Button
+            data-testid="image-select-button"
             disabled={error || !selectedImages.length}
             variant="contained"
             onClick={() => {
