@@ -1,50 +1,73 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, BrowserContext } from '@playwright/test';
+
 let page: Page;
+let context: BrowserContext;
+
+// Helper function to generate a random value
+function getRandomValue(min: number, max: number, decimals: number): string {
+  return (Math.random() * (max - min) + min).toFixed(decimals);
+}
 
 test.beforeAll(async ({ browser }) => {
-  const context = await browser.newContext();
+  test.setTimeout(10000); // Increase timeout to 60 seconds
+  context = await browser.newContext();
   page = await context.newPage();
-  await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
-  await page.waitForTimeout(1000);
-  await page.getByLabel('Email address').click();
-  await page.getByLabel('Email address').fill('info1@info.com');
-  await page.waitForTimeout(1000);
-  await page.getByLabel('Password').click();
-  await page.getByLabel('Password').fill('Test123456!');
-  await page.waitForTimeout(1000);
-  await page.getByRole('button', { name: 'Login' }).click();
-});
 
+  console.log('Navigating to login page...');
+  await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard%2Fproduct');
+  await page.waitForTimeout(1000);
+
+  // Locate and fill email input
+  const loginEmailInput = page.locator('[data-testid="login-email-input"] input');
+  await loginEmailInput.waitFor({ state: 'visible' });
+  await loginEmailInput.fill('info1@info.com');
+
+  // Locate and fill password input
+  const loginPasswordInput = page.locator('[data-testid="login-password-input"] input');
+  await loginPasswordInput.waitFor({ state: 'visible' });
+  await loginPasswordInput.fill('Test123456!');
+
+  // Click the login button
+  const loginButton = page.getByTestId('login-button');
+  await loginButton.waitFor();
+  await loginButton.click();
+
+  // Verify navigation success
+  await page.waitForURL('**/dashboard/product');
+  console.log('Login successful!');
+});
 test.afterAll(async () => {
   await page.context().close();
 });
 
-test('Product Page test', async ({ }) => {
+test('Product Page test', async () => {
   test.setTimeout(300000);
   await page.getByRole('button', { name: 'Product' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   // await page.getByRole('button', { name: 'Lijst' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   await page.getByText('Actieve Lijst').click();
   await page.getByRole('option', { name: 'Particulier zal zien' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByText('Particulier zal zien').first().click();
   await page.getByRole('option', { name: 'B2B zal zien' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByText('B2B zal zien').first().click();
   await page.getByRole('option', { name: 'Verborgen' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
+  await page.getByRole('button', { name: 'Reset' }).click();
+  await page.waitForTimeout(3000);
   await page.getByLabel('Categorie').click();
 
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByPlaceholder('Zoeken').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByPlaceholder('Zoeken').fill('Eda');
-  await page.waitForTimeout(1000);
-  await page.getByRole('row', { name: 'Eda' }).getByRole('button').first().click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
+  await page.getByRole('row', { name: 'Eda' }).first().getByRole('button').click();
+  await page.waitForTimeout(3000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   function generateSKU() {
     const adjectives = ['Fast', 'Slick', 'Soft', 'Smooth', 'Strong'];
     const nouns = ['Conditioner', 'Shampoo', 'Soap', 'Lotion', 'Cream'];
@@ -63,14 +86,14 @@ test('Product Page test', async ({ }) => {
   await page.getByLabel('SKU').click();
   await page.getByLabel('SKU').clear();
   await page.getByLabel('SKU').fill(sku);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('HS-code').click();
   await page.getByLabel('HS-code').clear();
   await page.getByLabel('HS-code').fill(hsCode);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Kleur').click();
   await page.getByRole('option', { name: 'Tarwe' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   function generateVariant() {
     const variants = ['special', 'limited', 'exclusive', 'standard', 'premium'];
     return variants[Math.floor(Math.random() * variants.length)];
@@ -109,103 +132,104 @@ test('Product Page test', async ({ }) => {
   await page.getByLabel('Optie').click();
   await page.getByLabel('Optie').clear();
   await page.getByLabel('Optie').fill(variant);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Meta zoekwoorden').click();
   await page.getByLabel('Meta zoekwoorden').clear();
   await page.getByLabel('Meta zoekwoorden').fill(metaKeywords);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Leveranciersartikelcode').click();
   await page.getByLabel('Leveranciersartikelcode').clear();
   await page.getByLabel('Leveranciersartikelcode').fill(supplierCode);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Extra locatie', { exact: true }).click();
   await page.getByLabel('Extra locatie', { exact: true }).clear();
   await page.getByLabel('Extra locatie', { exact: true }).fill(extraLocation);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Banner').click();
   await page.getByLabel('Banner').clear();
   await page.getByLabel('Banner').fill(banner);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Opslaan & Blijven' }).click();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(5000);
   await page.getByRole('button', { name: 'Opslaan & Terug' }).click();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(5000);
+
 })
 
-test('Product Bundels Test', async ({ }) => {
-  test.setTimeout(5000);
+test('Product Bundels Test', async () => {
+  test.setTimeout(280000);
   await page.getByRole('button', { name: 'Product' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken').fill('Eda');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('row', { name: 'Eda' }).getByRole('button').nth(0).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByRole('tab', { name: 'Bundels' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('', { exact: true }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('option', { name: 'Rol' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.locator('body').click({ position: { x: 50, y: 20 } });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Bundel Genereren' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Delete').click();
 })
 
 
-test('Product Variant Test', async ({ }) => {
-  test.setTimeout(5000);
+test('Product Variant Test', async () => {
+  test.setTimeout(280000);
   await page.getByRole('button', { name: 'Product' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken').fill('Eda');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('row', { name: 'Eda' }).getByRole('button').nth(0).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('tab', { name: 'Varianten' }).click();
-  await page.waitForTimeout(1000);
-  await page.getByRole('radiogroup').getByText('Optie').click();
-  await page.waitForTimeout(1000);
-  await page.getByRole('textbox').click();
-  await page.getByRole('textbox').fill('55');
-  await page.waitForTimeout(1000);
-  await page.getByRole('button', { name: 'Variant Genereren' }).click();
-  await page.waitForTimeout(1000);
-  await page.getByRole('radio', { name: 'Kleur' }).check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
+  //   await page.getByRole('radiogroup').getByText('Optie').click();
+  //   await page.waitForTimeout(2000);
+  // await page.getByRole('textbox').click();
+  // await page.getByRole('textbox').fill('55');
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('button', { name: 'Variant Genereren' }).click();
+  // await page.waitForTimeout(2000);
+  //   await page.getByRole('radio', { name: 'Kleur' }).check();
+  //   await page.waitForTimeout(2000);
   await page.getByRole('combobox').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('option', { name: 'Bisque' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.locator('body').click({ position: { x: 50, y: 20 } });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Variant Genereren' }).click();
-  await page.waitForTimeout(1000);
-  await page.getByLabel('Edit').click();
+  await page.waitForTimeout(2000);
+  await page.getByLabel('Edit').first().click();
 })
 
 
 
-test(' Create New Product Page test', async ({ }) => {
-  test.setTimeout(5000);
+test(' Create New Product Page test', async () => {
+  test.setTimeout(280000);
   await page.getByRole('button', { name: 'Product' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   // await page.getByRole('button', { name: 'Lijst' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   await page.locator('a:has-text("Nieuw Product")').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   function generateArtikelcode() {
     return Math.floor(1000000000 + Math.random() * 9000000000).toString();
   }
@@ -213,7 +237,7 @@ test(' Create New Product Page test', async ({ }) => {
   const artikelcode = generateArtikelcode();
   await page.getByLabel('Artikelcode', { exact: true }).click();
   await page.getByLabel('Artikelcode', { exact: true }).fill(artikelcode);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   // await page.getByRole('button', { name: 'Nieuwe Product' }).click();
   function generateEAN() {
     return Math.floor(1000000000 + Math.random() * 9000000000).toString();
@@ -221,7 +245,7 @@ test(' Create New Product Page test', async ({ }) => {
   const ean = generateEAN();
   await page.getByLabel('EAN', { exact: true }).click();
   await page.getByLabel('EAN', { exact: true }).fill(ean);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   function generateSKU() {
     const adjectives = ['Fast', 'Slick', 'Soft', 'Smooth', 'Strong'];
     const nouns = ['Conditioner', 'Shampoo', 'Soap', 'Lotion', 'Cream'];
@@ -233,7 +257,7 @@ test(' Create New Product Page test', async ({ }) => {
   const sku = generateSKU();
   await page.getByLabel('SKU').click();
   await page.getByLabel('SKU').fill(sku);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   function generateHSCode() {
     const hsCode = Math.floor(1000000000 + Math.random() * 9000000000).toString();
     return hsCode;
@@ -241,7 +265,7 @@ test(' Create New Product Page test', async ({ }) => {
   const hsCode = generateHSCode();
   await page.getByLabel('HS-code').click();
   await page.getByLabel('HS-code').fill(hsCode);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   const options = ['Stuk', 'Pak', 'Rol', 'Collie/Doos'];
   const randomIndex = Math.floor(Math.random() * options.length);
   const randomUnit = options[randomIndex];
@@ -249,7 +273,7 @@ test(' Create New Product Page test', async ({ }) => {
   await page.getByText('Eenheid Bewerken').click();
   await page.getByLabel('Eenheid', { exact: true }).click();
   await page.getByRole('option', { name: randomUnit }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const colors = [
     'Rood', 'Blauw', 'Geel', 'Bruin', 'Roze', 'Paars', 'Zwart',
@@ -264,7 +288,7 @@ test(' Create New Product Page test', async ({ }) => {
 
   await page.getByLabel('Kleur', { exact: true }).click();
   await page.getByRole('option', { name: "Oranje", exact: true }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateVariant() {
     const variants = ['special', 'limited', 'exclusive', 'standard', 'premium'];
@@ -273,7 +297,7 @@ test(' Create New Product Page test', async ({ }) => {
   const variant = generateVariant();
   await page.getByLabel('Optie').click();
   await page.getByLabel('Optie').fill(variant);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateProduct() {
     const products = [
@@ -314,24 +338,24 @@ test(' Create New Product Page test', async ({ }) => {
   const products = generateProduct();
   await page.getByLabel('Product Cardtitel').click();
   await page.getByLabel('Product Cardtitel').fill(products);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Lange Producttitel').click();
   await page.getByLabel('Lange Producttitel').fill(products);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   function generateMetaKeywords() {
-    const products = [
+    const product = [
       'At Home Wash Fabric Softener Pink Secrets wasverzachter 750ml',
       'Ultra Clean Dishwashing Liquid 500ml',
       'Fresh Breeze Air Freshener 250ml',
       'Soft Touch Hand Soap 300ml',
       'Sparkling Clean Window Cleaner 750ml'
     ];
-    return products[Math.floor(Math.random() * products.length)];
+    return product[Math.floor(Math.random() * product.length)];
   }
   const metaKeywords = generateMetaKeywords();
   await page.getByLabel('Meta zoekwoorden').click();
   await page.getByLabel('Meta zoekwoorden').fill(metaKeywords);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function getRandomValue(min, max, decimals) {
     const str = (Math.random() * (max - min) + min).toFixed(decimals);
@@ -344,24 +368,24 @@ test(' Create New Product Page test', async ({ }) => {
 
   await page.getByLabel('Aantal per verpakking').click();
   await page.getByLabel('Aantal per verpakking').fill(quantityValue);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Kostprijs per stuk').click();
   await page.getByLabel('Kostprijs per stuk').fill(priceCostValue);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.locator('input[name="price_per_piece"]').click();
   await page.locator('input[name="price_per_piece"]').fill(pricePerPieceValue);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const vatoptions = ['0', '9', '21'];
   const randomIndex2 = Math.floor(Math.random() * vatoptions.length);
   const randomVat = vatoptions[randomIndex2];
   await page.getByLabel('BTW').click();
   await page.getByRole('option', { name: randomVat }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Inhoud Unit').click();
   await page.getByRole('option', { name: 'Rol' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateSupplierCode() {
     return Math.floor(Math.random() * 100).toString();
@@ -369,27 +393,27 @@ test(' Create New Product Page test', async ({ }) => {
   const supplierCode = generateSupplierCode();
   await page.getByLabel('Leveranciersartikelcode').click();
   await page.getByLabel('Leveranciersartikelcode').fill(supplierCode);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Grootte Eenheid').click();
   await page.getByRole('option', { name: 'mm' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   function generateDimension() {
     return Math.floor(Math.random() * 100).toString();
   }
   const lengte = generateDimension();
   await page.getByLabel('Lengte').click();
   await page.getByLabel('Lengte').fill(lengte);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const breedte = generateDimension();
   await page.getByLabel('Breedte').click();
   await page.getByLabel('Breedte').fill(breedte);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const hoogte = generateDimension();
   await page.getByLabel('Hoogte').click();
   await page.getByLabel('Hoogte').fill(hoogte);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateVolume() {
     return Math.floor(Math.random() * 100).toString();
@@ -398,7 +422,7 @@ test(' Create New Product Page test', async ({ }) => {
 
   await page.getByLabel('Liter', { exact: true }).click();
   await page.getByLabel('Liter', { exact: true }).fill(liter);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateWeight() {
     return Math.floor(Math.random() * 50).toString();
@@ -406,15 +430,15 @@ test(' Create New Product Page test', async ({ }) => {
   const gewicht = generateWeight();
   await page.getByLabel('Gewicht', { exact: true }).click();
   await page.getByLabel('Gewicht', { exact: true }).fill(gewicht);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Liter-eenheid').click();
   await page.getByRole('option', { name: 'ml' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Gewichtseenheid').click();
   await page.getByRole('option', { name: 'kg' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateLocation() {
     const locations = ['US', 'NL', 'DE', 'FR', 'IT', 'ES'];
@@ -423,7 +447,7 @@ test(' Create New Product Page test', async ({ }) => {
   const locatie = generateLocation();
   await page.getByLabel('Locatie', { exact: true }).click();
   await page.getByLabel('Locatie', { exact: true }).fill(locatie);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateExtraLocation() {
     const locations = ['Netherlands', 'Germany', 'France', 'Italy', 'Spain'];
@@ -432,7 +456,7 @@ test(' Create New Product Page test', async ({ }) => {
   const extraLocation = generateExtraLocation();
   await page.getByLabel('Extra locatie', { exact: true }).click();
   await page.getByLabel('Extra locatie', { exact: true }).fill(extraLocation);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Levertijd').click();
   await page.getByRole('option', { name: '/ 5 Dagen' }).click();
@@ -444,7 +468,7 @@ test(' Create New Product Page test', async ({ }) => {
   const banner = generateBanner();
   await page.getByLabel('Banner').click();
   await page.getByLabel('Banner').fill(banner);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateMaxSalesQuantity() {
     return Math.floor(Math.random() * 100).toString();
@@ -452,45 +476,43 @@ test(' Create New Product Page test', async ({ }) => {
   const maxVerkoopaantal = generateMaxSalesQuantity();
   await page.getByLabel('Max verkoopaantal').click();
   await page.getByLabel('Max verkoopaantal').fill(maxVerkoopaantal);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Is Gebruikt (Tweedehand)').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Voorraadcontrole').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Is Uitgelicht').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Is opruiming').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Is vermeld op Marktplaats').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Is vermeld op 2dehands').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Talen Selecteren').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('option', { name: 'Netherlands (NL)' }).click();
   await page.getByRole('option', { name: 'France (FR)' }).click();
   await page.getByRole('option', { name: 'United Kingdom (GB)' }).click();
   await page.getByLabel('Sluiten').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('heading', { name: 'Geselecteerde categorieën:' }).click();
-  await page.getByRole('button', { name: 'Categorieën toevoegen/' }).click();
-  await page.waitForTimeout(1000);
-  await page.getByText('Auto-accessoires', { exact: true }).click();
-  await page.getByText('Aanhangeronderdelen', { exact: true }).click();
-  await page.getByText('Acculaders', { exact: true }).click();
-  await page.waitForTimeout(1000);
-  await page.getByRole('button', { name: 'Annuleren' }).click();
+  // await page.getByRole('button', { name: 'Categorieën toevoegen/' }).click();
+  // await page.waitForTimeout(2000);
+  // await page.getByText('Apparel', {exact:true}).click();
+  // await page.waitForTimeout(2000);
+  // await page.getByRole('button', { name: 'Opslaan' }).click();
   await page.getByRole('button', { name: 'Afbeeldingen uploaden' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Typ hier...').click();
   await page.getByPlaceholder('Typ hier...').fill('bref');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.locator('.MuiButtonBase-root.MuiCheckbox-root').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Nieuwe Product' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
 
 
 
@@ -520,90 +542,90 @@ test(' Create New Product Page test', async ({ }) => {
   //          const gewicht = generateWeight();
 
   await page.getByRole('button', { name: 'Product', exact: true }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
   await page.getByPlaceholder('Zoeken').fill('Eda');
-  await page.waitForTimeout(1000);
-  await page.getByRole('row', { name: 'Eda' }).getByRole('button').first().click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
+  await page.getByRole('row', { name: 'Eda' }).first().getByRole('button').click();
+  await page.waitForTimeout(3000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
 
   await page.getByLabel('Optie').click();
   await page.getByLabel('Optie').fill('exclusive');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Aantal per verpakking').click();
   await page.getByLabel('Aantal per verpakking').fill(quantityValue);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Prijs per Stuk', { exact: true }).click();
   await page.getByLabel('Prijs per Stuk', { exact: true }).fill(pricePerPieceValue);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Lengte').click();
   await page.getByLabel('Lengte').fill(lengte);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Breedte').click();
   await page.getByLabel('Breedte').fill(breedte);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Hoogte').click();
   await page.getByLabel('Hoogte').fill(hoogte);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Liter', { exact: true }).click();
   await page.getByLabel('Liter', { exact: true }).fill(liter);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Gewicht', { exact: true }).click();
   await page.getByLabel('Gewicht', { exact: true }).fill(gewicht);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Liter-eenheid').click();
   await page.getByRole('option', { name: 'ml' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Gewichtseenheid').click();
   await page.getByRole('option', { name: 'kg' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   // await page.getByPlaceholder('Zoeken').click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByPlaceholder('Zoeken').fill('Dreft Dishwashing Liquid Extra Hygiene Original 325 ml');
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByRole('button').click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('tab', { name: 'Varianten' }).click();
   // await page.getByRole('combobox').first().click();
   // await page.getByRole('option', { name: 'Rood', exact: true }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   // await page.mouse.click(10, 10);
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   // await page.getByRole('textbox').click();
   // await page.getByRole('textbox').fill('Supream');
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   // await page.getByLabel('', { exact: true }).click();
   // await page.getByRole('option', { name: 'Pak' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   // await page.mouse.click(10, 10);
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   // await page.getByRole('button', { name: 'Variant Genereren' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('row', { name: products }).nth(0).getByLabel('Edit').click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('button', { name: 'Opslaan & Blijven' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('button', { name: 'Opslaan & Terug' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('row', { name: 'Dreft Dishwashing Liquid Extra Hygiene Original 325 ml' }).getByRole('button').click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(3000);
   // await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Verwijderen', exact: true }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
 });

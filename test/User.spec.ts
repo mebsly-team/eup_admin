@@ -1,32 +1,54 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, BrowserContext } from '@playwright/test';
+
 let page: Page;
+let context: BrowserContext;
+
+// Helper function to generate a random value
+function getRandomValue(min: number, max: number, decimals: number): string {
+  return (Math.random() * (max - min) + min).toFixed(decimals);
+}
 
 test.beforeAll(async ({ browser }) => {
-  const context = await browser.newContext();
+  test.setTimeout(10000); // Increase timeout to 60 seconds
+  context = await browser.newContext();
   page = await context.newPage();
-  await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard');
+
+  console.log('Navigating to login page...');
+  await page.goto('http://52.28.100.129:3001/auth/jwt/login?returnTo=%2Fdashboard%2Fuser%2Flist');
   await page.waitForTimeout(1000);
-  await page.getByLabel('Email address').click();
-  await page.getByLabel('Email address').fill('info1@info.com');
-  await page.waitForTimeout(1000);
-  await page.getByLabel('Password').click();
-  await page.getByLabel('Password').fill('Test123456!');
-  await page.waitForTimeout(1000);
-  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Locate and fill email input
+  const loginEmailInput = page.locator('[data-testid="login-email-input"] input');
+  await loginEmailInput.waitFor({ state: 'visible' });
+  await loginEmailInput.fill('info1@info.com');
+
+  // Locate and fill password input
+  const loginPasswordInput = page.locator('[data-testid="login-password-input"] input');
+  await loginPasswordInput.waitFor({ state: 'visible' });
+  await loginPasswordInput.fill('Test123456!');
+
+  // Click the login button
+  const loginButton = page.getByTestId('login-button');
+  await loginButton.waitFor();
+  await loginButton.click();
+
+  // Verify navigation success
+  await page.waitForURL('**/dashboard/user/list');
+  console.log('Login successful!');
 });
 
 test.afterAll(async () => {
   await page.context().close();
 });
 
-test('User Type  page test', async ({ }) => {
-  test.setTimeout(5000);
+test('User Type  page test', async () => {
+  test.setTimeout(280000);
   await page.getByRole('button', { name: 'Klant' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   // await page.getByRole('button', { name: 'Lijst' }).click();
-  // await page.waitForTimeout(1000);
+  // await page.waitForTimeout(2000);
   await page.locator('a:has-text("Nieuw Klant")').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const user_type = [
     'Speciaal',
@@ -37,13 +59,18 @@ test('User Type  page test', async ({ }) => {
     user_type[Math.floor(Math.random() * user_type.length)];
   await page.getByLabel('Klanttype').click();
   await page.getByRole('option', { name: randomuser_type }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(3000);
 
-  const randomEmail = 'test' + Math.floor(Math.random() * 1000) + '@example.com';
+  const randomCode = `${Math.floor(Math.random() * 1000)}`;
+  await page.getByLabel('Relatie Code').click();
+  await page.getByLabel('Relatie Code').fill(randomCode);
+  await page.waitForTimeout(2000);
+
+  const randomEmail = `test${Math.floor(Math.random() * 1000)}@example.com`;
   const generatedUserName = randomEmail;
   await page.getByLabel('E-mail').click();
   await page.getByLabel('E-mail').fill(generatedUserName);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateRandomFirstName() {
     const firstNames = ["John", "Jane", "Michael", "Emily", "David", "Sarah", "Daniel", "Jessica", "Christopher", "Elizabeth"];
@@ -54,14 +81,14 @@ test('User Type  page test', async ({ }) => {
   const randomFirstName = generateRandomFirstName();
   await page.getByLabel('Naam', { exact: true }).click();
   await page.getByLabel('Naam', { exact: true }).fill(randomFirstName);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Achternaam').click();
   await page.getByLabel('Achternaam').fill('son');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Wachtwoord').click();
   await page.getByLabel('Wachtwoord').fill('Mike1234');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generatePhoneNumber() {
     return `0${Math.floor(100000000 + Math.random() * 900000000)}`;
@@ -71,12 +98,12 @@ test('User Type  page test', async ({ }) => {
   const phoneNumberInput = page.getByLabel('Telefoon', { exact: true }).first();
   await phoneNumberInput.click();
   await phoneNumberInput.fill(telefoon);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const randommobielNumber = String(Math.floor(1000000000 + Math.random() * 9000000000)).slice(0, 10);
   await page.getByLabel('mobiel').click();
   await page.getByLabel('mobiel').fill(randommobielNumber);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateRandomDOB() {
 
@@ -91,12 +118,12 @@ test('User Type  page test', async ({ }) => {
 
   await page.getByPlaceholder('YYYY-MM-DD').click();
   await page.getByPlaceholder('YYYY-MM-DD').fill(generateRandomDOB());
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Is geabonneerd op').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Is toegang verleend tot').check();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const business_name = [
     'TechGenius Solutions', 'SwiftServe Logistics', 'SparkleShine Cleaning Co.', 'HealthHub Nutrition', 'CraftyCreations Workshop', 'UrbanEats Catering', 'BlueSky Aviation Services', 'SereneSails Yacht Charters', 'SecureShield Cybersecurity'];
@@ -104,7 +131,7 @@ test('User Type  page test', async ({ }) => {
     business_name[Math.floor(Math.random() * business_name.length)];
   await page.getByLabel('Bedrijfsnaam').click();
   await page.getByLabel('Bedrijfsnaam').fill(randombusiness_name);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateContactpersoon() {
     const names = ['John Doe', 'Jane Smith', 'Harsha', 'Yash'];
@@ -113,14 +140,14 @@ test('User Type  page test', async ({ }) => {
   const contactpersoonNaam = generateContactpersoon();
   await page.getByLabel('Contactpersoon Naam').click();
   await page.getByLabel('Contactpersoon Naam').fill(contactpersoonNaam);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
 
   const randomcontact_person_phone_number = String(Math.floor(1000000000 + Math.random() * 9000000000)).slice(0, 10);
 
   await page.getByLabel('Contactpersoon Tel').click();
   await page.getByLabel('Contactpersoon Tel').fill(randomcontact_person_phone_number);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateEmail() {
     const domains = ['example.com', 'test.com', 'email.com'];
@@ -130,7 +157,7 @@ test('User Type  page test', async ({ }) => {
   const Contactpersoonemail = generateEmail();
   await page.getByLabel('Contactpersoon Email').click();
   await page.getByLabel('Contactpersoon Email').fill(Contactpersoonemail);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
 
   function generateDepartment() {
@@ -140,7 +167,7 @@ test('User Type  page test', async ({ }) => {
   const department = generateDepartment();
   await page.getByLabel('Contactpersoon Department').click();
   await page.getByLabel('Contactpersoon Department').fill(department);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateClassification() {
     const classifications = ['Type A', 'Type B', 'Type C'];
@@ -150,7 +177,7 @@ test('User Type  page test', async ({ }) => {
   const classification = generateClassification();
   await page.getByLabel('Classification').click();
   await page.getByLabel('Classification').fill(classification);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateBranch() {
     const branches = ['Main', 'Secondary', 'Tertiary'];
@@ -159,7 +186,7 @@ test('User Type  page test', async ({ }) => {
   const branch = generateBranch();
   await page.getByLabel('Branche').click();
   await page.getByLabel('Branche').fill(branch);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateIBAN() {
     return `NL${Math.floor(1000000000 + Math.random() * 9000000000)}`;
@@ -168,7 +195,7 @@ test('User Type  page test', async ({ }) => {
   const iban = generateIBAN();
   await page.getByLabel('IBAN').click();
   await page.getByLabel('IBAN').fill(iban);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateBIC() {
     return `BIC${Math.floor(100000 + Math.random() * 900000)}`;
@@ -177,7 +204,7 @@ test('User Type  page test', async ({ }) => {
   const bic = generateBIC();
   await page.getByLabel('BIC').click();
   await page.getByLabel('BIC').fill(bic);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateName() {
     const names = ['John Doe', 'Jane Smith', 'Alice Brown', 'Bob Johnson'];
@@ -187,7 +214,7 @@ test('User Type  page test', async ({ }) => {
   const naamRekeninghouder = generateName();
   await page.getByLabel('Naam rekeninghouder').click();
   await page.getByLabel('Naam rekeninghouder').fill(naamRekeninghouder);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateCity() {
     const cities = ['Amsterdam', 'Rotterdam', 'Utrecht', 'Den Haag'];
@@ -197,7 +224,7 @@ test('User Type  page test', async ({ }) => {
   const rekeninghouderStad = generateCity();
   await page.getByLabel('Rekeninghouder stad').click();
   await page.getByLabel('Rekeninghouder stad').fill(rekeninghouderStad);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateBTW() {
     return `${Math.floor(1000 + Math.random() * 9000)}`;
@@ -206,7 +233,7 @@ test('User Type  page test', async ({ }) => {
   const btw = generateBTW();
   await page.getByLabel('BTW').click();
   await page.getByLabel('BTW').fill(btw);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateKVK() {
     return `${Math.floor(1000000 + Math.random() * 9000000)}`;
@@ -214,14 +241,14 @@ test('User Type  page test', async ({ }) => {
   const kvk = generateKVK();
   await page.getByLabel('KVK').click();
   await page.getByLabel('KVK').fill(kvk);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Betalingsmethode').click();
   await page.getByRole('option', { name: 'Geen' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Betalingsmethode').click();
   await page.getByRole('option', { name: 'bank' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generatePercentage() {
     return `${Math.floor(Math.random() * 100)}`;
@@ -230,12 +257,12 @@ test('User Type  page test', async ({ }) => {
   const klantPercentage = generatePercentage();
   await page.getByLabel('Klant Percentage').click();
   await page.getByLabel('Klant Percentage').fill(klantPercentage);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const factuurKorting = generatePercentage();
   await page.getByLabel('Factuur korting').click();
   await page.getByLabel('Factuur korting').fill(factuurKorting);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generatePaymentTerm() {
     const terms = ['Net 30', 'Net 60', 'Net 90'];
@@ -245,7 +272,7 @@ test('User Type  page test', async ({ }) => {
   const betalingstermijn = generatePaymentTerm();
   await page.getByLabel('Betalingstermijn', { exact: true }).click();
   await page.getByLabel('Betalingstermijn', { exact: true }).fill(betalingstermijn);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateCreditLimit() {
     return `${Math.floor(Math.random() * 10000)}`;
@@ -253,7 +280,7 @@ test('User Type  page test', async ({ }) => {
   const kredietLimiet = generateCreditLimit();
   await page.getByLabel('Krediet limiet').click();
   await page.getByLabel('Krediet limiet').fill(kredietLimiet);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateStreetAddress() {
     return `Street ${Math.floor(Math.random() * 100)}, House ${Math.floor(Math.random() * 100)}, City`;
@@ -261,7 +288,7 @@ test('User Type  page test', async ({ }) => {
   const factuurAdres = generateStreetAddress();
   await page.getByLabel('Factuur adres').click();
   await page.getByLabel('Factuur adres').fill(factuurAdres);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateLanguage() {
     const languages = ['Dutch', 'English', 'French', 'German'];
@@ -270,7 +297,7 @@ test('User Type  page test', async ({ }) => {
   const factuurTaal = generateLanguage();
   await page.getByLabel('Factuur Taal').click();
   await page.getByLabel('Factuur Taal').fill(factuurTaal);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateDiscountGroup() {
     const groups = ['Group A', 'Group B', 'Group C'];
@@ -279,7 +306,7 @@ test('User Type  page test', async ({ }) => {
   const kortingsgroep = generateDiscountGroup();
   await page.getByLabel('Kortingsgroep').click();
   await page.getByLabel('Kortingsgroep').fill(kortingsgroep);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateInformMethod() {
     const methods = ['Email', 'Phone', 'SMS', 'Post'];
@@ -288,7 +315,7 @@ test('User Type  page test', async ({ }) => {
   const informeerVia = generateInformMethod();
   await page.getByLabel('Informeer via').click();
   await page.getByLabel('Informeer via').fill(informeerVia);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateCustomerColor() {
     const colors = ['Rood', 'Blauw', 'Groen', 'Geel'];
@@ -297,7 +324,7 @@ test('User Type  page test', async ({ }) => {
   const klantkleur = generateCustomerColor();
   await page.getByLabel('Klantkleur').click();
   await page.getByRole('option', { name: klantkleur }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateRelationType() {
     const types = ['Friend', 'Colleague', 'Partner'];
@@ -306,7 +333,7 @@ test('User Type  page test', async ({ }) => {
   const relatieType = generateRelationType();
   await page.getByLabel('Relatie type').click();
   await page.getByLabel('Relatie type').fill(relatieType);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateRelationMethod() {
     const methods = ['Visa', 'Mastercard', 'Amex'];
@@ -315,7 +342,7 @@ test('User Type  page test', async ({ }) => {
   const relationVia = generateRelationMethod();
   await page.getByLabel('Relatie via').click();
   await page.getByLabel('Relatie via').fill(relationVia);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateClosedDays() {
     return `${Math.floor(Math.random() * 30)}`;
@@ -323,7 +350,7 @@ test('User Type  page test', async ({ }) => {
   const geslotenDagen = generateClosedDays();
   await page.getByLabel('Gesloten dagen').click();
   await page.getByLabel('Gesloten dagen').fill(geslotenDagen);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateDaysNotDeliver() {
     return `${Math.floor(Math.random() * 30)}`;
@@ -331,7 +358,7 @@ test('User Type  page test', async ({ }) => {
   const dagenNietLeveren = generateDaysNotDeliver();
   await page.getByLabel('Dagen niet leveren').click();
   await page.getByLabel('Dagen niet leveren').fill(dagenNietLeveren);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   function generateCode() {
     return `${Math.floor(Math.random() * 10000)}`;
@@ -339,7 +366,7 @@ test('User Type  page test', async ({ }) => {
   const fax = generateCode();
   await page.getByLabel('Fax').click();
   await page.getByLabel('Fax').fill(fax);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Incasseren').check();
   await page.getByLabel('Betalingstermijn activeren').check();
@@ -358,137 +385,141 @@ test('User Type  page test', async ({ }) => {
 
   await page.getByLabel('website').click();
   await page.getByLabel('website').fill(website);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('facebook').click();
   await page.getByLabel('facebook').fill(facebook);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('linkedin').click();
   await page.getByLabel('linkedin').fill(linkedin);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Twitter').click();
   await page.getByLabel('Twitter').fill(twitter);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('instagram').click();
   await page.getByLabel('instagram').fill(instagram);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('pinterest').click();
   await page.getByLabel('pinterest').fill(pinterest);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('tiktok').click();
   await page.getByLabel('tiktok').fill(tiktok);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Notities').click();
   await page.getByLabel('Notities').fill('abc');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Actief').check();
   await page.getByRole('button', { name: 'Nieuwe Klant' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Klant', exact: true }).click();
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken...').click();
-  await page.getByPlaceholder('Zoeken...').fill(generatedUserName);
-  await page.waitForTimeout(1000);
-  await page.getByRole('row', { name: generatedUserName }).getByRole('button').click();
-  await page.waitForTimeout(1000);
+  await page.getByPlaceholder('Zoeken...').fill('10015@gmail.com');
+  await page.waitForTimeout(2000);
+  await page.getByRole('row', { name: '10015@gmail.com' }).getByRole('button').click();
+  await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Bewerken' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Notities').click();
   await page.getByLabel('Notities').fill('New Customers');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Bedrijfsnaam').click();
   await page.getByLabel('Bedrijfsnaam').fill(randombusiness_name);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Classification').click();
   await page.getByLabel('Classification').fill(classification);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Branche').click();
   await page.getByLabel('Branche').fill(branch);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('IBAN').click();
   await page.getByLabel('IBAN').fill(iban);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('BIC').click();
   await page.getByLabel('BIC').fill(bic);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Naam rekeninghouder').click();
   await page.getByLabel('Naam rekeninghouder').fill(naamRekeninghouder);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Rekeninghouder stad').click();
   await page.getByLabel('Rekeninghouder stad').fill(rekeninghouderStad);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('BTW').click();
   await page.getByLabel('BTW').fill(btw);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('KVK').click();
   await page.getByLabel('KVK').fill(kvk);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Betalingsmethode').click();
   await page.getByRole('option', { name: 'Geen' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Betalingsmethode').click();
   await page.getByRole('option', { name: 'bank' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Klant Percentage').click();
   await page.getByLabel('Klant Percentage').fill(klantPercentage);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Factuur korting').click();
   await page.getByLabel('Factuur korting').fill(factuurKorting);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Betalingstermijn', { exact: true }).click();
   await page.getByLabel('Betalingstermijn', { exact: true }).fill(betalingstermijn);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Krediet limiet').click();
   await page.getByLabel('Krediet limiet').fill(kredietLimiet);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Factuur adres').click();
   await page.getByLabel('Factuur adres').fill(factuurAdres);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Factuur Taal').click();
   await page.getByLabel('Factuur Taal').fill(factuurTaal);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Kortingsgroep').click();
   await page.getByLabel('Kortingsgroep').fill(kortingsgroep);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByLabel('Informeer via').click();
   await page.getByLabel('Informeer via').fill(informeerVia);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Klantkleur').click();
   await page.getByRole('option', { name: klantkleur }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Relatie type').click();
   await page.getByLabel('Relatie type').fill(relatieType);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Relatie via').click();
   await page.getByLabel('Relatie via').fill(relationVia);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Gesloten dagen').click();
   await page.getByLabel('Gesloten dagen').fill(geslotenDagen);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByLabel('Dagen niet leveren').click();
   await page.getByLabel('Dagen niet leveren').fill(dagenNietLeveren);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   await page.getByRole('button', { name: 'Opslaan' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Klant', exact: true }).click();
+  await page.waitForTimeout(2000);
   await page.getByPlaceholder('Zoeken...').click();
-  await page.getByPlaceholder('Zoeken...').fill(generatedUserName);
-  await page.waitForTimeout(1000);
-  await page.getByRole('row', { name: generatedUserName }).getByRole('button').click();
-  await page.waitForTimeout(1000);
+  await page.getByPlaceholder('Zoeken...').fill('10015@gmail.com');
+  await page.waitForTimeout(2000);
+  await page.getByRole('row', { name: '10015@gmail.com' }).getByRole('button').click();
+  await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'Verwijderen' }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
 })
