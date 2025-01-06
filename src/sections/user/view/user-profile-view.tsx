@@ -6,11 +6,10 @@ import { useTranslate } from 'src/locales';
 
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-
-import ProfileNewEditForm from '../profile-new-edit-form';
 import { useEffect, useState } from 'react';
 import { IUserItem } from 'src/types/user';
 import axiosInstance from 'src/utils/axios';
+import ProfileNewEditForm from '../profile-new-edit-form';
 
 // ----------------------------------------------------------------------
 
