@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
@@ -19,7 +20,7 @@ test.afterAll(async () => {
   await page.context().close();
 });
 
-test('Calendar Page test', async ({}) => {
+test('Calendar Page test', async () => {
     test.setTimeout(300000);
 
     await page.getByRole('button', { name: 'Kalender' }).click();

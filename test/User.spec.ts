@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
@@ -19,7 +20,7 @@ test.afterAll(async () => {
   await page.context().close();
 });
 
-test('User Type  page test', async ({}) => {
+test('User Type  page test', async () => {
   test.setTimeout(280000);
   await page.getByRole('button', { name: 'Klant' }).click();
   await page.waitForTimeout(2000);
@@ -39,7 +40,12 @@ test('User Type  page test', async ({}) => {
   await page.getByRole('option', { name: randomuser_type }).click();
   await page.waitForTimeout(3000);
 
-const randomEmail = 'test' + Math.floor(Math.random() * 1000) + '@example.com';
+  const randomCode = `${  Math.floor(Math.random() * 1000)}`;
+  await page.getByLabel('Relatie Code').click();
+await page.getByLabel('Relatie Code').fill(randomCode);
+await page.waitForTimeout(2000);
+
+const randomEmail = `test${  Math.floor(Math.random() * 1000)  }@example.com`;
 const generatedUserName = randomEmail;
 await page.getByLabel('E-mail').click();
 await page.getByLabel('E-mail').fill(generatedUserName);
@@ -390,10 +396,12 @@ await page.waitForTimeout(2000);
 await page.getByLabel('Actief').check();
 await page.getByRole('button', { name: 'Nieuwe Klant' }).click();
 await page.waitForTimeout(2000);
+await page.getByRole('button', { name: 'Klant', exact: true  }).click();
+  await page.waitForTimeout(2000);
 await page.getByPlaceholder('Zoeken...').click();
-await page.getByPlaceholder('Zoeken...').fill(generatedUserName);
+await page.getByPlaceholder('Zoeken...').fill('10015@gmail.com');
 await page.waitForTimeout(2000);
-await page.getByRole('row', { name: generatedUserName }).getByRole('button').click();
+await page.getByRole('row', { name: '10015@gmail.com' }).getByRole('button').click();
 await page.waitForTimeout(2000);
 await page.getByRole('menuitem', { name: 'Bewerken' }).click();
 await page.waitForTimeout(2000);
@@ -481,10 +489,12 @@ await page.waitForTimeout(2000);
 
 await page.getByRole('button', { name: 'Opslaan' }).click();
 await page.waitForTimeout(2000);
+await page.getByRole('button', { name: 'Klant', exact: true  }).click();
+  await page.waitForTimeout(2000);
 await page.getByPlaceholder('Zoeken...').click();
-await page.getByPlaceholder('Zoeken...').fill(generatedUserName);
+await page.getByPlaceholder('Zoeken...').fill('10015@gmail.com');
 await page.waitForTimeout(2000);
-await page.getByRole('row', { name: generatedUserName }).getByRole('button').click();
+await page.getByRole('row', { name: '10015@gmail.com' }).getByRole('button').click();
 await page.waitForTimeout(2000);
 await page.getByRole('menuitem', { name: 'Verwijderen' }).click();
 await page.waitForTimeout(2000);
