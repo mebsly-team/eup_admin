@@ -418,7 +418,7 @@ export default function ProductNewEditForm({ id }: Props) {
       volume: currentProduct?.volume || '',
       pallet_full_total_number: currentProduct?.pallet_full_total_number || 0,
       pallet_layer_total_number: currentProduct?.pallet_layer_total_number || 0,
-      is_brief_box: currentProduct?.is_brief_box || false,
+      is_brief_box: currentProduct?.is_brief_box ?? false,
       meta_title: currentProduct?.meta_title || '',
       meta_description: currentProduct?.meta_description || '',
       meta_keywords: currentProduct?.meta_keywords || '',
