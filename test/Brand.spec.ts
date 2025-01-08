@@ -9,7 +9,7 @@ function getRandomValue(min: number, max: number, decimals: number): string {
 }
 
 test.beforeAll(async ({ browser }) => {
-  test.setTimeout(10000); // Increase timeout to 60 seconds
+  test.setTimeout(10000);
   context = await browser.newContext();
   page = await context.newPage();
 
@@ -43,7 +43,7 @@ test.afterAll(async () => {
 
 
 test('Brand Page test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
   function generateRandomCategoriesName() {
     const categories = [
       [

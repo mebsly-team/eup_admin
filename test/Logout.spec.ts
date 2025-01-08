@@ -7,7 +7,7 @@ test.describe('User Authentication', () => {
   });
 
   test('Logout Test', async ({ page }) => {
-    test.setTimeout(280000);
+    test.setTimeout(10000);
     await page.getByLabel('Email address').click();
     await page.getByLabel('Email address').fill('info1@info.com');
     await page.waitForTimeout(2000);

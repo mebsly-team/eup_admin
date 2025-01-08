@@ -43,7 +43,7 @@ test.afterAll(async () => {
 
 
 test('Settings test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
   await page.getByRole('button', { name: 'A', exact: true }).click();
   await page.waitForTimeout(2000);
   await page.getByRole('menuitem', { name: 'Settings' }).click();

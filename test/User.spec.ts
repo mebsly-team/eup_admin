@@ -42,7 +42,7 @@ test.afterAll(async () => {
 });
 
 test('User Type  page test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
   await page.getByRole('button', { name: 'Klant' }).click();
   await page.waitForTimeout(2000);
   // await page.getByRole('button', { name: 'Lijst' }).click();

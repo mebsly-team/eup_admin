@@ -42,7 +42,7 @@ test.afterAll(async () => {
 });
 
 test(' Supplier page test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
   await page.getByRole('button', { name: 'Leverancier' }).click();
   // await page.getByRole('button', { name: 'Lijst' }).click();
   // await page.waitForTimeout(2000);

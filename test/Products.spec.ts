@@ -100,8 +100,8 @@ test('Product Page test', async () => {
   await page.getByRole('row', { name: 'Lemon' }).first().getByRole('button').click();
 
   const bewerkenMenuItem = page.getByRole('menuitem', { name: 'Bewerken' });
-await bewerkenMenuItem.waitFor();
-await bewerkenMenuItem.click();
+  await bewerkenMenuItem.waitFor();
+  await bewerkenMenuItem.click();
 
   const sku = generateSKU();
   const randomData = generateRandomData();
@@ -144,7 +144,7 @@ await bewerkenMenuItem.click();
 });
 
 test('Product Bundels Test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
 
   await page.getByRole('button', { name: 'Product' }).click();
 
@@ -179,7 +179,7 @@ test('Product Bundels Test', async () => {
 });
 
 test('Product Variant Test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
 
   await page.getByRole('button', { name: 'Product' }).click();
 
@@ -216,7 +216,7 @@ test('Product Variant Test', async () => {
 
 
 test('Create New Product Page test', async () => {
-  test.setTimeout(280000);
+  test.setTimeout(10000);
 
   // Ürün butonuna tıklama
   await page.getByRole('button', { name: 'Product' }).click();
