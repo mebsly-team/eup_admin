@@ -104,7 +104,7 @@ export default function ProductListView() {
     { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
     { id: 'variants', label: t('number_of_variants2'), hideOnSm: true },
     { id: 'ean', label: t('ean'), hideOnSm: true },
-    { id: 'overall_stock', label: t('free_all_stock'), hideOnMd: true },
+    // { id: 'overall_stock', label: t('free_all_stock'), hideOnMd: true },
     { id: 'is_visible_particular', label: `${t('is_particular')}` },
     { id: 'is_visible_B2B', label: `${t('is_b2b')}` },
   ];

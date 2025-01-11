@@ -2489,7 +2489,7 @@ export default function ProductNewEditForm({ id }: Props) {
         pointerEvents: currentProduct?.is_variant ? 'none' : 'auto',
       }}
     >
-      <Card>
+      {/* <Card>
         {' '}
         <Typography
           fontSize="14px"
@@ -2535,7 +2535,7 @@ export default function ProductNewEditForm({ id }: Props) {
             />
           </Box>
         </Stack>
-      </Card>
+      </Card> */}
       <Divider sx={{ borderStyle: 'dashed' }} />
       <Card>
         <CardHeader title={t('inventory')} />
