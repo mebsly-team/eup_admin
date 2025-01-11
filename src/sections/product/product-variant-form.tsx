@@ -396,14 +396,14 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       editable: false,
       resizable: true,
     },
-    {
-      field: 'free_stock',
-      headerName: t('Voorraad'),
-      // type: 'date',
-      width: 80,
-      editable: false,
-      resizable: true,
-    },
+    // {
+    //   field: 'free_stock',
+    //   headerName: t('Voorraad'),
+    //   // type: 'date',
+    //   width: 80,
+    //   editable: false,
+    //   resizable: true,
+    // },
     // {
     //   field: 'role',
     //   headerName: 'Department',
@@ -503,17 +503,18 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       col.field !== 'unit' &&
       col.field !== 'ean' &&
       col.field !== 'quantity_per_unit' &&
-      col.field !== 'free_stock' &&
+      // col.field !== 'free_stock' &&
       col.field !== 'price_per_piece'
   );
   const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
 
   const mainProduct = currentProductVariantRows.find((item) => !item.is_variant);
   const updatedVariants = currentProductVariantRows.map((item) =>
-    item.is_variant
+    true
       ? {
         ...item,
-        free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
+        // free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
+        free_stok : ""
       }
       : item
   );

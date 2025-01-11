@@ -400,14 +400,14 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       editable: false,
       resizable: true,
     },
-    {
-      field: 'free_stock',
-      headerName: t('Voorraad'),
-      // type: 'date',
-      width: 80,
-      editable: false,
-      resizable: true,
-    },
+    // {
+    //   field: 'free_stock',
+    //   headerName: t('Voorraad'),
+    //   // type: 'date',
+    //   width: 80,
+    //   editable: false,
+    //   resizable: true,
+    // },
     // {
     //   field: 'role',
     //   headerName: 'Department',

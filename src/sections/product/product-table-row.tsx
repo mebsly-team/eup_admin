@@ -204,9 +204,9 @@ export default function ProductTableRow({
           {siblings_count || '-'}
         </TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>{ean}</TableCell>
-        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
+        {/* <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
           {free_stock}/{overall_stock}
-        </TableCell>
+        </TableCell> */}
 
         <TableCell
           sx={{ p: 1, whiteSpace: 'nowrap', pointerEvents: is_product_active ? 'auto' : 'none' }}
