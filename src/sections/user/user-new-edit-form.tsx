@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Unstable_Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Divider, MenuItem, Typography } from '@mui/material';
+import { Divider, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -24,6 +24,23 @@ import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components
 
 import { IUserItem } from 'src/types/user';
 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+} from '@mui/material';
+import { Add, Edit, Delete } from '@mui/icons-material';
+
 type Props = {
   currentUser?: IUserItem;
 };
@@ -36,6 +53,132 @@ export default function UserNewEditForm({ currentUser }: Props) {
     !['particular', 'admin'].includes(currentUser?.type || 'particular')
   );
   const { enqueueSnackbar } = useSnackbar();
+
+  const [openAddressForm, setOpenAddressForm] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [addressList, setAddressList] = useState(currentUser?.addresses || []);
+  console.log("🚀 ~ UserNewEditForm ~ addressList:", addressList)
+
+  const {
+    control: controlAddressForm,
+    handleSubmit: handleSubmitAddressForm,
+    reset: resetAddressForm,
+    setValue: setValueAddressForm,
+    register,
+    watch: watchAddress,
+  } = useForm({
+    defaultValues: {
+      address_name: '',
+      first_name: '',
+      last_name: '',
+      salutation: '',
+      phone_number: '',
+      street_name: '',
+      house_number: '',
+      house_suffix: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: '',
+      addressType: '',
+    },
+  });
+  console.log("🚀 ~ UserNewEditForm ~ watchAddress:", watchAddress())
+
+  const handleAddAddress = () => {
+    resetAddressForm({
+      address_name: '',
+      first_name: '',
+      last_name: '',
+      salutation: '',
+      phone_number: '',
+      street_name: '',
+      house_number: '',
+      house_suffix: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: '',
+      addressType: '',
+    });
+    setEditingIndex(null);  // Yeni ekleme olduğu için edit modunu sıfırla
+    setOpenAddressForm(true);
+  };
+  const handleOpenAddressForm = (index = null) => {
+    setEditingIndex(index);
+
+    if (index !== null) {
+      const existingAddress = addressList[index];
+      resetAddressForm(existingAddress);
+
+      const addressType = existingAddress.is_delivery_address
+        ? "delivery"
+        : existingAddress.is_contact_person_address
+          ? "contact_person"
+          : existingAddress.is_invoice_address
+            ? "invoice"
+            : "";
+
+      setValueAddressForm("addressType", addressType); // Varsayılan değer atama
+    } else {
+      resetAddressForm();
+      setValueAddressForm("addressType", ""); // Yeni eklerken boş bırak
+    }
+
+    setOpenAddressForm(true);
+  };
+
+
+  const handleCloseAddressForm = () => {
+    setOpenAddressForm(false);
+    resetAddressForm(); // Clear form
+  };
+
+  const onSubmitAddress = async (data) => {
+    console.log("🚀 ~ onSubmitAddress ~ data:", data);
+
+    try {
+      const formData = {
+        user_id: currentUser.id,
+        ...data,
+        first_name: currentUser.first_name || "-",
+        last_name: currentUser.last_name || "-",
+        is_business_main_address: data.addressType === "business",
+        is_delivery_address: data.addressType === "delivery",
+        is_contact_person_address: data.addressType === "contact_person",
+        is_invoice_address: data.addressType === "invoice",
+      };
+
+      if (editingIndex !== null) {
+        const updatedList = [...addressList];
+        updatedList[editingIndex] = formData;
+        setAddressList(updatedList);
+
+        await axiosInstance.put(`/address/${addressList[editingIndex].id}/`, formData);
+      } else {
+        const response = await axiosInstance.post("/address/", formData);
+        setAddressList([...addressList, response.data]);
+      }
+
+      setOpenAddressForm(false);
+    } catch (error) {
+      console.error("Error saving address:", error);
+    }
+  };
+
+
+  const handleDeleteAddress = async (index) => {
+    try {
+      const addressId = addressList[index]?.id;
+      if (addressId) {
+        await axiosInstance.delete(`/address/${addressId}/`);
+      }
+      setAddressList(addressList.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error("Error deleting address:", error);
+    }
+  };
+
 
   const NewUserSchema = Yup.object().shape({
     type: Yup.string().required(t('required')),
@@ -101,13 +244,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
     relation_via: isBusiness && Yup.string().required(t('required')),
     days_closed: isBusiness && Yup.string().required(t('required')),
     days_no_delivery: isBusiness && Yup.string().required(t('required')),
-    // incasseren: isBusiness && Yup.boolean().required(),
-    // is_payment_termin_active: isBusiness && Yup.boolean().required(),
-    // is_eligible_to_work_with: isBusiness && Yup.boolean().required(),
-    // inform_when_new_products: isBusiness && Yup.boolean().required(),
-    // notify: isBusiness && Yup.boolean().required(),
   });
 
+  const ADDRESS_TYPES = [
+    { value: 'delivery', label: t('delivery_address') },
+    { value: 'contact_person', label: t('contact_person_address') },
+    { value: 'invoice', label: t('invoice_address') },
+  ];
   const USER_TYPES = [
     { value: 'special', label: t('special') },
     { value: 'wholesaler', label: t('wholesaler') },
@@ -130,6 +273,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   const defaultValues = useMemo(
     () => ({
+      addressList: currentUser?.addresses || [],
       relation_code: currentUser?.relation_code || '',
       first_name: currentUser?.first_name || '',
       last_name: currentUser?.last_name || '',
@@ -218,38 +362,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
       //   country: currentUser?.invoice_address?.country || '',
       // },
 
-      // delivery_address: {
-      //   address_name: currentUser?.delivery_address?.address_name || '',
-      //   first_name: currentUser?.delivery_address?.first_name || '',
-      //   last_name: currentUser?.delivery_address?.last_name || '',
-      //   salutation: currentUser?.delivery_address?.salutation || '',
-      //   phone_number: currentUser?.delivery_address?.phone_number || '',
-      //   is_delivery_address: currentUser?.delivery_address?.is_delivery_address ?? false,
-      //   street_name: currentUser?.delivery_address?.street_name || '',
-      //   house_number: currentUser?.delivery_address?.house_number || '',
-      //   house_suffix: currentUser?.delivery_address?.house_suffix || '',
-      //   city: currentUser?.delivery_address?.city || '',
-      //   state: currentUser?.delivery_address?.state || '',
-      //   zip_code: currentUser?.delivery_address?.zip_code || '',
-      //   country: currentUser?.delivery_address?.country || '',
-      // },
-
-      // contact_address: {
-      //   address_name: currentUser?.contact_address?.address_name || '',
-      //   first_name: currentUser?.contact_address?.first_name || '',
-      //   last_name: currentUser?.contact_address?.last_name || '',
-      //   salutation: currentUser?.contact_address?.salutation || '',
-      //   phone_number: currentUser?.contact_address?.phone_number || '',
-      //   is_contact_person_address: currentUser?.contact_address?.is_contact_person_address ?? false,
-      //   street_name: currentUser?.contact_address?.street_name || '',
-      //   house_number: currentUser?.contact_address?.house_number || '',
-      //   house_suffix: currentUser?.contact_address?.house_suffix || '',
-      //   city: currentUser?.contact_address?.city || '',
-      //   state: currentUser?.contact_address?.state || '',
-      //   zip_code: currentUser?.contact_address?.zip_code || '',
-      //   country: currentUser?.contact_address?.country || '',
-      // },
-
     }),
     [currentUser]
   );
@@ -270,6 +382,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
     ...rest
   } = methods;
   const values = watch();
+  console.log("🚀 ~ UserNewEditForm ~ values:", values)
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
   useEffect(() => {
@@ -280,12 +393,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
     console.log('useEffect');
     const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
     if (savedData) {
-      methods.reset(savedData); // Reset form with saved data
+      methods.reset(savedData);
     }
   }, [methods]);
 
   console.log('errors', errors);
   const onSubmit = handleSubmit(async (data) => {
+    console.log("🚀 ~ onSubmit ~ data:", data)
     try {
       data.birthdate = moment.isDate(data.birthdate)
         ? moment(data.birthdate).format('YYYY-MM-DD')
@@ -328,312 +442,452 @@ export default function UserNewEditForm({ currentUser }: Props) {
   });
 
   return (
-    <FormProvider methods={methods} onSubmit={onSubmit}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={8}>
-          <Card sx={{ p: 3 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="relation_code" label={t('relation_code')} />
-              <RHFSelect
-                name="type"
-                label={t('user_type')}
-                onChange={(e) => {
-                  setValue('type', e.target.value);
-                  setIsBusiness(!['particular', 'admin'].includes(e.target.value));
+    <>
+      <FormProvider methods={methods} onSubmit={onSubmit}>
+        <Grid container spacing={3}>
+          <Grid xs={12} md={8}>
+            <Card sx={{ p: 3 }}>
+              <Box
+                rowGap={3}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
                 }}
               >
-                <MenuItem value="">None</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                {USER_TYPES.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
+                <RHFTextField name="relation_code" label={t('relation_code')} />
+                <RHFSelect
+                  name="type"
+                  label={t('user_type')}
+                  onChange={(e) => {
+                    setValue('type', e.target.value);
+                    setIsBusiness(!['particular', 'admin'].includes(e.target.value));
+                  }}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {USER_TYPES.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+                <RHFTextField name="email" label={t('email')} />
+                <RHFTextField name="first_name" label={t('name')} />
+                <RHFTextField name="last_name" label={t('lastname')} />
+                {currentUser ? null : (
+                  <RHFTextField name="password" label={t('password')} type="password" />
+                )}
+                <RHFSelect
+                  name="gender"
+                  label={t('gender')}
+                  onChange={(e) => {
+                    setValue('gender', e.target.value);
+                  }}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <MenuItem key="M" value="M">
+                    M
                   </MenuItem>
-                ))}
-              </RHFSelect>
-              <RHFTextField name="email" label={t('email')} />
-              <RHFTextField name="first_name" label={t('name')} />
-              <RHFTextField name="last_name" label={t('lastname')} />
-              {currentUser ? null : (
-                <RHFTextField name="password" label={t('password')} type="password" />
-              )}
-              <RHFSelect
-                name="gender"
-                label={t('gender')}
-                onChange={(e) => {
-                  setValue('gender', e.target.value);
+                  <MenuItem key="M" value="M">
+                    V
+                  </MenuItem>
+                </RHFSelect>
+                <RHFTextField name="phone_number" label={t('phone')} />
+                <RHFTextField name="mobile_number" label={t('mobile')} />
+                <Controller
+                  name="birthdate"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <DatePicker
+                      label={t('birthdate')}
+                      value={new Date(field.value) || null}
+                      format="yyyy-MM-dd"
+                      onChange={(newValue) => {
+                        field.onChange(newValue);
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!error,
+                          helperText: error?.message,
+                        },
+                      }}
+                    />
+                  )}
+                />
+                <RHFSwitch
+                  name="inform_when_new_products"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('inform_when_new_products')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="is_subscribed_newsletters"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_subscribed_newsletters')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="is_access_granted_social_media"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_access_granted_social_media')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+              </Box>
+            </Card>
+
+            <Card sx={{ p: 3, mt: 5 }}>
+              <Box
+                rowGap={3}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
                 }}
               >
-                <MenuItem value="">None</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                <MenuItem key="M" value="M">
-                  M
-                </MenuItem>
-                <MenuItem key="M" value="M">
-                  V
-                </MenuItem>
-              </RHFSelect>
-              <RHFTextField name="phone_number" label={t('phone')} />
-              <RHFTextField name="mobile_number" label={t('mobile')} />
+                <RHFTextField name="business_name" label={t('business_name')} />
+                <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
+                <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
+                <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
+                <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
+                <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
+                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
+                <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
+                <RHFTextField
+                  name="contact_person_department"
+                  label={t('contact_person_department')}
+                />
+                <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
+                <RHFTextField name="classification" label={t('classification')} />
+                <RHFTextField
+                  name="contact_person_nationality"
+                  label={t('contact_person_nationality')}
+                />
+                <RHFTextField name="branch" label={t('branch')} />
+                <RHFTextField name="iban" label={t('iban')} />
+                <RHFTextField name="bic" label={t('bic')} />
+                <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
+                <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
+                <RHFTextField name="vat" label={t('vat')} />
+                <RHFTextField name="kvk" label={t('kvk')} />
+                <RHFSelect name="payment_method" label={t('payment_method')}>
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {PAYMENT_METHOD_TYPES.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+
+                <RHFTextField
+                  name="customer_percentage"
+                  label={t('customer_percentage')}
+                  type="number"
+                />
+                <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
+                <RHFTextField name="payment_termin" label={t('payment_termin')} />
+                <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
+                <RHFTextField name="invoice_address" label={t('invoice_address')} />
+                <RHFTextField name="invoice_language" label={t('invoice_language')} />
+                <RHFTextField name="discount_group" label={t('discount_group')} />
+                <RHFTextField name="inform_via" label={t('inform_via')} />
+                <RHFSelect name="customer_color" label={t('customer_color')}>
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {CUSTOMER_COLORS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+
+                <RHFTextField name="relation_type" label={t('relation_type')} />
+                <RHFTextField name="relation_via" label={t('relation_via')} />
+                <RHFTextField name="days_closed" label={t('days_closed')} />
+                <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
+                <RHFTextField name="fax" label={t('fax')} />
+                <RHFTextField name="website" label={t('website')} />
+                <RHFSwitch
+                  name="incasseren"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('incasseren')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="is_payment_termin_active"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_payment_termin_active')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="is_eligible_to_work_with"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_eligible_to_work_with')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="is_no_payment"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('is_no_payment')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+                <RHFSwitch
+                  name="inform_when_new_products"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('inform_when_new_products')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+
+                <RHFSwitch
+                  name="notify"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('notify')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+              </Box>
+            </Card>
+
+            <Card sx={{ p: 3, mt: 5 }}>
+              <Box
+                rowGap={3}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
+                }}
+              >
+                <RHFTextField name="facebook" label={t('facebook')} placeholder='https://www.facebook.com/yourprofile' />
+                <RHFTextField name="linkedin" label={t('linkedin')} placeholder='https://www.linkedin.com/in/yourprofile' />
+                <RHFTextField name="twitter" label={t('twitter')} placeholder='https://www.twitter.com/yourhandle' />
+                <RHFTextField name="instagram" label={t('instagram')} placeholder='https://www.instagram.com/yourprofile' />
+                <RHFTextField name="pinterest" label={t('pinterest')} placeholder='https://www.pinterest.com/yourprofile' />
+                <RHFTextField name="tiktok" label={t('tiktok')} placeholder='https://www.tiktok.com/@yourusername' />
+              </Box>
+            </Card>
+            <Card sx={{ p: 3, mt: 5 }}>
+              <Box
+                rowGap={3}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
+                }}
+              >
+                <RHFTextField name="notes" label={t('notes')} type="textarea" />
+              </Box>
+            </Card>
+
+            <Card sx={{ p: 3, mt: 5 }}>
+              <Box
+                rowGap={3}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
+                }}
+              >
+                <RHFSwitch
+                  name="is_active"
+                  labelPlacement="start"
+                  label={
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      {t('active')}
+                    </Typography>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+              </Box>
+            </Card>
+            <Stack alignItems="flex-end" sx={{ mt: 3 }}>
+              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+                {!currentUser ? t('create_user') : t('save')}
+              </LoadingButton>
+            </Stack>
+          </Grid>
+        </Grid>
+      </FormProvider>
+      <div>
+        <TableContainer component={Paper} sx={{ mt: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>#</TableCell>
+                <TableCell>Adres Type</TableCell>
+                <TableCell>Adres Naam</TableCell>
+                <TableCell>Adres</TableCell>
+                <TableCell>Acties</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {addressList.map((address, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    {address?.is_delivery_address ? t('delivery_address') :
+                      address?.is_contact_person_address ? t('contact_person_address') : address?.is_invoice_address ? t('invoice_address') : ""}
+                  </TableCell>
+                  <TableCell>{address.address_name}</TableCell>
+                  <TableCell>
+                    {`${address.street_name} ${address.house_number} ${address.house_suffix}, ${address.city}, ${address.country}`}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleOpenAddressForm(index)}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton onClick={() => handleDeleteAddress(index)}>
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => handleAddAddress()}
+          sx={{ mt: 2 }}
+        >
+          Adres Toevoegen
+        </Button>
+
+        <Dialog open={openAddressForm} onClose={handleCloseAddressForm}>
+          <DialogTitle>{editingIndex !== null ? 'Bewerk Adres' : 'Adres Toevoegen'}</DialogTitle>
+          <DialogContent>
+            <form onSubmit={handleSubmitAddressForm(onSubmitAddress)}>
+
+              <TextField
+                {...register("street_name")}
+                label="Straatnaam"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="street-address"
+              />
+              <TextField
+                {...register("house_number")}
+                label="Huisnummer"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="house-number"
+              />
+              <TextField
+                {...register("house_suffix")}
+                label="Huis Aachtervoegsel"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="address-line2"
+              />
+              <TextField
+                {...register("city")}
+                label="Stad"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="address-level2"
+              />
+              <TextField
+                {...register("state")}
+                label="Provincie"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="address-level1"
+              />
+              <TextField
+                {...register("zip_code")}
+                label="Postcode"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="postal-code"
+              />
+              <TextField
+                {...register("country")}
+                label="Land"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="country"
+              />
               <Controller
-                name="birthdate"
-                control={control}
-                render={({ field, fieldState: { error } }) => (
-                  <DatePicker
-                    label={t('birthdate')}
-                    value={new Date(field.value) || null}
-                    format="yyyy-MM-dd"
-                    onChange={(newValue) => {
-                      field.onChange(newValue);
-                    }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        error: !!error,
-                        helperText: error?.message,
-                      },
-                    }}
-                  />
+                name="addressType"
+                control={controlAddressForm}
+                defaultValue="" // Standaard leeg
+                render={({ field }) => (
+                  <FormControl fullWidth sx={{ my: 1 }}>
+                    <InputLabel>Adres Type</InputLabel>
+                    <Select {...field} label="Adres Type">
+                      <MenuItem value="">Geen</MenuItem>
+                      {ADDRESS_TYPES.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
                 )}
               />
-              <RHFSwitch
-                name="inform_when_new_products"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('inform_when_new_products')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+              <TextField
+                {...register("address_name")}
+                label="Adres Naam"
+                fullWidth
+                sx={{ my: 1 }}
+                autoComplete="address-name"
               />
-              <RHFSwitch
-                name="is_subscribed_newsletters"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_subscribed_newsletters')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_access_granted_social_media"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_access_granted_social_media')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-            </Box>
-          </Card>
+            </form>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddressForm}>Annuleren</Button>
+            <Button onClick={handleSubmitAddressForm(onSubmitAddress)}>Opslaan</Button>
+          </DialogActions>
+        </Dialog>
 
-          <Card sx={{ p: 3, mt: 5 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="business_name" label={t('business_name')} />
-              <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
-              <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
-              <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
-              <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
-              <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
-              <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
-              <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
-              <RHFTextField
-                name="contact_person_department"
-                label={t('contact_person_department')}
-              />
-              <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
-              <RHFTextField name="classification" label={t('classification')} />
-              <RHFTextField
-                name="contact_person_nationality"
-                label={t('contact_person_nationality')}
-              />
-              <RHFTextField name="branch" label={t('branch')} />
-              <RHFTextField name="iban" label={t('iban')} />
-              <RHFTextField name="bic" label={t('bic')} />
-              <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
-              <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
-              <RHFTextField name="vat" label={t('vat')} />
-              <RHFTextField name="kvk" label={t('kvk')} />
-              <RHFSelect name="payment_method" label={t('payment_method')}>
-                <MenuItem value="">{t('none')}</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                {PAYMENT_METHOD_TYPES.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </RHFSelect>
+      </div>
 
-              <RHFTextField
-                name="customer_percentage"
-                label={t('customer_percentage')}
-                type="number"
-              />
-              <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
-              <RHFTextField name="payment_termin" label={t('payment_termin')} />
-              <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
-              <RHFTextField name="invoice_address" label={t('invoice_address')} />
-              <RHFTextField name="invoice_language" label={t('invoice_language')} />
-              <RHFTextField name="discount_group" label={t('discount_group')} />
-              <RHFTextField name="inform_via" label={t('inform_via')} />
-              <RHFSelect name="customer_color" label={t('customer_color')}>
-                <MenuItem value="">{t('none')}</MenuItem>
-                <Divider sx={{ borderStyle: 'dashed' }} />
-                {CUSTOMER_COLORS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </RHFSelect>
 
-              <RHFTextField name="relation_type" label={t('relation_type')} />
-              <RHFTextField name="relation_via" label={t('relation_via')} />
-              <RHFTextField name="days_closed" label={t('days_closed')} />
-              <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
-              <RHFTextField name="fax" label={t('fax')} />
-              <RHFTextField name="website" label={t('website')} />
-              <RHFSwitch
-                name="incasseren"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('incasseren')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_payment_termin_active"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_payment_termin_active')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_eligible_to_work_with"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_eligible_to_work_with')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="is_no_payment"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('is_no_payment')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-              <RHFSwitch
-                name="inform_when_new_products"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('inform_when_new_products')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-
-              <RHFSwitch
-                name="notify"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('notify')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-            </Box>
-          </Card>
-
-          <Card sx={{ p: 3, mt: 5 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="facebook" label={t('facebook')} placeholder='https://www.facebook.com/yourprofile' />
-              <RHFTextField name="linkedin" label={t('linkedin')} placeholder='https://www.linkedin.com/in/yourprofile' />
-              <RHFTextField name="twitter" label={t('twitter')} placeholder='https://www.twitter.com/yourhandle' />
-              <RHFTextField name="instagram" label={t('instagram')} placeholder='https://www.instagram.com/yourprofile' />
-              <RHFTextField name="pinterest" label={t('pinterest')} placeholder='https://www.pinterest.com/yourprofile' />
-              <RHFTextField name="tiktok" label={t('tiktok')} placeholder='https://www.tiktok.com/@yourusername' />
-            </Box>
-          </Card>
-          <Card sx={{ p: 3, mt: 5 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="notes" label={t('notes')} type="textarea" />
-            </Box>
-          </Card>
-
-          <Card sx={{ p: 3, mt: 5 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFSwitch
-                name="is_active"
-                labelPlacement="start"
-                label={
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    {t('active')}
-                  </Typography>
-                }
-                sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-              />
-            </Box>
-          </Card>
-          <Stack alignItems="flex-end" sx={{ mt: 3 }}>
-            <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-              {!currentUser ? t('create_user') : t('save')}
-            </LoadingButton>
-          </Stack>
-        </Grid>
-      </Grid>
-    </FormProvider>
+    </>
   );
 }
