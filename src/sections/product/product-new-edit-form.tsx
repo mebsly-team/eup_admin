@@ -2588,7 +2588,7 @@ export default function ProductNewEditForm({ id }: Props) {
         </Stack>
       </Card>
       <Divider sx={{ borderStyle: 'dashed' }} />
-      <Card>
+      {currentProduct?.is_variant ? null : <Card>
         <CardHeader title={t('stats')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
@@ -2610,7 +2610,7 @@ export default function ProductNewEditForm({ id }: Props) {
             />
           </Box>
         </Stack>
-      </Card>
+      </Card>}
     </Grid>
   );
 
