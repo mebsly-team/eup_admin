@@ -232,7 +232,18 @@ export default function OrderDetailsInfo({
           <Typography variant="subtitle2">{customer.name}</Typography>
 
           <Box sx={{ color: 'text.secondary' }}>{customer.email}</Box>
-
+          <Box>
+            Betalingstermijn:
+            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
+              {customer.payment_termin}
+            </Box>
+          </Box>
+          <Box>
+            Kredietlimiet:
+            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
+              {customer.credit_limit}
+            </Box>
+          </Box>
           {/* <Box>
             IP Adres:
             <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>

@@ -42,7 +42,7 @@ export default function OrderDetailsToolbar({
   const popoverStatus = usePopover();
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
-  const { id, is_paid, ordered_date, status } = currentOrder;
+  const { id, is_paid, ordered_date, status, source_host } = currentOrder;
 
   return (
     <>
@@ -61,6 +61,8 @@ export default function OrderDetailsToolbar({
           <Stack spacing={0.5}>
             <Stack spacing={1} direction="row" alignItems="center">
               <Typography variant="h4"> Order {id} </Typography>
+              <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`} alt="icon" />
+
               <Label variant="soft" color={is_paid ? 'success' : 'error'} onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>
                 {t(is_paid ? 'paid' : 'unpaid')}
               </Label>
@@ -85,7 +87,7 @@ export default function OrderDetailsToolbar({
           flexGrow={1}
           spacing={1.5}
           direction="row"
-          alignItems="center"
+          alignItems="start"
           justifyContent="flex-end"
         >
           <Button

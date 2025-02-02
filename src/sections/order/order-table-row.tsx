@@ -63,6 +63,8 @@ export default function OrderTableRow({
     sub_total,
     total,
     user,
+    source_admin,
+    source_host
   } = row;
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
@@ -105,12 +107,14 @@ export default function OrderTableRow({
           onClick={onViewRow}
           sx={{
             cursor: 'pointer',
+            display: "flex",
+            alignItems: "center",
             '&:hover': {
               textDecoration: 'underline',
             },
           }}
         >
-          {id}
+          {id} {" "} <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`} alt="icon" />
         </Box>
       </TableCell>
 
