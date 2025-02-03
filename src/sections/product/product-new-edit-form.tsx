@@ -137,12 +137,12 @@ export default function ProductNewEditForm({ id }: Props) {
   }, [currentProduct?.parent_product]);
 
   const getAllSuppliers = async () => {
-    const { data } = await axiosInstance.get(`/suppliers/?nocache=true`);
-    setSupplierList(data || []);
+    const { data } = await axiosInstance.get(`/suppliers/?limit=3000&offset=0`);
+    setSupplierList(data.results || []);
   };
   const getAllBrands = async () => {
-    const { data } = await axiosInstance.get(`/brands/?nocache=true`);
-    setBrandList(data || []);
+    const { data } = await axiosInstance.get(`/brands/?limit=3000&offset=0`);
+    setBrandList(data.results || []);
   };
 
   const DELIVERY_CHOICES = [
