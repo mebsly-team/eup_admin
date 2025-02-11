@@ -319,18 +319,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
 
               {isEditing ? (
                 <>
-                  <Select
+                  {/* <Select
                     value={item.product.id}
                     onChange={(e) => handleVariantChange(item, e.target.value)}
                     label=""
                   >
                     <MenuItem value={item.product.id}>{item.product.unit}</MenuItem>
-                    {item?.product?.variants.map((v, i) => (
+                    {item?.product?.variants?.map((v, i) => (
                       <MenuItem key={i} value={v.id}>
                         {v.unit}
                       </MenuItem>
                     ))}
-                  </Select>
+                  </Select> */}
                   <TextField
                     type="number"
                     value={item.quantity}

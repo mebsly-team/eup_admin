@@ -9,7 +9,7 @@ const axiosInstance = axios.create({ baseURL: HOST_API });
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem('accessToken');
-    config.headers.Authorization = `Bearer ${accessToken}`;
+    if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
     return config;
   },
   (error) => Promise.reject(error)
