@@ -133,6 +133,7 @@ export function AuthProvider({ children }: Props) {
       email,
       password,
     };
+    localStorage.removeItem('accessToken');
 
     const res = await axios.post(endpoints.auth.login, data);
 
