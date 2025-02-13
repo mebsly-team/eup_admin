@@ -47,6 +47,7 @@ import UserTableFiltersResult from '../user-table-filters-result';
 const defaultFilters: IUserTableFilters = {
   name: '',
   role: [],
+  site: [],
   status: 'all',
 };
 
@@ -88,6 +89,11 @@ export default function UserListView() {
     { value: 'active', label: t('active') },
     { value: 'in_active', label: t('inactive') },
   ];
+  const SITE_SOURCE_OPTIONS = [
+    { value: 'all', label: t('all') },
+    { value: 'kooptop.com', label: t('Kooptop') },
+    { value: 'europowerbv.com', label: t('EuropowerBV') },
+  ];
 
   const dataInPage = userList.slice(
     table.page * table.rowsPerPage,
@@ -114,9 +120,10 @@ export default function UserListView() {
       : '-relation_code';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
+    const siteFilter = filters.site[0] && (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`);
     const { data } = await axiosInstance.get(
       `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}
-        ${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
+        ${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}`
     );
     setCount(data.count || 0);
     setUserList(data.results || []);
@@ -252,6 +259,7 @@ export default function UserListView() {
             onFilters={handleFilters}
             //
             roleOptions={USER_TYPES}
+            siteSourceOptions={SITE_SOURCE_OPTIONS}
           />
 
           {canReset && (

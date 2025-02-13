@@ -32,6 +32,7 @@ export default function UserTableToolbar({
   onFilters,
   //
   roleOptions,
+  siteSourceOptions
 }: Props) {
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
@@ -46,6 +47,15 @@ export default function UserTableToolbar({
     (event: SelectChangeEvent<string[]>) => {
       onFilters(
         'role',
+        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
+      );
+    },
+    [onFilters]
+  );
+  const handleFilterSite = useCallback(
+    (event: SelectChangeEvent<string[]>) => {
+      onFilters(
+        'site',
         typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
       );
     },
@@ -72,6 +82,38 @@ export default function UserTableToolbar({
             width: { xs: 1, md: 200 },
           }}
         >
+          <InputLabel>Site</InputLabel>
+
+          <Select
+            // multiple
+            value={filters.site}
+            onChange={handleFilterSite}
+            input={<OutlinedInput label="Site" />}
+            renderValue={(selected) => selected.map((value) => t(value)).join(', ')}
+            MenuProps={{
+              PaperProps: {
+                sx: { maxHeight: 240 },
+              },
+            }}
+          >
+            {siteSourceOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                <Checkbox
+                  disableRipple
+                  size="small"
+                  checked={filters?.site?.includes(option.value)}
+                />
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl
+          sx={{
+            flexShrink: 0,
+            width: { xs: 1, md: 200 },
+          }}
+        >
           <InputLabel>Role</InputLabel>
 
           <Select
@@ -91,7 +133,7 @@ export default function UserTableToolbar({
                 <Checkbox
                   disableRipple
                   size="small"
-                  checked={filters.role.includes(option.value)}
+                  checked={filters?.role?.includes(option.value)}
                 />
                 {option.label}
               </MenuItem>
