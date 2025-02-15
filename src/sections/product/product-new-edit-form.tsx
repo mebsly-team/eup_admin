@@ -2354,8 +2354,7 @@ export default function ProductNewEditForm({ id }: Props) {
       {currentProduct?.id && currentProduct?.is_visible_particular ? (
         <Link
           target="_blank"
-          href={`http://${HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
-            }/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          href={`https://kooptop.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{
@@ -2373,8 +2372,7 @@ export default function ProductNewEditForm({ id }: Props) {
       {currentProduct?.id && currentProduct?.is_visible_B2B ? (
         <Link
           target="_blank"
-          href={`http://${HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000'
-            }/product/${currentProduct?.id}/${currentProduct?.slug}`}
+          href={`https://europowerbv.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
           sx={{
