@@ -269,7 +269,7 @@ export default function UserListView() {
               //
               onResetFilters={handleResetFilters}
               //
-              results={userList.length}
+              results={count}
               sx={{ p: 2.5, pt: 0 }}
             />
           )}

@@ -294,7 +294,7 @@ export default function ProductListView() {
             //
             onResetFilters={handleResetFilters}
             //
-            results={productList?.length}
+            results={count}
             sx={{ p: 2.5, pt: 0 }}
           />
 
