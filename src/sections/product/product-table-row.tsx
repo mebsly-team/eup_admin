@@ -147,7 +147,7 @@ export default function ProductTableRow({
         `}
       </style>
       <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
-        <TableCell padding="checkbox" sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }}>
+        <TableCell padding="checkbox" sx={{ p: 1, whiteSpace: 'wrap' }}>
           <Checkbox checked={selected} onClick={onSelectRowClick} />
         </TableCell>
 
