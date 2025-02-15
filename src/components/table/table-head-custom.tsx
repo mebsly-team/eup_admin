@@ -55,6 +55,11 @@ export default function TableHeadCustom({
         display: 'none',
       },
     },
+    hideOnMdl: {
+      [theme.breakpoints.down('mdl')]: {
+        display: 'none',
+      },
+    },
     hideOnLg: {
       [theme.breakpoints.down('lg')]: {
         display: 'none',
@@ -65,6 +70,7 @@ export default function TableHeadCustom({
         display: 'none',
       },
     },
+
   };
   return (
     <TableHead sx={sx}>
@@ -91,6 +97,7 @@ export default function TableHeadCustom({
               width: headCell.width,
               ...(headCell.hideOnSm ? styles.hideOnSm : {}),
               ...(headCell.hideOnMd ? styles.hideOnMd : {}),
+              ...(headCell.hideOnMdl ? styles.hideOnMdl : {}),
               ...(headCell.hideOnLg ? styles.hideOnLg : {}),
               ...(headCell.hideOnXl ? styles.hideOnXl : {}),
             }}

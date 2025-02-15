@@ -142,7 +142,7 @@ export default function OrderTableRow({
         />
       </TableCell>
 
-      <TableCell align="center" sx={{ padding: 1 }}>
+      <TableCell align="center" sx={{ ...styles.hideOnSm, padding: 1 }}>
         {cart.items?.length}
       </TableCell>
 

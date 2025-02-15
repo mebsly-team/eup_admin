@@ -61,9 +61,9 @@ const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, ...ORDER_STATUS_OPTIONS
 const TABLE_HEAD = [
   { id: 'id', label: 'Bestel', width: 40, padding: 0 },
   { id: 'name', label: 'Klant', width: 40, padding: 1 },
-  { id: 'ordered_date', label: 'Datum', width: '80px', hideOnMd: true, padding: 1 },
-  { id: 'totalQuantity', label: 'Items', width: 40, align: 'center', padding: 1 },
-  { id: 'total', label: 'Prijs', width: 50, padding: 1 },
+  { id: 'ordered_date', label: 'Datum', width: 80, padding: 1, hideOnMd: true },
+  { id: 'totalQuantity', label: 'Items', width: 40, align: 'center', padding: 1, hideOnSm: true },
+  { id: 'total', label: 'Prijs', width: 50, padding: 1, },
   { id: 'status', label: 'Status', width: 110, padding: 1 },
   { id: '', width: 88, padding: 1 },
 ];
@@ -129,8 +129,7 @@ export default function OrderListView() {
     const endDateFilter = filters.endDate ? `&end_date=${formatDate(filters.endDate)}` : '';
 
     const { data } = await axiosInstance.get(
-      `/orders/?all=true&limit=${table.rowsPerPage}&offset=${
-        table.page * table.rowsPerPage
+      `/orders/?all=true&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}`
     );
     setCount(data.count || 0);
@@ -243,24 +242,24 @@ export default function OrderListView() {
                   fontSize: '0.725rem',
                   marginRight: '1rem!important',
                 }}
-                // icon={
-                //   <Label
-                //     variant={
-                //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-                //     }
-                //     color={
-                //       (tab.value === 'delivered' && 'success') ||
-                //       (tab.value === 'pending_order' && 'warning') ||
-                //       (tab.value === 'pending_offer' && 'warning') ||
-                //       (tab.value === 'cancelled' && 'error') ||
-                //       'default'
-                //     }
-                //   >
-                //     {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
-                //       ? tableData.filter((user) => user.status === tab.value).length
-                //       : tableData.length}
-                //   </Label>
-                // }
+              // icon={
+              //   <Label
+              //     variant={
+              //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
+              //     }
+              //     color={
+              //       (tab.value === 'delivered' && 'success') ||
+              //       (tab.value === 'pending_order' && 'warning') ||
+              //       (tab.value === 'pending_offer' && 'warning') ||
+              //       (tab.value === 'cancelled' && 'error') ||
+              //       'default'
+              //     }
+              //   >
+              //     {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
+              //       ? tableData.filter((user) => user.status === tab.value).length
+              //       : tableData.length}
+              //   </Label>
+              // }
               />
             ))}
           </Tabs>
@@ -305,7 +304,7 @@ export default function OrderListView() {
             />
 
             <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
+              <Table size={table.dense ? 'small' : 'medium'} sx={{ width: "100%" }}>
                 <TableHeadCustom
                   order={table.order}
                   orderBy={table.orderBy}
