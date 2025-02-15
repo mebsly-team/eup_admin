@@ -55,6 +55,7 @@ export default function UserTableRow({
     contact_person_phone_number,
     contact_person_name,
     contact_person_email,
+    site_source
   } = row;
   const { t, onChangeLang } = useTranslate();
   const [isActive, setIsActive] = useState(is_active);
@@ -80,7 +81,8 @@ export default function UserTableRow({
 
         <TableCell>
           <ListItemText
-            primary={`ID: ${relation_code || '-'}`}
+            primary={`ID: ${relation_code || '-'} `}
+            secondary={<img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${site_source === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`} alt="icon" />}
             // secondary={`Relaticode: ${relation_code || '-'}`}
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
