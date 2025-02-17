@@ -69,7 +69,7 @@ function updateQueryParams(key, value) {
   window.history.replaceState({}, '', url);
 }
 export default function ProductNewEditForm({ id }: Props) {
-  const { product: currentProduct } = useGetProduct(id);
+  const { product: currentProduct } = useGetProduct(id || undefined);
 
   const router = useRouter();
   const location = useLocation();

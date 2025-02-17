@@ -28,14 +28,16 @@ export function useGetProducts() {
 
 // ----------------------------------------------------------------------
 
-export function useGetProduct(productId: string) {
-  const URL = `/products/${productId}/`;
+export function useGetProduct(productId?: string) {
+  const URL = productId ? `/products/${productId}/` : null;
 
-  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
+  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher, {
+    shouldRetryOnError: false,
+  });
 
   const memoizedValue = useMemo(
     () => ({
-      product: data as IProductItem,
+      product: data as IProductItem | undefined,
       productLoading: isLoading,
       productError: error,
       productValidating: isValidating,
@@ -45,6 +47,7 @@ export function useGetProduct(productId: string) {
 
   return memoizedValue;
 }
+
 
 // ----------------------------------------------------------------------
 
