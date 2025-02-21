@@ -21,6 +21,7 @@ import {
   useMediaQuery,
   FormControlLabel,
   ListItemIcon,
+  Stack,
 } from '@mui/material';
 import {
   DataGrid,
@@ -99,6 +100,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const [radioValue, setRadioValue] = useState(currentProduct?.color ? "color" : "no_color");
 
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
+  const [ean, setEan] = useState(''); // New state for EAN
 
 
   const getSiblings = async () => {
@@ -526,8 +528,35 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const getRowClassName = (row: GridRowModel) =>
     !row.row.id === currentProduct?.id ? 'sibling-row' : '';
 
+  const addToSiblings = async (eanSearch: string) => {
+    if (!eanSearch) return;
+    try {
+      const response = await axiosInstance.post(`/products/${currentProduct.id}/add_to_siblings/`, { ean: eanSearch });
+      if (response.status === 200) {
+        console.log(response)
+      } else {
+        console.error('Failed to fetch product, status code:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    }
+  };
+
   return (
     <>
+      <Stack direction="row" spacing={2} sx={{ my: 2 }}>
+        <TextField
+          label="EAN"
+          value={ean}
+          onChange={(e) => setEan(e.target.value)}
+          sx={{ width: 200 }}
+        />
+        <Button variant="contained" onClick={() => addToSiblings(ean)}>
+          Product toevoegen
+        </Button>
+      </Stack>
+
+      <hr />
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
         <Typography sx={{ mb: 2 }}>{t('selectSiblingType')}</Typography>
         <Box>
