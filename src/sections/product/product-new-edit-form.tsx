@@ -1032,6 +1032,20 @@ export default function ProductNewEditForm({ id }: Props) {
               label={t('color')}
               disabled={parentProduct?.id && !parentProduct?.color}
             >
+              <MenuItem key="none" value="">
+                <ListItemIcon>
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      backgroundColor: 'transparent',
+                      borderRadius: 0.5,
+                      border: '1px solid #ccc'
+                    }}
+                  />
+                </ListItemIcon>
+                {t('None')}
+              </MenuItem>
               {[
                 "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
                 "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
