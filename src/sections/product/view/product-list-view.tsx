@@ -22,6 +22,7 @@ import {
   InputLabel,
   FormControl,
   DialogActions,
+  Switch,
 } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
@@ -86,6 +87,7 @@ export default function ProductListView() {
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [openLightBox, setOpenLightBox] = useState(false);
   const [lightBoxSlides, setLightBoxSlides] = useState();
+  const [showBundles, setShowBundles] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>(filters.name);
 
   const handleLightBoxSlides = useCallback((images) => {
@@ -117,7 +119,7 @@ export default function ProductListView() {
 
   useEffect(() => {
     getAll();
-  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
+  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order, showBundles]);
 
   console.log('productList', productList);
 
@@ -139,8 +141,7 @@ export default function ProductListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
     const { data } = await axiosInstance.get(
-      `/products/?short=true&is_variant=false&limit=${table.rowsPerPage}&offset=${
-        table.page * table.rowsPerPage
+      `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
     );
     setCount(data.count || 0);
@@ -254,6 +255,11 @@ export default function ProductListView() {
     table.onChangePage(e, pageNo);
   }, []);
 
+  const handleShowBundles = () => {
+    setShowBundles(!showBundles);
+
+  };
+
   return (
     <>
       <Container maxWidth={false}>
@@ -297,7 +303,16 @@ export default function ProductListView() {
             results={count}
             sx={{ p: 2.5, pt: 0 }}
           />
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
 
+            <Switch
+              checked={showBundles}
+              onChange={handleShowBundles}
+            />
+            <Typography onClick={handleShowBundles} style={{ cursor: 'pointer' }}>
+              Bundels tonen
+            </Typography>
+          </Box>
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
               dense={table.dense}
