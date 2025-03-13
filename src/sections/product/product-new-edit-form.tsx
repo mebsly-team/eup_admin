@@ -2501,9 +2501,8 @@ export default function ProductNewEditForm({ id }: Props) {
         pointerEvents: currentProduct?.is_variant ? 'none' : 'auto',
       }}
     >
-      {/* <Card>
-        {' '}
-        <Typography
+       <Card>
+        {/* <Typography
           fontSize="14px"
           color="blue"
           sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
@@ -2513,7 +2512,7 @@ export default function ProductNewEditForm({ id }: Props) {
           }
         >
           {t('get_stock_from_snelstart')}
-        </Typography>
+        </Typography> */}
         <CardHeader title={t('stock')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
@@ -2547,7 +2546,7 @@ export default function ProductNewEditForm({ id }: Props) {
             />
           </Box>
         </Stack>
-      </Card> */}
+      </Card>
       <Divider sx={{ borderStyle: 'dashed' }} />
       <Card>
         <CardHeader title={t('inventory')} />
