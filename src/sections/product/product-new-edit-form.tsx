@@ -395,6 +395,9 @@ export default function ProductNewEditForm({ id }: Props) {
       is_listed_on_marktplaats: currentProduct?.is_listed_on_marktplaats || false,
       is_listed_on_2dehands: currentProduct?.is_listed_on_2dehands || false,
       has_electronic_barcode: currentProduct?.has_electronic_barcode || false,
+      alternative_product_ean_1: currentProduct?.alternative_product_ean_1 || '',
+      alternative_product_ean_2: currentProduct?.alternative_product_ean_2 || '',
+      alternative_product_ean_3: currentProduct?.alternative_product_ean_3 || '',
       size_x_value: currentProduct?.size_x_value || 0,
       size_y_value: currentProduct?.size_y_value || 0,
       pallet_x_value: 120,
@@ -1859,6 +1862,10 @@ export default function ProductNewEditForm({ id }: Props) {
               type="number"
               onBlur={handleEmptyNumbers}
             />
+            <RHFTextField name="alternative_product_ean_1" label={t('alternative_product_ean_1')} />
+            <RHFTextField name="alternative_product_ean_2" label={t('alternative_product_ean_2')} />
+            <RHFTextField name="alternative_product_ean_3" label={t('alternative_product_ean_3')} />
+
             <RHFSwitch
               name="has_electronic_barcode"
               labelPlacement="start"
@@ -2501,7 +2508,7 @@ export default function ProductNewEditForm({ id }: Props) {
         pointerEvents: currentProduct?.is_variant ? 'none' : 'auto',
       }}
     >
-       <Card>
+      <Card>
         {/* <Typography
           fontSize="14px"
           color="blue"
