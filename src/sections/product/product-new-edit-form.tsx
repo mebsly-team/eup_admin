@@ -357,7 +357,7 @@ export default function ProductNewEditForm({ id }: Props) {
           Number(currentProduct?.quantity_per_unit)
         )
         : currentProduct?.max_stock_at_rack || 0, // Geweenste voorraad
-      stock_check: currentProduct?.stock_check || false, // voorraadcontrole
+      // stock_check: currentProduct?.stock_check || false, // voorraadcontrole
 
       stock_at_supplier: currentProduct?.stock_at_supplier || 0,
       location: currentProduct?.location || '',
@@ -1906,7 +1906,7 @@ export default function ProductNewEditForm({ id }: Props) {
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
-            <RHFSwitch
+            {/* <RHFSwitch
               name="stock_check"
               labelPlacement="start"
               label={
@@ -1915,7 +1915,7 @@ export default function ProductNewEditForm({ id }: Props) {
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
+            /> */}
             <RHFSwitch
               name="is_only_for_export"
               labelPlacement="start"
