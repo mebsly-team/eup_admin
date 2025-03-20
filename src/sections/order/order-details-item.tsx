@@ -99,7 +99,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
   };
 
   const calculateSubtotal = () =>
-    editedCart?.items.reduce((acc, item) => acc + item.single_product_discounted_price_per_unit_vat * item.quantity, 0);
+    editedCart?.items.reduce((acc, item) => acc + Number(item.single_product_discounted_price_per_unit_vat || 0) * item.quantity, 0);
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
@@ -345,9 +345,10 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                   <TextField
                     type="number"
                     value={item.single_product_discounted_price_per_unit_vat}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', parseFloat(e.target.value))
-                    }
+                      handleItemChange(item.id, 'product_item_total_price_vat', parseFloat(e.target.value) * item.quantity)
+                    }}
                     sx={{ width: 80, mr: 2, textAlign: 'right' }}
                   />
                   <IconButton onClick={() => handleDeleteItem(item.id)}>
