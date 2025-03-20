@@ -27,6 +27,7 @@ type Props = {
 
 export const ORDER_STATUS_OPTIONS = [
   { value: 'pending_order', label: 'Order' },
+  { value: 'user_pending', label: 'Op klant' },
   { value: 'werkbon', label: 'Orderpicker' },
   { value: 'packing', label: 'Pakbon' }, // Verpakking
   { value: 'shipped', label: 'Verzonden' },

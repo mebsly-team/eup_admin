@@ -346,8 +346,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                     type="number"
                     value={item.single_product_discounted_price_per_unit_vat}
                     onChange={(e) => {
-                      handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', parseFloat(e.target.value))
-                      handleItemChange(item.id, 'product_item_total_price_vat', parseFloat(e.target.value) * item.quantity)
+                      const newPrice = parseFloat(e.target.value);
+                      handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', newPrice);
+                      handleItemChange(item.id, 'product_item_total_price_vat', newPrice * item.quantity);
                     }}
                     sx={{ width: 80, mr: 2, textAlign: 'right' }}
                   />
