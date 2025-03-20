@@ -99,7 +99,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
   };
 
   const calculateSubtotal = () =>
-    editedCart?.items.reduce((acc, item) => acc + item.product.price_per_unit_vat * item.quantity, 0);
+    editedCart?.items.reduce((acc, item) => acc + item.single_product_discounted_price_per_unit_vat * item.quantity, 0);
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
@@ -177,9 +177,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     if (changes.length > 0) {
       newHistory.push({
         date: new Date(),
-        event: `Bestelling bijgewerkt door ${
-          currentOrder?.shipping_address?.email || currentOrder?.user?.email
-        }: ${changes.join(', ')}`,
+        event: `Bestelling bijgewerkt door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
+          }: ${changes.join(', ')}`,
       });
     }
 
@@ -187,7 +186,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     updateOrder(currentOrder.id, {
       sub_total: calculateSubtotal().toFixed(2),
       total: calculateTotal().toFixed(2),
-      cart: { ...editedCart, total_price: calculateSubtotal().toFixed(2) },
+      cart: {
+        ...editedCart,
+        cart_total_price_vat: calculateSubtotal().toFixed(2),
+        cart_total_price: calculateTotal().toFixed(2),
+      },
       history: newHistory,
     });
 
@@ -341,9 +344,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                   />
                   <TextField
                     type="number"
-                    value={item.product.price_per_unit_vat}
+                    value={item.single_product_discounted_price_per_unit_vat}
                     onChange={(e) =>
-                      handleItemChange(item.id, 'price_per_unit_vat', parseFloat(e.target.value))
+                      handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', parseFloat(e.target.value))
                     }
                     sx={{ width: 80, mr: 2, textAlign: 'right' }}
                   />
@@ -355,7 +358,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 <>
                   <Box sx={{ typography: 'body2' }}>x{item.quantity}</Box>
                   <Box sx={{ width: 110, textAlign: 'right', typography: 'subtitle2' }}>
-                    {fCurrency(item.product.price_per_unit_vat)}
+                    {fCurrency(item.single_product_discounted_price_per_unit_vat)}
                   </Box>
                 </>
               )}

@@ -66,6 +66,7 @@ export default function OrderTableRow({
     source_admin,
     source_host
   } = row;
+  console.log("🚀 ~ row:", row)
   const { t, onChangeLang } = useTranslate();
   const theme = useTheme();
   const styles = {
@@ -148,7 +149,7 @@ export default function OrderTableRow({
 
       <TableCell sx={{ padding: 1 }}>
         <ListItemText
-          primary={fCurrency(total)}
+          primary={fCurrency(total || 0)}
           secondary={
             <Link
               href={`https://my.mollie.com/dashboard/${'org_1065131'}/payments/${payment_reference}`}
@@ -244,7 +245,7 @@ export default function OrderTableRow({
                   };
                   quantity: any;
                 },
-                i
+                i: number
               ) => (
                 <Stack
                   key={i}
@@ -308,8 +309,8 @@ export default function OrderTableRow({
                   />
 
                   <ListItemText
-                    primary={t('price_per_unit_vat') + ":"}
-                    secondary={`${item.quantity} x ${fCurrency(item.product?.price_per_unit_vat)}`}
+                    primary={`${item.quantity} x ${fCurrency(item.single_product_discounted_price_per_unit_vat)}`}
+                    secondary={`${t('price_per_unit_vat')} : ${fCurrency(item.product_item_total_price_vat || Number(item.single_product_discounted_price_per_unit_vat) * item.quantity)}`}
                     primaryTypographyProps={{
                       typography: 'caption',
                     }}
