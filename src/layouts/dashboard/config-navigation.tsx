@@ -88,6 +88,16 @@ export function useNavData() {
               // { title: t('edit'), path: paths.dashboard.product.demo.edit },
             ],
           },
+          // ORDER
+          {
+            title: t('order'),
+            path: paths.dashboard.order.root,
+            icon: ICONS.order,
+            children: [
+              { title: t('list'), path: paths.dashboard.order.root },
+              // { title: t('details'), path: paths.dashboard.order.demo.details },
+            ],
+          },
           // Campaign
           {
             title: t('acties'),
@@ -198,16 +208,7 @@ export function useNavData() {
               // { title: t('account'), path: paths.dashboard.map.account },
             ],
           },
-          // ORDER
-          {
-            title: t('order'),
-            path: paths.dashboard.order.root,
-            icon: ICONS.order,
-            children: [
-              { title: t('list'), path: paths.dashboard.order.root },
-              // { title: t('details'), path: paths.dashboard.order.demo.details },
-            ],
-          },
+
 
           // INVOICE
           // {

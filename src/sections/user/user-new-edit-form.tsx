@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import moment from 'moment';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -40,6 +40,11 @@ import {
   IconButton,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
+
+const SITE_SOURCE_OPTIONS = [
+  { value: 'kooptop.com', label: 'kooptop.com' },
+  { value: 'europowerbv.com', label: 'europowerbv.com' },
+];
 
 type Props = {
   currentUser?: IUserItem;
@@ -279,6 +284,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       last_name: currentUser?.last_name || '',
       email: currentUser?.email || '',
       gender: currentUser?.gender || '',
+      site_source: currentUser?.site_source || '',
       phone_number: currentUser?.phone_number || '',
       mobile_number: currentUser?.mobile_number || '',
       mobile_phone: currentUser?.mobile_phone || '',
@@ -404,6 +410,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       data.birthdate = moment.isDate(data.birthdate)
         ? moment(data.birthdate).format('YYYY-MM-DD')
         : null;
+      data.unique_identifier = `${data.email}__${data.site_source}`;
       if (currentUser) {
         const response = await axiosInstance.put(`/users/${currentUser.id}/`, data);
       } else {
@@ -468,6 +475,19 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   <MenuItem value="">None</MenuItem>
                   <Divider sx={{ borderStyle: 'dashed' }} />
                   {USER_TYPES.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+                <RHFSelect
+                  name="site_source"
+                  label={t('site_source')}
+                  onChange={(e) => {
+                    setValue('site_source', e.target.value);
+                  }}
+                >
+                  {SITE_SOURCE_OPTIONS.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
                       {option.label}
                     </MenuItem>
