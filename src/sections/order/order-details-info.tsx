@@ -171,10 +171,21 @@ export default function OrderDetailsInfo({
 
       if (response.status === 200) {
         const parcelTypesData: IParcelType[] = response.data;
-        const formattedParcelTypes: IParcelTypeOption[] = parcelTypesData.map((type) => ({
-          value: type.key,
-          label: `${type.key} (${type.minWeightKg}-${type.maxWeightKg} kg, ${type.dimensions.maxLengthCm}x${type.dimensions.maxWidthCm}x${type.dimensions.maxHeightCm} cm)`
-        }));
+        console.log('Parcel types data:', parcelTypesData); // Debug log
+
+        const formattedParcelTypes: IParcelTypeOption[] = parcelTypesData.map((type) => {
+          // Safely access dimensions with fallback values
+          const dimensions = type.dimensions || {
+            maxLengthCm: 80,
+            maxWidthCm: 50,
+            maxHeightCm: 35
+          };
+
+          return {
+            value: type.key,
+            label: `${type.key} (${type.minWeightKg}-${type.maxWeightKg} kg, ${dimensions.maxLengthCm}x${dimensions.maxWidthCm}x${dimensions.maxHeightCm} cm)`
+          };
+        });
 
         setParcelTypes(formattedParcelTypes);
         if (formattedParcelTypes.length > 0) {
@@ -183,6 +194,13 @@ export default function OrderDetailsInfo({
       }
     } catch (error) {
       console.error('Error fetching parcel types:', error);
+      // Set default parcel types if API call fails
+      const defaultParcelTypes: IParcelTypeOption[] = [{
+        value: 'SMALL',
+        label: 'SMALL (0-2 kg, 80x50x35 cm)'
+      }];
+      setParcelTypes(defaultParcelTypes);
+      setSelectedParcelType(defaultParcelTypes[0].value);
     }
   };
 
