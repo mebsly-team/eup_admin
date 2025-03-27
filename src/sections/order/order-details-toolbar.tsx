@@ -43,6 +43,7 @@ export default function OrderDetailsToolbar({
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
   const { id, is_paid, ordered_date, status, source_host } = currentOrder;
+  console.log("🚀 ~ currentOrder:", currentOrder)
 
   return (
     <>
@@ -109,6 +110,7 @@ export default function OrderDetailsToolbar({
               handleDownloadInvoice({ doc: 'pakbon' });
               onChangeStatus('packing');
             }}
+            disabled={!currentOrder?.delivery_details?.tracking_number}
           >
             {t('packing')}
           </Button>

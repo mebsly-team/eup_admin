@@ -26,6 +26,65 @@ import {
   IOrderShippingAddress,
 } from 'src/types/order';
 
+interface IParcelType {
+  key: string;
+  category: string;
+  minWeightKg: number;
+  maxWeightKg: number;
+  defaultWeightKg: number;
+  dimensions: {
+    maxLengthCm: number;
+    maxWidthCm: number;
+    maxHeightCm: number;
+  };
+  minWeightGrams: number;
+  maxWeightGrams: number;
+  defaultWeightGrams: number;
+}
+
+interface IParcelTypeOption {
+  value: string;
+  label: string;
+}
+
+interface IDHLPiece {
+  labelId: string;
+  trackerCode: string;
+  parcelType: string;
+  pieceNumber: number;
+  weight: number;
+  labelType: string;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
+}
+
+interface IDHLResponse {
+  shipmentId: string;
+  product: string;
+  pieces: IDHLPiece[];
+  orderReference: string;
+  deliveryArea: {
+    remote: boolean;
+    type: string;
+  };
+}
+
+interface IDeliveryDetails {
+  shipment_id: string;
+  tracking_number: string;
+  parcel_type: string;
+  weight: number;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  postal_code: string;
+}
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -44,6 +103,11 @@ const countryOptions = [
   { label: "Verenigd Koninkrijk", value: "GB" },
 ];
 
+const shipmentMethods = [
+  { label: "DHL", value: "dhl" },
+  // { label: "DPD", value: "dpd" },
+];
+
 export default function OrderDetailsInfo({
   customer,
   delivery,
@@ -60,61 +124,73 @@ export default function OrderDetailsInfo({
   const [options, setOptions] = useState([]);
 
   const [addressSearchText, setAddressSearchText] = useState('');
-  const [shipmentMethods, setShipmentMethods] = useState([]);
-  const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
+  const [selectedShipmentMethod, setSelectedShipmentMethod] = useState(shipmentMethods[0].value);
   const [selectedCountry, setSelectedCountry] = useState(updatedShippingAddress?.country || shippingAddress?.country || "NL");
+  const [parcelTypes, setParcelTypes] = useState<IParcelTypeOption[]>([]);
+  const [selectedParcelType, setSelectedParcelType] = useState('');
+  const [klantType, setKlantType] = useState<'business' | 'consumer'>('business');
 
-  const [updatedDeliveryDetails, setUpdatedDeliveryDetails] = useState();
+  const [updatedDeliveryDetails, setUpdatedDeliveryDetails] = useState<IDeliveryDetails | undefined>(undefined);
   const deliveryDetails = currentOrder?.delivery_details;
+  console.log("🚀 ~ deliveryDetails:", deliveryDetails)
 
   useEffect(() => {
-    if (deliveryDetails?.id) setUpdatedDeliveryDetails(updatedDeliveryDetails);
+    if (deliveryDetails?.tracking_number) setUpdatedDeliveryDetails(deliveryDetails);
   }, [deliveryDetails]);
 
+  // useEffect(() => {
+  //   if (!deliveryDetails?.tracking_number) get_sendcloud_parcel_details();
+  // }, [deliveryDetails?.tracking_number]);
+
+  // const get_sendcloud_parcel_details = async () => {
+  //   try {
+  //     console.log('deliveryDetails', deliveryDetails);
+  //     const response = await axiosInstance.get(`/get_sendcloud_parcel_details/${deliveryDetails?.id}/?nocache=true`);
+  //     if (response.status === 200) {
+  //       updateOrder(orderId, {
+  //         delivery_details: response.data.parcel,
+  //       });
+  //       setUpdatedDeliveryDetails(response.data?.parcel);
+  //     } else {
+  //       console.error('Failed to send order:', response.status);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending order:', error);
+  //   }
+  // };
+
+  const getParcelTypes = async () => {
+    try {
+      const response = await axiosInstance.get('/get_dhl_parcel_types/', {
+        params: {
+          toCountry: selectedCountry,
+          toPostalCode: updatedShippingAddress?.zip_code || shippingAddress?.zip_code,
+          toBusiness: klantType === 'business'
+        }
+      });
+
+      if (response.status === 200) {
+        const parcelTypesData: IParcelType[] = response.data;
+        const formattedParcelTypes: IParcelTypeOption[] = parcelTypesData.map((type) => ({
+          value: type.key,
+          label: `${type.key} (${type.minWeightKg}-${type.maxWeightKg} kg)`
+        }));
+
+        setParcelTypes(formattedParcelTypes);
+        if (formattedParcelTypes.length > 0) {
+          setSelectedParcelType(formattedParcelTypes[0].value);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching parcel types:', error);
+    }
+  };
+
   useEffect(() => {
-    if (deliveryDetails?.id && !deliveryDetails?.tracking_number) getParcelDetails();
-  }, [deliveryDetails?.id]);
-
-  const getParcelDetails = async () => {
-    try {
-      console.log('deliveryDetails', deliveryDetails);
-      const response = await axiosInstance.get(`/get_parcel_details/${deliveryDetails?.id}/?nocache=true`);
-      if (response.status === 200) {
-        updateOrder(orderId, {
-          delivery_details: response.data.parcel,
-        });
-        setUpdatedDeliveryDetails(response.data?.parcel);
-      } else {
-        console.error('Failed to send order:', response.status);
-      }
-    } catch (error) {
-      console.error('Error sending order:', error);
+    if (selectedCountry && (updatedShippingAddress?.zip_code || shippingAddress?.zip_code)) {
+      getParcelTypes();
     }
-  };
-  const handleGetShipmentMethods = async () => {
-    try {
-      const response = await axiosInstance.get(`/get_sendcloud_shipment_methods/?nocache=true`);
-
-      if (response.status === 200) {
-        setShipmentMethods(
-          response.data?.shipping_methods?.map((item) => {
-            const countryData = item.countries.find(
-              (c) =>
-                c.iso_2 === updatedShippingAddress?.country || c.iso_2 === shippingAddress?.country
-            );
-            return {
-              value: item.id,
-              label: `${item.name} - (€${countryData?.price || '-'}) - (${item?.min_weight}-${item?.max_weight} kg)`,
-            };
-          })
-        );
-      } else {
-        console.error('Failed to send order:', response.status);
-      }
-    } catch (error) {
-      console.error('Error sending order:', error);
-    }
-  };
+  }, [selectedCountry, updatedShippingAddress?.zip_code, shippingAddress?.zip_code, klantType]);
 
   // Function to handle address update
   const handleAddressEditClick = (e) => {
@@ -123,7 +199,7 @@ export default function OrderDetailsInfo({
   };
   // Function to handle delivery update
   const handleDeliveryEditClick = () => {
-    if (!shipmentMethods?.length) handleGetShipmentMethods();
+    // if (!shipmentMethods?.length) handleGetShipmentMethods();
     setIsDeliveryEdit(!isDeliveryEdit);
   };
   const handleAddressUpdate = (e) => {
@@ -189,6 +265,61 @@ export default function OrderDetailsInfo({
     }
   };
 
+  const createShipment = async () => {
+    try {
+      const response = await axiosInstance.post(`/create_shipment_dhl/${orderId}/`);
+
+      if (response.status === 200) {
+        const shipmentData = response.data as IDHLResponse;
+
+        // Validate the response structure
+        if (!shipmentData || typeof shipmentData !== 'object') {
+          throw new Error('Invalid response format: Response is not an object');
+        }
+
+        // Validate required fields
+        if (!shipmentData.shipmentId) {
+          throw new Error('Invalid response format: Missing shipmentId');
+        }
+
+        if (!Array.isArray(shipmentData.pieces) || shipmentData.pieces.length === 0) {
+          throw new Error('Invalid response format: Missing or empty pieces array');
+        }
+
+        const firstPiece = shipmentData.pieces[0];
+        if (!firstPiece.trackerCode) {
+          throw new Error('Invalid response format: Missing trackerCode in first piece');
+        }
+
+        const newHistory = currentOrder.history;
+        newHistory.push({
+          date: new Date(),
+          event: `DHL Shipment created: ${shipmentData.shipmentId}, Tracking: ${firstPiece.trackerCode}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email}`,
+        });
+
+        const updatedDeliveryDetails: IDeliveryDetails = {
+          shipment_id: shipmentData.shipmentId,
+          tracking_number: firstPiece.trackerCode,
+          parcel_type: firstPiece.parcelType || 'SMALL',
+          weight: firstPiece.weight || 0,
+          dimensions: firstPiece.dimensions || { length: 30, width: 30, height: 30 },
+          postal_code: shippingAddress.zip_code || '',
+        };
+
+        updateOrder(orderId, {
+          delivery_details: updatedDeliveryDetails,
+          history: newHistory,
+        });
+
+        setUpdatedDeliveryDetails(updatedDeliveryDetails);
+        setIsDeliveryEdit(false);
+      }
+    } catch (error) {
+      console.error('Error creating DHL shipment:', error);
+      // You might want to show an error message to the user here
+      // For example, using a snackbar or alert component
+    }
+  };
 
   const handleAddressDetails = async ({ context }: any) => {
     const searchContext = context;
@@ -274,29 +405,60 @@ export default function OrderDetailsInfo({
           </IconButton>
         }
       />
+
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        {/* Carrier Select Box */}
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-            Verzonden Methode:
+            Vervoerder:
           </Box>
-          {updatedDeliveryDetails?.shipment?.name}
+          DHL
         </Stack>
+
+        {isDeliveryEdit ? (
+          <Stack direction="row" alignItems="center">
+            <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+              Klant Type:
+            </Box>
+            <TextField
+              size="small"
+              select
+              value={klantType}
+              onChange={(e) => setKlantType(e.target.value as 'business' | 'consumer')}
+              sx={{ width: 150 }}
+            >
+              <MenuItem value="business">Zakelijk</MenuItem>
+              <MenuItem value="consumer">Particulier</MenuItem>
+            </TextField>
+          </Stack>
+        ) : null}
+        {isDeliveryEdit ? (
+          <Stack direction="row" alignItems="center">
+            <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+              Parcel Type:
+            </Box>
+            <TextField
+              size="small"
+              select
+              value={selectedParcelType}
+              onChange={(e) => setSelectedParcelType(e.target.value)}
+              sx={{ width: 150 }}
+            >
+              {parcelTypes.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        ) : null}
 
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
             Volgen No.
           </Box>
 
-          {updatedDeliveryDetails?.carrier?.code === 'dpd' ? (
-            <Link
-              href={`https://www.dpdgroup.com/nl/mydpd/my-parcels/incoming?parcelNumber=${updatedDeliveryDetails?.tracking_number}`}
-              target="_blank"
-              rel="noopener"
-              sx={{ ml: 0.5 }}
-            >
-              {updatedDeliveryDetails?.tracking_number}
-            </Link>
-          ) : updatedDeliveryDetails?.carrier?.code === 'dhl' ? (
+          {selectedShipmentMethod === 'dhl' ? (
             <Link
               href={`https://my.dhlecommerce.nl/home/tracktrace/${updatedDeliveryDetails?.tracking_number}/${updatedDeliveryDetails?.postal_code}`}
               target="_blank"
@@ -311,49 +473,35 @@ export default function OrderDetailsInfo({
         </Stack>
         {isDeliveryEdit ? (
           <>
+
             {/* Total Weight Input */}
-            <Stack direction="row" alignItems="center">
+            {/* <Stack direction="row" alignItems="center">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Totaalgewicht (kg):
               </Box>
               <TextField
+                size="small"
                 type="number"
                 value={totalWeight}
                 onChange={(e) => setTotalWeight(e.target.value)}
                 sx={{ width: 100 }}
               />
-            </Stack>
+            </Stack> */}
 
-            {/* Carrier Select Box */}
-            <Stack direction="row" alignItems="center">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Vervoerder:
-              </Box>
-              <TextField
-                select
-                value={selectedShipmentMethod}
-                onChange={(e) => setSelectedShipmentMethod(e.target.value)}
-                sx={{ width: 150 }}
-              >
-                {shipmentMethods.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Stack>
+
 
             {/* Send Order Button */}
             <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-              <Button
-                variant="contained"
-                onClick={handleSendToSendCloud}
-                disabled={!totalWeight || !selectedShipmentMethod}
-              >
-                Stuur
-              </Button>
+
               <Button variant="outlined" onClick={() => setIsDeliveryEdit(false)}>
                 Annuleren
+              </Button>
+              <Button
+                variant="contained"
+                onClick={createShipment}
+              // disabled={!totalWeight || !selectedShipmentMethod}
+              >
+                Stuur
               </Button>
             </Stack>
           </>
@@ -497,11 +645,11 @@ export default function OrderDetailsInfo({
 
       <Divider sx={{ borderStyle: 'dashed' }} />
 
-      {renderDelivery}
+      {renderShipping}
 
       <Divider sx={{ borderStyle: 'dashed' }} />
 
-      {renderShipping}
+      {renderDelivery}
 
       <Divider sx={{ borderStyle: 'dashed' }} />
 
