@@ -173,7 +173,7 @@ export default function OrderDetailsInfo({
         const parcelTypesData: IParcelType[] = response.data;
         const formattedParcelTypes: IParcelTypeOption[] = parcelTypesData.map((type) => ({
           value: type.key,
-          label: `${type.key} (${type.minWeightKg}-${type.maxWeightKg} kg)`
+          label: `${type.key} (${type.minWeightKg}-${type.maxWeightKg} kg, ${type.dimensions.maxLengthCm}x${type.dimensions.maxWidthCm}x${type.dimensions.maxHeightCm} cm)`
         }));
 
         setParcelTypes(formattedParcelTypes);
@@ -187,10 +187,10 @@ export default function OrderDetailsInfo({
   };
 
   useEffect(() => {
-    if (selectedCountry && (updatedShippingAddress?.zip_code || shippingAddress?.zip_code)) {
+    if (isDeliveryEdit && selectedCountry && (updatedShippingAddress?.zip_code || shippingAddress?.zip_code)) {
       getParcelTypes();
     }
-  }, [selectedCountry, updatedShippingAddress?.zip_code, shippingAddress?.zip_code, klantType]);
+  }, [isDeliveryEdit, selectedCountry, updatedShippingAddress?.zip_code, shippingAddress?.zip_code, klantType]);
 
   // Function to handle address update
   const handleAddressEditClick = (e) => {
