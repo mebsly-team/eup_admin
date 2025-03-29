@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Autocomplete from '@mui/material/Autocomplete';
 
+import axios from 'axios';
 import axiosInstance from 'src/utils/axios';
 
 import Iconify from 'src/components/iconify';
@@ -25,6 +26,7 @@ import {
   IOrderDelivery,
   IOrderShippingAddress,
 } from 'src/types/order';
+import { HOST_API } from 'src/config-global';
 
 interface IParcelType {
   key: string;
@@ -161,7 +163,7 @@ export default function OrderDetailsInfo({
 
   const getParcelTypes = async () => {
     try {
-      const response = await axiosInstance.get('/get_dhl_parcel_types/', {
+      const response = await axios.get(`${HOST_API}/get_dhl_parcel_types/`, {
         params: {
           toCountry: selectedCountry,
           toPostalCode: updatedShippingAddress?.zip_code || shippingAddress?.zip_code,
