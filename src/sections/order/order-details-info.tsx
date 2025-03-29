@@ -238,7 +238,7 @@ export default function OrderDetailsInfo({
 
   const handleSendToSendCloud = async () => {
     try {
-      const response = await axiosInstance.post(`/shipment_send/${orderId}/`, {
+      const response = await axios.post(`${HOST_API}/shipment_send/${orderId}/`, {
         total_weight: totalWeight || 0.001,
         shipping_method_id: selectedShipmentMethod,
       });
@@ -287,7 +287,7 @@ export default function OrderDetailsInfo({
 
   const createShipment = async () => {
     try {
-      const response = await axiosInstance.post(`/create_shipment_dhl/${orderId}/`);
+      const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`);
 
       if (response.status === 200) {
         const shipmentData = response.data as IDHLResponse;
