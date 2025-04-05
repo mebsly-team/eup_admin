@@ -511,8 +511,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   <MenuItem key="M" value="M">
                     M
                   </MenuItem>
-                  <MenuItem key="M" value="M">
+                  <MenuItem key="V" value="V">
                     V
+                  </MenuItem>
+                  <MenuItem key="O" value="O">
+                    Ander
                   </MenuItem>
                 </RHFSelect>
                 <RHFTextField name="phone_number" label={t('phone')} />
