@@ -225,11 +225,12 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
         const allSiblings = [...currentProductSiblingRows, ...successfulSiblings];
         const data = allSiblings.map((item) => item.id);
         await axiosInstance.post('/add_sibling_products/', { product_ids: data });
-        setCurrentProductSiblingRows(allSiblings);
+        enqueueSnackbar(t('siblings_created_successfully'));
+        getSiblings(); // Refresh the list
       }
-      window.location.reload();
     } catch (error) {
       console.log('error', error);
+      enqueueSnackbar({ variant: 'error', message: t('error_creating_siblings') });
     } finally {
       setIsLoading(false);
     }
@@ -533,12 +534,15 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     try {
       const response = await axiosInstance.post(`/products/${currentProduct.id}/add_to_siblings/`, { ean: eanSearch });
       if (response.status === 200) {
-        console.log(response)
+        enqueueSnackbar(t('product_added_successfully'));
+        setEan(''); // Clear the EAN input
+        getSiblings(); // Refresh the list
       } else {
         console.error('Failed to fetch product, status code:', response.status);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
+      enqueueSnackbar({ variant: 'error', message: t('error_adding_product') });
     }
   };
 
