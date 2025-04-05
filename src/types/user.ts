@@ -94,6 +94,7 @@ export type IUserCard = {
 
 export type IUserItem = {
   id: number
+  addresses: any[]
   address_list: any[]
   last_login: any
   is_superuser: boolean
@@ -109,7 +110,15 @@ export type IUserItem = {
   is_staff: boolean
   business_name: any
   contact_person_name: any
+  contact_person_phone: any
   contact_person_phone_number: any
+  contact_person_address: any
+  contact_person_postcode: any
+  contact_person_city: any
+  contact_person_country: any
+  contact_person_department: any
+  contact_person_branch: any
+  contact_person_nationality: any
   is_eligible_to_work_with: boolean
   department: any
   classification: any
@@ -155,6 +164,16 @@ export type IUserItem = {
   last_transaction_date: any
   groups: any[]
   user_permissions: any[]
+  relation_code: string
+  site_source: string
+  extra_phone: string
+  fullname: string
+  invoice_cc_email: string
+  invoice_email: string
+  is_no_payment: boolean
+  is_relation_user: boolean
+  is_vat_document_printed: boolean
+  needs_electronic_invoice: boolean
 };
 
 export type IUserAccount = {

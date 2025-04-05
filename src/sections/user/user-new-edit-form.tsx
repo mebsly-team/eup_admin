@@ -64,6 +64,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const [addressList, setAddressList] = useState(currentUser?.addresses || []);
   console.log("🚀 ~ UserNewEditForm ~ addressList:", addressList)
 
+  type UserType = 'special' | 'wholesaler' | 'supermarket' | 'particular';
+
   const {
     control: controlAddressForm,
     handleSubmit: handleSubmitAddressForm,
@@ -88,7 +90,208 @@ export default function UserNewEditForm({ currentUser }: Props) {
       addressType: '',
     },
   });
-  console.log("🚀 ~ UserNewEditForm ~ watchAddress:", watchAddress())
+
+  const NewUserSchema = Yup.object().shape({
+    type: Yup.string().required(t('required')),
+    relation_code: Yup.string().required(t('required')),
+    first_name: !isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    last_name: !isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    password: currentUser ? Yup.string() : Yup.string().required(t('required')),
+    email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
+    phone_number: isBusiness ? Yup.string()
+      .required(t('phone_required'))
+      .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')) : Yup.string(),
+    mobile_number: isBusiness ? Yup.string()
+      .required(t('mobile_required'))
+      .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')) : Yup.string(),
+    birthdate: Yup.date()
+      .required(t('birthdate_required'))
+      .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years'))
+      .nullable(),
+    fax: Yup.string().nullable(),
+    facebook: Yup.string().nullable().url(t('facebook_url_invalid')),
+    linkedin: Yup.string().nullable().url(t('linkedin_url_invalid')),
+    twitter: Yup.string().nullable().url(t('twitter_url_invalid')),
+    instagram: Yup.string().nullable().url(t('instagram_url_invalid')),
+    pinterest: Yup.string().nullable().url(t('pinterest_url_invalid')),
+    tiktok: Yup.string().nullable().url(t('tiktok_url_invalid')),
+    notes: Yup.string().nullable(),
+    website: Yup.string().nullable().url(t('website_url_invalid')),
+    is_active: Yup.boolean().required(),
+    business_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    contact_person_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    contact_person_phone: isBusiness ? Yup.string()
+      .required(t('required'))
+      .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')) : Yup.string(),
+    contact_person_email: isBusiness ? Yup.string().required(t('required')).email(t('contact_person_email_invalid')) : Yup.string(),
+    classification: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    branch: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    iban: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    bic: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    account_holder_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    account_holder_city: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    vat: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    kvk: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    payment_method: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    customer_percentage: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
+    invoice_discount: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
+    payment_termin: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    credit_limit: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
+    invoice_address: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    invoice_language: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    discount_group: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    inform_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    customer_color: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    relation_type: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    relation_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    days_closed: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    days_no_delivery: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    credit_limit: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
+    invoice_discount: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
+  });
+
+  const ADDRESS_TYPES = [
+    { value: 'delivery', label: t('delivery_address') },
+    { value: 'contact_person', label: t('contact_person_address') },
+    { value: 'invoice', label: t('invoice_address') },
+  ];
+  const USER_TYPES = [
+    { value: 'special', label: t('special') },
+    { value: 'wholesaler', label: t('wholesaler') },
+    { value: 'supermarket', label: t('supermarket') },
+    { value: 'particular', label: t('particular') },
+  ];
+
+  const CUSTOMER_COLORS = [
+    { value: 'red', label: t('red') },
+    { value: 'yellow', label: t('yellow') },
+    { value: 'green', label: t('green') },
+    { value: 'blue', label: t('blue') },
+    { value: 'brown', label: t('brown') },
+  ];
+  const PAYMENT_METHOD_TYPES = [
+    { value: 'bank', label: t('bank') },
+    { value: 'kas', label: t('kas') },
+    { value: 'pin', label: t('pin') },
+  ];
+
+  const defaultValues = useMemo(
+    () => ({
+      addressList: currentUser?.addresses || [],
+      relation_code: currentUser?.relation_code || '',
+      first_name: currentUser?.first_name || '',
+      last_name: currentUser?.last_name || '',
+      email: currentUser?.email || '',
+      gender: currentUser?.gender || '',
+      site_source: currentUser?.site_source || '',
+      phone_number: currentUser?.phone_number || '',
+      mobile_number: currentUser?.mobile_number || '',
+      mobile_phone: currentUser?.mobile_phone || '',
+      contact_person_name: currentUser?.contact_person_name || '',
+      contact_person_address: currentUser?.contact_person_address || '',
+      contact_person_postcode: currentUser?.contact_person_postcode || '',
+      contact_person_city: currentUser?.contact_person_city || '',
+      contact_person_country: currentUser?.contact_person_country || '',
+      contact_person_phone: currentUser?.contact_person_phone || '',
+      contact_person_email: currentUser?.contact_person_email || '',
+      contact_person_department: currentUser?.contact_person_department || '',
+      contact_person_branch: currentUser?.contact_person_branch || '',
+      contact_person_nationality: currentUser?.contact_person_nationality || '',
+      type: currentUser?.type || 'particular',
+      birthdate: currentUser?.birthdate || null,
+      fax: currentUser?.fax || null,
+      facebook: currentUser?.facebook || null,
+      linkedin: currentUser?.linkedin || null,
+      twitter: currentUser?.twitter || null,
+      instagram: currentUser?.instagram || null,
+      pinterest: currentUser?.pinterest || null,
+      tiktok: currentUser?.tiktok || null,
+      notes: currentUser?.notes || null,
+      website: currentUser?.website || null,
+      classification: currentUser?.classification || "",
+      credit_limit: currentUser?.credit_limit || 0,
+      customer_percentage: currentUser?.customer_percentage || 10,
+      days_closed: currentUser?.days_closed || "",
+      days_no_delivery: currentUser?.days_no_delivery || "",
+      department: currentUser?.department || "",
+      account_holder_city: currentUser?.account_holder_city || "",
+      account_holder_name: currentUser?.account_holder_name || "",
+      bic: currentUser?.bic || "",
+      branch: currentUser?.branch || "",
+      business_name: currentUser?.business_name || "",
+      discount_group: currentUser?.discount_group || "",
+      extra_phone: currentUser?.extra_phone || "",
+      fullname: currentUser?.fullname || "",
+      iban: currentUser?.iban || "",
+      inform_via: currentUser?.inform_via || "",
+      invoice_address: currentUser?.invoice_address || "",
+      invoice_cc_email: currentUser?.invoice_cc_email || "",
+      invoice_discount: currentUser?.invoice_discount || 0,
+      invoice_email: currentUser?.invoice_email || "",
+      invoice_language: currentUser?.invoice_language || "",
+      kvk: currentUser?.kvk || "",
+      payment_termin: currentUser?.payment_termin || "",
+      payment_method: currentUser?.payment_method || "",
+      phone: currentUser?.phone || "",
+      relation_type: currentUser?.relation_type || "",
+      relation_via: currentUser?.relation_via || "",
+      vat: currentUser?.vat || "",
+      is_active: currentUser?.is_active ?? false,
+      is_staff: currentUser?.is_staff ?? false,
+      is_no_payment: currentUser?.is_no_payment ?? false,
+      inform_when_new_products: currentUser?.inform_when_new_products ?? false,
+      is_eligible_to_work_with: currentUser?.is_eligible_to_work_with ?? false,
+      is_relation_user: currentUser?.is_relation_user ?? false,
+      is_relation_user2: currentUser?.is_relation_user ?? false,
+      is_vat_document_printed: currentUser?.is_vat_document_printed ?? false,
+      is_payment_termin_active: currentUser?.is_payment_termin_active ?? false,
+      needs_electronic_invoice: currentUser?.needs_electronic_invoice ?? false,
+      incasseren: currentUser?.incasseren ?? false,
+      notify: currentUser?.notify ?? false,
+      is_subscribed_newsletters: currentUser?.is_subscribed_newsletters ?? false,
+      is_access_granted_social_media: currentUser?.is_access_granted_social_media ?? false,
+    }),
+    [currentUser]
+  );
+
+  const methods = useForm({
+    resolver: yupResolver(NewUserSchema),
+    defaultValues,
+  });
+
+  const {
+    reset,
+    watch,
+    control,
+    setValue,
+    handleSubmit,
+    getValues,
+    formState: { isSubmitting, isDirty, errors },
+    ...rest
+  } = methods;
+
+  // Reset form when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      reset(defaultValues);
+    } else {
+      reset({});
+    }
+  }, [currentUser, reset, defaultValues]);
+
+  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newType = e.target.value as UserType;
+    const typeToPercentage: Record<UserType, number> = {
+      special: 25,
+      wholesaler: 20,
+      supermarket: 15,
+      particular: 10,
+    };
+
+    setValue('type', newType);
+    setValue('customer_percentage', typeToPercentage[newType]);
+    setIsBusiness(!['particular', 'admin'].includes(newType));
+  };
 
   const handleAddAddress = () => {
     resetAddressForm({
@@ -184,226 +387,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
     }
   };
 
-
-  const NewUserSchema = Yup.object().shape({
-    type: Yup.string().required(t('required')),
-    relation_code: Yup.string().required(t('required')),
-    first_name: !isBusiness && Yup.string().required(t('required')),
-    last_name: !isBusiness && Yup.string().required(t('required')),
-    password: currentUser ? null : Yup.string().required(t('required')),
-    email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
-    phone_number:
-      isBusiness &&
-      Yup.string()
-        .required(t('phone_required'))
-        .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')),
-    mobile_number:
-      isBusiness &&
-      Yup.string()
-        .required(t('mobile_required'))
-        .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')),
-    // gender: Yup.string().required(t('gender_required')),
-    birthdate: Yup.date()
-      .required(t('birthdate_required'))
-      .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years'))
-      .nullable(),
-    fax: Yup.string().nullable(),
-    facebook: Yup.string().nullable().url(t('facebook_url_invalid')),
-    linkedin: Yup.string().nullable().url(t('linkedin_url_invalid')),
-    twitter: Yup.string().nullable().url(t('twitter_url_invalid')),
-    instagram: Yup.string().nullable().url(t('instagram_url_invalid')),
-    pinterest: Yup.string().nullable().url(t('pinterest_url_invalid')),
-    tiktok: Yup.string().nullable().url(t('tiktok_url_invalid')),
-    notes: Yup.string().nullable(),
-    website: Yup.string().nullable().url(t('website_url_invalid')),
-    is_active: Yup.boolean().required(),
-    business_name: isBusiness && Yup.string().required(t('required')),
-    contact_person_name: isBusiness && Yup.string().required(t('required')),
-    contact_person_phone:
-      isBusiness &&
-      Yup.string()
-        .required(t('required'))
-        .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')),
-    contact_person_email:
-      isBusiness && Yup.string().required(t('required')).email(t('contact_person_email_invalid')),
-    // department: isBusiness && Yup.string().required(t('required')),
-    classification: isBusiness && Yup.string().required(t('required')),
-    branch: isBusiness && Yup.string().required(t('required')),
-    iban: isBusiness && Yup.string().required(t('required')),
-    bic: isBusiness && Yup.string().required(t('required')),
-    account_holder_name: isBusiness && Yup.string().required(t('required')),
-    account_holder_city: isBusiness && Yup.string().required(t('required')),
-    vat: isBusiness && Yup.string().required(t('required')),
-    kvk: isBusiness && Yup.string().required(t('required')),
-    payment_method: isBusiness && Yup.string().required(t('required')),
-    customer_percentage: isBusiness && Yup.number().required(t('required')),
-    invoice_discount: isBusiness && Yup.number().required(t('required')),
-    payment_termin: isBusiness && Yup.string().required(t('required')),
-    credit_limit: isBusiness && Yup.number().required(t('required')),
-    invoice_address: isBusiness && Yup.string().required(t('required')),
-    invoice_language: isBusiness && Yup.string().required(t('required')),
-    discount_group: isBusiness && Yup.string().required(t('required')),
-    inform_via: isBusiness && Yup.string().required(t('required')),
-    customer_color: isBusiness && Yup.string().required(t('required')),
-    relation_type: isBusiness && Yup.string().required(t('required')),
-    relation_via: isBusiness && Yup.string().required(t('required')),
-    days_closed: isBusiness && Yup.string().required(t('required')),
-    days_no_delivery: isBusiness && Yup.string().required(t('required')),
-  });
-
-  const ADDRESS_TYPES = [
-    { value: 'delivery', label: t('delivery_address') },
-    { value: 'contact_person', label: t('contact_person_address') },
-    { value: 'invoice', label: t('invoice_address') },
-  ];
-  const USER_TYPES = [
-    { value: 'special', label: t('special') },
-    { value: 'wholesaler', label: t('wholesaler') },
-    { value: 'supermarket', label: t('supermarket') },
-    { value: 'particular', label: t('particular') },
-  ];
-
-  const CUSTOMER_COLORS = [
-    { value: 'red', label: t('red') },
-    { value: 'yellow', label: t('yellow') },
-    { value: 'green', label: t('green') },
-    { value: 'blue', label: t('blue') },
-    { value: 'brown', label: t('brown') },
-  ];
-  const PAYMENT_METHOD_TYPES = [
-    { value: 'bank', label: t('bank') },
-    { value: 'kas', label: t('kas') },
-    { value: 'pin', label: t('pin') },
-  ];
-
-  const defaultValues = useMemo(
-    () => ({
-      addressList: currentUser?.addresses || [],
-      relation_code: currentUser?.relation_code || '',
-      first_name: currentUser?.first_name || '',
-      last_name: currentUser?.last_name || '',
-      email: currentUser?.email || '',
-      gender: currentUser?.gender || '',
-      site_source: currentUser?.site_source || '',
-      phone_number: currentUser?.phone_number || '',
-      mobile_number: currentUser?.mobile_number || '',
-      mobile_phone: currentUser?.mobile_phone || '',
-      contact_person_name: currentUser?.contact_person_name || '',
-      contact_person_address: currentUser?.contact_person_address || '',
-      contact_person_postcode: currentUser?.contact_person_postcode || '',
-      contact_person_city: currentUser?.contact_person_city || '',
-      contact_person_country: currentUser?.contact_person_country || '',
-      contact_person_phone: currentUser?.contact_person_phone || '',
-      contact_person_email: currentUser?.contact_person_email || '',
-      contact_person_department: currentUser?.contact_person_department || '',
-      contact_person_branch: currentUser?.contact_person_branch || '',
-      contact_person_nationality: currentUser?.contact_person_nationality || '',
-      type: currentUser?.type || 'particular',
-      birthdate: currentUser?.birthdate || null,
-      fax: currentUser?.fax || null,
-      facebook: currentUser?.facebook || null,
-      linkedin: currentUser?.linkedin || null,
-      twitter: currentUser?.twitter || null,
-      instagram: currentUser?.instagram || null,
-      pinterest: currentUser?.pinterest || null,
-      tiktok: currentUser?.tiktok || null,
-      notes: currentUser?.notes || null,
-      website: currentUser?.website || null,
-      classification: currentUser?.classification || "",
-      credit_limit: currentUser?.credit_limit || "",
-      customer_percentage: currentUser?.customer_percentage || "",
-      days_closed: currentUser?.days_closed || "",
-      days_no_delivery: currentUser?.days_no_delivery || "",
-      department: currentUser?.department || "",
-      account_holder_city: currentUser?.account_holder_city || "",
-      account_holder_name: currentUser?.account_holder_name || "",
-      bic: currentUser?.bic || "",
-      branch: currentUser?.branch || "",
-      business_name: currentUser?.business_name || "",
-      discount_group: currentUser?.discount_group || "",
-      extra_phone: currentUser?.extra_phone || "",
-      fullname: currentUser?.fullname || "",
-      iban: currentUser?.iban || "",
-      inform_via: currentUser?.inform_via || "",
-      invoice_address: currentUser?.invoice_address || "",
-      invoice_cc_email: currentUser?.invoice_cc_email || "",
-      invoice_discount: currentUser?.invoice_discount || "",
-      invoice_email: currentUser?.invoice_email || "",
-      invoice_language: currentUser?.invoice_language || "",
-      kvk: currentUser?.kvk || "",
-      payment_termin: currentUser?.payment_termin || "",
-      payment_method: currentUser?.payment_method || "",
-      phone: currentUser?.phone || "",
-      relation_type: currentUser?.relation_type || "",
-      relation_via: currentUser?.relation_via || "",
-      vat: currentUser?.vat || "",
-      is_active: currentUser?.is_active ?? false,
-      is_staff: currentUser?.is_staff ?? false,
-      is_no_payment: currentUser?.is_no_payment ?? false,
-      inform_when_new_products: currentUser?.inform_when_new_products ?? false,
-      is_eligible_to_work_with: currentUser?.is_eligible_to_work_with ?? false,
-      is_relation_user: currentUser?.is_relation_user ?? false,
-      is_relation_user2: currentUser?.is_relation_user ?? false,
-      is_vat_document_printed: currentUser?.is_vat_document_printed ?? false,
-      is_payment_termin_active: currentUser?.is_payment_termin_active ?? false,
-      needs_electronic_invoice: currentUser?.needs_electronic_invoice ?? false,
-      incasseren: currentUser?.incasseren ?? false,
-      notify: currentUser?.notify ?? false,
-      is_subscribed_newsletters: currentUser?.is_subscribed_newsletters ?? false,
-      is_access_granted_social_media: currentUser?.is_access_granted_social_media ?? false,
-
-      // invoice_address: {
-      //   address_name: currentUser?.invoice_address?.address_name || '',
-      //   first_name: currentUser?.invoice_address?.first_name || '',
-      //   last_name: currentUser?.invoice_address?.last_name || '',
-      //   salutation: currentUser?.invoice_address?.salutation || '',
-      //   phone_number: currentUser?.invoice_address?.phone_number || '',
-      //   is_invoice_address: currentUser?.invoice_address?.is_invoice_address ?? false,
-      //   street_name: currentUser?.invoice_address?.street_name || '',
-      //   house_number: currentUser?.invoice_address?.house_number || '',
-      //   house_suffix: currentUser?.invoice_address?.house_suffix || '',
-      //   city: currentUser?.invoice_address?.city || '',
-      //   state: currentUser?.invoice_address?.state || '',
-      //   zip_code: currentUser?.invoice_address?.zip_code || '',
-      //   country: currentUser?.invoice_address?.country || '',
-      // },
-
-    }),
-    [currentUser]
-  );
-
-  const methods = useForm({
-    resolver: yupResolver(NewUserSchema),
-    defaultValues,
-  });
-
-  const {
-    reset,
-    watch,
-    control,
-    setValue,
-    handleSubmit,
-    getValues,
-    formState: { isSubmitting, isDirty, errors },
-    ...rest
-  } = methods;
-  const values = watch();
-  console.log("🚀 ~ UserNewEditForm ~ values:", values)
+  console.log("🚀 ~ UserNewEditForm ~ values:", watch());
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
-  useEffect(() => {
-    if (isDirty) localStorage.setItem('formData', JSON.stringify(values));
-  }, [isDirty, values]);
-
-  useEffect(() => {
-    console.log('useEffect');
-    const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
-    if (savedData) {
-      methods.reset(savedData);
-    }
-  }, [methods]);
-
-  console.log('errors', errors);
   const onSubmit = handleSubmit(async (data) => {
     console.log("🚀 ~ onSubmit ~ data:", data)
     try {
@@ -416,7 +402,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
       } else {
         const response = await axiosInstance.post('/users/', data);
       }
-      localStorage.removeItem('formData');
 
       enqueueSnackbar(currentUser ? t('update_success') : t('create_success'));
       reset();
@@ -480,10 +465,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFSelect
                   name="type"
                   label={t('user_type')}
-                  onChange={(e) => {
-                    setValue('type', e.target.value);
-                    setIsBusiness(!['particular', 'admin'].includes(e.target.value));
-                  }}
+                  onChange={handleTypeChange}
                 >
                   <MenuItem value="">None</MenuItem>
                   <Divider sx={{ borderStyle: 'dashed' }} />
