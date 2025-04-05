@@ -448,6 +448,19 @@ export default function UserNewEditForm({ currentUser }: Props) {
     }
   });
 
+  const handlePasswordReset = async () => {
+    try {
+      await axiosInstance.post('/password/reset/', {
+        email: currentUser?.email,
+        site_source: currentUser?.site_source
+      });
+      enqueueSnackbar(t('password_reset_email_sent'), { variant: 'success' });
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      enqueueSnackbar(t('error_sending_password_reset'), { variant: 'error' });
+    }
+  };
+
   return (
     <>
       <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -765,7 +778,15 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 />
               </Box>
             </Card>
-            <Stack alignItems="flex-end" sx={{ mt: 3 }}>
+            <Stack alignItems="flex-end" sx={{ mt: 3 }} direction="row" spacing={2}>
+              {currentUser && (
+                <LoadingButton
+                  variant="contained"
+                  onClick={handlePasswordReset}
+                >
+                  {t('send_password_reset')}
+                </LoadingButton>
+              )}
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
                 {!currentUser ? t('create_user') : t('save')}
               </LoadingButton>
