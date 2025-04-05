@@ -513,8 +513,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     true
       ? {
         ...item,
-        // free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
-        free_stok : ""
+        free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
       }
       : item
   );
