@@ -840,34 +840,35 @@ export default function ProductNewEditForm({ id }: Props) {
     try {
       const response = await axiosInstance.get(`/snelstart/?id=${id}`);
       const snelProduct = response?.data?.[0] || {};
+      const currentValues = getValues();
+
       const valuesToSet = onlyStock
         ? {
-          ...getValues(),
-          overall_stock: snelProduct?.technischeVoorraad || 0,
-          free_stock: snelProduct?.vrijeVoorraad || 0,
+          ...currentValues,
+          overall_stock: currentValues.overall_stock || snelProduct?.technischeVoorraad || 0,
+          free_stock: currentValues.free_stock || snelProduct?.vrijeVoorraad || 0,
         }
         : {
-          ...getValues(),
-          title: snelProduct?.omschrijving || '',
-          title_long:
+          ...currentValues,
+          title: currentValues.title || snelProduct?.omschrijving || '',
+          title_long: currentValues.title_long ||
             snelProduct?.extraVelden?.find((v) => v.naam === 'ExtraOmschrijvingLang')?.waarde ||
             snelProduct?.omschrijving ||
             '',
 
-          min_price_to_sell: snelProduct?.verkoopprijs || 0,
-          ean: snelProduct?.artikelcode || '',
-          sku: snelProduct?.artikelcode || '',
-          supplier_article_code:
-            snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')
-              ?.waarde || '',
-          brand:
+          min_price_to_sell: currentValues.min_price_to_sell || snelProduct?.verkoopprijs || 0,
+          ean: currentValues.ean || snelProduct?.artikelcode || '',
+          sku: currentValues.sku || snelProduct?.artikelcode || '',
+          supplier_article_code: currentValues.supplier_article_code ||
+            snelProduct?.extraVelden?.find((v) => v.naam === 'ArtikelnummerLeverancier')?.waarde || '',
+          brand: currentValues.brand ||
             brandList.find(
               (item) =>
                 item.name === snelProduct?.extraVelden?.find((v) => v.naam === 'Merk')?.waarde
             ) ||
             currentProduct?.brand ||
             null,
-          supplier:
+          supplier: currentValues.supplier ||
             supplierList.find(
               (item) =>
                 item.name ===
@@ -883,21 +884,21 @@ export default function ProductNewEditForm({ id }: Props) {
             currentProduct?.supplier ||
             null,
 
-          quantity_per_unit: Number(
+          quantity_per_unit: currentValues.quantity_per_unit || Number(
             snelProduct?.extraVelden?.find((v) => v.naam === 'Aantal voor web')?.waarde || 0
           ),
-          price_per_piece: snelProduct?.verkoopprijs || 0,
-          price_per_unit: snelProduct?.verkoopprijs || 0,
-          price_consumers: Number(
+          price_per_piece: currentValues.price_per_piece || snelProduct?.verkoopprijs || 0,
+          price_per_unit: currentValues.price_per_unit || snelProduct?.verkoopprijs || 0,
+          price_consumers: currentValues.price_consumers || Number(
             snelProduct?.extraVelden?.find((v) => v.naam === 'ConsumentenPrijs')?.waarde || 0
           ),
-          price_cost: snelProduct?.inkoopprijs || 0,
-          overall_stock: snelProduct?.technischeVoorraad || 0,
-          free_stock: snelProduct?.vrijeVoorraad || 0,
-          location: snelProduct?.extraVelden?.find((v) => v.naam === 'Locatie')?.waarde || '',
-          extra_location:
+          price_cost: currentValues.price_cost || snelProduct?.inkoopprijs || 0,
+          overall_stock: currentValues.overall_stock || snelProduct?.technischeVoorraad || 0,
+          free_stock: currentValues.free_stock || snelProduct?.vrijeVoorraad || 0,
+          location: currentValues.location || snelProduct?.extraVelden?.find((v) => v.naam === 'Locatie')?.waarde || '',
+          extra_location: currentValues.extra_location ||
             snelProduct?.extraVelden?.find((v) => v.naam === 'Extra Locatie')?.waarde || '',
-          languages_on_item_package:
+          languages_on_item_package: currentValues.languages_on_item_package ||
             snelProduct?.extraVelden?.find((v) => v.naam === 'WelkeTaal')?.waarde?.split('/') ||
             [],
         };
