@@ -107,7 +107,7 @@ const countryOptions = [
 
 const shipmentMethods = [
   { label: "DHL", value: "dhl" },
-  // { label: "DPD", value: "dpd" },
+  { label: "Europower", value: "europower" },
 ];
 
 export default function OrderDetailsInfo({
@@ -286,6 +286,8 @@ export default function OrderDetailsInfo({
   };
 
   const createShipment = async () => {
+    if (selectedShipmentMethod === 'dhl') {
+
     try {
       const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`);
 
@@ -319,11 +321,12 @@ export default function OrderDetailsInfo({
 
         const updatedDeliveryDetails: IDeliveryDetails = {
           shipment_id: shipmentData.shipmentId,
-          tracking_number: firstPiece.trackerCode,
+          tracking_number: selectedShipmentMethod === 'dhl' ? firstPiece.trackerCode : '',
           parcel_type: firstPiece.parcelType || 'SMALL',
           weight: firstPiece.weight || 0,
           dimensions: firstPiece.dimensions || { length: 30, width: 30, height: 30 },
           postal_code: shippingAddress.zip_code || '',
+          carrier: selectedShipmentMethod,
         };
 
         updateOrder(orderId, {
@@ -335,9 +338,34 @@ export default function OrderDetailsInfo({
         setIsDeliveryEdit(false);
       }
     } catch (error) {
-      console.error('Error creating DHL shipment:', error);
-      // You might want to show an error message to the user here
-      // For example, using a snackbar or alert component
+        console.error('Error creating DHL shipment:', error);
+        // You might want to show an error message to the user here
+        // For example, using a snackbar or alert component
+      }
+    } else if (selectedShipmentMethod === 'europower') {
+      const newHistory = currentOrder.history;
+      newHistory.push({
+        date: new Date(),
+        event: `Shipment door europower gemaakt`,
+      });
+
+      const updatedDeliveryDetails: IDeliveryDetails = {
+        shipment_id: `Europower${orderId}`,
+        tracking_number: `Europower${orderId}`,
+        parcel_type: 'SMALL', // TODO
+        weight: 0, // TODO
+        dimensions: { length: 30, width: 30, height: 30 },  // TODO
+        postal_code: shippingAddress.zip_code || '',
+        carrier: 'Europower',
+      };
+
+      updateOrder(orderId, {
+        delivery_details: updatedDeliveryDetails,
+        history: newHistory,
+      });
+
+      setUpdatedDeliveryDetails(updatedDeliveryDetails);
+      setIsDeliveryEdit(false);
     }
   };
 
@@ -432,7 +460,23 @@ export default function OrderDetailsInfo({
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
             Vervoerder:
           </Box>
-          DHL
+          {isDeliveryEdit ? (
+            <TextField
+              size="small"
+              select
+              value={selectedShipmentMethod}
+              onChange={(e) => setSelectedShipmentMethod(e.target.value)}
+              sx={{ width: 150 }}
+            >
+              {shipmentMethods.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          ) : (
+            shipmentMethods.find(method => method.value === selectedShipmentMethod)?.label
+          )}
         </Stack>
 
         {isDeliveryEdit ? (
@@ -487,9 +531,7 @@ export default function OrderDetailsInfo({
             >
               {updatedDeliveryDetails?.tracking_number}
             </Link>
-          ) : (
-            updatedDeliveryDetails?.tracking_number
-          )}
+          ) : selectedShipmentMethod === 'europower' ? "" : updatedDeliveryDetails?.tracking_number}
         </Stack>
         {isDeliveryEdit ? (
           <>
