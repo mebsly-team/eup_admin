@@ -123,8 +123,33 @@ export default function ProductNewEditForm({ id }: Props) {
   const getParentProduct = async () => {
     try {
       const response = await axiosInstance.get(`/products/${currentProduct?.parent_product}/?nocache=true`);
+      console.log('Parent product data:', response?.data);
       setParentProduct(response?.data);
+      // Update stock values after parent product is loaded
+      if (currentProduct?.is_variant) {
+        setValue(
+          'free_stock',
+          Math.floor(Number(response?.data?.free_stock || 0) / Number(currentProduct?.quantity_per_unit))
+        );
+        setValue(
+          'min_stock_value',
+          Math.floor(Number(response?.data?.min_stock_value || 0) / Number(currentProduct?.quantity_per_unit))
+        );
+        setValue(
+          'max_stock_at_rack',
+          Math.floor(Number(response?.data?.max_stock_at_rack || 0) / Number(currentProduct?.quantity_per_unit))
+        );
+        setValue(
+          'overall_stock',
+          Math.floor(Number(response?.data?.overall_stock || 0) / Number(currentProduct?.quantity_per_unit))
+        );
+        setValue(
+          'sell_count',
+          Math.floor(Number(response?.data?.sell_count || 0) / Number(currentProduct?.quantity_per_unit))
+        );
+      }
     } catch (error) {
+      console.error('Error fetching parent product:', error);
       setParentProduct({});
     }
   };
@@ -703,6 +728,10 @@ export default function ProductNewEditForm({ id }: Props) {
     );
     if (currentProduct?.is_variant) {
       setValue(
+        'free_stock',
+        Math.floor(Number(parentProduct?.free_stock || 0) / Number(watch('quantity_per_unit')))
+      );
+      setValue(
         'min_stock_value',
         Math.floor(Number(parentProduct?.min_stock_value || 0) / Number(watch('quantity_per_unit')))
       );
@@ -711,10 +740,6 @@ export default function ProductNewEditForm({ id }: Props) {
         Math.floor(
           Number(parentProduct?.max_stock_at_rack || 0) / Number(watch('quantity_per_unit'))
         )
-      );
-      setValue(
-        'free_stock',
-        Math.floor(Number(parentProduct?.free_stock || 0) / Number(watch('quantity_per_unit')))
       );
       setValue(
         'overall_stock',
@@ -2509,7 +2534,9 @@ export default function ProductNewEditForm({ id }: Props) {
         pointerEvents: currentProduct?.is_variant ? 'none' : 'auto',
       }}
     >
-      <Card>
+      <Card
+        sx={{ marginBottom: "4px" }}
+      >
         {/* <Typography
           fontSize="14px"
           color="blue"
@@ -2546,17 +2573,16 @@ export default function ProductNewEditForm({ id }: Props) {
               onBlur={handleEmptyNumbers}
               labelColor="violet"
             />
-            <RHFTextField
+            {/* <RHFTextField
               name="ordered_in_progress_stock"
               label={t('ordered_in_progress_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
-            />
+            /> */}
           </Box>
         </Stack>
       </Card>
-      <Divider sx={{ borderStyle: 'dashed' }} />
-      <Card>
+      {currentProduct?.is_variant ? null : <Card>
         <CardHeader title={t('inventory')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
@@ -2605,7 +2631,7 @@ export default function ProductNewEditForm({ id }: Props) {
             />
           </Box>
         </Stack>
-      </Card>
+      </Card>}
       <Divider sx={{ borderStyle: 'dashed' }} />
       {currentProduct?.is_variant ? null : <Card>
         <CardHeader title={t('stats')} />
