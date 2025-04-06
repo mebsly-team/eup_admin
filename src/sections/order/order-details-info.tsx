@@ -14,6 +14,8 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Autocomplete from '@mui/material/Autocomplete';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 import axios from 'axios';
 import axiosInstance from 'src/utils/axios';
@@ -131,6 +133,7 @@ export default function OrderDetailsInfo({
   const [parcelTypes, setParcelTypes] = useState<IParcelTypeOption[]>([]);
   const [selectedParcelType, setSelectedParcelType] = useState('');
   const [klantType, setKlantType] = useState<'business' | 'consumer'>('business');
+  const [autoCalculateParcel, setAutoCalculateParcel] = useState(false);
 
   const [updatedDeliveryDetails, setUpdatedDeliveryDetails] = useState<IDeliveryDetails | undefined>(undefined);
   const deliveryDetails = currentOrder?.delivery_details;
@@ -236,34 +239,34 @@ export default function OrderDetailsInfo({
     setIsAddressEdit(false);
   };
 
-  const handleSendToSendCloud = async () => {
-    try {
-      const response = await axios.post(`${HOST_API}/shipment_send/${orderId}/`, {
-        total_weight: totalWeight || 0.001,
-        shipping_method_id: selectedShipmentMethod,
-      });
+  // const handleSendToSendCloud = async () => {
+  //   try {
+  //     const response = await axios.post(`${HOST_API}/shipment_send/${orderId}/`, {
+  //       total_weight: totalWeight || 0.001,
+  //       shipping_method_id: selectedShipmentMethod,
+  //     });
 
-      if (response.status === 200) {
-        console.log('response', response);
-        const newHistory = currentOrder.history;
-        newHistory.push({
-          date: new Date(),
-          event: `Sendcloud: Totaalgewicht-${JSON.stringify(totalWeight)} - Methode-${JSON.stringify(selectedShipmentMethod)}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
-            }`,
-        });
-        updateOrder(orderId, {
-          delivery_details: response.data.parcel,
-          history: newHistory,
-        });
-        setUpdatedDeliveryDetails(response.data?.parcel);
-        setIsDeliveryEdit(false);
-      } else {
-        console.error('Failed to send order:', response.status);
-      }
-    } catch (error) {
-      console.error('Error sending order:', error);
-    }
-  };
+  //     if (response.status === 200) {
+  //       console.log('response', response);
+  //       const newHistory = currentOrder.history;
+  //       newHistory.push({
+  //         date: new Date(),
+  //         event: `Sendcloud: Totaalgewicht-${JSON.stringify(totalWeight)} - Methode-${JSON.stringify(selectedShipmentMethod)}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
+  //           }`,
+  //       });
+  //       updateOrder(orderId, {
+  //         delivery_details: response.data.parcel,
+  //         history: newHistory,
+  //       });
+  //       setUpdatedDeliveryDetails(response.data?.parcel);
+  //       setIsDeliveryEdit(false);
+  //     } else {
+  //       console.error('Failed to send order:', response.status);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending order:', error);
+  //   }
+  // };
 
   const handleAddressFetch = async ({ searchText }: any) => {
     setAddressSearchText(searchText); // Update search text state
@@ -287,9 +290,11 @@ export default function OrderDetailsInfo({
 
   const createShipment = async () => {
     if (selectedShipmentMethod === 'dhl') {
-
       try {
-        const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`);
+        const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`, {
+          auto_calculate: autoCalculateParcel,
+          parcel_type: selectedParcelType
+        });
 
         if (response.status === 200) {
           const shipmentData = response.data as IDHLResponse;
@@ -325,7 +330,7 @@ export default function OrderDetailsInfo({
             parcel_type: firstPiece.parcelType || 'SMALL',
             weight: firstPiece.weight || 0,
             dimensions: firstPiece.dimensions || { length: 30, width: 30, height: 30 },
-            postal_code: shippingAddress.zip_code || '',
+            postal_code: (shippingAddress.zip_code as string) || '',
             carrier: selectedShipmentMethod,
           };
 
@@ -355,7 +360,7 @@ export default function OrderDetailsInfo({
         parcel_type: 'SMALL', // TODO
         weight: 0, // TODO
         dimensions: { length: 30, width: 30, height: 30 },  // TODO
-        postal_code: shippingAddress.zip_code || '',
+        postal_code: (shippingAddress.zip_code as string) || '',
         carrier: 'Europower',
       };
 
@@ -481,40 +486,57 @@ export default function OrderDetailsInfo({
         </Stack>
 
         {isDeliveryEdit ? (
-          <Stack direction="row" alignItems="center">
-            <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-              Klant Type:
-            </Box>
-            <TextField
-              size="small"
-              select
-              value={klantType}
-              onChange={(e) => setKlantType(e.target.value as 'business' | 'consumer')}
-              sx={{ width: 150 }}
-            >
-              <MenuItem value="business">Zakelijk</MenuItem>
-              <MenuItem value="consumer">Particulier</MenuItem>
-            </TextField>
-          </Stack>
-        ) : null}
-        {isDeliveryEdit ? (
-          <Stack direction="row" alignItems="center">
-            <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-              Parcel Type:
-            </Box>
-            <TextField
-              size="small"
-              select
-              value={selectedParcelType}
-              onChange={(e) => setSelectedParcelType(e.target.value)}
-              sx={{ width: 150 }}
-            >
-              {parcelTypes.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
+          <Stack spacing={1.5}>
+            <Stack direction="row" alignItems="center">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={autoCalculateParcel}
+                    onChange={(e) => setAutoCalculateParcel(e.target.checked)}
+                  />
+                }
+                label="Auto parcel berekenen"
+              />
+            </Stack>
+
+            {!autoCalculateParcel && (
+              <>
+                <Stack direction="row" alignItems="center">
+                  <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                    Klant Type:
+                  </Box>
+                  <TextField
+                    size="small"
+                    select
+                    value={klantType}
+                    onChange={(e) => setKlantType(e.target.value as 'business' | 'consumer')}
+                    sx={{ width: 150 }}
+                  >
+                    <MenuItem value="business">Zakelijk</MenuItem>
+                    <MenuItem value="consumer">Particulier</MenuItem>
+                  </TextField>
+                </Stack>
+
+                <Stack direction="row" alignItems="center">
+                  <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                    Parcel Type:
+                  </Box>
+                  <TextField
+                    size="small"
+                    select
+                    value={selectedParcelType}
+                    onChange={(e) => setSelectedParcelType(e.target.value)}
+                    sx={{ width: 150 }}
+                  >
+                    {parcelTypes.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Stack>
+              </>
+            )}
           </Stack>
         ) : null}
 
