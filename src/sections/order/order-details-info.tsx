@@ -126,7 +126,7 @@ export default function OrderDetailsInfo({
   const [options, setOptions] = useState([]);
 
   const [addressSearchText, setAddressSearchText] = useState('');
-  const [selectedShipmentMethod, setSelectedShipmentMethod] = useState(shipmentMethods[0].value);
+  const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
   const [selectedCountry, setSelectedCountry] = useState(updatedShippingAddress?.country || shippingAddress?.country || "NL");
   const [parcelTypes, setParcelTypes] = useState<IParcelTypeOption[]>([]);
   const [selectedParcelType, setSelectedParcelType] = useState('');
@@ -288,56 +288,56 @@ export default function OrderDetailsInfo({
   const createShipment = async () => {
     if (selectedShipmentMethod === 'dhl') {
 
-    try {
-      const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`);
+      try {
+        const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`);
 
-      if (response.status === 200) {
-        const shipmentData = response.data as IDHLResponse;
+        if (response.status === 200) {
+          const shipmentData = response.data as IDHLResponse;
 
-        // Validate the response structure
-        if (!shipmentData || typeof shipmentData !== 'object') {
-          throw new Error('Invalid response format: Response is not an object');
+          // Validate the response structure
+          if (!shipmentData || typeof shipmentData !== 'object') {
+            throw new Error('Invalid response format: Response is not an object');
+          }
+
+          // Validate required fields
+          if (!shipmentData.shipmentId) {
+            throw new Error('Invalid response format: Missing shipmentId');
+          }
+
+          if (!Array.isArray(shipmentData.pieces) || shipmentData.pieces.length === 0) {
+            throw new Error('Invalid response format: Missing or empty pieces array');
+          }
+
+          const firstPiece = shipmentData.pieces[0];
+          if (!firstPiece.trackerCode) {
+            throw new Error('Invalid response format: Missing trackerCode in first piece');
+          }
+
+          const newHistory = currentOrder.history;
+          newHistory.push({
+            date: new Date(),
+            event: `DHL Shipment created: ${shipmentData.shipmentId}, Tracking: ${firstPiece.trackerCode}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email}`,
+          });
+
+          const updatedDeliveryDetails: IDeliveryDetails = {
+            shipment_id: shipmentData.shipmentId,
+            tracking_number: selectedShipmentMethod === 'dhl' ? firstPiece.trackerCode : '',
+            parcel_type: firstPiece.parcelType || 'SMALL',
+            weight: firstPiece.weight || 0,
+            dimensions: firstPiece.dimensions || { length: 30, width: 30, height: 30 },
+            postal_code: shippingAddress.zip_code || '',
+            carrier: selectedShipmentMethod,
+          };
+
+          updateOrder(orderId, {
+            delivery_details: updatedDeliveryDetails,
+            history: newHistory,
+          });
+
+          setUpdatedDeliveryDetails(updatedDeliveryDetails);
+          setIsDeliveryEdit(false);
         }
-
-        // Validate required fields
-        if (!shipmentData.shipmentId) {
-          throw new Error('Invalid response format: Missing shipmentId');
-        }
-
-        if (!Array.isArray(shipmentData.pieces) || shipmentData.pieces.length === 0) {
-          throw new Error('Invalid response format: Missing or empty pieces array');
-        }
-
-        const firstPiece = shipmentData.pieces[0];
-        if (!firstPiece.trackerCode) {
-          throw new Error('Invalid response format: Missing trackerCode in first piece');
-        }
-
-        const newHistory = currentOrder.history;
-        newHistory.push({
-          date: new Date(),
-          event: `DHL Shipment created: ${shipmentData.shipmentId}, Tracking: ${firstPiece.trackerCode}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email}`,
-        });
-
-        const updatedDeliveryDetails: IDeliveryDetails = {
-          shipment_id: shipmentData.shipmentId,
-          tracking_number: selectedShipmentMethod === 'dhl' ? firstPiece.trackerCode : '',
-          parcel_type: firstPiece.parcelType || 'SMALL',
-          weight: firstPiece.weight || 0,
-          dimensions: firstPiece.dimensions || { length: 30, width: 30, height: 30 },
-          postal_code: shippingAddress.zip_code || '',
-          carrier: selectedShipmentMethod,
-        };
-
-        updateOrder(orderId, {
-          delivery_details: updatedDeliveryDetails,
-          history: newHistory,
-        });
-
-        setUpdatedDeliveryDetails(updatedDeliveryDetails);
-        setIsDeliveryEdit(false);
-      }
-    } catch (error) {
+      } catch (error) {
         console.error('Error creating DHL shipment:', error);
         // You might want to show an error message to the user here
         // For example, using a snackbar or alert component
@@ -411,6 +411,7 @@ export default function OrderDetailsInfo({
           <Typography variant="subtitle2">{customer.name}</Typography>
 
           <Box sx={{ color: 'text.secondary' }}>{customer.email}</Box>
+          <Box sx={{ color: 'text.secondary' }}>{customer.relation_code}</Box>
           <Box>
             Betalingstermijn:
             <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
@@ -464,7 +465,7 @@ export default function OrderDetailsInfo({
             <TextField
               size="small"
               select
-              value={selectedShipmentMethod}
+              value={selectedShipmentMethod || currentOrder?.delivery_details?.carrier?.toLowerCase()}
               onChange={(e) => setSelectedShipmentMethod(e.target.value)}
               sx={{ width: 150 }}
             >
@@ -475,7 +476,7 @@ export default function OrderDetailsInfo({
               ))}
             </TextField>
           ) : (
-            shipmentMethods.find(method => method.value === selectedShipmentMethod)?.label
+            shipmentMethods.find(method => method.value === selectedShipmentMethod)?.label || currentOrder?.delivery_details?.carrier
           )}
         </Stack>
 
@@ -531,7 +532,7 @@ export default function OrderDetailsInfo({
             >
               {updatedDeliveryDetails?.tracking_number}
             </Link>
-          ) : selectedShipmentMethod === 'europower' ? "" : updatedDeliveryDetails?.tracking_number}
+          ) : updatedDeliveryDetails?.tracking_number}
         </Stack>
         {isDeliveryEdit ? (
           <>
@@ -543,7 +544,7 @@ export default function OrderDetailsInfo({
               </Box>
               <TextField
                 size="small"
-                type="number"
+                type="number" : update
                 value={totalWeight}
                 onChange={(e) => setTotalWeight(e.target.value)}
                 sx={{ width: 100 }}
