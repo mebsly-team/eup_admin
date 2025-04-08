@@ -718,7 +718,7 @@ export default function ProductNewEditForm({ id }: Props) {
     );
     setValue(
       'price_consumers',
-      roundUp(Number(watch('quantity_per_unit')) * Number(getValues('price_per_piece')) * 1.75)
+      roundUp(Number(watch('quantity_per_unit')) * Number(getValues('price_per_piece')) * getRandomMarkup())
     );
     setValue(
       'max_order_allowed_per_unit',
@@ -1538,7 +1538,7 @@ export default function ProductNewEditForm({ id }: Props) {
                     roundUp(
                       (1 - Number(e.target.value) / 100) *
                       Number(getValues('quantity_per_unit')) *
-                      1.75 *
+                      getRandomMarkup() *
                       parent_price_per_piece
                     )
                   );
@@ -1622,7 +1622,7 @@ export default function ProductNewEditForm({ id }: Props) {
                       (Number(e.target.value) *
                         Number(getValues('supplier')?.percentage_to_add)) /
                       100) *
-                    1.75
+                    getRandomMarkup()
                   )
                 );
                 setValue(
@@ -1691,7 +1691,7 @@ export default function ProductNewEditForm({ id }: Props) {
                 );
                 setValue(
                   'price_consumers',
-                  roundUp(Number(e.target.value) * getValues('quantity_per_unit') * 1.75) || 0
+                  roundUp(Number(e.target.value) * getValues('quantity_per_unit') * getRandomMarkup()) || 0
                 );
               }}
               InputLabelProps={{ shrink: true, sx: { color: 'violet!important' } }}
@@ -2504,19 +2504,17 @@ export default function ProductNewEditForm({ id }: Props) {
                       ml={1}
                       sx={{ color: 'grey', textDecoration: 'line-through' }}
                     >
-                      {(
-                        Number(getValues('price_per_piece') || 0) *
-                        1.75 *
-                        (1 + Number(getValues('vat') || 0) / 100)
-                      ).toFixed(2)}
+                      {
+                        Number(getValues('price_consumers') || 0).toFixed(2)
+                      }
                     </Typography>
                   </Box>
                   <Typography variant="subtitle2" sx={{ color: 'grey' }}>
-                    {getValues('sell_count')} verkocht
+                    {Number(getValues('sell_count'))} verkocht
                   </Typography>
                 </Box>
                 <Rating
-                  defaultValue={parseFloat(getValues('average_rating')) || 4.55}
+                  defaultValue={parseFloat(getValues('average_rating') || '4.55')}
                   onChange={undefined}
                 />
               </Box>
@@ -2755,6 +2753,10 @@ export default function ProductNewEditForm({ id }: Props) {
 }
 
 const roundUp = (num) => parseFloat(num || 0).toFixed(2);
+
+const getRandomMarkup = () => {
+  return 1.5 + Math.random() * 0.5; // Random number between 1.5 and 2
+};
 
 function convertSizeToCm(size, unit) {
   if (unit === 'mm') return size / 10;
