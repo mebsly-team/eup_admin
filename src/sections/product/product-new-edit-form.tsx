@@ -56,6 +56,8 @@ import { CategorySelector } from 'src/sections/category/CategorySelector';
 import Rating from './Rating';
 import ProductVariantForm from './product-variant-form';
 import ProductSiblingForm from './product-sibling-form';
+import ProductDetailsHistory from './product-details-history';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -70,6 +72,7 @@ function updateQueryParams(key, value) {
 }
 export default function ProductNewEditForm({ id }: Props) {
   const { product: currentProduct } = useGetProduct(id || undefined);
+  const { user } = useAuthContext();
 
   const router = useRouter();
   const location = useLocation();
@@ -793,20 +796,88 @@ export default function ProductNewEditForm({ id }: Props) {
         Number(data?.price_per_unit || 0) *
         (1 + Number(data?.vat || 0) / 100)
       ).toFixed(2);
+
+      // Track changes for history
+      const changes = [];
+      if (currentProduct?.id) {
+        // Compare fields and record changes
+        if (data.title !== currentProduct.title) {
+          changes.push(`Titel gewijzigd van "${currentProduct.title}" naar "${data.title}" door ${user?.email}`);
+        }
+        if (data.title_long !== currentProduct.title_long) {
+          changes.push(`Lange titel gewijzigd van "${currentProduct.title_long}" naar "${data.title_long}" door ${user?.email}`);
+        }
+        if (data.price_per_piece !== currentProduct.price_per_piece) {
+          changes.push(`Prijs per stuk gewijzigd van ${currentProduct.price_per_piece} naar ${data.price_per_piece} door ${user?.email}`);
+        }
+        if (data.price_per_unit !== currentProduct.price_per_unit) {
+          changes.push(`Prijs per eenheid gewijzigd van ${currentProduct.price_per_unit} naar ${data.price_per_unit} door ${user?.email}`);
+        }
+        if (data.price_cost !== currentProduct.price_cost) {
+          changes.push(`Kostprijs gewijzigd van ${currentProduct.price_cost} naar ${data.price_cost} door ${user?.email}`);
+        }
+        if (data.price_consumers !== currentProduct.price_consumers) {
+          changes.push(`Consumentenprijs gewijzigd van ${currentProduct.price_consumers} naar ${data.price_consumers} door ${user?.email}`);
+        }
+        if (data.overall_stock !== currentProduct.overall_stock) {
+          changes.push(`Totale voorraad gewijzigd van ${currentProduct.overall_stock} naar ${data.overall_stock} door ${user?.email}`);
+        }
+        if (data.free_stock !== currentProduct.free_stock) {
+          changes.push(`Vrije voorraad gewijzigd van ${currentProduct.free_stock} naar ${data.free_stock} door ${user?.email}`);
+        }
+        if (data.location !== currentProduct.location) {
+          changes.push(`Locatie gewijzigd van "${currentProduct.location}" naar "${data.location}" door ${user?.email}`);
+        }
+        if (data.extra_location !== currentProduct.extra_location) {
+          changes.push(`Extra locatie gewijzigd van "${currentProduct.extra_location}" naar "${data.extra_location}" door ${user?.email}`);
+        }
+        if (data.ean !== currentProduct.ean) {
+          changes.push(`EAN gewijzigd van "${currentProduct.ean}" naar "${data.ean}" door ${user?.email}`);
+        }
+        if (data.sku !== currentProduct.sku) {
+          changes.push(`SKU gewijzigd van "${currentProduct.sku}" naar "${data.sku}" door ${user?.email}`);
+        }
+        if (data.article_code !== currentProduct.article_code) {
+          changes.push(`Artikelcode gewijzigd van "${currentProduct.article_code}" naar "${data.article_code}" door ${user?.email}`);
+        }
+        if (data.supplier !== currentProduct.supplier?.id) {
+          changes.push(`Leverancier gewijzigd van "${currentProduct.supplier?.id}" naar "${data.supplier}" door ${user?.email}`);
+        }
+        if (data.brand !== currentProduct.brand?.id) {
+          changes.push(`Merk gewijzigd van "${currentProduct.brand?.id}" naar "${data.brand}" door ${user?.email}`);
+        }
+        if (data.quantity_per_unit !== currentProduct.quantity_per_unit) {
+          changes.push(`Aantal per eenheid gewijzigd van ${currentProduct.quantity_per_unit} naar ${data.quantity_per_unit} door ${user?.email}`);
+        }
+        if (data.vat !== currentProduct.vat) {
+          changes.push(`BTW percentage gewijzigd van ${currentProduct.vat}% naar ${data.vat}% door ${user?.email}`);
+        }
+      } else {
+        changes.push(`Product aangemaakt door ${user?.email}`);
+      }
+
+      // Add history entry if there are changes
+      if (changes.length > 0) {
+        const newHistory = [...(currentProduct?.history || [])];
+        newHistory.push({
+          date: new Date(),
+          event: changes.join(', '),
+        });
+        data.history = newHistory;
+      }
+
       let response;
       if (currentProduct?.id) {
         response = await axiosInstance.put(`/products/${currentProduct.id}/`, data);
       } else {
         response = await axiosInstance.post('/products/', data);
       }
-      const responseData = response.data; // Assuming the response contains updated data
-      // Update the form data with the new data
-      methods.reset(responseData); // Assuming methods.reset updates the form data
+      const responseData = response.data;
+      methods.reset(responseData);
       localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
 
       if (activeAction === 'save_stay') {
-        // Do nothing, stay on the same page
         window.location.reload();
       } else if (activeAction === 'save_back') {
         if (currentProduct?.is_variant) {
@@ -2680,6 +2751,12 @@ export default function ProductNewEditForm({ id }: Props) {
             {renderCategories}
             {renderImages}
             {renderActions}
+
+            {currentProduct?.id && (
+              <Stack sx={{ mt: 3 }}>
+                <ProductDetailsHistory currentProduct={currentProduct} />
+              </Stack>
+            )}
           </Grid>
           <Grid md={3}>
             <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>

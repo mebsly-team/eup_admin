@@ -125,6 +125,10 @@ export interface IProductItem {
   brand: Brand;
   categories: Category[];
   tags: any[];
+  history: {
+    date: Date;
+    event: string;
+  }[];
 }
 
 export interface Campaign {
