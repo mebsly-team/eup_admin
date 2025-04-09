@@ -116,6 +116,9 @@ export default function OrderDetailsView({ id }: Props) {
       const response = await axiosInstance.post(`/snelstart/`, { order_id: id });
       if (response.status === 200) {
         console.log("🚀 ~ sendToSnelstart ~ response:", response)
+        updateOrder(id, {
+          is_sent_to_snelstart: true,
+        });
       } else {
         console.error('Failed to send order to snelstart, status code:', response.status);
       }

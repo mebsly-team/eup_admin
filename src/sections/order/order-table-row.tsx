@@ -64,7 +64,8 @@ export default function OrderTableRow({
     total,
     user,
     source_admin,
-    source_host
+    source_host,
+    is_sent_to_snelstart
   } = row;
   console.log("🚀 ~ row:", row)
   const { t, onChangeLang } = useTranslate();
@@ -176,18 +177,34 @@ export default function OrderTableRow({
       </TableCell>
 
       <TableCell sx={{ width: 110, padding: 1 }}>
-        <Label
-          variant="soft"
-          color={
-            (status === 'delivered' && 'success') ||
-            (status === 'pending_order' && 'warning') ||
-            (status === 'pending_offer' && 'warning') ||
-            (status === 'cancelled' && 'error') ||
-            'default'
+        <ListItemText
+          primary={<Label
+            variant="soft"
+            color={
+              (status === 'delivered' && 'success') ||
+              (status === 'pending_order' && 'warning') ||
+              (status === 'pending_offer' && 'warning') ||
+              (status === 'cancelled' && 'error') ||
+              'default'
+            }
+          >
+            {t(status)}
+          </Label>}
+          secondary={
+            <Label
+              variant="soft"
+              color={is_sent_to_snelstart ? 'success' : 'error'}
+            >
+              {t("snelstart")}
+            </Label>
           }
-        >
-          {t(status)}
-        </Label>
+          primaryTypographyProps={{ typography: 'body2', noWrap: true }}
+          secondaryTypographyProps={{
+            typography: 'body2',
+            noWrap: true,
+          }}
+        />
+
       </TableCell>
 
       <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
