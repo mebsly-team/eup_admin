@@ -12,39 +12,26 @@ export type IKanbanComment = {
 export type IKanbanAssignee = {
   id: string;
   name: string;
-  role: string;
-  email: string;
-  status: string;
-  address: string;
   avatarUrl: string;
-  phoneNumber: string;
-  lastActivity: Date;
 };
 
 export type IKanbanTask = {
-  due_date: any;
   id: string;
   title: string;
-  name?: string;
+  description?: string;
   status: string;
   priority: string;
+  assignee: string | null;
+  reporter: string;
+  due_date: string;
   labels: string[];
-  description?: string;
   attachments: string[];
   comments: IKanbanComment[];
-  assignee: IKanbanAssignee[];
-  due: [Date | null, Date | null];
-  reporter: {
-    id: string;
-    name: string;
-    avatarUrl: string;
-  };
 };
 
 export type IKanbanColumn = {
-  id: string | number;
+  id: string;
   name: string;
-  taskIds?: string[];
 };
 
 export type IKanban = {

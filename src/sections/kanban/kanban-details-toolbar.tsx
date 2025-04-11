@@ -22,6 +22,7 @@ type Props = {
   onLike: VoidFunction;
   onDelete: VoidFunction;
   onCloseDetails: VoidFunction;
+  onUpdateTask: (updateTask: any) => void;
 };
 
 export default function KanbanDetailsToolbar({
@@ -30,7 +31,8 @@ export default function KanbanDetailsToolbar({
   task,
   onDelete,
   taskStatus,
-  onCloseDetails, onUpdateTask
+  onCloseDetails,
+  onUpdateTask
 }: Props) {
   const smUp = useResponsive('up', 'sm');
 
@@ -43,12 +45,12 @@ export default function KanbanDetailsToolbar({
   const handleChangeStatus = useCallback(
     (newValue) => {
       popover.onClose();
-      onUpdateTask(task.id, {
+      onUpdateTask({
         ...task,
         status: newValue,
       });
     },
-    [popover]
+    [popover, task, onUpdateTask]
   );
 
   return (

@@ -1,4 +1,4 @@
-import { format, getTime, formatDistanceToNow } from 'date-fns';
+import { format, getTime, formatDistanceToNow, parseISO } from 'date-fns';
 
 // ----------------------------------------------------------------------
 
@@ -7,46 +7,61 @@ type InputValue = Date | string | number | null | undefined;
 export function fDate(date: InputValue, newFormat?: string) {
   const fm = newFormat || 'dd MMM yyyy';
 
-  return date ? format(new Date(date), fm) : '';
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? parseISO(date) : new Date(date);
+  return format(dateObj, fm);
 }
 
 export function fTime(date: InputValue, newFormat?: string) {
   const fm = newFormat || 'p';
 
-  return date ? format(new Date(date), fm) : '';
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? parseISO(date) : new Date(date);
+  return format(dateObj, fm);
 }
 
 export function fDateTime(date: InputValue, newFormat?: string) {
   const fm = newFormat || 'dd MMM yyyy p';
 
-  return date ? format(new Date(date), fm) : '';
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? parseISO(date) : new Date(date);
+  return format(dateObj, fm);
 }
 
 export function fTimestamp(date: InputValue) {
-  return date ? getTime(new Date(date)) : '';
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? parseISO(date) : new Date(date);
+  return getTime(dateObj);
 }
 
 export function fToNow(date: InputValue) {
-  return date
-    ? formatDistanceToNow(new Date(date), {
-        addSuffix: true,
-      })
-    : '';
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? parseISO(date) : new Date(date);
+  return formatDistanceToNow(dateObj, {
+    addSuffix: true,
+  });
 }
 
 export function isBetween(inputDate: Date | string | number, startDate: Date, endDate: Date) {
-  const date = new Date(inputDate);
+  const dateObj = typeof inputDate === 'string' ? parseISO(inputDate) : new Date(inputDate);
 
   const results =
-    new Date(date.toDateString()) >= new Date(startDate.toDateString()) &&
-    new Date(date.toDateString()) <= new Date(endDate.toDateString());
+    new Date(dateObj.toDateString()) >= new Date(startDate.toDateString()) &&
+    new Date(dateObj.toDateString()) <= new Date(endDate.toDateString());
 
   return results;
 }
 
 export function isAfter(startDate: Date | null, endDate: Date | null) {
-  const results =
-    startDate && endDate ? new Date(startDate).getTime() > new Date(endDate).getTime() : false;
+  if (!startDate || !endDate) return false;
 
-  return results;
+  const startDateObj = typeof startDate === 'string' ? parseISO(startDate) : new Date(startDate);
+  const endDateObj = typeof endDate === 'string' ? parseISO(endDate) : new Date(endDate);
+
+  return startDateObj.getTime() > endDateObj.getTime();
 }

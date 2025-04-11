@@ -1,22 +1,23 @@
-import { getYear, isSameDay, isSameMonth } from 'date-fns';
+import { getYear, isSameDay, isSameMonth, parseISO } from 'date-fns';
 
 import { fDate } from 'src/utils/format-time';
 
 // ----------------------------------------------------------------------
 
-export function shortDateLabel(startDate: Date | null, endDate: Date | null) {
+export function shortDateLabel(startDate: Date | string | null, endDate: Date | string | null) {
   const getCurrentYear = new Date().getFullYear();
 
-  const startDateYear = startDate ? getYear(startDate) : null;
+  const startDateObj = startDate ? (typeof startDate === 'string' ? parseISO(startDate) : startDate) : null;
+  const endDateObj = endDate ? (typeof endDate === 'string' ? parseISO(endDate) : endDate) : null;
 
-  const endDateYear = endDate ? getYear(endDate) : null;
+  const startDateYear = startDateObj ? getYear(startDateObj) : null;
+  const endDateYear = endDateObj ? getYear(endDateObj) : null;
 
   const currentYear = getCurrentYear === startDateYear && getCurrentYear === endDateYear;
 
-  const sameDay = startDate && endDate ? isSameDay(new Date(startDate), new Date(endDate)) : false;
+  const sameDay = startDateObj && endDateObj ? isSameDay(startDateObj, endDateObj) : false;
 
-  const sameMonth =
-    startDate && endDate ? isSameMonth(new Date(startDate), new Date(endDate)) : false;
+  const sameMonth = startDateObj && endDateObj ? isSameMonth(startDateObj, endDateObj) : false;
 
   if (currentYear) {
     if (sameMonth) {

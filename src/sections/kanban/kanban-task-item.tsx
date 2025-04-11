@@ -27,6 +27,9 @@ type Props = PaperProps & {
   task: IKanbanTask;
   onUpdateTask: (updateTask: IKanbanTask) => void;
   onDeleteTask: VoidFunction;
+  userList: any[];
+  column: any;
+  handleAddComment: (id: string, commentData: { commenter: string; comment: string }) => void;
 };
 
 export default function KanbanTaskItem({

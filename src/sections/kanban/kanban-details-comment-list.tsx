@@ -12,6 +12,7 @@ import { IKanbanComment } from 'src/types/kanban';
 
 type Props = {
   comments: IKanbanComment[];
+  userList: any[];
 };
 
 export default function KanbanDetailsCommentList({ comments, userList }: Props) {

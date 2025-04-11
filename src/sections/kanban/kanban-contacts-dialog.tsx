@@ -27,8 +27,10 @@ const ITEM_HEIGHT = 64;
 
 type Props = {
   open: boolean;
-  onClose: VoidFunction;
+  onClose: (data: { id: string }) => void;
+  onCancel: VoidFunction;
   assignee?: IKanbanAssignee[];
+  userList: any[];
 };
 
 export default function KanbanContactsDialog({ assignee = [], open, onClose, onCancel, userList }: Props) {

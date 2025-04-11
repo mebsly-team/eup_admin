@@ -49,6 +49,9 @@ type Props = {
   onDeleteTask: VoidFunction;
   assignee: any;
   reporter: any;
+  userList: any[];
+  column: any;
+  handleAddComment: (taskId: string, commentData: { commenter: string; comment: string }) => void;
 };
 
 export default function KanbanDetails({
@@ -61,7 +64,8 @@ export default function KanbanDetails({
   assignee,
   reporter,
   userList,
-  column, handleAddComment
+  column,
+  handleAddComment
 }: Props) {
 
   const [quillFull, setQuillFull] = useState(task.description);
@@ -81,13 +85,11 @@ export default function KanbanDetails({
   const handleUpdateTaskName = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       try {
-        if (event.key === 'Enter') {
-          if (taskName) {
-            onUpdateTask(task.id, {
-              ...task,
-              title: taskName,
-            });
-          }
+        if (event.key === 'Enter' && taskName) {
+          onUpdateTask({
+            ...task,
+            title: taskName,
+          });
         }
       } catch (error) {
         console.error(error);
@@ -96,28 +98,35 @@ export default function KanbanDetails({
     [onUpdateTask, task, taskName]
   );
 
+  const handleBlurTaskName = useCallback(() => {
+    if (taskName && taskName !== task.title) {
+      onUpdateTask({
+        ...task,
+        title: taskName,
+      });
+    }
+  }, [onUpdateTask, task, taskName]);
+
   const handleChangePriority = (newValue: string) => {
-    onUpdateTask(task.id, {
+    onUpdateTask({
       ...task,
       priority: newValue
     });
   }
 
   const handleSaveDescription = useCallback(() => {
-    onUpdateTask(task.id, {
+    onUpdateTask({
       ...task,
       description: quillFull
     });
-  }, [quillFull]);
+  }, [quillFull, task, onUpdateTask]);
 
-  const handleDateChange = useCallback((newValue: string) => {
-    onUpdateTask(task.id, {
+  const handleDateChange = useCallback((newValue: Date | null) => {
+    onUpdateTask({
       ...task,
-      due_date: moment.isDate(newValue)
-        ? moment(newValue).format('YYYY-MM-DD')
-        : null
+      due_date: newValue ? moment(newValue).format('YYYY-MM-DD') : ''
     });
-  }, []);
+  }, [onUpdateTask, task]);
 
   const renderHead = (
     <KanbanDetailsToolbar
@@ -137,6 +146,7 @@ export default function KanbanDetails({
       value={taskName}
       onChange={handleChangeTaskName}
       onKeyUp={handleUpdateTaskName}
+      onBlur={handleBlurTaskName}
     />
   );
 
@@ -158,10 +168,10 @@ export default function KanbanDetails({
     </Stack>
   );
 
-  const handleDialogClose = ({ id }) => {
-    onUpdateTask(task.id, {
+  const handleDialogClose = (data: { id: string }) => {
+    onUpdateTask({
       ...task,
-      assignee: id,
+      assignee: data.id,
     });
     contacts.onFalse()
   }
@@ -214,10 +224,8 @@ export default function KanbanDetails({
       <StyledLabel> Due date </StyledLabel>
 
       <DatePicker
-        value={new Date(task.due_date)}
-        onChange={(newValue) => {
-          handleDateChange(newValue);
-        }}
+        value={task.due_date ? new Date(task.due_date) : null}
+        onChange={handleDateChange}
         format="dd/MM/yyyy"
         slotProps={{
           textField: {

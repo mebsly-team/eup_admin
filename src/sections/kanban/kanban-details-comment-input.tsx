@@ -1,27 +1,43 @@
+import { useCallback, useState } from 'react';
+
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import InputBase from '@mui/material/InputBase';
-import IconButton from '@mui/material/IconButton';
 
 import { useAuthContext } from 'src/auth/hooks';
+import { IKanbanTask } from 'src/types/kanban';
 
 import Iconify from 'src/components/iconify';
-import { useCallback, useState } from 'react';
 
 // ----------------------------------------------------------------------
 
-export default function KanbanDetailsCommentInput({ onUpdateTask, task, handleAddComment }
-) {
+type Props = {
+  task: IKanbanTask;
+  handleAddComment: (taskId: string, commentData: { commenter: string; comment: string }) => void;
+};
+
+export default function KanbanDetailsCommentInput({ task, handleAddComment }: Props) {
   const { user } = useAuthContext();
-  const [commentInput, setCommentInput] = useState();
+  const [commentInput, setCommentInput] = useState('');
+
   const handleSaveComment = useCallback(() => {
-    handleAddComment(task.id, {
-      commenter: user?.id,
-      comment: commentInput
-    });
-  }, [commentInput, user]);
+    if (commentInput.trim() && user?.id) {
+      handleAddComment(task.id, {
+        commenter: user.id.toString(),
+        comment: commentInput.trim()
+      });
+      setCommentInput('');
+    }
+  }, [commentInput, user?.id, task.id, handleAddComment]);
+
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && !event.shiftKey && commentInput.trim() && user?.id) {
+      event.preventDefault();
+      handleSaveComment();
+    }
+  };
 
   return (
     <Stack
@@ -42,20 +58,25 @@ export default function KanbanDetailsCommentInput({ onUpdateTask, task, handleAd
       </Avatar>
 
       <Paper variant="outlined" sx={{ p: 1, flexGrow: 1, bgcolor: 'transparent' }}>
-        <InputBase fullWidth multiline rows={2} placeholder="Type a message" sx={{ px: 1 }} onChange={(e) => setCommentInput(e.target.value)} />
+        <InputBase
+          fullWidth
+          multiline
+          rows={2}
+          placeholder="Type a message"
+          value={commentInput}
+          onChange={(e) => setCommentInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          sx={{ px: 1 }}
+        />
 
-        <Stack direction="row" alignItems="center">
-          {/* <Stack direction="row" flexGrow={1}>
-            <IconButton>
-              <Iconify icon="solar:gallery-add-bold" />
-            </IconButton>
-
-            <IconButton>
-              <Iconify icon="eva:attach-2-fill" />
-            </IconButton>
-          </Stack> */}
-
-          <Button variant="contained" onClick={handleSaveComment}>Comment</Button>
+        <Stack direction="row" alignItems="center" justifyContent="flex-end">
+          <Button
+            variant="contained"
+            onClick={handleSaveComment}
+            disabled={!commentInput.trim() || !user?.id}
+          >
+            Comment
+          </Button>
         </Stack>
       </Paper>
     </Stack>

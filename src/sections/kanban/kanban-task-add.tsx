@@ -4,10 +4,6 @@ import Paper from '@mui/material/Paper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import InputBase, { inputBaseClasses } from '@mui/material/InputBase';
 
-import uuidv4 from 'src/utils/uuidv4';
-
-import { _mock } from 'src/_mock';
-
 import { IKanbanTask } from 'src/types/kanban';
 import moment from 'moment';
 
@@ -17,45 +13,49 @@ type Props = {
   status: string;
   onCloseAddTask: VoidFunction;
   onAddTask: (task: IKanbanTask) => void;
+  reporter: string;
 };
 
 export default function KanbanTaskAdd({ status, onAddTask, onCloseAddTask, reporter }: Props) {
   const [name, setName] = useState('');
 
-  const defaultTask: IKanbanTask = useMemo(
+  const defaultTask = useMemo(
     () => ({
-      status,
+      id: '', // Will be assigned by backend
+      status: String(status), // Convert to string to match interface
       title: name.trim(),
       priority: "MEDIUM",
       attachments: [],
       labels: [],
       comments: [],
-      assignee: 0,
+      assignee: null,
       due_date: moment(new Date()).format('YYYY-MM-DD'),
-      due: [null, null],
-      reporter,
+      description: '',
+      reporter: String(reporter), // Convert to string to match interface
     }),
-    [name, status]
+    [name, status, reporter]
   );
 
   const handleKeyUpAddTask = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
-        if (name) {
+        if (name.trim() && reporter) {
           onAddTask(defaultTask);
+          setName('');
         }
       }
     },
-    [defaultTask, name, onAddTask]
+    [defaultTask, name, onAddTask, reporter]
   );
 
   const handleClickAddTask = useCallback(() => {
-    if (name) {
+    if (name.trim() && reporter) {
       onAddTask(defaultTask);
+      setName('');
     } else {
       onCloseAddTask();
     }
-  }, [defaultTask, name, onAddTask, onCloseAddTask]);
+  }, [defaultTask, name, onAddTask, onCloseAddTask, reporter]);
 
   const handleChangeName = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
