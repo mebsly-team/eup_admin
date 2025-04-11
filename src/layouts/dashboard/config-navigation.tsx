@@ -181,19 +181,19 @@ export function useNavData() {
             ],
           },
           // LOGS
-          {
-            title: t('logs'),
-            path: paths.dashboard.logs.list,
-            icon: ICONS.user,
-            children: [
-              // { title: t('profile'), path: paths.dashboard.logs.root },
-              // { title: t('cards'), path: paths.dashboard.logs.cards },
-              { title: t('list'), path: paths.dashboard.logs.list },
-              // { title: t('create'), path: paths.dashboard.logs.new },
-              // { title: t('edit'), path: paths.dashboard.logs.demo.edit },
-              // { title: t('account'), path: paths.dashboard.logs.account },
-            ],
-          },
+          // {
+          //   title: t('logs'),
+          //   path: paths.dashboard.logs.list,
+          //   icon: ICONS.user,
+          //   children: [
+          //     // { title: t('profile'), path: paths.dashboard.logs.root },
+          //     // { title: t('cards'), path: paths.dashboard.logs.cards },
+          //     { title: t('list'), path: paths.dashboard.logs.list },
+          //     // { title: t('create'), path: paths.dashboard.logs.new },
+          //     // { title: t('edit'), path: paths.dashboard.logs.demo.edit },
+          //     // { title: t('account'), path: paths.dashboard.logs.account },
+          //   ],
+          // },
           // MAP
           {
             title: t('map'),

@@ -23,6 +23,7 @@ import { StyledCalendar } from 'src/sections/calendar/styles';
 import { fTimestamp } from 'src/utils/format-time';
 import { CALENDAR_COLOR_OPTIONS } from 'src/_mock/_calendar';
 import { createEvent, updateEvent, deleteEvent } from 'src/api/calendar';
+import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
 
 interface Address {
   id: string;
@@ -60,12 +61,12 @@ interface CalendarEvent {
 }
 
 const USER_TYPES = [
-  { value: "special", label: "Special" },
-  { value: "wholesaler", label: "Wholesaler" },
-  { value: "supermarket", label: "Supermarket" },
+  { value: "special", label: "Speciaal" },
+  { value: "wholesaler", label: "Groothandel" },
+  { value: "supermarket", label: "Supermarkt" },
   { value: "standard_business", label: "Standaard Zakelijk" },
-  { value: "particular", label: "Particular" },
-  { value: "admin", label: "Admin" },
+  { value: "particular", label: "Particulier" },
+  { value: "admin", label: "Beheerder" },
 ] as const;
 
 // Separate component to handle map initialization
@@ -93,6 +94,82 @@ const Map = () => {
   const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const calendarRef = useRef<Calendar>(null);
   const { enqueueSnackbar } = useSnackbar();
+
+  // Fetch events from Google Calendar
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // Get events from 30 days ago to 60 days in the future
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const sixtyDaysFromNow = new Date();
+        sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
+
+        const token = window.gapi?.client?.getToken();
+        console.log('Google Calendar token:', token ? 'Present' : 'Missing');
+
+        if (!window.gapi?.client?.calendar) {
+          console.error('Google Calendar API niet geïnitialiseerd');
+          enqueueSnackbar('Google Calendar API niet geïnitialiseerd', { variant: 'error' });
+          return;
+        }
+
+        if (token) {
+          console.log('Fetching Google Calendar events...');
+          const response = await window.gapi.client.calendar.events.list({
+            calendarId: 'primary',
+            timeMin: thirtyDaysAgo.toISOString(),
+            timeMax: sixtyDaysFromNow.toISOString(),
+            singleEvents: true,
+            orderBy: 'startTime',
+          });
+
+          console.log('Google Calendar response:', response.result);
+
+          const googleEvents = response.result.items?.map((event: any) => {
+            const startTime = event.start.dateTime || event.start.date;
+            const endTime = event.end.dateTime || event.end.date;
+
+            console.log(`Processing event: ${event.summary}`, {
+              start: startTime,
+              end: endTime,
+            });
+
+            return {
+              id: event.id,
+              title: event.summary || 'Untitled Event',
+              description: event.description || '',
+              start: new Date(startTime).getTime(),
+              end: new Date(endTime).getTime(),
+              color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
+              allDay: !event.start.dateTime,
+            };
+          }) || [];
+
+          console.log('Processed events:', googleEvents);
+          setEvents(googleEvents);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        enqueueSnackbar('Error fetching calendar events', { variant: 'error' });
+      }
+    };
+
+    // Check if Google Calendar API is initialized and fetch events
+    const initAndFetch = () => {
+      if (window.gapi?.client?.calendar) {
+        console.log('Google Calendar API is available, fetching events...');
+        fetchEvents();
+      } else {
+        console.log('Waiting for Google Calendar API to initialize...');
+        // Retry after a short delay
+        setTimeout(initAndFetch, 1000);
+      }
+    };
+
+    initAndFetch();
+  }, [enqueueSnackbar]);
 
   // Function to fetch users based on the current map state and filters
   const fetchAddresses = useCallback(async (bounds: LatLngBounds) => {
@@ -181,80 +258,263 @@ const Map = () => {
   };
 
   const handleAddToCalendar = async (user: User, address: Address) => {
-    const now = new Date();
-    // Set the time to 9:00 AM
-    const visitDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0);
-
-    // Find the latest event end time to avoid overlapping
-    const latestEvent = events.length > 0
-      ? events.reduce((latest, event) => event.end > latest.end ? event : latest)
-      : null;
-
-    // If there are existing events, schedule after the latest one
-    if (latestEvent) {
-      const latestEndTime = new Date(latestEvent.end);
-      // If the latest event ends after 9 AM today, use that as the start time
-      if (latestEndTime > visitDate) {
-        visitDate.setTime(latestEndTime.getTime());
-      }
-    }
-
-    const visitStart = visitDate.getTime();
-    const visitEnd = new Date(visitStart + (2 * 60 * 60 * 1000)).getTime(); // 2 hours later
-
-    const eventData: CalendarEvent = {
-      id: `${user.id}-${address.id}-${visitStart}`,
-      title: `Visit ${user.first_name} ${user.last_name}`,
-      description: `Visit at ${address.street_name} ${address.house_number}, ${address.city}, ${address.zip_code}, ${address.country}`,
-      start: visitStart,
-      end: visitEnd,
-      color: CALENDAR_COLOR_OPTIONS[Math.floor(Math.random() * CALENDAR_COLOR_OPTIONS.length)],
-      allDay: false,
-    };
-
     try {
-      await createEvent(eventData);
-      setEvents([...events, eventData]);
-      enqueueSnackbar('Visit scheduled successfully!');
+      // Get the current active date from the calendar
+      const calendarApi = calendarRef.current?.getApi();
+      if (!calendarApi) {
+        throw new Error('Kalender niet beschikbaar');
+      }
+
+      // Get the currently selected date from the calendar view
+      const selectedDate = calendarApi.getDate();
+      console.log('Selected date from calendar:', selectedDate.toLocaleString('nl-NL'));
+
+      // Create visitDate starting at 9 AM on the selected date
+      const visitDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        9, // Start checking from 9 AM
+        0,
+        0
+      );
+
+      console.log('Initial visit date (9 AM):', visitDate.toLocaleString('nl-NL'));
+
+      // Get all events for the selected date
+      const dayStart = new Date(visitDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(visitDate);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      // Filter events for the selected date
+      const dayEvents = events.filter(event => {
+        const eventStart = new Date(event.start);
+        return eventStart >= dayStart && eventStart <= dayEnd;
+      }).sort((a, b) => a.start - b.start);
+
+      console.log('Events for selected date:', dayEvents.map(e => ({
+        title: e.title,
+        start: new Date(e.start).toLocaleString('nl-NL'),
+        end: new Date(e.end).toLocaleString('nl-NL')
+      })));
+
+      // Find the first available 2-hour slot
+      let slotFound = false;
+      const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+
+      // Check each existing event to find gaps
+      for (let i = 0; i <= dayEvents.length; i++) {
+        const slotStart = i === 0 ? visitDate : new Date(dayEvents[i - 1].end + 30 * 60 * 1000); // 30 min buffer after previous event
+        const slotEnd = new Date(slotStart.getTime() + twoHours);
+
+        // If this is the last iteration or there's a gap before the next event
+        if (i === dayEvents.length || slotEnd.getTime() <= new Date(dayEvents[i].start).getTime()) {
+          visitDate.setTime(slotStart.getTime());
+          slotFound = true;
+          break;
+        }
+      }
+
+      if (!slotFound) {
+        throw new Error('Geen beschikbare tijdslot gevonden voor deze dag');
+      }
+
+      const visitStart = visitDate.getTime();
+      const visitEnd = visitStart + twoHours;
+
+      console.log('Final scheduling times:', {
+        startTime: new Date(visitStart).toLocaleString('nl-NL'),
+        endTime: new Date(visitEnd).toLocaleString('nl-NL')
+      });
+
+      // First create the event in Google Calendar
+      if (!window.gapi?.client?.calendar) {
+        throw new Error('Google Calendar API niet geïnitialiseerd');
+      }
+
+      const eventData = {
+        summary: `Bezoek ${user.first_name} ${user.last_name}`,
+        description: `Bezoek aan ${address.street_name} ${address.house_number}, ${address.city} <br /> ${address.zip_code}, ${address.country}`,
+        start: {
+          dateTime: new Date(visitStart).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: new Date(visitEnd).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        colorId: '1',
+      };
+
+      console.log('Agenda-afspraak maken:', eventData);
+
+      const response = await window.gapi.client.calendar.events.insert({
+        calendarId: 'primary',
+        resource: eventData,
+      });
+
+      console.log('Google Calendar response:', response);
+
+      if (response.status !== 200) {
+        throw new Error('Kan geen afspraak maken in Google Agenda');
+      }
+
+      // After successful creation in Google Calendar, update local state
+      const newEvent: CalendarEvent = {
+        id: response.result.id,
+        title: eventData.summary,
+        description: eventData.description,
+        start: visitStart,
+        end: visitEnd,
+        color: CALENDAR_COLOR_OPTIONS[0],
+        allDay: false,
+      };
+
+      // Update events state and force calendar refresh
+      setEvents(prevEvents => {
+        const updatedEvents = [...prevEvents, newEvent];
+        console.log('Updated events:', updatedEvents);
+
+        // Force calendar refresh
+        if (calendarRef.current) {
+          const calendarApi = calendarRef.current.getApi();
+          calendarApi.removeAllEvents();
+          calendarApi.addEventSource(updatedEvents);
+        }
+
+        return updatedEvents;
+      });
+
+      // Format date and time for the success message
+      const startDate = new Date(visitStart);
+      const formattedDate = startDate.toLocaleDateString('nl-NL', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const formattedTime = startDate.toLocaleTimeString('nl-NL', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      enqueueSnackbar(
+        `Bezoek gepland voor ${formattedDate} om ${formattedTime}!`,
+        { variant: 'success' }
+      );
     } catch (error) {
       console.error('Error scheduling visit:', error);
-      enqueueSnackbar('Error scheduling visit', { variant: 'error' });
+      enqueueSnackbar(
+        error instanceof Error ? error.message : 'Fout bij het plannen van bezoek',
+        { variant: 'error' }
+      );
     }
   };
 
   const handleEventDrop = async (info: any) => {
     try {
       const { event } = info;
+
+      if (!window.gapi?.client?.calendar) {
+        throw new Error('Google Calendar API niet geïnitialiseerd');
+      }
+
+      // Update in Google Calendar
+      const eventData = {
+        start: {
+          dateTime: event.start.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: event.end.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      };
+
+      const response = await window.gapi.client.calendar.events.patch({
+        calendarId: 'primary',
+        eventId: event.id,
+        resource: eventData,
+      });
+
+      if (response.status !== 200) {
+        throw new Error('Failed to update event in Google Calendar');
+      }
+
+      // Update local state
       const updatedEvent: CalendarEvent = {
         ...events.find(e => e.id === event.id)!,
         start: Number(fTimestamp(event.start)),
         end: Number(fTimestamp(event.end)),
         allDay: event.allDay,
       };
-      await updateEvent(updatedEvent);
-      setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
-      enqueueSnackbar('Visit time updated successfully!');
+
+      setEvents(prevEvents =>
+        prevEvents.map(e => e.id === updatedEvent.id ? updatedEvent : e)
+      );
+
+      enqueueSnackbar('Visit time updated successfully!', { variant: 'success' });
     } catch (error) {
       console.error('Error updating visit:', error);
-      enqueueSnackbar('Error updating visit time', { variant: 'error' });
+      enqueueSnackbar(
+        error instanceof Error ? error.message : 'Error updating visit time',
+        { variant: 'error' }
+      );
+      info.revert();
     }
   };
 
   const handleEventResize = async (info: any) => {
     try {
       const { event } = info;
+
+      if (!window.gapi?.client?.calendar) {
+        throw new Error('Google Calendar API niet geïnitialiseerd');
+      }
+
+      // Update in Google Calendar
+      const eventData = {
+        start: {
+          dateTime: event.start.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: event.end.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      };
+
+      const response = await window.gapi.client.calendar.events.patch({
+        calendarId: 'primary',
+        eventId: event.id,
+        resource: eventData,
+      });
+
+      if (response.status !== 200) {
+        throw new Error('Failed to update event in Google Calendar');
+      }
+
+      // Update local state
       const updatedEvent: CalendarEvent = {
         ...events.find(e => e.id === event.id)!,
         start: Number(fTimestamp(event.start)),
         end: Number(fTimestamp(event.end)),
         allDay: event.allDay,
       };
-      await updateEvent(updatedEvent);
-      setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
-      enqueueSnackbar('Visit duration updated successfully!');
+
+      setEvents(prevEvents =>
+        prevEvents.map(e => e.id === updatedEvent.id ? updatedEvent : e)
+      );
+
+      enqueueSnackbar('Visit duration updated successfully!', { variant: 'success' });
     } catch (error) {
       console.error('Error updating visit duration:', error);
-      enqueueSnackbar('Error updating visit duration', { variant: 'error' });
+      enqueueSnackbar(
+        error instanceof Error ? error.message : 'Error updating visit duration',
+        { variant: 'error' }
+      );
+      info.revert();
     }
   };
 
@@ -273,6 +533,10 @@ const Map = () => {
           height: '100%'
         }}
       >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography variant="h6">Planning</Typography>
+          <GoogleCalendarAuth />
+        </Stack>
         <StyledCalendar sx={{
           flexGrow: 1,
           '& .fc .fc-button': {
@@ -290,17 +554,24 @@ const Map = () => {
             editable
             droppable
             selectable
-            ref={calendarRef}
-            events={events}
-            eventDisplay="block"
-            dayMaxEventRows={3}
-            height="100%"
+            rerenderDelay={10}
             allDayMaintainDuration
             eventResizableFromStart
+            ref={calendarRef}
+            events={events}
+            dayMaxEventRows={3}
+            eventDisplay="block"
+            height="100%"
             headerToolbar={{
-              left: 'prev,next today',
+              left: 'prev,next vandaag',
               center: 'title',
               right: 'timeGridDay,timeGridWeek,listWeek'
+            }}
+            buttonText={{
+              today: 'Vandaag',
+              day: 'Dag',
+              week: 'Week',
+              list: 'Lijst'
             }}
             initialView="timeGridDay"
             eventDrop={handleEventDrop}
@@ -311,6 +582,22 @@ const Map = () => {
               timeGridPlugin,
               interactionPlugin,
             ]}
+            eventContent={(eventInfo) => {
+              return (
+                <div style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: '100%',
+                  fontSize: '0.85em',
+                  padding: '2px 4px',
+                  backgroundColor: eventInfo.event.backgroundColor || CALENDAR_COLOR_OPTIONS[0],
+                  color: '#fff'
+                }}>
+                  {eventInfo.event.title}
+                </div>
+              );
+            }}
           />
         </StyledCalendar>
       </Paper>
