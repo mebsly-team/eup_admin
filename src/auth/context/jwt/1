@@ -1,0 +1,96 @@
+import React, { useEffect, useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import axiosInstance from "src/utils/axios";
+
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+const DEFAULT_CENTER = [52.0452, 4.6515]; // Waddinxveen, Netherlands
+const DEFAULT_ZOOM = 10;
+
+const customIcon = new L.Icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const MapComponent = () => {
+  const [addresses, setAddresses] = useState([]);
+  const mapRef = useRef(null);
+
+  // Function to fetch filtered data
+  const fetchAddresses = async (bounds) => {
+    if (!bounds) return;
+
+    const { _northEast, _southWest } = bounds;
+    const apiUrl = `/get-map-data/?ne_lat=${_northEast.lat}&ne_lng=${_northEast.lng}&sw_lat=${_southWest.lat}&sw_lng=${_southWest.lng}`;
+
+    try {
+      const response = await axiosInstance.get(apiUrl);
+      const data = response.data;
+      console.log("Fetched addresses:", data); // Debugging
+      setAddresses(data);
+    } catch (error) {
+      console.error("Error fetching map data:", error);
+    }
+  };
+
+  // Update map on move or zoom change
+  const MapEventHandler = () => {
+    const map = useMapEvents({
+      moveend: () => {
+        fetchAddresses(map.getBounds());
+      },
+      zoomend: () => {
+        fetchAddresses(map.getBounds());
+      },
+    });
+
+    return null;
+  };
+
+  useEffect(() => {
+    if (mapRef.current) {
+      fetchAddresses(mapRef.current.getBounds());
+    }
+  }, []);
+
+  return (
+    <MapContainer
+      center={DEFAULT_CENTER}
+      zoom={DEFAULT_ZOOM}
+      style={{ height: "100vh", width: "100%" }}
+      whenCreated={(map) => {
+        mapRef.current = map;
+        fetchAddresses(map.getBounds()); // Ensure initial fetch
+      }}
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+      {/* Event handler for move/zoom changes */}
+      <MapEventHandler />
+
+      {/* Render markers for addresses */}
+      {addresses.map((user) =>
+        user.addresses.map((address) => (
+          address.latitude && address.longitude ? ( // Ensure valid coordinates
+            <Marker key={address.id} position={[address.latitude, address.longitude]} icon={customIcon}>
+              <Popup>
+                <strong>{user.fullname}</strong>
+                <br />
+                {address.street_name} {address.house_number}, {address.city}
+                <br />
+                <a href={`mailto:${user.email}`}>{user.email}</a>
+              </Popup>
+            </Marker>
+          ) : null
+        ))
+      )}
+    </MapContainer>
+  );
+};
+
+export default MapComponent;
