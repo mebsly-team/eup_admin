@@ -518,6 +518,42 @@ const Map = () => {
     }
   };
 
+  const handleEventDelete = async (eventId: string) => {
+    try {
+      if (!window.gapi?.client?.calendar) {
+        throw new Error('Google Calendar API niet geïnitialiseerd');
+      }
+
+      // Delete from Google Calendar
+      const response = await window.gapi.client.calendar.events.delete({
+        calendarId: 'primary',
+        eventId: eventId,
+      });
+
+      if (response.status !== 204) {
+        throw new Error('Kan afspraak niet verwijderen uit Google Agenda');
+      }
+
+      // Update local state
+      setEvents(prevEvents => prevEvents.filter(e => e.id !== eventId));
+
+      // Force calendar refresh
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        calendarApi.removeAllEvents();
+        calendarApi.addEventSource(events.filter(e => e.id !== eventId));
+      }
+
+      enqueueSnackbar('Afspraak succesvol verwijderd', { variant: 'success' });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      enqueueSnackbar(
+        error instanceof Error ? error.message : 'Fout bij het verwijderen van afspraak',
+        { variant: 'error' }
+      );
+    }
+  };
+
   return (
     <Box sx={{ display: "flex", height: "90vh" }}>
       {/* Left Panel - Calendar */}
@@ -584,18 +620,47 @@ const Map = () => {
             ]}
             eventContent={(eventInfo) => {
               return (
-                <div style={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%',
-                  fontSize: '0.85em',
-                  padding: '2px 4px',
-                  backgroundColor: eventInfo.event.backgroundColor || CALENDAR_COLOR_OPTIONS[0],
-                  color: '#fff'
-                }}>
-                  {eventInfo.event.title}
-                </div>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    height: '100%',
+                    px: 0.5,
+                    backgroundColor: eventInfo.event.backgroundColor || CALENDAR_COLOR_OPTIONS[0],
+                    color: '#fff'
+                  }}
+                >
+                  <Typography
+                    noWrap
+                    variant="caption"
+                    sx={{
+                      flexGrow: 1,
+                      fontSize: '0.85em',
+                      lineHeight: '1.2',
+                    }}
+                  >
+                    {eventInfo.event.title}
+                  </Typography>
+                  <IconButton
+                    className="delete-button"
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEventDelete(eventInfo.event.id);
+                    }}
+                    sx={{
+                      p: 0.2,
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      }
+                    }}
+                  >
+                    <DeleteIcon sx={{ fontSize: '1rem' }} />
+                  </IconButton>
+                </Box>
               );
             }}
           />
@@ -604,8 +669,20 @@ const Map = () => {
 
       {/* Right Panel - Map */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* User Type Filters */}
-        <Paper sx={{ p: 2, borderRadius: 0 }}>
+        {/* User Type Filters - Sticky Header */}
+        <Paper
+          elevation={2}
+          sx={{
+            p: 2,
+            borderRadius: 0,
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
+            backgroundColor: 'background.paper',
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
           <ToggleButtonGroup
             value={selectedUserType}
             exclusive
@@ -633,7 +710,7 @@ const Map = () => {
         </Paper>
 
         {/* Map Container */}
-        <Box sx={{ flexGrow: 1, position: 'relative' }}>
+        <Box sx={{ flexGrow: 1, position: 'relative', overflow: 'hidden' }}>
           <MapContainer
             center={[mapCenter.lat, mapCenter.lng]}
             zoom={zoom}
