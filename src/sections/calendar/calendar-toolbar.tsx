@@ -1,7 +1,8 @@
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
+import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
 
@@ -11,6 +12,7 @@ import { fDate } from 'src/utils/format-time';
 
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
 
 import { ICalendarView } from 'src/types/calendar';
 
@@ -27,7 +29,7 @@ const VIEW_OPTIONS = [
   {
     value: 'listWeek',
     label: 'Agenda',
-    icon: 'fluent:calendar-agenda-24-regular',
+    icon: 'mingcute:calendar-schedule-line',
   },
 ] as const;
 
@@ -51,9 +53,11 @@ export default function CalendarToolbar({
   onToday,
   onNextDate,
   onPrevDate,
-  onChangeView,
   onOpenFilters,
+  onChangeView,
 }: Props) {
+  const theme = useTheme();
+
   const smUp = useResponsive('up', 'sm');
 
   const popover = usePopover();
@@ -66,39 +70,57 @@ export default function CalendarToolbar({
         direction="row"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ p: 2.5, pr: 2, position: 'relative' }}
+        sx={{
+          p: 2.5,
+          pr: 2,
+          position: 'relative',
+          borderBottom: (theme) => `dashed 1px ${theme.palette.divider}`,
+        }}
       >
         {smUp && (
-          <Button
-            size="small"
-            color="inherit"
-            onClick={popover.onOpen}
-            startIcon={<Iconify icon={selectedItem.icon} />}
-            endIcon={<Iconify icon="eva:arrow-ios-downward-fill" sx={{ ml: -0.5 }} />}
-          >
-            {selectedItem.label}
-          </Button>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <IconButton onClick={onPrevDate}>
+              <Iconify icon="mingcute:arrow-left-line" />
+            </IconButton>
+
+            <IconButton onClick={onNextDate}>
+              <Iconify icon="mingcute:arrow-right-line" />
+            </IconButton>
+          </Stack>
         )}
 
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton onClick={onPrevDate}>
-            <Iconify icon="eva:arrow-ios-back-fill" />
-          </IconButton>
+        <Stack direction="row" alignItems="center">
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={onToday}
+            sx={{
+              typography: 'h6',
+              ...(smUp && { px: 3, py: 1 }),
+            }}
+          >
+            {fDate(date)}
+          </Button>
 
-          <Typography variant="h6">{fDate(date)}</Typography>
-
-          <IconButton onClick={onNextDate}>
-            <Iconify icon="eva:arrow-ios-forward-fill" />
-          </IconButton>
+          {smUp && (
+            <GoogleCalendarAuth />
+          )}
         </Stack>
 
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Button size="small" color="error" variant="contained" onClick={onToday}>
-            Today
-          </Button>
+          {smUp && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<Iconify icon={selectedItem.icon} />}
+              onClick={onOpenFilters}
+            >
+              {selectedItem.label}
+            </Button>
+          )}
 
           <IconButton onClick={onOpenFilters}>
-            <Iconify icon="ic:round-filter-list" />
+            <Iconify icon="mingcute:filter-line" />
           </IconButton>
         </Stack>
 

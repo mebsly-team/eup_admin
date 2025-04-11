@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import Button from '@mui/material/Button';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -57,9 +58,13 @@ export default function CalendarFilters({
   colorOptions,
   onClickEvent,
 }: Props) {
+  const selectedEventColors = events
+    .filter((event) => filters.colors.includes(event.color))
+    .map((event) => event.color);
+
   const handleFilterColors = useCallback(
-    (newValue: string | string[]) => {
-      onFilters('colors', newValue as string[]);
+    (colors: string[]) => {
+      onFilters('colors', colors);
     },
     [onFilters]
   );
@@ -78,123 +83,94 @@ export default function CalendarFilters({
     [onFilters]
   );
 
-  const renderHead = (
-    <Stack
-      direction="row"
-      alignItems="center"
-      justifyContent="space-between"
-      sx={{ py: 2, pr: 1, pl: 2.5 }}
-    >
-      <Typography variant="h6" sx={{ flexGrow: 1 }}>
-        Filters
-      </Typography>
+  const renderDateFilter = (
+    <Stack spacing={1.5}>
+      <Typography variant="subtitle2">Date Range</Typography>
+      <DatePicker
+        value={filters.startDate}
+        onChange={(newValue) => {
+          onFilters('startDate', newValue);
+        }}
+        slotProps={{
+          textField: {
+            fullWidth: true,
+          },
+        }}
+      />
 
-      <Tooltip title="Reset">
-        <IconButton onClick={onResetFilters}>
-          <Badge color="error" variant="dot" invisible={!canReset}>
-            <Iconify icon="solar:restart-bold" />
-          </Badge>
-        </IconButton>
-      </Tooltip>
-
-      <IconButton onClick={onClose}>
-        <Iconify icon="mingcute:close-line" />
-      </IconButton>
-    </Stack>
-  );
-
-  const renderColors = (
-    <Stack spacing={1} sx={{ my: 3, px: 2.5 }}>
-      <Typography variant="subtitle2">Colors</Typography>
-      <ColorPicker
-        colors={colorOptions}
-        selected={filters.colors}
-        onSelectColor={handleFilterColors}
+      <DatePicker
+        value={filters.endDate}
+        onChange={(newValue) => {
+          onFilters('endDate', newValue);
+        }}
+        slotProps={{
+          textField: {
+            fullWidth: true,
+          },
+        }}
       />
     </Stack>
   );
 
-  const renderDateRange = (
-    <Stack spacing={1.5} sx={{ mb: 3, px: 2.5 }}>
-      <Typography variant="subtitle2">Range</Typography>
-
-      <Stack spacing={2}>
-        <DatePicker label="Begindatum" value={filters.startDate} onChange={handleFilterStartDate} />
-
-        <DatePicker
-          label="Einddatum"
-          value={filters.endDate}
-          onChange={handleFilterEndDate}
-          slotProps={{
-            textField: {
-              error: dateError,
-              helperText: dateError && 'Einddatum must be later than start date',
-            },
-          }}
-        />
-      </Stack>
+  const renderColorFilter = (
+    <Stack spacing={1.5}>
+      <Typography variant="subtitle2">Colors</Typography>
+      <ColorPicker
+        selected={selectedEventColors}
+        onSelectColor={handleFilterColors}
+        colors={colorOptions}
+      />
     </Stack>
   );
 
-  const renderEvents = (
-    <>
-      <Typography variant="subtitle2" sx={{ px: 2.5, mb: 1 }}>
-        Events ({events.length})
-      </Typography>
+  const renderEventList = (
+    <Stack spacing={1.5}>
+      <Typography variant="subtitle2">Events ({events.length})</Typography>
 
-      <Scrollbar sx={{ height: 1 }}>
-        {orderBy(events, ['end'], ['desc']).map((event) => (
-          <ListItemButton
-            key={event.id}
-            onClick={() => onClickEvent(`${event.id}`)}
-            sx={{
-              py: 1.5,
-              borderBottom: (theme) => `dashed 1px ${theme.palette.divider}`,
-            }}
-          >
-            <Box
+      <Stack spacing={1}>
+        {events.map((event) => {
+          const selected = filters.colors.includes(event.color);
+
+          const timestamp = event.start ? new Date(Number(event.start)).getTime() : 0;
+
+          return (
+            <Stack
+              key={event.id}
+              spacing={1}
               sx={{
-                top: 16,
-                left: 0,
-                width: 0,
-                height: 0,
-                position: 'absolute',
-                borderRight: '10px solid transparent',
-                borderTop: `10px solid ${event.color}`,
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'background.neutral',
+                },
+                ...(selected && {
+                  bgcolor: 'background.neutral',
+                }),
               }}
-            />
-
-            <ListItemText
-              disableTypography
-              primary={
-                <Typography variant="subtitle2" sx={{ fontSize: 13, mt: 0.5 }}>
+            >
+              <ListItemButton
+                onClick={() => onClickEvent(event.id)}
+                sx={{
+                  p: 1,
+                  borderRadius: 1,
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ color: event.color }}>
                   {event.title}
                 </Typography>
-              }
-              secondary={
-                <Typography
-                  variant="caption"
-                  component="div"
-                  sx={{ fontSize: 11, color: 'text.disabled' }}
-                >
-                  {event.allDay ? (
-                    fDateTime(event.start, 'dd MMM yy')
-                  ) : (
-                    <>
-                      {`${fDateTime(event.start, 'dd MMM yy p')} - ${fDateTime(
-                        event.end,
-                        'dd MMM yy p'
-                      )}`}
-                    </>
-                  )}
-                </Typography>
-              }
-              sx={{ display: 'flex', flexDirection: 'column-reverse' }}
-            />
-          </ListItemButton>
-        ))}
-      </Scrollbar>
-    </>
+
+                {timestamp > 0 && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {fDateTime(timestamp)}
+                  </Typography>
+                )}
+              </ListItemButton>
+            </Stack>
+          );
+        })}
+      </Stack>
+    </Stack>
   );
 
   return (
@@ -209,15 +185,41 @@ export default function CalendarFilters({
         sx: { width: 320 },
       }}
     >
-      {renderHead}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ pl: 2, pr: 1, py: 2 }}
+      >
+        <Typography variant="h6">Filters</Typography>
 
-      <Divider sx={{ borderStyle: 'dashed' }} />
+        <Stack direction="row" spacing={1}>
+          {canReset && (
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={onResetFilters}
+              startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+            >
+              Clear
+            </Button>
+          )}
 
-      {renderColors}
+          <IconButton onClick={onClose}>
+            <Iconify icon="mingcute:close-line" />
+          </IconButton>
+        </Stack>
+      </Stack>
 
-      {renderDateRange}
+      <Divider />
 
-      {renderEvents}
+      <Scrollbar sx={{ px: 2, py: 3 }}>
+        <Stack spacing={3}>
+          {renderDateFilter}
+          {renderColorFilter}
+          {renderEventList}
+        </Stack>
+      </Scrollbar>
     </Drawer>
   );
 }
