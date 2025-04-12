@@ -40,7 +40,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
   };
 
   // Fetch product details using EAN
-  const getProductDetails = async (eanSearch: string) => {
+  const handleAddProduct = async (eanSearch: string) => {
     if (!eanSearch) return;
     try {
       const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
@@ -52,6 +52,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             product,
             quantity: 1,
             completed: false,
+            single_product_discounted_price_per_unit: product.price_per_unit,
+            single_product_discounted_price_per_unit_vat: product.price_per_unit_vat,
           };
           setEditedCart((prev: { items: any }) => ({ ...prev, items: [...prev.items, newItem] }));
           setEan('');
@@ -75,6 +77,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             product,
             quantity: 1,
             completed: false,
+            single_product_discounted_price_per_unit: product.price_per_unit,
+            single_product_discounted_price_per_unit_vat: product.price_per_unit_vat,
           };
           const updatedItems = editedCart.items.filter((i) => item.id !== i.id);
           console.log('updatedItems', updatedItems)
@@ -386,7 +390,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
               onChange={(e) => setEan(e.target.value)}
               sx={{ width: 200 }}
             />
-            <Button variant="contained" onClick={() => getProductDetails(ean)}>
+            <Button variant="contained" onClick={() => handleAddProduct(ean)}>
               Product toevoegen
             </Button>
           </Stack>
