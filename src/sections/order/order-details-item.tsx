@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from '@mui/material/Link';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -314,8 +315,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 sx={{ width: 48, height: 48, mr: 2 }}
               />
               <ListItemText
-                primary={item.product.title}
-                secondary={item.product.article_code}
+                primary={
+                  <Link
+                    href={`/dashboard/product/${item.product.id}/edit?tab=0`}
+                    color="inherit"
+                    underline="hover"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    {item.product.title}
+                  </Link>
+                }
+                secondary={item.product.ean}
                 primaryTypographyProps={{ typography: 'body2' }}
                 secondaryTypographyProps={{ component: 'span', color: 'text.disabled', mt: 0.5 }}
               />
