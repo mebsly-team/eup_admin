@@ -107,6 +107,7 @@ const MapInitializer = ({ onMapReady }: { onMapReady: (map: LeafletMap) => void 
 
 const Map = () => {
   const [users, setUsers] = useState<User[]>([]);
+  console.log("🚀 ~ Map ~ users:", users)
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 52.0452, lng: 4.6522 });
   const [zoom, setZoom] = useState(10);
@@ -230,17 +231,33 @@ const Map = () => {
 
   const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
     if (newUserTypes.includes("all")) {
-      setSelectedUserTypes(["all"]);
+      // If "all" is being selected, deselect everything else
+      if (!selectedUserTypes.includes("all")) {
+        setSelectedUserTypes(["all"]);
+      } else {
+        // If "all" is being deselected, default to "wholesaler"
+        setSelectedUserTypes(["wholesaler"]);
+      }
     } else {
-      setSelectedUserTypes(newUserTypes.length ? newUserTypes.filter(type => type !== "all") : ["wholesaler"]);
+      // If selecting other options while "all" is selected, remove "all"
+      const filteredTypes = newUserTypes.filter(type => type !== "all");
+      setSelectedUserTypes(filteredTypes.length ? filteredTypes : ["wholesaler"]);
     }
   };
 
   const handleColorChange = (event: React.MouseEvent<HTMLElement>, newColors: string[]) => {
     if (newColors.includes("all")) {
-      setSelectedColors(["all"]);
+      // If "all" is being selected, deselect everything else
+      if (!selectedColors.includes("all")) {
+        setSelectedColors(["all"]);
+      } else {
+        // If "all" is being deselected, default to "red"
+        setSelectedColors(["red"]);
+      }
     } else {
-      setSelectedColors(newColors.length ? newColors.filter(color => color !== "all") : ["red"]);
+      // If selecting other options while "all" is selected, remove "all"
+      const filteredColors = newColors.filter(color => color !== "all");
+      setSelectedColors(filteredColors.length ? filteredColors : ["red"]);
     }
   };
 
@@ -807,7 +824,7 @@ const Map = () => {
                 user.addresses.map((address) => {
                   const { latitude, longitude } = address;
                   if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
-                    const markerColor = MARKER_COLORS.find(c => c.value === user.color)?.color || MARKER_COLORS[0].color;
+                    const markerColor = MARKER_COLORS.find(c => c.value === user.customer_color)?.color || MARKER_COLORS[0].color;
                     return (
                       <Marker
                         key={address.id}

@@ -89,6 +89,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       zip_code: '',
       country: '',
       addressType: '',
+      customer_color: '',
     },
   });
 
@@ -249,6 +250,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       notify: currentUser?.notify ?? false,
       is_subscribed_newsletters: currentUser?.is_subscribed_newsletters ?? false,
       is_access_granted_social_media: currentUser?.is_access_granted_social_media ?? false,
+      customer_color: currentUser?.customer_color ?? "",
     }),
     [currentUser]
   );
