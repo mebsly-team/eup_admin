@@ -40,6 +40,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
+import { COLORS } from 'src/constants/colors';
 
 const SITE_SOURCE_OPTIONS = [
   { value: 'kooptop.com', label: 'kooptop.com' },
@@ -162,13 +163,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
     { value: 'particular', label: t('particular') },
   ];
 
-  const CUSTOMER_COLORS = [
-    { value: 'red', label: t('red') },
-    { value: 'yellow', label: t('yellow') },
-    { value: 'green', label: t('green') },
-    { value: 'blue', label: t('blue') },
-    { value: 'brown', label: t('brown') },
-  ];
+  const mappedColors = COLORS.map(color => ({
+    value: color.value,
+    label: t(color.value),
+    color: color.color
+  }));
   const PAYMENT_METHOD_TYPES = [
     { value: 'bank', label: t('bank') },
     { value: 'kas', label: t('kas') },
@@ -626,12 +625,64 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
                 <RHFTextField name="discount_group" label={t('discount_group')} />
                 <RHFTextField name="inform_via" label={t('inform_via')} />
-                <RHFSelect name="customer_color" label={t('customer_color')}>
+                <RHFSelect
+                  name="customer_color"
+                  label={t('customer_color')}
+                  SelectProps={{
+                    renderValue: (value) => {
+                      const option = mappedColors.find((c) => c.value === value);
+                      if (!option) return '';
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Box
+                            className="color-dot"
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: '50%',
+                              backgroundColor: option.color,
+                              border: '2px solid #fff',
+                              boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+                              flexShrink: 0
+                            }}
+                          />
+                          <Typography noWrap>{option.label}</Typography>
+                        </Box>
+                      );
+                    }
+                  }}
+                >
                   <MenuItem value="">{t('none')}</MenuItem>
                   <Divider sx={{ borderStyle: 'dashed' }} />
-                  {CUSTOMER_COLORS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
+                  {mappedColors.map((option) => (
+                    <MenuItem
+                      key={option.value}
+                      value={option.value}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        py: 1,
+                        '&:hover .color-dot': {
+                          transform: 'scale(1.2)',
+                          boxShadow: '0 0 0 2px rgba(0,0,0,0.2)'
+                        }
+                      }}
+                    >
+                      <Box
+                        className="color-dot"
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          backgroundColor: option.color,
+                          border: '2px solid #fff',
+                          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+                          transition: 'all 0.2s ease-in-out',
+                          flexShrink: 0
+                        }}
+                      />
+                      <Typography noWrap>{option.label}</Typography>
                     </MenuItem>
                   ))}
                 </RHFSelect>

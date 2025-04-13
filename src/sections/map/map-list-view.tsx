@@ -17,13 +17,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CircularProgress from "@mui/material/CircularProgress";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import { Map as LeafletMap, LatLngBounds } from 'leaflet';
+import { Map as LeafletMap, LatLngBounds, Icon } from 'leaflet';
 import { useSnackbar } from 'src/components/snackbar';
 import { StyledCalendar } from 'src/sections/calendar/styles';
 import { fTimestamp } from 'src/utils/format-time';
 import { CALENDAR_COLOR_OPTIONS } from 'src/_mock/_calendar';
 import { createEvent, updateEvent, deleteEvent } from 'src/api/calendar';
 import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
+import { COLORS } from 'src/constants/colors';
 
 interface Address {
   id: string;
@@ -41,6 +42,7 @@ interface User {
   first_name: string;
   last_name: string;
   addresses: Address[];
+  color?: string;
 }
 
 interface SelectedUser {
@@ -61,6 +63,7 @@ interface CalendarEvent {
 }
 
 const USER_TYPES = [
+  { value: "all", label: "Alle" },
   { value: "special", label: "Speciaal" },
   { value: "wholesaler", label: "Groothandel" },
   { value: "supermarket", label: "Supermarkt" },
@@ -68,6 +71,28 @@ const USER_TYPES = [
   { value: "particular", label: "Particulier" },
   { value: "admin", label: "Beheerder" },
 ] as const;
+
+const MARKER_COLORS = [
+  { value: "all", label: "Alle", color: "#000000" },
+  ...COLORS.map(color => ({
+    value: color.value,
+    label: color.labelNL,
+    color: color.color
+  }))
+];
+
+// Create a function to generate custom colored marker icons
+const createCustomIcon = (color: string) => new Icon({
+  iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+      <path fill="${color}" stroke="#fff" stroke-width="2" d="M16 2 C10.477 2 6 6.477 6 12 C6 17.523 16 30 16 30 C16 30 26 17.523 26 12 C26 6.477 21.523 2 16 2 z"/>
+      <circle fill="#fff" cx="16" cy="12" r="4"/>
+    </svg>
+  `),
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+});
 
 // Separate component to handle map initialization
 const MapInitializer = ({ onMapReady }: { onMapReady: (map: LeafletMap) => void }) => {
@@ -86,7 +111,8 @@ const Map = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 52.0452, lng: 4.6522 });
   const [zoom, setZoom] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedUserType, setSelectedUserType] = useState<string | null>("wholesaler");
+  const [selectedUserTypes, setSelectedUserTypes] = useState<string[]>(["wholesaler"]);
+  const [selectedColors, setSelectedColors] = useState<string[]>(["red"]);
   const [filters, setFilters] = useState({
     is_delivery_address: true
   });
@@ -189,7 +215,8 @@ const Map = () => {
             sw_lat: southWest.lat,
             sw_lng: southWest.lng,
             is_delivery_address: filters.is_delivery_address,
-            user_type: selectedUserType
+            ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
+            ...(selectedColors[0] !== "all" && { customer_colors: selectedColors.join(',') })
           },
         });
         setUsers(response.data);
@@ -199,10 +226,22 @@ const Map = () => {
         setIsLoading(false);
       }
     }
-  }, [filters, selectedUserType]);
+  }, [filters, selectedUserTypes, selectedColors]);
 
-  const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserType: string | null) => {
-    setSelectedUserType(newUserType);
+  const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
+    if (newUserTypes.includes("all")) {
+      setSelectedUserTypes(["all"]);
+    } else {
+      setSelectedUserTypes(newUserTypes.length ? newUserTypes.filter(type => type !== "all") : ["wholesaler"]);
+    }
+  };
+
+  const handleColorChange = (event: React.MouseEvent<HTMLElement>, newColors: string[]) => {
+    if (newColors.includes("all")) {
+      setSelectedColors(["all"]);
+    } else {
+      setSelectedColors(newColors.length ? newColors.filter(color => color !== "all") : ["red"]);
+    }
   };
 
   // Debounced fetch to prevent too many API calls
@@ -683,30 +722,71 @@ const Map = () => {
             borderColor: 'divider'
           }}
         >
-          <ToggleButtonGroup
-            value={selectedUserType}
-            exclusive
-            onChange={handleUserTypeChange}
-            aria-label="user type"
-            size="small"
-            sx={{
-              flexWrap: 'wrap',
-              '& .MuiToggleButton-root': {
-                fontSize: '0.75rem',
-                py: 0.5,
-              }
-            }}
-          >
-            {USER_TYPES.map((type) => (
-              <ToggleButton
-                key={type.value}
-                value={type.value}
-                sx={{ textTransform: 'none' }}
+          <Stack spacing={2}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Gebruikerstype
+              </Typography>
+              <ToggleButtonGroup
+                value={selectedUserTypes}
+                onChange={handleUserTypeChange}
+                aria-label="user types"
+                size="small"
+                sx={{
+                  flexWrap: 'wrap',
+                  '& .MuiToggleButton-root': {
+                    fontSize: '0.75rem',
+                    py: 0.5,
+                  }
+                }}
               >
-                {type.label}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+                {USER_TYPES.map((type) => (
+                  <ToggleButton
+                    key={type.value}
+                    value={type.value}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {type.label}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Kleur
+              </Typography>
+              <ToggleButtonGroup
+                value={selectedColors}
+                onChange={handleColorChange}
+                aria-label="marker colors"
+                size="small"
+                sx={{
+                  flexWrap: 'wrap',
+                  '& .MuiToggleButton-root': {
+                    fontSize: '0.75rem',
+                    py: 0.5,
+                  }
+                }}
+              >
+                {MARKER_COLORS.map((color) => (
+                  <ToggleButton
+                    key={color.value}
+                    value={color.value}
+                    sx={{
+                      textTransform: 'none',
+                      '&.Mui-selected': {
+                        borderColor: color.color,
+                        backgroundColor: `${color.color}22`,
+                      }
+                    }}
+                  >
+                    {color.label}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </Box>
+          </Stack>
         </Paper>
 
         {/* Map Container */}
@@ -727,9 +807,15 @@ const Map = () => {
                 user.addresses.map((address) => {
                   const { latitude, longitude } = address;
                   if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
+                    const markerColor = MARKER_COLORS.find(c => c.value === user.color)?.color || MARKER_COLORS[0].color;
                     return (
-                      <Marker key={address.id} position={[latitude, longitude]}>
+                      <Marker
+                        key={address.id}
+                        position={[latitude, longitude]}
+                        icon={createCustomIcon(markerColor)}
+                      >
                         <Popup>
+                          <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
                           <strong>{user.first_name} {user.last_name}</strong> <br />
                           {address.street_name} {address.house_number}, {address.city} <br />
                           {address.zip_code}, {address.country} <br />
