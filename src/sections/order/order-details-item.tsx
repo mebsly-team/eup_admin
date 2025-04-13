@@ -330,25 +330,25 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                     {item.product.title}
                   </Link>
                 }
-                secondary={item.product.ean}
+                secondary={
+                  <>
+                    {item.product.ean ? <Box component="span" sx={{ display: 'block', color: 'text.disabled' }}>
+                      EAN: {item.product.ean}
+                    </Box> : null}
+                    {item.product.price_per_piece ? <Box component="span" sx={{ display: 'block', color: 'text.disabled', mt: 0.5 }}>
+                      Prijs per stuk: {fCurrency(item.product.price_per_piece)}
+                    </Box> : null}
+                    <Box component="span" sx={{ display: 'block', color: 'text.disabled' }}>
+                      Prijs per eenheid: {fCurrency(item.product.price_per_unit)}
+                    </Box>
+                  </>
+                }
                 primaryTypographyProps={{ typography: 'body2' }}
-                secondaryTypographyProps={{ component: 'span', color: 'text.disabled', mt: 0.5 }}
+                secondaryTypographyProps={{ component: 'div', color: 'text.disabled', mt: 0.5 }}
               />
 
               {isEditing ? (
                 <>
-                  {/* <Select
-                    value={item.product.id}
-                    onChange={(e) => handleVariantChange(item, e.target.value)}
-                    label=""
-                  >
-                    <MenuItem value={item.product.id}>{item.product.unit}</MenuItem>
-                    {item?.product?.variants?.map((v, i) => (
-                      <MenuItem key={i} value={v.id}>
-                        {v.unit}
-                      </MenuItem>
-                    ))}
-                  </Select> */}
                   <TextField
                     type="number"
                     value={item.quantity}
@@ -357,26 +357,37 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                     }
                     sx={{ width: 60, mr: 2 }}
                   />
-                  <TextField
-                    type="number"
-                    value={item.single_product_discounted_price_per_unit_vat}
-                    onChange={(e) => {
-                      const newPrice = parseFloat(e.target.value);
-                      handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', newPrice);
-                      handleItemChange(item.id, 'product_item_total_price_vat', newPrice * item.quantity);
-                    }}
-                    sx={{ width: 80, mr: 2, textAlign: 'right' }}
-                  />
+                  <Stack spacing={0.5}>
+                    <TextField
+                      type="number"
+                      value={item.single_product_discounted_price_per_unit_vat}
+                      onChange={(e) => {
+                        const newPrice = parseFloat(e.target.value);
+                        handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', newPrice);
+                        handleItemChange(item.id, 'product_item_total_price_vat', newPrice * item.quantity);
+                      }}
+                      sx={{ width: 100, textAlign: 'right' }}
+                      label="Prijs incl. BTW"
+                    />
+                    <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
+                      Totaal: {fCurrency(item.single_product_discounted_price_per_unit_vat * item.quantity)}
+                    </Box>
+                  </Stack>
                   <IconButton onClick={() => handleDeleteItem(item.id)}>
                     <Iconify icon="eva:trash-2-outline" />
                   </IconButton>
                 </>
               ) : (
                 <>
-                  <Box sx={{ typography: 'body2' }}>x{item.quantity}</Box>
-                  <Box sx={{ width: 110, textAlign: 'right', typography: 'subtitle2' }}>
-                    {fCurrency(item.single_product_discounted_price_per_unit_vat)}
-                  </Box>
+                  <Box sx={{ typography: 'body2', minWidth: 60, textAlign: 'center' }}>x{item.quantity}</Box>
+                  <Stack spacing={0.5} sx={{ minWidth: 120 }}>
+                    <Box sx={{ typography: 'subtitle2', textAlign: 'right' }}>
+                      {fCurrency(item.single_product_discounted_price_per_unit_vat)}
+                    </Box>
+                    <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
+                      Totaal: {fCurrency(item.single_product_discounted_price_per_unit_vat * item.quantity)}
+                    </Box>
+                  </Stack>
                 </>
               )}
             </Stack>
