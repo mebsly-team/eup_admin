@@ -1,11 +1,13 @@
 export type ICampaignItem = {
-  extension: any;
-  id?: number;
+  id: number;
   name: string;
   description: string;
-  logo?: any;
-  logo_id?: any;
-  logo_url?: any;
+  is_active: boolean;
+  discount_percentage: string | number;
+  start_date: string;
+  end_date: string;
+  images: string[];
+  products: number[];
 };
 
 

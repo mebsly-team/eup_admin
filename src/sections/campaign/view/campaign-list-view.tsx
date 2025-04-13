@@ -66,7 +66,7 @@ export default function CampaignListView() {
     { id: 'image', label: t('image') },
     { id: 'name', label: `${t('name')}/${t('description')}` },
     { id: 'discount_percentage', label: t('discount_percentage'), width: 180 },
-    { id: 'start_date', label: `${t('start_date')}/${t('end_date')}`, width: 180 },
+    // { id: 'start_date', label: `${t('start_date')}/${t('end_date')}`, width: 180 },
     { id: 'is_active', label: t('is_active'), width: 180 },
   ];
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Switch } from '@mui/material';
 import Button from '@mui/material/Button';
@@ -62,11 +62,25 @@ export default function CampaignTableRow({
 
   const popover = usePopover();
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
-    const response = await axiosInstance.patch(`/campaigns/${id}/`, {
-      is_active: e.target.checked,
-    });
-    setIsActive(response?.data?.is_active ?? isActive);
+    try {
+      const response = await axiosInstance.patch(`/campaigns/${id}/`, {
+        is_active: e.target.checked,
+      });
+      if (response?.data?.is_active !== undefined) {
+        setIsActive(response.data.is_active);
+      }
+    } catch (error) {
+      // Revert the switch state if the API call fails
+      setIsActive(isActive);
+      console.error('Failed to update campaign active status:', error);
+    }
   };
+
+  // Keep local state in sync with prop
+  useEffect(() => {
+    setIsActive(is_active);
+  }, [is_active]);
+
   return (
     <>
       <TableRow hover selected={selected}>
@@ -75,7 +89,7 @@ export default function CampaignTableRow({
         </TableCell>
 
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          <Image src={`${IMAGE_FOLDER_PATH}${images?.[0]}`} />
+          <Image src={`${IMAGE_FOLDER_PATH}${images?.[0]}`} sx={{ width: '100px', height: '100px' }} />
         </TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText
@@ -90,19 +104,8 @@ export default function CampaignTableRow({
         </TableCell>
         <TableCell sx={{ display: 'flex', alignItems: 'center' }}>{discount_percentage}</TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          <ListItemText
-            primary={start_date}
-            secondary={end_date}
-            primaryTypographyProps={{ typography: 'body2' }}
-            secondaryTypographyProps={{
-              component: 'span',
-              color: 'text.disabled',
-            }}
-          />
-        </TableCell>
         <TableCell>
-          <Switch name="is_active" checked={is_active} onChange={handleActiveSwitchChange} />
+          <Switch name="is_active" checked={isActive} onChange={handleActiveSwitchChange} />
         </TableCell>
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
           {/* <Tooltip title="Quick Edit" placement="top" arrow>

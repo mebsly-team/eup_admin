@@ -147,7 +147,7 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                 label={t('discount_percentage')}
                 type="number"
               />
-              <DatePicker
+              {/* <DatePicker
                 label={t('start_date')}
                 value={getValues('start_date') ? new Date(getValues('start_date')) : null}
                 format="dd/MM/yyyy"
@@ -158,7 +158,7 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                 value={getValues('end_date') ? new Date(getValues('end_date')) : null}
                 format="dd/MM/yyyy"
                 onChange={(newValue) => setValue('end_date', newValue.toISOString())}
-              />
+              /> */}
             </Box>
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">{t('image')}</Typography>
