@@ -179,7 +179,14 @@ const Map = () => {
         }
       } catch (error) {
         console.error('Error fetching events:', error);
-        enqueueSnackbar('Error fetching calendar events', { variant: 'error' });
+        // Disconnect Google Calendar on error
+        const token = window.gapi?.client?.getToken();
+        if (token) {
+          window.google.accounts.oauth2.revoke(token.access_token);
+          window.gapi.client.setToken(null);
+        }
+        localStorage.removeItem('googleCalendarTokens');
+        enqueueSnackbar('Error fetching calendar events - Disconnected from Google Calendar', { variant: 'error' });
       }
     };
 
@@ -461,8 +468,17 @@ const Map = () => {
       );
     } catch (error) {
       console.error('Error scheduling visit:', error);
+      // Disconnect Google Calendar on error
+      const token = window.gapi?.client?.getToken();
+      if (token) {
+        window.google.accounts.oauth2.revoke(token.access_token);
+        window.gapi.client.setToken(null);
+      }
+      localStorage.removeItem('googleCalendarTokens');
       enqueueSnackbar(
-        error instanceof Error ? error.message : 'Fout bij het plannen van bezoek',
+        error instanceof Error
+          ? `${error.message} - Disconnected from Google Calendar`
+          : 'Error scheduling visit - Disconnected from Google Calendar',
         { variant: 'error' }
       );
     }
@@ -603,8 +619,17 @@ const Map = () => {
       enqueueSnackbar('Afspraak succesvol verwijderd', { variant: 'success' });
     } catch (error) {
       console.error('Error deleting event:', error);
+      // Disconnect Google Calendar on error
+      const token = window.gapi?.client?.getToken();
+      if (token) {
+        window.google.accounts.oauth2.revoke(token.access_token);
+        window.gapi.client.setToken(null);
+      }
+      localStorage.removeItem('googleCalendarTokens');
       enqueueSnackbar(
-        error instanceof Error ? error.message : 'Fout bij het verwijderen van afspraak',
+        error instanceof Error
+          ? `${error.message} - Disconnected from Google Calendar`
+          : 'Error deleting event - Disconnected from Google Calendar',
         { variant: 'error' }
       );
     }

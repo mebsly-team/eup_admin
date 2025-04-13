@@ -62,7 +62,15 @@ export default function GoogleCalendarAuth() {
                 setGapiInited(true);
             } catch (error) {
                 console.error('Error initializing GAPI client:', error);
-                enqueueSnackbar('Failed to initialize Google Calendar', { variant: 'error' });
+                // Disconnect on initialization error
+                const token = window.gapi?.client?.getToken();
+                if (token) {
+                    window.google.accounts.oauth2.revoke(token.access_token);
+                    window.gapi.client.setToken(null);
+                }
+                localStorage.removeItem('googleCalendarTokens');
+                setIsAuthenticated(false);
+                enqueueSnackbar('Failed to initialize Google Calendar - Disconnected', { variant: 'error' });
             }
         };
 
@@ -78,7 +86,15 @@ export default function GoogleCalendarAuth() {
                 setGisInited(true);
             } catch (error) {
                 console.error('Error initializing GIS client:', error);
-                enqueueSnackbar('Failed to initialize Google Sign-In', { variant: 'error' });
+                // Disconnect on GIS initialization error
+                const token = window.gapi?.client?.getToken();
+                if (token) {
+                    window.google.accounts.oauth2.revoke(token.access_token);
+                    window.gapi.client.setToken(null);
+                }
+                localStorage.removeItem('googleCalendarTokens');
+                setIsAuthenticated(false);
+                enqueueSnackbar('Failed to initialize Google Sign-In - Disconnected', { variant: 'error' });
             }
         };
 
@@ -99,13 +115,28 @@ export default function GoogleCalendarAuth() {
 
     const handleTokenResponse = (response: any) => {
         console.log('Received token response:', response);
-        if (response.access_token) {
-            localStorage.setItem('googleCalendarTokens', JSON.stringify(response));
-            window.gapi.client.setToken({ access_token: response.access_token });
-            setIsAuthenticated(true);
-            // Refresh calendar events after new token received
-            mutate(endpoints.calendar);
-            enqueueSnackbar('Successfully connected to Google Calendar!', { variant: 'success' });
+        try {
+            if (response.access_token) {
+                localStorage.setItem('googleCalendarTokens', JSON.stringify(response));
+                window.gapi.client.setToken({ access_token: response.access_token });
+                setIsAuthenticated(true);
+                // Refresh calendar events after new token received
+                mutate(endpoints.calendar);
+                enqueueSnackbar('Successfully connected to Google Calendar!', { variant: 'success' });
+            } else {
+                throw new Error('No access token received');
+            }
+        } catch (error) {
+            console.error('Error handling token response:', error);
+            // Disconnect on token handling error
+            const token = window.gapi?.client?.getToken();
+            if (token) {
+                window.google.accounts.oauth2.revoke(token.access_token);
+                window.gapi.client.setToken(null);
+            }
+            localStorage.removeItem('googleCalendarTokens');
+            setIsAuthenticated(false);
+            enqueueSnackbar('Failed to connect to Google Calendar - Disconnected', { variant: 'error' });
         }
     };
 
