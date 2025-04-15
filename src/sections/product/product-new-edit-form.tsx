@@ -755,6 +755,7 @@ export default function ProductNewEditForm({ id }: Props) {
     }
   }, [watch('quantity_per_unit')]);
 
+
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   console.log('getValues', getValues());
 
@@ -773,6 +774,27 @@ export default function ProductNewEditForm({ id }: Props) {
       });
       return;
     }
+
+    // Verify the overall stock formula
+    const formValues = getValues();
+    const calculatedOverallStock = (
+      Number(formValues.free_stock || 0) +
+      Number(formValues.number_in_order || 0) +
+      Number(formValues.number_in_offer || 0) +
+      Number(formValues.number_in_pakbon || 0) +
+      Number(formValues.number_in_confirmation || 0) +
+      Number(formValues.number_in_werkbon || 0) +
+      Number(formValues.number_in_other || 0)
+    );
+
+    if (calculatedOverallStock !== Number(formValues.overall_stock)) {
+      enqueueSnackbar({
+        variant: 'error',
+        message: `Totale voorraad (${formValues.overall_stock}) komt niet overeen met de som van de voorraadcomponenten (${calculatedOverallStock}). Corrigeer de waarden.`
+      });
+      return;
+    }
+
     onSubmit();
   };
 
