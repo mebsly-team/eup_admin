@@ -2670,59 +2670,47 @@ export default function ProductNewEditForm({ id }: Props) {
               type="number"
               onBlur={handleEmptyNumbers}
             /> */}
+
+            {currentProduct?.is_variant ? null : <>
+              <RHFTextField
+                name="number_in_order"
+                label={t('number_in_order')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+              <RHFTextField
+                name="number_in_offer"
+                label={t('number_in_offer')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+              <RHFTextField
+                name="number_in_pakbon"
+                label={t('number_in_pakbon')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+              <RHFTextField
+                name="number_in_confirmation"
+                label={t('number_in_confirmation')}
+                type="number"
+              />
+              <RHFTextField
+                name="number_in_werkbon"
+                label={t('number_in_werkbon')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+              <RHFTextField
+                name="number_in_other"
+                label={t('number_in_other')}
+                type="number"
+                onBlur={handleEmptyNumbers}
+              />
+            </>}
           </Box>
         </Stack>
       </Card>
-      {currentProduct?.is_variant ? null : <Card>
-        <CardHeader title={t('inventory')} />
-        <Stack spacing={2} sx={{ p: 3 }}>
-          <Box
-            columnGap={2}
-            rowGap={3}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-          >
-            <RHFTextField
-              name="number_in_order"
-              label={t('number_in_order')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              name="number_in_offer"
-              label={t('number_in_offer')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              name="number_in_pakbon"
-              label={t('number_in_pakbon')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              name="number_in_confirmation"
-              label={t('number_in_confirmation')}
-              type="number"
-            />
-            <RHFTextField
-              name="number_in_werkbon"
-              label={t('number_in_werkbon')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-            <RHFTextField
-              name="number_in_other"
-              label={t('number_in_other')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            />
-          </Box>
-        </Stack>
-      </Card>}
       <Divider sx={{ borderStyle: 'dashed' }} />
       {currentProduct?.is_variant ? null : <Card>
         <CardHeader title={t('stats')} />
