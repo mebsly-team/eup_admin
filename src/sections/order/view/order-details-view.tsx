@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Stack from '@mui/material/Stack';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
+import { useSnackbar } from 'src/components/snackbar';
 
 import { paths } from 'src/routes/paths';
 
@@ -47,6 +48,7 @@ export default function OrderDetailsView({ id }: Props) {
   const [currentOrder, setCurrentOrder] = useState({});
   const settings = useSettingsContext();
   const { t } = useTranslate();
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     if (id) {
@@ -114,16 +116,19 @@ export default function OrderDetailsView({ id }: Props) {
   const sendToSnelstart = async ({ id }) => {
     try {
       const response = await axiosInstance.post(`/snelstart/`, { order_id: id });
-      if (response.status === 200) {
+      if (response.status === 201) {
         console.log("🚀 ~ sendToSnelstart ~ response:", response)
-        updateOrder(id, {
-          is_sent_to_snelstart: true,
-        });
+        enqueueSnackbar(t('Order is succesvol verzonden naar Snelstart'), { variant: 'success' });
+        // updateOrder(id, {
+        //   is_sent_to_snelstart: true,
+        // });
       } else {
         console.error('Failed to send order to snelstart, status code:', response.status);
+        enqueueSnackbar(t('Niet gelukt om deze bestelling naar Snelstart te verzenden'), { variant: 'error' });
       }
     } catch (error) {
       console.error('Error sending order to snelstart:', error);
+      enqueueSnackbar(t('Niet gelukt om deze bestelling naar Snelstart te verzenden.'), { variant: 'error' });
     }
   };
 
