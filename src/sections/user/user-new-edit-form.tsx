@@ -21,7 +21,7 @@ import { useTranslate } from 'src/locales';
 
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
-
+import UserDetailsHistory from './user-details-history';
 import { IUserItem } from 'src/types/user';
 
 import {
@@ -251,6 +251,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       is_subscribed_newsletters: currentUser?.is_subscribed_newsletters ?? false,
       is_access_granted_social_media: currentUser?.is_access_granted_social_media ?? false,
       customer_color: currentUser?.customer_color ?? "",
+      history: currentUser?.history || [],
     }),
     [currentUser]
   );
@@ -392,16 +393,180 @@ export default function UserNewEditForm({ currentUser }: Props) {
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data)
     try {
       data.birthdate = moment.isDate(data.birthdate)
         ? moment(data.birthdate).format('YYYY-MM-DD')
         : null;
+
+      // Track changes for history
+      const changes = [];
+      if (currentUser?.id) {
+        // Compare fields and record changes
+        if (data.first_name !== currentUser.first_name) {
+          changes.push(`Voornaam gewijzigd van "${currentUser.first_name}" naar "${data.first_name}"`);
+        }
+        if (data.last_name !== currentUser.last_name) {
+          changes.push(`Achternaam gewijzigd van "${currentUser.last_name}" naar "${data.last_name}"`);
+        }
+        if (data.email !== currentUser.email) {
+          changes.push(`Email gewijzigd van "${currentUser.email}" naar "${data.email}"`);
+        }
+        if (data.phone_number !== currentUser.phone_number) {
+          changes.push(`Telefoonnummer gewijzigd van "${currentUser.phone_number}" naar "${data.phone_number}"`);
+        }
+        if (data.mobile_number !== currentUser.mobile_number) {
+          changes.push(`Mobiel nummer gewijzigd van "${currentUser.mobile_number}" naar "${data.mobile_number}"`);
+        }
+        if (data.type !== currentUser.type) {
+          changes.push(`Type gewijzigd van "${currentUser.type}" naar "${data.type}"`);
+        }
+        if (data.business_name !== currentUser.business_name) {
+          changes.push(`Bedrijfsnaam gewijzigd van "${currentUser.business_name}" naar "${data.business_name}"`);
+        }
+        if (data.vat !== currentUser.vat) {
+          changes.push(`BTW nummer gewijzigd van "${currentUser.vat}" naar "${data.vat}"`);
+        }
+        if (data.kvk !== currentUser.kvk) {
+          changes.push(`KvK nummer gewijzigd van "${currentUser.kvk}" naar "${data.kvk}"`);
+        }
+        if (data.customer_percentage !== currentUser.customer_percentage) {
+          changes.push(`Klantpercentage gewijzigd van ${currentUser.customer_percentage} naar ${data.customer_percentage}`);
+        }
+        if (data.credit_limit !== currentUser.credit_limit) {
+          changes.push(`Kredietlimiet gewijzigd van ${currentUser.credit_limit} naar ${data.credit_limit}`);
+        }
+        if (data.customer_color !== currentUser.customer_color) {
+          changes.push(`Klantkleur gewijzigd van "${currentUser.customer_color}" naar "${data.customer_color}"`);
+        }
+        if (data.is_active !== currentUser.is_active) {
+          changes.push(`Status gewijzigd van "${currentUser.is_active ? 'Actief' : 'Inactief'}" naar "${data.is_active ? 'Actief' : 'Inactief'}"`);
+        }
+
+        if (data.birthdate !== currentUser.birthdate) {
+          changes.push(`Geboortedatum gewijzigd van "${currentUser.birthdate}" naar "${data.birthdate}"`);
+        }
+        if (data.gender !== currentUser.gender) {
+          changes.push(`Geslacht gewijzigd van "${currentUser.gender}" naar "${data.gender}"`);
+        }
+        if (data.site_source !== currentUser.site_source) {
+          changes.push(`Site bron gewijzigd van "${currentUser.site_source}" naar "${data.site_source}"`);
+        }
+        if (data.relation_code !== currentUser.relation_code) {
+          changes.push(`Relatiecode gewijzigd van "${currentUser.relation_code}" naar "${data.relation_code}"`);
+        }
+        if (data.contact_person_name !== currentUser.contact_person_name) {
+          changes.push(`Contactpersoon naam gewijzigd van "${currentUser.contact_person_name}" naar "${data.contact_person_name}"`);
+        }
+        if (data.contact_person_email !== currentUser.contact_person_email) {
+          changes.push(`Contactpersoon email gewijzigd van "${currentUser.contact_person_email}" naar "${data.contact_person_email}"`);
+        }
+        if (data.contact_person_phone !== currentUser.contact_person_phone) {
+          changes.push(`Contactpersoon telefoon gewijzigd van "${currentUser.contact_person_phone}" naar "${data.contact_person_phone}"`);
+        }
+        if (data.iban !== currentUser.iban) {
+          changes.push(`IBAN gewijzigd van "${currentUser.iban}" naar "${data.iban}"`);
+        }
+        if (data.bic !== currentUser.bic) {
+          changes.push(`BIC gewijzigd van "${currentUser.bic}" naar "${data.bic}"`);
+        }
+        if (data.payment_method !== currentUser.payment_method) {
+          changes.push(`Betaalmethode gewijzigd van "${currentUser.payment_method}" naar "${data.payment_method}"`);
+        }
+        if (data.payment_termin !== currentUser.payment_termin) {
+          changes.push(`Betalingstermijn gewijzigd van "${currentUser.payment_termin}" naar "${data.payment_termin}"`);
+        }
+        if (data.invoice_discount !== currentUser.invoice_discount) {
+          changes.push(`Factuurkorting gewijzigd van ${currentUser.invoice_discount} naar ${data.invoice_discount}`);
+        }
+        if (data.invoice_language !== currentUser.invoice_language) {
+          changes.push(`Factuurtaal gewijzigd van "${currentUser.invoice_language}" naar "${data.invoice_language}"`);
+        }
+        if (data.discount_group !== currentUser.discount_group) {
+          changes.push(`Kortingsgroep gewijzigd van "${currentUser.discount_group}" naar "${data.discount_group}"`);
+        }
+        if (data.inform_via !== currentUser.inform_via) {
+          changes.push(`Informeren via gewijzigd van "${currentUser.inform_via}" naar "${data.inform_via}"`);
+        }
+        if (data.days_closed !== currentUser.days_closed) {
+          changes.push(`Gesloten dagen gewijzigd van "${currentUser.days_closed}" naar "${data.days_closed}"`);
+        }
+        if (data.days_no_delivery !== currentUser.days_no_delivery) {
+          changes.push(`Geen levering dagen gewijzigd van "${currentUser.days_no_delivery}" naar "${data.days_no_delivery}"`);
+        }
+
+        // Social media changes
+        if (data.facebook !== currentUser.facebook) {
+          changes.push(`Facebook gewijzigd van "${currentUser.facebook}" naar "${data.facebook}"`);
+        }
+        if (data.linkedin !== currentUser.linkedin) {
+          changes.push(`LinkedIn gewijzigd van "${currentUser.linkedin}" naar "${data.linkedin}"`);
+        }
+        if (data.twitter !== currentUser.twitter) {
+          changes.push(`Twitter gewijzigd van "${currentUser.twitter}" naar "${data.twitter}"`);
+        }
+        if (data.instagram !== currentUser.instagram) {
+          changes.push(`Instagram gewijzigd van "${currentUser.instagram}" naar "${data.instagram}"`);
+        }
+        if (data.pinterest !== currentUser.pinterest) {
+          changes.push(`Pinterest gewijzigd van "${currentUser.pinterest}" naar "${data.pinterest}"`);
+        }
+        if (data.tiktok !== currentUser.tiktok) {
+          changes.push(`TikTok gewijzigd van "${currentUser.tiktok}" naar "${data.tiktok}"`);
+        }
+        if (data.website !== currentUser.website) {
+          changes.push(`Website gewijzigd van "${currentUser.website}" naar "${data.website}"`);
+        }
+
+        // Boolean field changes
+        if (data.is_staff !== currentUser.is_staff) {
+          changes.push(`Medewerker status gewijzigd van "${currentUser.is_staff ? 'Ja' : 'Nee'}" naar "${data.is_staff ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.is_no_payment !== currentUser.is_no_payment) {
+          changes.push(`Geen betaling status gewijzigd van "${currentUser.is_no_payment ? 'Ja' : 'Nee'}" naar "${data.is_no_payment ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.inform_when_new_products !== currentUser.inform_when_new_products) {
+          changes.push(`Informeren bij nieuwe producten gewijzigd van "${currentUser.inform_when_new_products ? 'Ja' : 'Nee'}" naar "${data.inform_when_new_products ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.is_eligible_to_work_with !== currentUser.is_eligible_to_work_with) {
+          changes.push(`Geschikt om mee te werken gewijzigd van "${currentUser.is_eligible_to_work_with ? 'Ja' : 'Nee'}" naar "${data.is_eligible_to_work_with ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.is_payment_termin_active !== currentUser.is_payment_termin_active) {
+          changes.push(`Betalingstermijn actief gewijzigd van "${currentUser.is_payment_termin_active ? 'Ja' : 'Nee'}" naar "${data.is_payment_termin_active ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.needs_electronic_invoice !== currentUser.needs_electronic_invoice) {
+          changes.push(`Elektronische factuur nodig gewijzigd van "${currentUser.needs_electronic_invoice ? 'Ja' : 'Nee'}" naar "${data.needs_electronic_invoice ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.incasseren !== currentUser.incasseren) {
+          changes.push(`Incasseren gewijzigd van "${currentUser.incasseren ? 'Ja' : 'Nee'}" naar "${data.incasseren ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.notify !== currentUser.notify) {
+          changes.push(`Notificaties gewijzigd van "${currentUser.notify ? 'Ja' : 'Nee'}" naar "${data.notify ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.is_subscribed_newsletters !== currentUser.is_subscribed_newsletters) {
+          changes.push(`Nieuwsbrief abonnement gewijzigd van "${currentUser.is_subscribed_newsletters ? 'Ja' : 'Nee'}" naar "${data.is_subscribed_newsletters ? 'Ja' : 'Nee'}"`);
+        }
+        if (data.is_access_granted_social_media !== currentUser.is_access_granted_social_media) {
+          changes.push(`Sociale media toegang gewijzigd van "${currentUser.is_access_granted_social_media ? 'Ja' : 'Nee'}" naar "${data.is_access_granted_social_media ? 'Ja' : 'Nee'}"`);
+        }
+      } else {
+        changes.push(`Gebruiker aangemaakt`);
+      }
+
+      // Add history entry if there are changes
+      if (changes.length > 0) {
+        const newHistory = [...(currentUser?.history || [])];
+        newHistory.push({
+          date: new Date(),
+          event: changes.join(', '),
+        });
+        data.history = newHistory;
+      }
+
       data.unique_identifier = `${data.email}__${data.site_source}`;
       if (currentUser) {
-        const response = await axiosInstance.put(`/users/${currentUser.id}/`, data);
+        await axiosInstance.put(`/users/${currentUser.id}/`, data);
       } else {
-        const response = await axiosInstance.post('/users/', data);
+        await axiosInstance.post('/users/', data);
       }
 
       enqueueSnackbar(currentUser ? t('update_success') : t('create_success'));
@@ -965,7 +1130,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
         </Dialog>
 
       </div>
-
+      <Stack sx={{ mt: 3 }}>
+        <UserDetailsHistory currentUser={currentUser} />
+      </Stack>
 
     </>
   );
