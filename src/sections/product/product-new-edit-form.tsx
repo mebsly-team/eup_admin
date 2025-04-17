@@ -787,7 +787,7 @@ export default function ProductNewEditForm({ id }: Props) {
       Number(formValues.number_in_other || 0)
     );
 
-    if (calculatedOverallStock !== Number(formValues.overall_stock)) {
+    if (!currentProduct?.is_variant && Number(formValues.free_stock || 0) > 0 && calculatedOverallStock !== Number(formValues.overall_stock)) {
       enqueueSnackbar({
         variant: 'error',
         message: `Totale voorraad (${formValues.overall_stock}) komt niet overeen met de som van de voorraadcomponenten (${calculatedOverallStock}). Corrigeer de waarden.`
