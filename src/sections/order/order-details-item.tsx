@@ -209,7 +209,29 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
   };
 
   const handleFeeChange = (key, value) => {
-    setEditedCart({ ...editedCart, [key]: parseFloat(value).toFixed(2) || 0 });
+    // Only allow numbers and decimal points
+    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+
+    // Prevent multiple decimal points
+    const decimalCount = (sanitizedValue.match(/\./g) || []).length;
+    if (decimalCount > 1) return;
+
+    // Allow empty string or valid number
+    if (sanitizedValue === '' || !isNaN(parseFloat(sanitizedValue))) {
+      setEditedCart({ ...editedCart, [key]: sanitizedValue });
+    }
+  };
+
+  const handleFeeBlur = (key, value) => {
+    // If empty or invalid, set to empty string
+    if (!value || value === '' || isNaN(parseFloat(value))) {
+      setEditedCart({ ...editedCart, [key]: '' });
+      return;
+    }
+
+    // Format valid number to 2 decimal places
+    const formattedValue = parseFloat(value).toFixed(2);
+    setEditedCart({ ...editedCart, [key]: formattedValue });
   };
 
   const handleCheckboxChange = (id) => {
@@ -235,9 +257,14 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Verzendkosten</Box>
         {isEditing ? (
           <TextField
-            type="number"
-            value={editedCart?.shipping_fee || 0}
+            type="text"
+            inputProps={{
+              inputMode: 'decimal',
+              pattern: '[0-9]*[.,]?[0-9]*'
+            }}
+            value={editedCart?.shipping_fee ?? ''}
             onChange={(e) => handleFeeChange('shipping_fee', e.target.value)}
+            onBlur={(e) => handleFeeBlur('shipping_fee', e.target.value)}
             sx={{ width: 160 }}
           />
         ) : (
@@ -249,9 +276,14 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Transactiekosten</Box>
         {isEditing ? (
           <TextField
-            type="number"
-            value={editedCart?.transaction_fee || 0}
+            type="text"
+            inputProps={{
+              inputMode: 'decimal',
+              pattern: '[0-9]*[.,]?[0-9]*'
+            }}
+            value={editedCart?.transaction_fee ?? ''}
             onChange={(e) => handleFeeChange('transaction_fee', e.target.value)}
+            onBlur={(e) => handleFeeBlur('transaction_fee', e.target.value)}
             sx={{ width: 160 }}
           />
         ) : (
@@ -263,9 +295,14 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Korting</Box>
         {isEditing ? (
           <TextField
-            type="number"
-            value={editedCart?.cart_discount || 0}
+            type="text"
+            inputProps={{
+              inputMode: 'decimal',
+              pattern: '[0-9]*[.,]?[0-9]*'
+            }}
+            value={editedCart?.cart_discount ?? ''}
             onChange={(e) => handleFeeChange('cart_discount', e.target.value)}
+            onBlur={(e) => handleFeeBlur('cart_discount', e.target.value)}
             sx={{ width: 160 }}
           />
         ) : (
