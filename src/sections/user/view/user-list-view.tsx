@@ -55,7 +55,10 @@ const defaultFilters: IUserTableFilters = {
 
 export default function UserListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable({ defaultOrderBy: "relation_code" });
+  const table = useTable({
+    defaultOrderBy: "relation_code",
+    defaultOrder: 'desc'
+  });
   const settings = useSettingsContext();
   const router = useRouter();
   const confirm = useBoolean();
@@ -116,14 +119,13 @@ export default function UserListView() {
     const statusFilter =
       filters.status !== 'all' ? `&is_active=${filters.status === 'active'}` : '';
     const orderByParam = table.orderBy
-      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
-      : '-relation_code';
+      ? `&ordering=${table.order === 'desc' ? '-' : ''}${table.orderBy}`
+      : '&ordering=-relation_code';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
-    const siteFilter = filters.site[0] && (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`);
+    const siteFilter = filters.site?.[0] ? (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`) : '';
     const { data } = await axiosInstance.get(
-      `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}
-        ${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}`
+      `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}`
     );
     setCount(data.count || 0);
     setUserList(data.results || []);

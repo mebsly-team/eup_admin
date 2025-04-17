@@ -8,16 +8,30 @@ const axiosInstance = axios.create({ baseURL: HOST_API });
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    console.log('Request interceptor - URL:', config.url);
     const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+    console.log('Request interceptor - Token:', accessToken);
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+      console.log('Request interceptor - Added auth header');
+    }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 axiosInstance.interceptors.response.use(
-  (res) => res,
-  (error) => Promise.reject((error.response && error.response.data) || 'Something went wrong')
+  (res) => {
+    console.log('Response interceptor - Status:', res.status);
+    return res;
+  },
+  (error) => {
+    console.error('Response interceptor error:', error.response?.data || error.message);
+    return Promise.reject((error.response && error.response.data) || 'Something went wrong');
+  }
 );
 
 export default axiosInstance;

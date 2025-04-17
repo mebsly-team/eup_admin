@@ -86,15 +86,17 @@ export function AuthProvider({ children }: Props) {
 
   const initialize = useCallback(async () => {
     try {
+      console.log('Initializing auth...');
       const accessToken = localStorage.getItem(STORAGE_KEY);
+      console.log('Access token from storage:', accessToken);
+
       if (accessToken && isValidToken(accessToken)) {
+        console.log('Token is valid, setting session...');
         setSession(accessToken);
 
-        // const res = await axios.get(endpoints.auth.me);
-
-        // const { user } = res.data;
-
         const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        console.log('Saved user from storage:', savedUser);
+
         dispatch({
           type: Types.INITIAL,
           payload: {
@@ -105,6 +107,7 @@ export function AuthProvider({ children }: Props) {
           },
         });
       } else {
+        console.log('No valid token found, dispatching null user...');
         dispatch({
           type: Types.INITIAL,
           payload: {
@@ -113,7 +116,7 @@ export function AuthProvider({ children }: Props) {
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error during auth initialization:', error);
       dispatch({
         type: Types.INITIAL,
         payload: {
@@ -124,40 +127,51 @@ export function AuthProvider({ children }: Props) {
   }, []);
 
   useEffect(() => {
+    console.log('Auth provider mounted, initializing...');
     initialize();
   }, [initialize]);
 
   // LOGIN
   const login = useCallback(async (email: string, password: string) => {
-    const data = {
-      email,
-      password,
-    };
-    localStorage.removeItem('accessToken');
-
-    const res = await axios.post(endpoints.auth.login, data);
-
-    const { access, refresh, user } = res.data;
-    if (user?.type === 'admin') {
-      setSession(access);
-      const userData = {
-        id: user?.id,
-        photoURL: `${ASSETS_API}/assets/images/avatar/avatar_25.jpg`,
-        displayName: user?.displayName || 'Admin',
-        email: user?.email,
-        type: user?.type,
+    try {
+      console.log('Attempting login...');
+      const data = {
+        email,
+        password,
       };
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.removeItem('accessToken');
 
-      dispatch({
-        type: Types.LOGIN,
-        payload: {
-          user: {
-            ...userData,
-            access,
+      const res = await axios.post(endpoints.auth.login, data);
+      console.log('Login response:', res.data);
+
+      const { access, refresh, user } = res.data;
+      if (user?.type === 'admin') {
+        setSession(access);
+        const userData = {
+          id: user?.id,
+          photoURL: `${ASSETS_API}/assets/images/avatar/avatar_25.jpg`,
+          displayName: user?.displayName || 'Admin',
+          email: user?.email,
+          type: user?.type,
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('Login successful, user data saved');
+
+        dispatch({
+          type: Types.LOGIN,
+          payload: {
+            user: {
+              ...userData,
+              access,
+            },
           },
-        },
-      });
+        });
+      } else {
+        console.log('User is not an admin');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   }, []);
 
@@ -192,6 +206,7 @@ export function AuthProvider({ children }: Props) {
 
   // LOGOUT
   const logout = useCallback(async () => {
+    console.log('Logging out...');
     setSession(null);
     dispatch({
       type: Types.LOGOUT,
