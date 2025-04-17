@@ -291,7 +291,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         )}
       </Stack>
 
-      <Stack direction="row" justifyContent="center" alignItems="center">
+      {/* <Stack direction="row" justifyContent="center" alignItems="center">
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Korting</Box>
         {isEditing ? (
           <TextField
@@ -308,7 +308,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
         ) : (
           <Box sx={{ width: 160, mr: '0.5rem' }}>{fCurrency(editedCart?.cart_discount) || '-'}</Box>
         )}
-      </Stack>
+      </Stack> */}
 
       <Stack
         direction="row"
