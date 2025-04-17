@@ -415,7 +415,23 @@ export default function OrderDetailsInfo({
         <Stack spacing={0.5} alignItems="flex-start" sx={{ typography: 'body2' }}>
           <Typography variant="subtitle2">{customer.name}</Typography>
 
-          <Box sx={{ color: 'text.secondary' }}>{customer.email}</Box>
+          <Link
+            href={`/dashboard/user/${customer.id}/edit`}
+            target="_blank"
+            rel="noopener"
+            variant="body2"
+            sx={{
+              mt: 1,
+              color: 'primary.main',
+              textDecoration: 'none',
+              '&:hover': {
+                textDecoration: 'underline',
+              }
+            }}
+          >
+            {customer.email}
+          </Link>
+
           <Box sx={{ color: 'text.secondary' }}>{customer.relation_code}</Box>
           <Box>
             Betalingstermijn:
@@ -429,6 +445,8 @@ export default function OrderDetailsInfo({
               {customer.credit_limit}
             </Box>
           </Box>
+
+
           {/* <Box>
             IP Adres:
             <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
