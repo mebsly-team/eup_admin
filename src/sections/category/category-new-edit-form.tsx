@@ -76,6 +76,7 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
       data4: currentCategory?.data4 || null,
       data5: currentCategory?.data5 || null,
       data6: currentCategory?.data6 || null,
+      data7: currentCategory?.data7 || null,
       parent_category: parentId || currentCategory?.parent_category,
     }),
     [currentCategory]
