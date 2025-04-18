@@ -206,6 +206,9 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
                     <RHFTextField name="data1" label={t('omzetNL')} />
                   </Grid>
                   <Grid xs={6} sm={3}>
+                    <RHFTextField name="data7" label={t('omzetNLLaag')} />
+                  </Grid>
+                  <Grid xs={6} sm={3}>
                     <RHFTextField name="data2" label={t('omzetBinnenEU')} />
                   </Grid>
                   <Grid xs={6} sm={3}>
