@@ -726,6 +726,7 @@
   "error_sending_password_reset": "Fout bij het versturen van de wachtwoord reset link",
   "password_reset_email_sent": "Wachtwoord reset link verstuurd",
   "product_added_successfully": "Product toegevoegd",
+  "product_removed_successfully": "Product verwijderd",
   "error_adding_product": "Fout bij het toevoegen van het product",
   "siblings_created_successfully": "Siblings toegevoegd",
   "error_creating_siblings": "Fout bij het toevoegen van de siblings",

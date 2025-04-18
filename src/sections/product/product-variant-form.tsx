@@ -304,11 +304,30 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     try {
       const { data } = await axiosInstance.delete(`/products/${id}/`);
       enqueueSnackbar(t('delete_success'));
-      setCurrentProductVariantRows(currentProductVariantRows.filter((row) => row.id !== id));
+      // Refetch the current product to get updated variant list
+      const { data: updatedProduct } = await axiosInstance.get(`/products/${currentProduct?.id}/?nocache=true`);
+      if (updatedProduct?.variants) {
+        const variantPromises = updatedProduct.variants.map(async (item: any) => {
+          try {
+            const { data } = await axiosInstance.get(`/products/${item?.id || item}/?nocache=true`);
+            return data;
+          } catch (error) {
+            console.error(`Error fetching variant ${item}:`, error);
+            return null;
+          }
+        });
+
+        const variantList = await Promise.all(variantPromises);
+        if (currentProduct) {
+          variantList.push(currentProduct);
+        }
+        const filteredVariants = variantList.filter((variant): variant is IProductItem => variant !== null);
+        setCurrentProductVariantRows(filteredVariants);
+      } else {
+        setCurrentProductVariantRows(currentProduct ? [currentProduct] : []);
+      }
     } catch (error) {
       enqueueSnackbar({ variant: 'error', message: t('error') });
-    } finally {
-      getVariants();
     }
   };
 

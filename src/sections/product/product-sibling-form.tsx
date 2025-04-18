@@ -8,6 +8,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Chip,
   Radio,
@@ -92,7 +93,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const { enqueueSnackbar } = useSnackbar();
   const [selectedColors, setSelectedColors] = useState([]);
   const [currentOptionValues, setCurrentOptionValues] = useState<string[]>([]);
-  const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState([]);
+  const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState<IProductItem[]>([]);
   console.log('currentProductSiblingRows', currentProductSiblingRows);
   const currentProductSiblingIdList =
     currentProduct?.sibling_products.map((item: { id: any }) => item?.id || item) || [];
@@ -106,6 +107,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const getSiblings = async () => {
     try {
       setIsLoading(true); // Show the spinner
+      console.log('Getting siblings, currentProductSiblingIdList:', currentProductSiblingIdList);
       if (currentProductSiblingIdList?.length) {
         const siblingPromises = currentProductSiblingIdList.map(async (item: any) => {
           try {
@@ -113,19 +115,28 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
             return data;
           } catch (error) {
             console.error(`Error fetching siblings ${item}:`, error);
-            // Handle the error as needed (e.g., show an error message)
             return null; // Return null for this siblings
           }
         });
 
         const siblingList = await Promise.all(siblingPromises);
-        siblingList.push(currentProduct);
-        const filteredSiblings = siblingList.filter((sibling) => sibling !== null);
+        console.log('Fetched siblingList:', siblingList);
+
+        // Only add currentProduct if it's not already in the list
+        if (currentProduct && !siblingList.some(sibling => sibling?.id === currentProduct.id)) {
+          siblingList.push(currentProduct);
+        }
+
+        console.log('After pushing currentProduct:', siblingList);
+        const filteredSiblings = siblingList.filter((sibling): sibling is IProductItem => sibling !== null);
+        console.log('Setting currentProductSiblingRows with:', filteredSiblings);
         setCurrentProductSiblingRows(filteredSiblings);
+      } else {
+        console.log('No siblings to fetch, setting empty array');
+        setCurrentProductSiblingRows(currentProduct ? [currentProduct] : []);
       }
     } catch (error) {
       console.error('Error fetching siblings:', error);
-      // Handle the error as needed (e.g., show an error message)
     } finally {
       setIsLoading(false); // Hide the spinner when done
     }
@@ -133,7 +144,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
 
   useEffect(() => {
     getSiblings();
-  }, [activeTab, currentProductSiblingIdList?.length]);
+  }, [activeTab, currentProductSiblingIdList?.length, currentProduct]);
 
   const createSiblingsCall = async (parentProduct, clr, sz) => {
     const discount = unitOrder.includes(parentProduct.unit) ? unitOrder.indexOf(parentProduct.unit) * 5 : null;
@@ -503,6 +514,13 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
               onClick={handleDeleteClick(id)}
               color="inherit"
             />,
+            <GridActionsCellItem
+              icon={<RemoveIcon />}
+              label="Delete"
+              onClick={() => removeFromSiblings(row.ean)}
+              color="inherit"
+            />,
+
           ]
           : [
             <GridActionsCellItem
@@ -532,11 +550,67 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const addToSiblings = async (eanSearch: string) => {
     if (!eanSearch) return;
     try {
-      const response = await axiosInstance.post(`/products/${currentProduct.id}/add_to_siblings/`, { ean: eanSearch });
+      const response = await axiosInstance.post(`/products/${currentProduct?.id}/add_to_siblings/`, { ean: eanSearch });
       if (response.status === 200) {
         enqueueSnackbar(t('product_added_successfully'));
         setEan(''); // Clear the EAN input
-        getSiblings(); // Refresh the list
+        // Refetch the current product to get updated sibling list
+        const { data: updatedProduct } = await axiosInstance.get(`/products/${currentProduct?.id}/?nocache=true`);
+        if (updatedProduct?.sibling_products) {
+          const siblingPromises = updatedProduct.sibling_products.map(async (item: any) => {
+            try {
+              const { data } = await axiosInstance.get(`/products/${item?.id || item}/?nocache=true`);
+              return data;
+            } catch (error) {
+              console.error(`Error fetching siblings ${item}:`, error);
+              return null;
+            }
+          });
+
+          const siblingList = await Promise.all(siblingPromises);
+          if (currentProduct && !siblingList.some(sibling => sibling?.id === currentProduct.id)) {
+            siblingList.push(currentProduct);
+          }
+          const filteredSiblings = siblingList.filter((sibling): sibling is IProductItem => sibling !== null);
+          setCurrentProductSiblingRows(filteredSiblings);
+        }
+      } else {
+        console.error('Failed to fetch product, status code:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      enqueueSnackbar({ variant: 'error', message: t('error_adding_product') });
+    }
+  };
+
+
+  const removeFromSiblings = async (eanSearch: string) => {
+    if (!eanSearch) return;
+    try {
+      const response = await axiosInstance.post(`/products/${currentProduct?.id}/remove_from_siblings/`, { ean: eanSearch });
+      if (response.status === 200) {
+        enqueueSnackbar(t('product_removed_successfully'));
+        setEan(''); // Clear the EAN input
+        // Refetch the current product to get updated sibling list
+        const { data: updatedProduct } = await axiosInstance.get(`/products/${currentProduct?.id}/?nocache=true`);
+        if (updatedProduct?.sibling_products) {
+          const siblingPromises = updatedProduct.sibling_products.map(async (item: any) => {
+            try {
+              const { data } = await axiosInstance.get(`/products/${item?.id || item}/?nocache=true`);
+              return data;
+            } catch (error) {
+              console.error(`Error fetching siblings ${item}:`, error);
+              return null;
+            }
+          });
+
+          const siblingList = await Promise.all(siblingPromises);
+          if (currentProduct && !siblingList.some(sibling => sibling?.id === currentProduct.id)) {
+            siblingList.push(currentProduct);
+          }
+          const filteredSiblings = siblingList.filter((sibling): sibling is IProductItem => sibling !== null);
+          setCurrentProductSiblingRows(filteredSiblings);
+        }
       } else {
         console.error('Failed to fetch product, status code:', response.status);
       }
@@ -711,7 +785,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
             },
           }}
         >
-          <DataGrid
+          {currentProductSiblingRows.length ? <DataGrid
             rows={currentProductSiblingRows}
             columns={isMobile ? mobileColumns : columns}
             editMode="row"
@@ -721,7 +795,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
             processRowUpdate={processRowUpdate}
             getRowClassName={getRowClassName}
             hideFooterPagination
-          />
+          /> : null}
         </Box>
       )}
     </>
