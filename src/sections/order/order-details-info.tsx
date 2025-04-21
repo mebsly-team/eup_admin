@@ -445,6 +445,12 @@ export default function OrderDetailsInfo({
               {customer.credit_limit}
             </Box>
           </Box>
+          <Box>
+            Klantpercentage:
+            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
+              {customer.customer_percentage}
+            </Box>
+          </Box>
 
 
           {/* <Box>
