@@ -24,7 +24,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Link, alpha, MenuItem, IconButton, ListItemIcon } from '@mui/material';
+import { Link, alpha, MenuItem, IconButton, ListItemIcon, FormControlLabel, Switch } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -2473,6 +2473,93 @@ export default function ProductNewEditForm({ id }: Props) {
 
   const renderPreview = mdUp ? (
     <Card id="my-card">
+     
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={getValues('is_visible_particular')}
+              onChange={async (e) => {
+                try {
+                  if (currentProduct?.id) {
+                    const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
+                      is_visible_particular: e.target.checked,
+                      title: getValues('title'),
+                    });
+                    setValue('is_visible_particular', response?.data?.is_visible_particular ?? getValues('is_visible_particular'));
+                  }
+                } catch (error) {
+                  console.error('Missing Fields:', error);
+                  const missingFields = Object.values(error)?.[0] || [];
+                  missingFields.forEach((element) => {
+                    enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+                  });
+                }
+              }}
+            />
+          }
+          label={getValues('is_visible_particular') ? (
+            <Link
+              target="_blank"
+              href={`https://kooptop.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                typography: '',
+                float: 'right',
+                fontWeight: 'fontWeightBold',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                marginRight: 3,
+              }}
+            >
+              WEB
+            </Link>
+          ) : "WEB"}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={getValues('is_visible_B2B')}
+              onChange={async (e) => {
+                try {
+                  if (currentProduct?.id) {
+                    const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
+                      is_visible_B2B: e.target.checked,
+                      title: getValues('title'),
+                    });
+                    setValue('is_visible_B2B', response?.data?.is_visible_B2B ?? getValues('is_visible_B2B'));
+                  }
+                } catch (error) {
+                  console.error('Missing Fields:', error);
+                  const missingFields = Object.values(error)?.[0] || [];
+                  missingFields.forEach((element) => {
+                    enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+                  });
+                }
+              }}
+            />
+          }
+          label={getValues('is_visible_B2B') ? (
+            <Link
+              target="_blank"
+              href={`https://europowerbv.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                typography: '',
+                float: 'right',
+                fontWeight: 'fontWeightBold',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                marginRight: 3,
+              }}
+            >
+              B2B
+            </Link>
+          ) : "B2B"}
+      />
+
       {currentProduct?.parent_product ? (
         <Link
           href={paths.dashboard.product.edit(currentProduct?.parent_product)}
@@ -2489,42 +2576,6 @@ export default function ProductNewEditForm({ id }: Props) {
           }}
         >
           {t('main_product')}
-        </Link>
-      ) : null}
-      {currentProduct?.id && currentProduct?.is_visible_particular ? (
-        <Link
-          target="_blank"
-          href={`https://kooptop.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
-          rel="noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          sx={{
-            typography: '',
-            float: 'right',
-            fontWeight: 'fontWeightBold',
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            marginRight: 3,
-          }}
-        >
-          WEB
-        </Link>
-      ) : null}
-      {currentProduct?.id && currentProduct?.is_visible_B2B ? (
-        <Link
-          target="_blank"
-          href={`https://europowerbv.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
-          rel="noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          sx={{
-            typography: '',
-            float: 'right',
-            fontWeight: 'fontWeightBold',
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            marginRight: 3,
-          }}
-        >
-          B2B
         </Link>
       ) : null}
       {currentProduct?.parent_product ? (
