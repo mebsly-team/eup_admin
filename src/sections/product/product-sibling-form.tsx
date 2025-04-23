@@ -130,10 +130,10 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
         console.log('After pushing currentProduct:', siblingList);
         const filteredSiblings = siblingList.filter((sibling): sibling is IProductItem => sibling !== null);
         console.log('Setting currentProductSiblingRows with:', filteredSiblings);
-        setCurrentProductSiblingRows(filteredSiblings);
+        setCurrentProductSiblingRows(filteredSiblings.sort((a, b) => a.id - b.id));
       } else {
         console.log('No siblings to fetch, setting empty array');
-        setCurrentProductSiblingRows(currentProduct ? [currentProduct] : []);
+        setCurrentProductSiblingRows(currentProduct ? [currentProduct].sort((a, b) => a.id - b.id) : []);
       }
     } catch (error) {
       console.error('Error fetching siblings:', error);
@@ -272,7 +272,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
         const siblingIndex = prevRows.findIndex((sibling) => sibling.id === row.id);
         const updatedRows = [...prevRows];
         updatedRows[siblingIndex] = { ...row, is_visible_particular: newStatus };
-        return updatedRows;
+        return updatedRows.sort((a, b) => a.id - b.id);
       });
     } catch (error) {
       console.error('Missing Fields:', error);
@@ -301,7 +301,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
         const siblingIndex = prevRows.findIndex((sibling) => sibling.id === row.id);
         const updatedRows = [...prevRows];
         updatedRows[siblingIndex] = { ...row, is_visible_B2B: newStatus };
-        return updatedRows;
+        return updatedRows.sort((a, b) => a.id - b.id);
       });
     } catch (error) {
       console.error('Missing Fields:', error);
@@ -345,7 +345,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   const processRowUpdate = (newRow: GridRowModel) => {
     const updatedRow = { ...newRow, isNew: false };
     setCurrentProductSiblingRows(
-      currentProductSiblingRows.map((row) => (row.id === newRow.id ? updatedRow : row))
+      currentProductSiblingRows.map((row) => (row.id === newRow.id ? updatedRow : row)).sort((a, b) => a.id - b.id)
     );
     return updatedRow;
   };
@@ -572,7 +572,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
             siblingList.push(currentProduct);
           }
           const filteredSiblings = siblingList.filter((sibling): sibling is IProductItem => sibling !== null);
-          setCurrentProductSiblingRows(filteredSiblings);
+          setCurrentProductSiblingRows(filteredSiblings.sort((a, b) => a.id - b.id));
         }
       } else {
         console.error('Failed to fetch product, status code:', response.status);
@@ -609,7 +609,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
             siblingList.push(currentProduct);
           }
           const filteredSiblings = siblingList.filter((sibling): sibling is IProductItem => sibling !== null);
-          setCurrentProductSiblingRows(filteredSiblings);
+          setCurrentProductSiblingRows(filteredSiblings.sort((a, b) => a.id - b.id));
         }
       } else {
         console.error('Failed to fetch product, status code:', response.status);
