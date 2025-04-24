@@ -99,58 +99,58 @@ export default function UserNewEditForm({ currentUser }: Props) {
     relation_code: Yup.string().required(t('required')),
     first_name: !isBusiness ? Yup.string().required(t('required')) : Yup.string(),
     last_name: !isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    password: currentUser ? Yup.string() : Yup.string().required(t('required')),
-    email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
-    phone_number: isBusiness ? Yup.string()
-      .required(t('phone_required'))
-      .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')) : Yup.string(),
-    mobile_number: isBusiness ? Yup.string()
-      .required(t('mobile_required'))
-      .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')) : Yup.string(),
-    birthdate: Yup.date()
-      .required(t('birthdate_required'))
-      .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years'))
-      .nullable(),
-    fax: Yup.string().nullable(),
-    facebook: Yup.string().nullable().url(t('facebook_url_invalid')),
-    linkedin: Yup.string().nullable().url(t('linkedin_url_invalid')),
-    twitter: Yup.string().nullable().url(t('twitter_url_invalid')),
-    instagram: Yup.string().nullable().url(t('instagram_url_invalid')),
-    pinterest: Yup.string().nullable().url(t('pinterest_url_invalid')),
-    tiktok: Yup.string().nullable().url(t('tiktok_url_invalid')),
-    notes: Yup.string().nullable(),
-    website: Yup.string().nullable().url(t('website_url_invalid')),
-    is_active: Yup.boolean().required(),
-    business_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    contact_person_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    contact_person_phone: isBusiness ? Yup.string()
-      .required(t('required'))
-      .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')) : Yup.string(),
-    contact_person_email: isBusiness ? Yup.string().required(t('required')).email(t('contact_person_email_invalid')) : Yup.string(),
-    classification: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    branch: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    iban: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    bic: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    account_holder_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    account_holder_city: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    vat: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    kvk: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    payment_method: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    customer_percentage: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
-    invoice_discount: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
-    payment_termin: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    credit_limit: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
-    invoice_address: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    invoice_language: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    discount_group: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    inform_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    customer_color: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    relation_type: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    relation_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    days_closed: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    days_no_delivery: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    credit_limit: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
-    invoice_discount: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
+    // password: currentUser ? Yup.string() : Yup.string().required(t('required')),
+    // email: Yup.string().required(t('required')).email(t('email_must_be_valid')),
+    // phone_number: isBusiness ? Yup.string()
+    //   .required(t('phone_required'))
+    //   .matches(/^[0-9]+$/, t('phone_number_must_be_numeric')) : Yup.string(),
+    // mobile_number: isBusiness ? Yup.string()
+    //   .required(t('mobile_required'))
+    //   .matches(/^[0-9]+$/, t('mobile_number_must_be_numeric')) : Yup.string(),
+    // birthdate: Yup.date()
+    //   .required(t('birthdate_required'))
+    //   .max(moment().subtract(18, 'years').toDate(), t('birthdate_must_be_before_18_years'))
+    //   .nullable(),
+    // fax: Yup.string().nullable(),
+    // facebook: Yup.string().nullable().url(t('facebook_url_invalid')),
+    // linkedin: Yup.string().nullable().url(t('linkedin_url_invalid')),
+    // twitter: Yup.string().nullable().url(t('twitter_url_invalid')),
+    // instagram: Yup.string().nullable().url(t('instagram_url_invalid')),
+    // pinterest: Yup.string().nullable().url(t('pinterest_url_invalid')),
+    // tiktok: Yup.string().nullable().url(t('tiktok_url_invalid')),
+    // notes: Yup.string().nullable(),
+    // website: Yup.string().nullable().url(t('website_url_invalid')),
+    // is_active: Yup.boolean().required(),
+    // business_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // contact_person_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // contact_person_phone: isBusiness ? Yup.string()
+    //   .required(t('required'))
+    //   .matches(/^[0-9]+$/, t('contact_person_phone_number_must_be_numeric')) : Yup.string(),
+    // contact_person_email: isBusiness ? Yup.string().required(t('required')).email(t('contact_person_email_invalid')) : Yup.string(),
+    // classification: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // branch: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // iban: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // bic: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // account_holder_name: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // account_holder_city: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // vat: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // kvk: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // payment_method: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // customer_percentage: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
+    // invoice_discount: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
+    // payment_termin: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // credit_limit: isBusiness ? Yup.number().required(t('required')) : Yup.number(),
+    // invoice_address: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // invoice_language: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // discount_group: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // inform_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // customer_color: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // relation_type: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // relation_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // days_closed: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // days_no_delivery: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
+    // credit_limit: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
+    // invoice_discount: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
   });
 
   const ADDRESS_TYPES = [
