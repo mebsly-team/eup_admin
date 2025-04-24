@@ -41,6 +41,8 @@ import BrandTableFiltersResult from '../brand-table-filters-result';
 
 // ----------------------------------------------------------------------
 
+const random = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 const defaultFilters: IBrandTableFilters = {
   name: '',
 };
@@ -85,9 +87,8 @@ export default function BrandListView() {
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
     const { data } = await axiosInstance.get(
-      `/brands/?limit=${table.rowsPerPage}&offset=${
-        table.page * table.rowsPerPage
-      }${searchFilter}${orderByParam}`
+      `/brands/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
+      }${searchFilter}${orderByParam}&data=${random(1, 1000000000)}`
     );
     setCount(data.count || 0);
     setBrandList(data.results || []);

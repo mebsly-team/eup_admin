@@ -41,6 +41,8 @@ import SupplierTableFiltersResult from '../supplier-table-filters-result';
 
 // ----------------------------------------------------------------------
 
+const random = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 const defaultFilters: any = {
   is_active: 'all',
   name: undefined,
@@ -118,9 +120,8 @@ export default function SupplierListView() {
       : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const { data } = await axiosInstance.get(
-      `/suppliers/?limit=${table.rowsPerPage}&offset=${
-        table.page * table.rowsPerPage
-      }${searchFilter}${statusFilter}${orderByParam}`
+      `/suppliers/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
+      }${searchFilter}${statusFilter}${orderByParam}&data=${random(1, 1000000000)}`
     );
     setCount(data.count || 0);
     setSupplierList(data.results || []);

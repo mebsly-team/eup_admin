@@ -780,5 +780,11 @@
   "vat_amount": "BTW-bedrag",
   "delete_product": "Product verwijderen",
   "confirm_delete_product": "Weet je zeker dat je dit product wilt verwijderen?",
-  "supplier_required": "Leverancier is verplicht"
+  "supplier_required": "Leverancier is verplicht",
+  "history": "Geschiedenis",
+  "by": "door",
+  "failed_to_fetch_history": "Ophalen geschiedenis mislukt",
+  "update": "Bijwerken",
+  "changed": "Gewijzigd",
+  "unchanged": "Ongewijzigd"
 }

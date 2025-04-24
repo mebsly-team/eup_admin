@@ -58,6 +58,7 @@ import ProductVariantForm from './product-variant-form';
 import ProductSiblingForm from './product-sibling-form';
 import ProductDetailsHistory from './product-details-history';
 import { useAuthContext } from 'src/auth/hooks';
+import { random } from 'lodash';
 
 // ----------------------------------------------------------------------
 
@@ -165,11 +166,11 @@ export default function ProductNewEditForm({ id }: Props) {
   }, [currentProduct?.parent_product]);
 
   const getAllSuppliers = async () => {
-    const { data } = await axiosInstance.get(`/suppliers/?limit=3000&offset=0`);
+    const { data } = await axiosInstance.get(`/suppliers/?limit=3000&offset=0&data=${random(1, 1000000000)}`);
     setSupplierList(data.results || []);
   };
   const getAllBrands = async () => {
-    const { data } = await axiosInstance.get(`/brands/?limit=3000&offset=0`);
+    const { data } = await axiosInstance.get(`/brands/?limit=3000&offset=0&data=${random(1, 1000000000)}`);
     setBrandList(data.results || []);
   };
 
@@ -2473,91 +2474,91 @@ export default function ProductNewEditForm({ id }: Props) {
 
   const renderPreview = mdUp ? (
     <Card id="my-card">
-     
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={getValues('is_visible_particular')}
-              onChange={async (e) => {
-                try {
-                  if (currentProduct?.id) {
-                    const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
-                      is_visible_particular: e.target.checked,
-                      title: getValues('title'),
-                    });
-                    setValue('is_visible_particular', response?.data?.is_visible_particular ?? getValues('is_visible_particular'));
-                  }
-                } catch (error) {
-                  console.error('Missing Fields:', error);
-                  const missingFields = Object.values(error)?.[0] || [];
-                  missingFields.forEach((element) => {
-                    enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+
+      <FormControlLabel
+        control={
+          <Switch
+            checked={getValues('is_visible_particular')}
+            onChange={async (e) => {
+              try {
+                if (currentProduct?.id) {
+                  const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
+                    is_visible_particular: e.target.checked,
+                    title: getValues('title'),
                   });
+                  setValue('is_visible_particular', response?.data?.is_visible_particular ?? getValues('is_visible_particular'));
                 }
-              }}
-            />
-          }
-          label={getValues('is_visible_particular') ? (
-            <Link
-              target="_blank"
-              href={`https://kooptop.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              sx={{
-                typography: '',
-                float: 'right',
-                fontWeight: 'fontWeightBold',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                marginRight: 3,
-              }}
-            >
-              WEB
-            </Link>
-          ) : "WEB"}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={getValues('is_visible_B2B')}
-              onChange={async (e) => {
-                try {
-                  if (currentProduct?.id) {
-                    const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
-                      is_visible_B2B: e.target.checked,
-                      title: getValues('title'),
-                    });
-                    setValue('is_visible_B2B', response?.data?.is_visible_B2B ?? getValues('is_visible_B2B'));
-                  }
-                } catch (error) {
-                  console.error('Missing Fields:', error);
-                  const missingFields = Object.values(error)?.[0] || [];
-                  missingFields.forEach((element) => {
-                    enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+              } catch (error) {
+                console.error('Missing Fields:', error);
+                const missingFields = Object.values(error)?.[0] || [];
+                missingFields.forEach((element) => {
+                  enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+                });
+              }
+            }}
+          />
+        }
+        label={getValues('is_visible_particular') ? (
+          <Link
+            target="_blank"
+            href={`https://kooptop.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              typography: '',
+              float: 'right',
+              fontWeight: 'fontWeightBold',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              marginRight: 3,
+            }}
+          >
+            WEB
+          </Link>
+        ) : "WEB"}
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            checked={getValues('is_visible_B2B')}
+            onChange={async (e) => {
+              try {
+                if (currentProduct?.id) {
+                  const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
+                    is_visible_B2B: e.target.checked,
+                    title: getValues('title'),
                   });
+                  setValue('is_visible_B2B', response?.data?.is_visible_B2B ?? getValues('is_visible_B2B'));
                 }
-              }}
-            />
-          }
-          label={getValues('is_visible_B2B') ? (
-            <Link
-              target="_blank"
-              href={`https://europowerbv.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              sx={{
-                typography: '',
-                float: 'right',
-                fontWeight: 'fontWeightBold',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                marginRight: 3,
-              }}
-            >
-              B2B
-            </Link>
-          ) : "B2B"}
+              } catch (error) {
+                console.error('Missing Fields:', error);
+                const missingFields = Object.values(error)?.[0] || [];
+                missingFields.forEach((element) => {
+                  enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+                });
+              }
+            }}
+          />
+        }
+        label={getValues('is_visible_B2B') ? (
+          <Link
+            target="_blank"
+            href={`https://europowerbv.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              typography: '',
+              float: 'right',
+              fontWeight: 'fontWeightBold',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              marginRight: 3,
+            }}
+          >
+            B2B
+          </Link>
+        ) : "B2B"}
       />
 
       {currentProduct?.parent_product ? (

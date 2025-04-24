@@ -24,6 +24,15 @@ import axiosInstance from 'src/utils/axios';
 import { IPurchaseItem } from 'src/types/purchase';
 import { ISupplierItem } from 'src/types/supplier';
 import { IProductItem } from 'src/types/product';
+import PurchaseDetailsHistory from './purchase-details-history';
+
+type PurchaseHistory = {
+  id: string;
+  action: string;
+  changes: Record<string, any>;
+  created_at: string;
+  user: string;
+};
 
 export default function PurchaseEditView() {
   const { id } = useParams();
@@ -37,6 +46,7 @@ export default function PurchaseEditView() {
   const [suppliers, setSuppliers] = useState<ISupplierItem[]>([]);
   const [eanSearch, setEanSearch] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
+  const [history, setHistory] = useState<PurchaseHistory[]>([]);
 
   const fetchSuppliers = useCallback(async () => {
     try {
@@ -79,6 +89,7 @@ export default function PurchaseEditView() {
       };
 
       setCurrentPurchase(purchaseWithVat);
+      setHistory(response.data.history || []);
       const supplierResponse = await axiosInstance.get(`/suppliers/${response.data.supplier}/`, {
         headers: {
           Authorization: `Bearer ${user?.token}`,
@@ -209,6 +220,17 @@ export default function PurchaseEditView() {
 
     try {
       setSaving(true);
+      const changes = {
+        supplier: String(selectedSupplier?.id) !== String(currentPurchase?.supplier),
+        purchase_invoice_date: currentPurchase?.purchase_invoice_date,
+        items: currentPurchase?.items.map(item => ({
+          id: item.id,
+          quantity: item.product_quantity,
+          price: item.product_purchase_price,
+          vat_rate: item.vat_rate,
+        })),
+      };
+
       const cleanedPurchase = {
         id: currentPurchase?.id,
         supplier: selectedSupplier?.id,
@@ -223,9 +245,16 @@ export default function PurchaseEditView() {
           product_purchase_price: item.product_purchase_price,
           vat_rate: item.vat_rate,
         })),
+        history: [...history, {
+          id: crypto.randomUUID(),
+          action: 'update',
+          changes,
+          created_at: new Date().toISOString(),
+          user: user?.email || 'Unknown',
+        }],
       };
 
-      await axiosInstance.put(
+      const response = await axiosInstance.put(
         `/purchases/${id}/`,
         cleanedPurchase,
         {
@@ -234,6 +263,22 @@ export default function PurchaseEditView() {
           },
         }
       );
+
+      // Update history with the new changes
+      if (response.data.history) {
+        setHistory(response.data.history);
+      } else {
+        // If the API doesn't return history, create a new history entry
+        const newHistoryEntry = {
+          id: crypto.randomUUID(),
+          action: 'update',
+          changes,
+          created_at: new Date().toISOString(),
+          user: user?.name || 'Unknown',
+        };
+        setHistory([newHistoryEntry, ...history]);
+      }
+
       enqueueSnackbar(t('purchase_updated_successfully'));
     } catch (error) {
       console.error('Error updating purchase:', error);
@@ -424,9 +469,11 @@ export default function PurchaseEditView() {
                     <Typography variant="subtitle2">€{currentPurchase.total_inc_btw}</Typography>
                   </Stack>
                 </Stack>
+
               </Stack>
             </Card>
           </Grid>
+          {history.length > 0 && <PurchaseDetailsHistory history={history} />}
         </Grid>
       </Stack>
     </Container>
