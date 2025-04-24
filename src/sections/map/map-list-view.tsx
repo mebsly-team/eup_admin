@@ -17,6 +17,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CircularProgress from "@mui/material/CircularProgress";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker';
 import { Map as LeafletMap, LatLngBounds, Icon } from 'leaflet';
 import { useSnackbar } from 'src/components/snackbar';
 import { StyledCalendar } from 'src/sections/calendar/styles';
@@ -25,6 +30,7 @@ import { CALENDAR_COLOR_OPTIONS } from 'src/_mock/_calendar';
 import { createEvent, updateEvent, deleteEvent } from 'src/api/calendar';
 import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
 import { COLORS } from 'src/constants/colors';
+import Iconify from 'src/components/iconify';
 
 interface Address {
   id: string;
@@ -35,6 +41,14 @@ interface Address {
   country: string;
   latitude: number;
   longitude: number;
+  branch?: string;
+  type?: string;
+  contact_person_branch?: string;
+  phone_number?: string;
+  mobile_number?: string;
+  mobile_phone?: string;
+  days_closed?: string[];
+  days_no_delivery?: string[];
 }
 
 interface User {
@@ -62,6 +76,13 @@ interface CalendarEvent {
   allDay: boolean;
 }
 
+interface TimeChangeDialogState {
+  open: boolean;
+  eventId: string | null;
+  start: Date | null;
+  end: Date | null;
+}
+
 const USER_TYPES = [
   { value: "all", label: "Alle" },
   { value: "special", label: "Speciaal" },
@@ -69,7 +90,7 @@ const USER_TYPES = [
   { value: "supermarket", label: "Supermarkt" },
   { value: "standard_business", label: "Standaard Zakelijk" },
   { value: "particular", label: "Particulier" },
-  { value: "admin", label: "Beheerder" },
+  // { value: "admin", label: "Beheerder" },
 ] as const;
 
 const MARKER_COLORS = [
@@ -112,8 +133,12 @@ const Map = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 52.0452, lng: 4.6522 });
   const [zoom, setZoom] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedUserTypes, setSelectedUserTypes] = useState<string[]>(["wholesaler"]);
-  const [selectedColors, setSelectedColors] = useState<string[]>(["red"]);
+  const [selectedUserTypes, setSelectedUserTypes] = useState<string[]>(
+    USER_TYPES
+      .filter(type => type.value !== "particular" && type.value !== "all")
+      .map(type => type.value)
+  );
+  const [selectedColors, setSelectedColors] = useState<string[]>(["all"]);
   const [filters, setFilters] = useState({
     is_delivery_address: true
   });
@@ -121,6 +146,14 @@ const Map = () => {
   const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const calendarRef = useRef<Calendar>(null);
   const { enqueueSnackbar } = useSnackbar();
+
+  // Add new state for time change dialog
+  const [timeChangeDialog, setTimeChangeDialog] = useState<TimeChangeDialogState>({
+    open: false,
+    eventId: null,
+    start: null,
+    end: null,
+  });
 
   // Fetch events from Google Calendar
   useEffect(() => {
@@ -238,17 +271,20 @@ const Map = () => {
 
   const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
     if (newUserTypes.includes("all")) {
-      // If "all" is being selected, deselect everything else
+      // If "all" is being selected, select all types except "particular"
       if (!selectedUserTypes.includes("all")) {
-        setSelectedUserTypes(["all"]);
+        setSelectedUserTypes(USER_TYPES
+          .filter(type => type.value !== "particular")
+          .map(type => type.value)
+        );
       } else {
-        // If "all" is being deselected, default to "wholesaler"
-        setSelectedUserTypes(["wholesaler"]);
+        // If "all" is being deselected, keep the previous selection
+        const filteredTypes = selectedUserTypes.filter(type => type !== "all");
+        setSelectedUserTypes(filteredTypes.length ? filteredTypes : ["wholesaler"]);
       }
     } else {
-      // If selecting other options while "all" is selected, remove "all"
-      const filteredTypes = newUserTypes.filter(type => type !== "all");
-      setSelectedUserTypes(filteredTypes.length ? filteredTypes : ["wholesaler"]);
+      // Handle regular multiple selection
+      setSelectedUserTypes(newUserTypes.length ? newUserTypes : ["wholesaler"]);
     }
   };
 
@@ -330,7 +366,7 @@ const Map = () => {
 
       // Get the currently selected date from the calendar view
       const selectedDate = calendarApi.getDate();
-      console.log('Selected date from calendar:', selectedDate.toLocaleString('nl-NL'));
+      console.log('Geselecteerde datum van kalender:', selectedDate.toLocaleString('nl-NL'));
 
       // Create visitDate starting at 9 AM on the selected date
       const visitDate = new Date(
@@ -342,7 +378,7 @@ const Map = () => {
         0
       );
 
-      console.log('Initial visit date (9 AM):', visitDate.toLocaleString('nl-NL'));
+      console.log('Initiële bezoekdatum (9:00):', visitDate.toLocaleString('nl-NL'));
 
       // Get all events for the selected date
       const dayStart = new Date(visitDate);
@@ -356,22 +392,22 @@ const Map = () => {
         return eventStart >= dayStart && eventStart <= dayEnd;
       }).sort((a, b) => a.start - b.start);
 
-      console.log('Events for selected date:', dayEvents.map(e => ({
+      console.log('Afspraken voor geselecteerde datum:', dayEvents.map(e => ({
         title: e.title,
         start: new Date(e.start).toLocaleString('nl-NL'),
         end: new Date(e.end).toLocaleString('nl-NL')
       })));
 
-      // Find the first available 2-hour slot
+      // Find the first available 30-minute slot
       let slotFound = false;
-      const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+      const bezoekDuur = 30 * 60 * 1000; // 30 minuten in milliseconden
 
       // Check each existing event to find gaps
       for (let i = 0; i <= dayEvents.length; i++) {
-        const slotStart = i === 0 ? visitDate : new Date(dayEvents[i - 1].end + 30 * 60 * 1000); // 30 min buffer after previous event
-        const slotEnd = new Date(slotStart.getTime() + twoHours);
+        const slotStart = i === 0 ? visitDate : new Date(dayEvents[i - 1].end + 30 * 60 * 1000); // 30 min pauze na vorig event
+        const slotEnd = new Date(slotStart.getTime() + bezoekDuur);
 
-        // If this is the last iteration or there's a gap before the next event
+        // Als dit de laatste iteratie is of er is een gat voor het volgende event
         if (i === dayEvents.length || slotEnd.getTime() <= new Date(dayEvents[i].start).getTime()) {
           visitDate.setTime(slotStart.getTime());
           slotFound = true;
@@ -383,28 +419,28 @@ const Map = () => {
         throw new Error('Geen beschikbare tijdslot gevonden voor deze dag');
       }
 
-      const visitStart = visitDate.getTime();
-      const visitEnd = visitStart + twoHours;
+      const bezoekStart = visitDate.getTime();
+      const bezoekEind = bezoekStart + bezoekDuur;
 
-      console.log('Final scheduling times:', {
-        startTime: new Date(visitStart).toLocaleString('nl-NL'),
-        endTime: new Date(visitEnd).toLocaleString('nl-NL')
+      console.log('Geplande tijden:', {
+        startTijd: new Date(bezoekStart).toLocaleString('nl-NL'),
+        eindTijd: new Date(bezoekEind).toLocaleString('nl-NL')
       });
 
       // First create the event in Google Calendar
       if (!window.gapi?.client?.calendar) {
-        throw new Error('Google Calendar API niet geïnitialiseerd');
+        throw new Error('Google Agenda API niet geïnitialiseerd');
       }
 
       const eventData = {
         summary: `Bezoek ${user.first_name} ${user.last_name}`,
         description: `Bezoek aan ${address.street_name} ${address.house_number}, ${address.city} <br /> ${address.zip_code}, ${address.country}`,
         start: {
-          dateTime: new Date(visitStart).toISOString(),
+          dateTime: new Date(bezoekStart).toISOString(),
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         end: {
-          dateTime: new Date(visitEnd).toISOString(),
+          dateTime: new Date(bezoekEind).toISOString(),
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         colorId: '1',
@@ -417,8 +453,6 @@ const Map = () => {
         resource: eventData,
       });
 
-      console.log('Google Calendar response:', response);
-
       if (response.status !== 200) {
         throw new Error('Kan geen afspraak maken in Google Agenda');
       }
@@ -428,8 +462,8 @@ const Map = () => {
         id: response.result.id,
         title: eventData.summary,
         description: eventData.description,
-        start: visitStart,
-        end: visitEnd,
+        start: bezoekStart,
+        end: bezoekEind,
         color: CALENDAR_COLOR_OPTIONS[0],
         allDay: false,
       };
@@ -450,7 +484,7 @@ const Map = () => {
       });
 
       // Format date and time for the success message
-      const startDate = new Date(visitStart);
+      const startDate = new Date(bezoekStart);
       const formattedDate = startDate.toLocaleDateString('nl-NL', {
         weekday: 'long',
         year: 'numeric',
@@ -467,7 +501,7 @@ const Map = () => {
         { variant: 'success' }
       );
     } catch (error) {
-      console.error('Error scheduling visit:', error);
+      console.error('Fout bij het plannen van bezoek:', error);
       // Disconnect Google Calendar on error
       const token = window.gapi?.client?.getToken();
       if (token) {
@@ -477,8 +511,8 @@ const Map = () => {
       localStorage.removeItem('googleCalendarTokens');
       enqueueSnackbar(
         error instanceof Error
-          ? `${error.message} - Disconnected from Google Calendar`
-          : 'Error scheduling visit - Disconnected from Google Calendar',
+          ? `${error.message} - Verbinding met Google Agenda verbroken`
+          : 'Fout bij het plannen van bezoek - Verbinding met Google Agenda verbroken',
         { variant: 'error' }
       );
     }
@@ -635,6 +669,92 @@ const Map = () => {
     }
   };
 
+  // Add handler for opening time change dialog
+  const handleOpenTimeChange = (eventInfo: any) => {
+    setTimeChangeDialog({
+      open: true,
+      eventId: eventInfo.event.id,
+      start: new Date(eventInfo.event.start),
+      end: new Date(eventInfo.event.end),
+    });
+  };
+
+  // Add handler for closing time change dialog
+  const handleCloseTimeChange = () => {
+    setTimeChangeDialog({
+      open: false,
+      eventId: null,
+      start: null,
+      end: null,
+    });
+  };
+
+  // Add handler for saving time changes
+  const handleSaveTimeChange = async () => {
+    try {
+      if (!timeChangeDialog.eventId || !timeChangeDialog.start || !timeChangeDialog.end) {
+        return;
+      }
+
+      const start = timeChangeDialog.start;
+      const end = timeChangeDialog.end;
+
+      if (!window.gapi?.client?.calendar) {
+        throw new Error('Google Calendar API niet geïnitialiseerd');
+      }
+
+      // Update in Google Calendar
+      const eventData = {
+        start: {
+          dateTime: start.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: end.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      };
+
+      const response = await window.gapi.client.calendar.events.patch({
+        calendarId: 'primary',
+        eventId: timeChangeDialog.eventId,
+        resource: eventData,
+      });
+
+      if (response.status !== 200) {
+        throw new Error('Failed to update event in Google Calendar');
+      }
+
+      // Update local state
+      setEvents(prevEvents =>
+        prevEvents.map(event =>
+          event.id === timeChangeDialog.eventId
+            ? {
+              ...event,
+              start: start.getTime(),
+              end: end.getTime(),
+            }
+            : event
+        )
+      );
+
+      // Force calendar refresh
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        calendarApi.refetchEvents();
+      }
+
+      enqueueSnackbar('Afspraaktijd succesvol bijgewerkt', { variant: 'success' });
+      handleCloseTimeChange();
+    } catch (error) {
+      console.error('Error updating event time:', error);
+      enqueueSnackbar(
+        error instanceof Error ? error.message : 'Error updating event time',
+        { variant: 'error' }
+      );
+    }
+  };
+
   return (
     <Box sx={{ display: "flex", height: "90vh" }}>
       {/* Left Panel - Calendar */}
@@ -693,6 +813,7 @@ const Map = () => {
             initialView="timeGridDay"
             eventDrop={handleEventDrop}
             eventResize={handleEventResize}
+            eventClick={(eventInfo) => handleOpenTimeChange(eventInfo)}
             plugins={[
               listPlugin,
               dayGridPlugin,
@@ -710,7 +831,11 @@ const Map = () => {
                     height: '100%',
                     px: 0.5,
                     backgroundColor: eventInfo.event.backgroundColor || CALENDAR_COLOR_OPTIONS[0],
-                    color: '#fff'
+                    color: '#fff',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      filter: 'brightness(0.9)',
+                    },
                   }}
                 >
                   <Typography
@@ -774,6 +899,7 @@ const Map = () => {
                 onChange={handleUserTypeChange}
                 aria-label="user types"
                 size="small"
+                exclusive={false}
                 sx={{
                   flexWrap: 'wrap',
                   '& .MuiToggleButton-root': {
@@ -847,6 +973,7 @@ const Map = () => {
             <MarkerClusterGroup>
               {users.map((user) =>
                 user.addresses.map((address) => {
+                  console.log("🚀 ~ Map ~ user:", user)
                   const { latitude, longitude } = address;
                   if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
                     const markerColor = MARKER_COLORS.find(c => c.value === user.customer_color)?.color || MARKER_COLORS[0].color;
@@ -861,13 +988,65 @@ const Map = () => {
                           <strong>{user.first_name} {user.last_name}</strong> <br />
                           {address.street_name} {address.house_number}, {address.city} <br />
                           {address.zip_code}, {address.country} <br />
+
+                          {user.branch && (
+                            <Box component="div" sx={{ mt: 1 }}>
+                              <strong>Filiaal:</strong> {user.branch}
+                            </Box>
+                          )}
+
+                          {user.type && (
+                            <Box component="div">
+                              <strong>Type:</strong> {user.type}
+                            </Box>
+                          )}
+
+                          {user.contact_person_branch && (
+                            <Box component="div">
+                              <strong>Contactpersoon:</strong> {user.contact_person_branch}
+                            </Box>
+                          )}
+
+                          {user.mobile_number && (
+                            <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                              <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                              {user.mobile_number}
+                            </Box>
+                          )}
+
+                          {user.mobile_phone && user.mobile_phone !== user.mobile_number && (
+                            <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                              {user.mobile_phone}
+                            </Box>
+                          )}
+
+                          {user.phone_number && (
+                            <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
+                              {user.phone_number}
+                            </Box>
+                          )}
+
+                          {user.days_closed && user.days_closed.length > 0 && (
+                            <Box component="div" sx={{ mt: 1 }}>
+                              <strong>Gesloten dagen:</strong> {user.days_closed.join(', ')}
+                            </Box>
+                          )}
+
+                          {user.days_no_delivery && user.days_no_delivery.length > 0 && (
+                            <Box component="div">
+                              <strong>Geen bezorging op:</strong> {user.days_no_delivery.join(', ')}
+                            </Box>
+                          )}
+
                           <Button
                             variant="contained"
                             size="small"
                             onClick={() => handleAddToCalendar(user, address)}
                             sx={{ mt: 1 }}
                           >
-                            Schedule Visit (2h)
+                            Plan bezoek (30m)
                           </Button>
                         </Popup>
                       </Marker>
@@ -899,6 +1078,63 @@ const Map = () => {
           )}
         </Box>
       </Box>
+
+      {/* Add Time Change Dialog */}
+      <Dialog open={timeChangeDialog.open} onClose={handleCloseTimeChange}>
+        <DialogTitle>Afspraaktijd wijzigen</DialogTitle>
+        <DialogContent>
+          <Stack spacing={3} sx={{ mt: 2 }}>
+            <MobileDateTimePicker
+              label="Start tijd"
+              value={timeChangeDialog.start}
+              onChange={(newValue: Date | null) => {
+                if (newValue) {
+                  setTimeChangeDialog(prev => ({
+                    ...prev,
+                    start: newValue,
+                    // Automatically adjust end time to maintain duration
+                    end: prev.end && prev.start
+                      ? new Date(newValue.getTime() + (prev.end.getTime() - prev.start.getTime()))
+                      : prev.end,
+                  }));
+                }
+              }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                },
+              }}
+            />
+            <MobileDateTimePicker
+              label="Eind tijd"
+              value={timeChangeDialog.end}
+              onChange={(newValue: Date | null) => {
+                if (newValue) {
+                  setTimeChangeDialog(prev => ({
+                    ...prev,
+                    end: newValue,
+                  }));
+                }
+              }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                },
+              }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseTimeChange}>Annuleren</Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveTimeChange}
+            disabled={!timeChangeDialog.start || !timeChangeDialog.end}
+          >
+            Opslaan
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

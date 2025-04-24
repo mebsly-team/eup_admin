@@ -28,6 +28,14 @@ type CountryData = {
   latlng: number[];
   address: string;
   phoneNumber: string;
+  mobile_number?: string;
+  mobile_phone?: string;
+  phone_number?: string;
+  branch?: string;
+  type?: string;
+  contact_person_branch?: string;
+  days_closed?: string[];
+  days_no_delivery?: string[];
 };
 
 type Props = {
@@ -89,6 +97,24 @@ export default function ContactMap({ contacts }: Props) {
               {popupInfo.address}
             </Typography>
 
+            {popupInfo.branch && (
+              <Typography component="div" variant="caption" sx={{ mt: 1 }}>
+                <strong>Branch:</strong> {popupInfo.branch}
+              </Typography>
+            )}
+
+            {popupInfo.type && (
+              <Typography component="div" variant="caption">
+                <strong>Type:</strong> {popupInfo.type}
+              </Typography>
+            )}
+
+            {popupInfo.contact_person_branch && (
+              <Typography component="div" variant="caption">
+                <strong>Contact Person:</strong> {popupInfo.contact_person_branch}
+              </Typography>
+            )}
+
             <Typography
               component="div"
               variant="caption"
@@ -97,6 +123,40 @@ export default function ContactMap({ contacts }: Props) {
               <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
               {popupInfo.phoneNumber}
             </Typography>
+
+            {(popupInfo.mobile_number || popupInfo.mobile_phone) && (
+              <Typography
+                component="div"
+                variant="caption"
+                sx={{ display: 'flex', alignItems: 'center' }}
+              >
+                <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                {popupInfo.mobile_number || popupInfo.mobile_phone}
+              </Typography>
+            )}
+
+            {popupInfo.phone_number && popupInfo.phone_number !== popupInfo.phoneNumber && (
+              <Typography
+                component="div"
+                variant="caption"
+                sx={{ display: 'flex', alignItems: 'center' }}
+              >
+                <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
+                {popupInfo.phone_number}
+              </Typography>
+            )}
+
+            {popupInfo.days_closed && popupInfo.days_closed.length > 0 && (
+              <Typography component="div" variant="caption" sx={{ mt: 1 }}>
+                <strong>Closed Days:</strong> {popupInfo.days_closed.join(', ')}
+              </Typography>
+            )}
+
+            {popupInfo.days_no_delivery && popupInfo.days_no_delivery.length > 0 && (
+              <Typography component="div" variant="caption">
+                <strong>No Delivery Days:</strong> {popupInfo.days_no_delivery.join(', ')}
+              </Typography>
+            )}
           </MapPopup>
         )}
       </Map>
