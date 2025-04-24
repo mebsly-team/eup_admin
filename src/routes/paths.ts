@@ -116,6 +116,15 @@ export const paths = {
       account: `${ROOTS.DASHBOARD}/statics/account`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/statics/${id}/edit`,
     },
+    purchase: {
+      root: `${ROOTS.DASHBOARD}/purchase`,
+      new: `${ROOTS.DASHBOARD}/purchase/new`,
+      list: `${ROOTS.DASHBOARD}/purchase/list`,
+      cards: `${ROOTS.DASHBOARD}/purchase/cards`,
+      profile: `${ROOTS.DASHBOARD}/purchase/profile`,
+      account: `${ROOTS.DASHBOARD}/purchase/account`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/purchase/${id}/edit`,
+    },
     logs: {
       root: `${ROOTS.DASHBOARD}/logs`,
       new: `${ROOTS.DASHBOARD}/logs/new`,

@@ -72,6 +72,13 @@ const StaticsListPage = lazy(() => import('src/pages/dashboard/statics/list'));
 const StaticsAccountPage = lazy(() => import('src/pages/dashboard/statics/account'));
 const StaticsCreatePage = lazy(() => import('src/pages/dashboard/statics/new'));
 const StaticsEditPage = lazy(() => import('src/pages/dashboard/statics/edit'));
+// PURCHASE
+const PurchaseProfilePage = lazy(() => import('src/pages/dashboard/purchase/profile'));
+const PurchaseCardsPage = lazy(() => import('src/pages/dashboard/purchase/cards'));
+const PurchaseListPage = lazy(() => import('src/pages/dashboard/purchase/list'));
+const PurchaseAccountPage = lazy(() => import('src/pages/dashboard/purchase/account'));
+const PurchaseCreatePage = lazy(() => import('src/pages/dashboard/purchase/new'));
+const PurchaseEditPage = lazy(() => import('src/pages/dashboard/purchase/edit'));
 // LOGS
 const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile'));
 const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards'));
@@ -161,6 +168,18 @@ export const mainRoutes = [
           { path: 'new', element: <StaticsCreatePage /> },
           { path: ':id/edit', element: <StaticsEditPage /> },
           { path: 'account', element: <StaticsAccountPage /> },
+        ],
+      },
+      {
+        path: 'purchase',
+        children: [
+          { element: <PurchaseProfilePage />, index: true },
+          { path: 'profile', element: <PurchaseProfilePage /> },
+          { path: 'cards', element: <PurchaseCardsPage /> },
+          { path: 'list', element: <PurchaseListPage /> },
+          { path: 'new', element: <PurchaseCreatePage /> },
+          { path: ':id/edit', element: <PurchaseEditPage /> },
+          { path: 'account', element: <PurchaseAccountPage /> },
         ],
       },
       {
