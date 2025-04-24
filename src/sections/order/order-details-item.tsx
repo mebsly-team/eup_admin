@@ -369,15 +369,32 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 }
                 secondary={
                   <>
-                    {item.product.ean ? <Box component="span" sx={{ display: 'block', color: 'text.disabled' }}>
+                    {item.product.ean ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
                       EAN: {item.product.ean}
                     </Box> : null}
-                    {item.product.price_per_piece ? <Box component="span" sx={{ display: 'block', color: 'text.disabled', mt: 0.5 }}>
-                      Prijs per stuk: {fCurrency(item.product.price_per_piece)}
+                    {item.product.price_per_piece ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
+                      Prijs per stuk (exc BTW): {fCurrency(item.product.price_per_piece)}
                     </Box> : null}
-                    <Box component="span" sx={{ display: 'block', color: 'text.disabled' }}>
-                      Prijs per eenheid: {fCurrency(item.product.price_per_unit)}
+                    {item.product.price_per_piece_vat ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
+                      Prijs per stuk (incl BTW): {fCurrency(item.product.price_per_piece_vat)}
+                    </Box> : null}
+                    {item.product.price_per_piece_vat ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
+                      ----
+                    </Box> : null}
+                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
+                      Prijs (exc BTW): {fCurrency(item.product.price_per_unit)}
                     </Box>
+                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
+                      Prijs (incl BTW): {fCurrency(item.product.price_per_unit_vat)}
+                    </Box>
+                    ----
+                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
+                      Met korting (exc BTW): {fCurrency(item.single_product_discounted_price_per_unit)}
+                    </Box>
+                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
+                      Met korting (incl BTW): {fCurrency(item.single_product_discounted_price_per_unit_vat)}
+                    </Box>
+
                   </>
                 }
                 primaryTypographyProps={{ typography: 'body2' }}
@@ -416,12 +433,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 </>
               ) : (
                 <>
-                  <Box sx={{ typography: 'body2', minWidth: 60, textAlign: 'center' }}>x{item.quantity}</Box>
                   <Stack spacing={0.5} sx={{ minWidth: 120 }}>
-                    <Box sx={{ typography: 'subtitle2', textAlign: 'right' }}>
-                      {fCurrency(item.single_product_discounted_price_per_unit_vat)}
+                    <Box sx={{ typography: 'caption', textAlign: 'right' }}>
+                      {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit_vat)}
                     </Box>
-                    <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
+                    <Box sx={{ typography: 'subtitle2', textAlign: 'right' }}>
                       Totaal: {fCurrency(item.single_product_discounted_price_per_unit_vat * item.quantity)}
                     </Box>
                   </Stack>
