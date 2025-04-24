@@ -246,6 +246,13 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const handleActiveSwitchChange = (row) => async (e) => {
     e.stopPropagation(); // Stop event propagation
+
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
+
     setIsWaiting(true);
     const newStatus = e.target.checked;
     try {
@@ -274,6 +281,13 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const handleActiveSwitchChange2 = (row) => async (e) => {
     e.stopPropagation(); // Stop event propagation
+
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
+
     setIsWaiting(true);
     const newStatus = e.target.checked;
 

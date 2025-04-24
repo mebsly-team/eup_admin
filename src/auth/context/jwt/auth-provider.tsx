@@ -153,6 +153,7 @@ export function AuthProvider({ children }: Props) {
           displayName: user?.displayName || 'Admin',
           email: user?.email,
           type: user?.type,
+          is_superuser: user?.is_superuser,
         };
         localStorage.setItem('user', JSON.stringify(userData));
         console.log('Login successful, user data saved');

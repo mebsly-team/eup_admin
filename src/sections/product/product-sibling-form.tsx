@@ -260,6 +260,10 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
 
   const handleActiveSwitchChange = (row) => async (e) => {
     e.stopPropagation(); // Stop event propagation
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
     setIsWaiting(true);
     const newStatus = e.target.checked;
     try {
@@ -287,6 +291,10 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
   };
 
   const handleActiveSwitchChange2 = (row) => async (e) => {
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
     e.stopPropagation(); // Stop event propagation
     setIsWaiting(true);
     const newStatus = e.target.checked;

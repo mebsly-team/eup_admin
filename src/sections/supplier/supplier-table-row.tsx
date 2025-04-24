@@ -45,6 +45,10 @@ export default function SupplierTableRow({
 
   const popover = usePopover();
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
     const response = await axiosInstance.patch(`/suppliers/${id}/`, {
       is_active: e.target.checked,
     });

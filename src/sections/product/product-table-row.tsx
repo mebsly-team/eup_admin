@@ -99,6 +99,12 @@ export default function ProductTableRow({
   const handleActiveSwitchChange = async (e) => {
     e.stopPropagation(); // Stop event propagation
 
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
+
     try {
       const response = await axiosInstance.put(`/products/${id}/`, {
         is_visible_particular: e.target.checked,
@@ -115,6 +121,12 @@ export default function ProductTableRow({
   };
   const handleActiveSwitchChange2 = async (e) => {
     e.stopPropagation(); // Stop event propagation
+
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser.is_superuser) {
+      return; // Do nothing if not superuser
+    }
 
     try {
       const response = await axiosInstance.put(`/products/${id}/`, {
