@@ -372,7 +372,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       align: 'left',
       headerAlign: 'left',
       editable: false,
-      renderCell: (params: GridCellParams) => t(params.value),
+      renderCell: (params: GridCellParams) => t(params.value?.toString().replace(/%/g, ' ') || ''),
       resizable: true,
     },
     {
@@ -384,6 +384,8 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       headerAlign: 'left',
       editable: false,
       resizable: true,
+      renderCell: (params: GridCellParams) => t(params.value?.toString().replace(/%/g, ' ') || ''),
+
     },
     {
       field: 'unit',
