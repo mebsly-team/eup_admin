@@ -379,7 +379,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       align: 'left',
       headerAlign: 'left',
       editable: false,
-      renderCell: (params: GridCellParams) => t(params.value),
+      renderCell: (params: GridCellParams) => t(params.value?.toString().replace(/%/g, ' ') || ''),
       resizable: true,
     },
     {
@@ -390,6 +390,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       align: 'left',
       headerAlign: 'left',
       editable: false,
+      renderCell: (params: GridCellParams) => params.value?.toString().replace(/%/g, ' ') || '',
       resizable: true,
     },
     {
