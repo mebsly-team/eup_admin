@@ -183,6 +183,13 @@ export default function SupplierListView() {
     [router]
   );
 
+  const handlePurchaseRow = useCallback(
+    (id: string) => {
+      router.push(paths.dashboard.purchase.list(id));
+    },
+    [router]
+  );
+  
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -274,6 +281,7 @@ export default function SupplierListView() {
                           onSelectRow={() => table.onSelectRow(row.id)}
                           onDeleteRow={() => handleDeleteRow(row.id)}
                           onEditRow={() => handleEditRow(row.id)}
+                          onPurchaseRow={() => handlePurchaseRow(row.id)}
                         />
                       ))}
 

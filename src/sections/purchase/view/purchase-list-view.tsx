@@ -3,6 +3,7 @@ import { useRouter } from 'src/routes/hooks';
 
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
@@ -16,13 +17,17 @@ import { format } from 'date-fns';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 
+import { paths } from 'src/routes/paths';
 import { useTranslate } from 'src/locales';
 import { useAuthContext } from 'src/auth/hooks';
+import { RouterLink } from 'src/routes/components';
 import axiosInstance from 'src/utils/axios';
 
 import Scrollbar from 'src/components/scrollbar';
 import { TableHeadCustom, TablePaginationCustom, useTable, TableNoData, TableEmptyRows, emptyRows } from 'src/components/table';
 import Iconify from 'src/components/iconify';
+import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
+import { useSettingsContext } from 'src/components/settings';
 
 import { IPurchaseItem, IPurchaseTableFilters } from 'src/types/purchase';
 
@@ -64,6 +69,7 @@ export default function PurchaseListView() {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
+  const settings = useSettingsContext();
 
   const [tableData, setTableData] = useState<IPurchaseItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
@@ -174,7 +180,29 @@ export default function PurchaseListView() {
   const canReset = !!(filters.name || !!filters.status.length || filters.startDate || filters.endDate);
 
   return (
-    <Container maxWidth={false}>
+    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+      <CustomBreadcrumbs
+        heading={t('list')}
+        links={[
+          { name: t('dashboard'), href: paths.dashboard.product },
+          { name: t('purchases'), href: paths.dashboard.purchase.list },
+          { name: t('list') },
+        ]}
+        action={
+          <Button
+            component={RouterLink}
+            href={paths.dashboard.purchase.new}
+            variant="contained"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+          >
+            {t('new_purchase')}
+          </Button>
+        }
+        sx={{
+          mb: { xs: 3, md: 5 },
+        }}
+      />
+
       <Card>
         <PurchaseTableToolbar
           filters={filters}

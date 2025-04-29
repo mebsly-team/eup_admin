@@ -128,6 +128,20 @@ export function useNavData() {
               { title: t('create'), path: paths.dashboard.category.new },
             ],
           },
+          // PURCHASE
+          {
+            title: t('purchase'),
+            path: paths.dashboard.purchase.list,
+            icon: ICONS.order,
+            children: [
+              // { title: t('profile'), path: paths.dashboard.statics.root },
+              // { title: t('cards'), path: paths.dashboard.statics.cards },
+              { title: t('list'), path: paths.dashboard.purchase.list },
+              { title: t('create'), path: paths.dashboard.purchase.new },
+              // { title: t('edit'), path: paths.dashboard.statics.demo.edit },
+              // { title: t('account'), path: paths.dashboard.statics.account },
+            ],
+          },
           // Supplier
           {
             title: t('supplier'),
@@ -180,20 +194,7 @@ export function useNavData() {
               // { title: t('account'), path: paths.dashboard.statics.account },
             ],
           },
-          // PURCHASE
-          {
-            title: t('purchase'),
-            path: paths.dashboard.purchase.list,
-            icon: ICONS.order,
-            children: [
-              // { title: t('profile'), path: paths.dashboard.statics.root },
-              // { title: t('cards'), path: paths.dashboard.statics.cards },
-              { title: t('list'), path: paths.dashboard.purchase.list },
-              { title: t('create'), path: paths.dashboard.purchase.new },
-              // { title: t('edit'), path: paths.dashboard.statics.demo.edit },
-              // { title: t('account'), path: paths.dashboard.statics.account },
-            ],
-          },
+
           // LOGS
           // {
           //   title: t('logs'),
