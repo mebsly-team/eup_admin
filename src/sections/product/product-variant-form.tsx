@@ -551,7 +551,17 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
       : item
   );
   const sortedRows = [...updatedVariants];
-  sortedRows?.sort((a, b) => unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit));
+  sortedRows?.sort((a, b) => {
+    // First sort by unit order
+    const unitComparison = unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit);
+
+    // If units are the same, sort by id
+    if (unitComparison === 0) {
+      return a.id - b.id;
+    }
+
+    return unitComparison;
+  });
   return (
     <>
       <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>

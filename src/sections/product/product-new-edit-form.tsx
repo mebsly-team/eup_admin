@@ -201,7 +201,7 @@ export default function ProductNewEditForm({ id }: Props) {
         (value) =>
           value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
       ),
-    quantity_per_unit: Yup.number().required(t('required')).min(1, t('Moet groter zijn dan 0')),
+    quantity_per_unit: Yup.number().required(t('required')).min(0.1, t('Moet groter zijn dan 0')),
     variant_discount: Yup.number().test(
       'is-decimal',
       t('Max. 2 decimal places'),
