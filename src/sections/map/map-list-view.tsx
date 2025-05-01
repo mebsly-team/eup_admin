@@ -29,7 +29,7 @@ import { fTimestamp } from 'src/utils/format-time';
 import { CALENDAR_COLOR_OPTIONS } from 'src/_mock/_calendar';
 import { createEvent, updateEvent, deleteEvent } from 'src/api/calendar';
 import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
-import { COLORS } from 'src/constants/colors';
+import { MAP_USER_COLORS } from 'src/constants/colors';
 import Iconify from 'src/components/iconify';
 
 interface Address {
@@ -95,7 +95,7 @@ const USER_TYPES = [
 
 const MARKER_COLORS = [
   { value: "all", label: "Alle", color: "#000000" },
-  ...COLORS.map(color => ({
+  ...MAP_USER_COLORS.map(color => ({
     value: color.value,
     label: color.labelNL,
     color: color.color

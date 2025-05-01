@@ -40,7 +40,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
-import { COLORS } from 'src/constants/colors';
+import { MAP_USER_COLORS } from 'src/constants/colors';
 import { useAuthContext } from 'src/auth/hooks';
 
 const SITE_SOURCE_OPTIONS = [
@@ -165,7 +165,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
     { value: 'particular', label: t('particular') },
   ];
 
-  const mappedColors = COLORS.map(color => ({
+  const mappedColors = MAP_USER_COLORS.map(color => ({
     value: color.value,
     label: t(color.value),
     color: color.color
