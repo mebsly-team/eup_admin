@@ -55,7 +55,7 @@ export default function NavList({ data }: NavListProps) {
         path={data.path}
         //
         hasChild={!!data.children}
-        externalLink={data.path.includes('http')}
+        externalLink={data.path?.includes('http')}
         //
         active={active}
       />

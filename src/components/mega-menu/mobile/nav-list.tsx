@@ -67,7 +67,7 @@ export default function NavList({ data, slotProps }: NavListProps) {
         icon={data.icon}
         //
         hasChild={!!data.children}
-        externalLink={data.path.includes('http')}
+        externalLink={data?.path?.includes('http')}
         //
         active={active}
         className={active ? 'active' : ''}

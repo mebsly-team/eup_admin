@@ -55,7 +55,7 @@ export default function NavList({ data, depth, slotProps }: NavListProps) {
         //
         depth={depth}
         hasChild={!!data.children}
-        externalLink={data.path.includes('http')}
+        externalLink={data?.path?.includes('http')}
         currentRole={slotProps?.currentRole}
         //
         active={active}

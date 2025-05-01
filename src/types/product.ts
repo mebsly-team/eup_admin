@@ -57,6 +57,15 @@ export interface IProductItem {
   price_per_unit: number;
   price_consumers: number;
   price_cost: any;
+  product_purchase_price?: string;
+  product_quantity?: number;
+  vat_rate?: number;
+  location_stock?: string;
+  extra_location_stock?: string;
+  min_order_amount?: number;
+  price_per_piece_vat?: string;
+  price_per_unit_vat?: string;
+  min_stock_value?: number;
   unit: string;
   quantity_per_unit: number;
   quantity_total_content: number;

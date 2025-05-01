@@ -2,6 +2,7 @@ export type ISupplierItem = {
   id: string;
   supplier_code: string;
   name: string;
+  recommended_product_offer?: Array<{ id: string; quantity: number }>;
   gender: any;
   contact_person: any;
   address: any;

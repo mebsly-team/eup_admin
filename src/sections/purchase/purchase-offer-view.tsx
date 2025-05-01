@@ -13,6 +13,12 @@ import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import { DatePicker } from '@mui/x-date-pickers';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
@@ -55,6 +61,8 @@ interface IPurchaseItem {
   supplier?: number;
 }
 
+type PurchaseItemDetail = IPurchaseItem['items'][0];
+
 export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -69,7 +77,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [supplier, setSupplier] = useState<ISupplierItem[]>([]);
+  const [supplier, setSupplier] = useState<ISupplierItem | null>(null);
   const [supplierProducts, setSupplierProducts] = useState<IProductItem[]>([]);
   console.log("🚀 ~ PurchaseOfferView ~ supplierProducts:", supplierProducts)
   console.log("🚀 ~ PurchaseOfferView ~ supplier:", supplier)
@@ -95,7 +103,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
   const addToSupplierRecommendedProducts = useCallback(async (product_id: string[]) => {
     console.log("🚀 ~ addToSupplierRecommendedProducts ~ supplierRecommendedProducts:", supplierRecommendedProducts)
-    const payload = [...supplier?.recommended_product_offer, { id: product_id, quantity: 1 }]
+    const payload = [...(supplier?.recommended_product_offer || []), { id: product_id[0], quantity: 1 }]
     console.log("🚀 ~ addToSupplierRecommendedProducts ~ payload:", payload)
     try {
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
@@ -105,11 +113,21 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
         recommended_product_offer: payload,
       });
       setSupplier(response.data || {});
+      // After updating the supplier, we need to update the product quantities
+      const updatedProduct = supplierProducts.find(p => String(p.id) === product_id[0]);
+      if (updatedProduct) {
+        setSupplierRecommendedProducts(prev => [...prev, {
+          ...updatedProduct,
+          product_quantity: 1,
+          product_purchase_price: updatedProduct.price_cost || '0',
+          vat_rate: updatedProduct.vat || 21
+        }]);
+      }
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [user?.token, enqueueSnackbar, t, supplierRecommendedProducts]);
+  }, [user?.token, enqueueSnackbar, t, supplierRecommendedProducts, supplier, supplierProducts]);
   const updateSupplierRecommendedProducts = useCallback(async (product_ids: string[]) => {
     try {
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
@@ -145,9 +163,16 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   }, [fetchSupplier, fetchSupplierProducts]);
 
   useEffect(() => {
-    const supplier_recommended_products_ids = supplier?.recommended_product_offer?.map((product) => product.id);
+    const supplier_recommended_products_ids = supplier?.recommended_product_offer?.map((product) => product.id) || [];
     console.log("🚀 ~ PurchaseOfferView ~ supplier_recommended_products_ids:", supplier_recommended_products_ids)
-    const recommendedProducts = supplierProducts.filter((product) => supplier_recommended_products_ids?.includes(product.id));
+    const recommendedProducts = supplierProducts
+      .filter((product) => supplier_recommended_products_ids.includes(String(product.id)))
+      .map(product => ({
+        ...product,
+        product_quantity: 1,
+        product_purchase_price: product.price_cost || '0',
+        vat_rate: product.vat || 21
+      }));
     console.log("🚀 ~ PurchaseOfferView ~ recommendedProducts:", recommendedProducts)
     setSupplierRecommendedProducts(recommendedProducts);
   }, [supplier, supplierProducts]);
@@ -194,19 +219,16 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   };
 
   const handleRemoveProduct = (itemId: string) => {
-    const updatedItems = currentPurchase?.items?.filter((item) => item.id !== itemId);
-    setCurrentPurchase((prev) => ({
-      ...prev!,
-      items: updatedItems,
-    }));
-    calculateTotals(updatedItems);
+    const updatedProducts = supplierRecommendedProducts.filter(item => String(item.id) !== itemId);
+    setSupplierRecommendedProducts(updatedProducts);
+    // Totals will be updated by the useEffect
   };
 
-  const calculateTotals = (items: IPurchaseItem['items']) => {
-    const totals = items?.reduce(
+  const calculateTotals = (recommendedProducts: IProductItem[]) => {
+    const totals = recommendedProducts?.reduce(
       (acc, item) => {
-        const itemPrice = Number(item.product_purchase_price) * item.product_quantity;
-        const itemVat = itemPrice * (item.vat_rate / 100);
+        const itemPrice = Number(item.price_cost || 0) * (item.product_quantity || 1);
+        const itemVat = itemPrice * (Number(item.vat || 0) / 100);
         return {
           totalExcBtw: acc.totalExcBtw + itemPrice,
           totalVat: acc.totalVat + itemVat,
@@ -217,8 +239,24 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
     const totalIncBtw = totals.totalExcBtw + totals.totalVat;
 
+    // Convert recommended products to purchase items format
+    const purchaseItems = recommendedProducts.map(item => ({
+      id: crypto.randomUUID(),
+      product: item.id,
+      product_detail: {
+        id: item.id,
+        title: item.title,
+        images: item.images || [],
+        ean: item.ean,
+      },
+      product_quantity: item.product_quantity || 1,
+      product_purchase_price: item.price_cost || '0',
+      vat_rate: item.vat || 21,
+    })) as PurchaseItemDetail[];
+
     setCurrentPurchase((prev) => ({
       ...prev!,
+      items: purchaseItems,
       total_exc_btw: totals.totalExcBtw.toFixed(2),
       total_inc_btw: totalIncBtw.toFixed(2),
       total_vat: totals.totalVat.toFixed(2),
@@ -226,15 +264,27 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   };
 
   const handleUpdateQuantity = (itemId: string, quantity: number) => {
-    const updatedItems = currentPurchase?.items?.map((item) =>
-      item.id === itemId ? { ...item, product_quantity: quantity } : item
+    const updatedProducts = supplierRecommendedProducts.map(item =>
+      String(item.id) === itemId ? { ...item, product_quantity: quantity } : item
     );
-    setCurrentPurchase((prev) => ({
-      ...prev!,
-      items: updatedItems,
-    }));
-    calculateTotals(updatedItems);
+    setSupplierRecommendedProducts(updatedProducts);
+    calculateTotals(updatedProducts);
   };
+
+  // Keep purchase summary in sync with recommended products
+  useEffect(() => {
+    if (supplierRecommendedProducts.length > 0) {
+      calculateTotals(supplierRecommendedProducts);
+    } else {
+      setCurrentPurchase(prev => ({
+        ...prev,
+        items: [],
+        total_exc_btw: '0',
+        total_inc_btw: '0',
+        total_vat: '0',
+      }));
+    }
+  }, [supplierRecommendedProducts]);
 
   const handleUpdatePrice = (itemId: string, price: string) => {
     const updatedItems = currentPurchase?.items?.map((item) =>
@@ -350,74 +400,106 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
           </LoadingButton>
         </Stack>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={9}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3}>
                 <Typography variant="h6">{t('recommended_products')}</Typography>
 
-                <Stack spacing={2}>
-                  {supplierRecommendedProducts?.map((item) => (
-                    <Card key={item.id} sx={{ p: 2 }}>
-                      <Stack direction="row" alignItems="center" spacing={2}>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="subtitle2">
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('product')}</TableCell>
+                        <TableCell>{t('ean')}</TableCell>
+                        <TableCell align="right">{t('stock')}</TableCell>
+                        <TableCell align="right">{t('stock')}</TableCell>
+                        <TableCell align="right">{t('price_cost')}</TableCell>
+                        <TableCell align="right">{t('quantity')}</TableCell>
+                        <TableCell align="center">{t('actions')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {supplierRecommendedProducts?.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
                             <Link
-                              href={paths.dashboard.product.edit(item.id)}
+                              href={paths.dashboard.product.edit(String(item.id))}
+                              target="_blank"
+                              rel="noopener"
                               color="blue"
                               sx={{
-                                alignItems: 'center',
-                                typography: '',
-                                display: 'inline-flex',
-                                alignSelf: 'flex-end',
                                 fontWeight: 'fontWeightBold',
                                 textDecoration: 'underline',
                                 cursor: 'pointer',
-                                marginLeft: 0,
+                                display: 'block',
+                                maxWidth: 250,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
                               }}
                             >
                               {item.title}
                             </Link>
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            EAN: {item.ean}
-                          </Typography>
-                        </Box>
-
-                        <TextField
-                          type="number"
-                          label={t('quantity')}
-                          value={item.product_quantity}
-                          onChange={(e) => handleUpdateQuantity(item.id, Number(e.target.value))}
-                          sx={{ width: 100 }}
-                        />
-
-                        <TextField
-                          type="number"
-                          label={t('price')}
-                          value={item.product_purchase_price}
-                          onChange={(e) => handleUpdatePrice(item.id, e.target.value)}
-                          sx={{ width: 120 }}
-                        />
-
-                        <TextField
-                          type="number"
-                          label={t('vat_rate')}
-                          value={item.vat_rate}
-                          InputProps={{
-                            endAdornment: <Typography>%</Typography>,
-                            readOnly: true
-                          }}
-                          sx={{ width: 100 }}
-                        />
-
-                        <IconButton color="error" onClick={() => handleRemoveProduct(item.id)}>
-                          <Iconify icon="eva:trash-2-outline" />
-                        </IconButton>
-                      </Stack>
-                    </Card>
-                  ))}
-                </Stack>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {t('supplier_article_code')}: {item.supplier_article_code}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>{item.ean}</TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption" display="block">
+                              {t('overall_stock')}: {item.overall_stock || 0}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {t('free_stock')}: {item.free_stock || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption" display="block">
+                              {t('min_stock_value')}: {item.min_stock_value || 0}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {t('min_order_amount')}: {item.min_order_amount || 0}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {t('max_order_allowed_per_unit')}: {item.max_order_allowed_per_unit || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption" display="block">
+                              €{item.price_cost || '0'}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              +{item.vat || 0}% {t('vat')}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              type="number"
+                              size="small"
+                              value={item.product_quantity || 1}
+                              onChange={(e) => handleUpdateQuantity(String(item.id), Number(e.target.value))}
+                              InputProps={{
+                                inputProps: { min: 1 },
+                                sx: { width: 60 }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveProduct(String(item.id))}
+                              title={t('remove')}
+                            >
+                              <Iconify icon="eva:trash-2-outline" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Stack>
               <Stack direction="row" mt={2} spacing={2} alignItems="flex-start">
                 <TextField
@@ -443,7 +525,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3}>
                 <Typography variant="h6">{t('purchase_summary')}</Typography>
@@ -472,7 +554,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      {t('invoice_date')}
+                      {t('purchase_invoice_date')}
                     </Typography>
                     <Typography variant="subtitle2">{currentPurchase?.purchase_invoice_date}</Typography>
                   </Stack>
@@ -511,10 +593,10 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
           </Grid>
 
         </Grid>
-        <Grid container spacing={3}>
+        <Grid container spacing={1}>
           <Grid item xs={12} md={12}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3}>
+            <Card sx={{ p: 2 }}>
+              <Stack spacing={2}>
                 <Typography variant="h6">{t('all_products_from_supplier') + ' ' + supplier?.name}</Typography>
 
                 <Stack spacing={2}>
@@ -524,7 +606,9 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                         {/* Left Column - Basic Info */}
                         <Grid item xs={3.5}>
                           <Link
-                            href={paths.dashboard.product.edit(item.id)}
+                            href={paths.dashboard.product.edit(String(item.id))}
+                            target="_blank"
+                            rel="noopener"
                             color="blue"
                             sx={{
                               alignItems: 'center',
@@ -540,13 +624,13 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                             <Typography variant="subtitle2" noWrap>{item.title}</Typography>
                           </Link>
                           <Typography variant="caption" color="text.secondary" display="block">
-                            EAN: {item.ean}
+                            {t('ean')}: {item.ean}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" display="block">
-                            Article: {item.article_code}
+                            {t('article_code')}: {item.article_code}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" display="block">
-                            Supplier Code: {item.supplier_article_code}
+                            {t('supplier_article_code')}: {item.supplier_article_code}
                           </Typography>
                         </Grid>
 
@@ -554,16 +638,19 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                         <Grid item xs={3.5}>
                           <Stack spacing={0.5}>
                             <Typography variant="caption" color="text.secondary">
-                              Location: {item.location || '-'} ({item.location_stock || '0'})
+                              {t('location')}: {item.location || '-'} ({item.location_stock || '0'})
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Extra: {item.extra_location || '-'} ({item.extra_location_stock || '0'})
+                              {t('extra_location')}: {item.extra_location || '-'} ({item.extra_location_stock || '0'})
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Free: {item.free_stock || '0'} | Overall: {item.overall_stock || '0'}
+                              {t('free_stock')}: {item.free_stock || '0'} | {t('overall_stock')}: {item.overall_stock || '0'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Min: {item.min_order_amount || '0'} | Max: {item.max_order_allowed_per_unit || '0'}
+                              {t('min_order_amount')}: {item.min_order_amount || '0'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('max_order_allowed_per_unit')}: {item.max_order_allowed_per_unit || '0'}
                             </Typography>
                           </Stack>
                         </Grid>
@@ -572,13 +659,13 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                         <Grid item xs={3.5}>
                           <Stack spacing={0.5}>
                             <Typography variant="caption" color="text.secondary">
-                              Cost: €{item.price_cost || '0'} (+{item.vat || '0'}% VAT)
+                              {t('price_cost')}: €{item.price_cost || '0'} (+{item.vat || '0'}% {t('vat')})
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Per Piece: €{item.price_per_piece || '0'} (€{item.price_per_piece_vat || '0'} incl.)
+                              {t('price_per_piece')}: €{item.price_per_piece || '0'} (€{item.price_per_piece_vat || '0'} {t('incl')})
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Per Unit: €{item.price_per_unit || '0'} (€{item.price_per_unit_vat || '0'} incl.)
+                              {t('price_per_unit')}: €{item.price_per_unit || '0'} (€{item.price_per_unit_vat || '0'} {t('incl')})
                             </Typography>
                           </Stack>
                         </Grid>
@@ -591,7 +678,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                             onClick={() => {
                               const isAlreadyAdded = supplierRecommendedProducts.some(p => p.id === item.id);
                               if (!isAlreadyAdded) {
-                                addToSupplierRecommendedProducts(item.id);
+                                addToSupplierRecommendedProducts([String(item.id)]);
                                 enqueueSnackbar(t('product_added_to_recommended'), { variant: 'success' });
                               } else {
                                 enqueueSnackbar(t('product_already_in_recommended'), { variant: 'warning' });
