@@ -19,6 +19,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import { useRouter } from 'src/routes/hooks';
 
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
@@ -67,6 +68,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const { t } = useTranslate();
+  const router = useRouter();
 
   const [currentPurchase, setCurrentPurchase] = useState<IPurchaseItem>({
     items: [],
@@ -75,7 +77,6 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
     total_inc_btw: '0',
     purchase_invoice_date: '',
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [supplier, setSupplier] = useState<ISupplierItem | null>(null);
   const [supplierProducts, setSupplierProducts] = useState<IProductItem[]>([]);
@@ -84,8 +85,6 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   const [supplierRecommendedProducts, setSupplierRecommendedProducts] = useState<IProductItem[]>([]);
   console.log("🚀 ~ PurchaseOfferView ~ supplierRecommendedProducts1:", supplierRecommendedProducts)
   const [eanSearch, setEanSearch] = useState('');
-  const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
-  const [history, setHistory] = useState<PurchaseHistory[]>([]);
 
   const fetchSupplier = useCallback(async () => {
     try {
@@ -102,9 +101,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   }, [user?.token, enqueueSnackbar, t]);
 
   const addToSupplierRecommendedProducts = useCallback(async (product_id: string[]) => {
-    console.log("🚀 ~ addToSupplierRecommendedProducts ~ supplierRecommendedProducts:", supplierRecommendedProducts)
     const payload = [...(supplier?.recommended_product_offer || []), { id: product_id[0], quantity: 1 }]
-    console.log("🚀 ~ addToSupplierRecommendedProducts ~ payload:", payload)
     try {
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
         headers: {
@@ -128,6 +125,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
   }, [user?.token, enqueueSnackbar, t, supplierRecommendedProducts, supplier, supplierProducts]);
+
   const updateSupplierRecommendedProducts = useCallback(async (product_ids: string[]) => {
     try {
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
@@ -187,28 +185,9 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       });
       if (response.data?.length > 0) {
         const product = response.data[0];
-        const newItem = {
-          id: crypto.randomUUID(),
-          product: product.id,
-          product_detail: {
-            id: product.id,
-            title: product.title,
-            images: product.images,
-            ean: product.ean,
-          },
-          product_quantity: 1,
-          product_purchase_price: product.price_cost || '0',
-          vat_rate: product.vat || 21,
-        };
-
-        // Ensure items is initialized as an array
-        const currentItems = currentPurchase?.items || [];
-        setCurrentPurchase((prev) => ({
-          ...prev!,
-          items: [...currentItems, newItem],
-        }));
+        await addToSupplierRecommendedProducts([String(product.id)]);
         setEanSearch('');
-        calculateTotals([...currentItems, newItem]);
+        enqueueSnackbar(t('product_added_to_recommended'), { variant: 'success' });
       } else {
         enqueueSnackbar(t('product_not_found'), { variant: 'error' });
       }
@@ -218,10 +197,30 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
     }
   };
 
-  const handleRemoveProduct = (itemId: string) => {
-    const updatedProducts = supplierRecommendedProducts.filter(item => String(item.id) !== itemId);
-    setSupplierRecommendedProducts(updatedProducts);
-    // Totals will be updated by the useEffect
+  const handleRemoveProduct = async (itemId: string) => {
+    try {
+      // Filter out the product to be removed from the recommended products
+      const updatedRecommendedOffer = supplier?.recommended_product_offer?.filter(
+        item => String(item.id) !== itemId
+      ) || [];
+
+      // Update the supplier via API
+      const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+        recommended_product_offer: updatedRecommendedOffer,
+      });
+
+      // Update local state if API call was successful
+      setSupplier(response.data || {});
+      const updatedProducts = supplierRecommendedProducts.filter(item => String(item.id) !== itemId);
+      setSupplierRecommendedProducts(updatedProducts);
+      enqueueSnackbar(t('product_removed_from_recommended'), { variant: 'success' });
+    } catch (error) {
+      console.error('Error removing product:', error);
+      enqueueSnackbar(t('failed_to_remove_product'), { variant: 'error' });
+    }
   };
 
   const calculateTotals = (recommendedProducts: IProductItem[]) => {
@@ -309,16 +308,17 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   };
 
   const handleCreate = async () => {
-    if (!selectedSupplier) {
+    if (!supplierId) {
       enqueueSnackbar(t('supplier_required'), { variant: 'error' });
       return;
     }
 
     try {
       setSaving(true);
+      const today = new Date().toISOString().split('T')[0];
       const changes = {
-        supplier: String(selectedSupplier?.id) !== String(currentPurchase?.supplier),
-        purchase_invoice_date: currentPurchase?.purchase_invoice_date,
+        supplier: String(supplierId) !== String(currentPurchase?.supplier),
+        purchase_invoice_date: currentPurchase?.purchase_invoice_date || today,
         items: currentPurchase?.items?.map(item => ({
           quantity: item.product_quantity,
           price: item.product_purchase_price,
@@ -327,8 +327,8 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       };
 
       const cleanedPurchase = {
-        supplier: selectedSupplier?.id,
-        purchase_invoice_date: currentPurchase?.purchase_invoice_date,
+        supplier: supplierId,
+        purchase_invoice_date: currentPurchase?.purchase_invoice_date || today,
         total_exc_btw: currentPurchase?.total_exc_btw,
         total_inc_btw: currentPurchase?.total_inc_btw,
         total_vat: currentPurchase?.total_vat,
@@ -338,7 +338,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
           product_purchase_price: item.product_purchase_price,
           vat_rate: item.vat_rate,
         })),
-        history: [...(history || []), {
+        history: [{
           id: crypto.randomUUID(),
           action: 'create',
           changes,
@@ -356,21 +356,8 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
           },
         }
       );
-
-      if (response.data.history) {
-        setHistory(response.data.history);
-      } else {
-        const newHistoryEntry = {
-          id: crypto.randomUUID(),
-          action: 'update',
-          changes,
-          created_at: new Date().toISOString(),
-          user: user?.name || 'Unknown',
-        };
-        setHistory([newHistoryEntry, ...history]);
-      }
-
       enqueueSnackbar(t('purchase_updated_successfully'));
+      router.push(paths.dashboard.purchase.list);
     } catch (error) {
       console.error('Error updating purchase:', error);
       enqueueSnackbar(t('failed_to_update_purchase'), { variant: 'error' });
@@ -533,11 +520,11 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                 <Stack>
                   <DatePicker
                     label={t('date')}
-                    value={currentPurchase?.purchase_invoice_date ? new Date(currentPurchase.purchase_invoice_date) : null}
+                    value={currentPurchase?.purchase_invoice_date ? new Date(currentPurchase.purchase_invoice_date) : new Date()}
                     onChange={(newValue) => {
                       setCurrentPurchase((prev) => ({
                         ...prev!,
-                        purchase_invoice_date: newValue?.toISOString().split('T')[0] || '',
+                        purchase_invoice_date: newValue?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
                       }));
                     }}
                   />
@@ -549,7 +536,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {t('supplier')}
                     </Typography>
-                    <Typography variant="subtitle2">{selectedSupplier?.name}</Typography>
+                    <Typography variant="subtitle2">{supplier?.name}</Typography>
                   </Stack>
 
                   <Stack direction="row" justifyContent="space-between">
