@@ -259,6 +259,25 @@ export default function PurchaseEditView() {
     }
   };
 
+
+  const handleDownloadPdf = async () => {
+    try {
+      const response = await axiosInstance.get(`/purchases/${id}/offer/`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `offer_${id}.pdf`); // Set the file name
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      enqueueSnackbar(t('failed_to_download_pdf'), { variant: 'error' });
+    }
+  };
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -278,14 +297,24 @@ export default function PurchaseEditView() {
         >
           <Typography variant="h4">{t('edit_purchase')}</Typography>
 
-          <LoadingButton
-            variant="contained"
-            color="primary"
-            loading={saving}
-            onClick={handleSave}
-          >
-            {t('save_changes')}
-          </LoadingButton>
+          <Stack direction="row" spacing={2}>
+            <LoadingButton
+              variant="contained"
+              color="primary"
+              loading={saving}
+              onClick={handleSave}
+            >
+              {t('save_changes')}
+            </LoadingButton>
+            <LoadingButton
+              variant="contained"
+              color="primary"
+              loading={saving}
+              onClick={handleDownloadPdf}
+            >
+              {t('download_pdf')}
+            </LoadingButton>
+          </Stack>
         </Stack>
 
         <Grid container spacing={3}>
