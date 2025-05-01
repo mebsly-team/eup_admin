@@ -4,7 +4,13 @@ import { useParams } from 'src/routes/hooks';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Container from '@mui/material/Container';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableContainer from '@mui/material/TableContainer';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -12,6 +18,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
+import Link from '@mui/material/Link';
 import { DatePicker } from '@mui/x-date-pickers';
 
 import { useSnackbar } from 'src/components/snackbar';
@@ -50,73 +57,42 @@ export default function PurchaseEditView() {
 
   const fetchSuppliers = useCallback(async () => {
     try {
-      const response = await axiosInstance.get('/suppliers/?limit=9999', {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get('/suppliers/?limit=9999');
       setSuppliers(response.data.results || []);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [user?.token, enqueueSnackbar, t]);
+  }, [enqueueSnackbar, t]);
 
   const fetchPurchase = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/purchases/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/purchases/${id}/`);
 
-      // Add VAT rate from product data
-      const purchaseWithVat = {
-        ...response.data,
-        items: await Promise.all(response.data.items.map(async (item: IPurchaseItem['items'][0]) => {
-          // Fetch product details to get the VAT rate
-          const productResponse = await axiosInstance.get(`/products/${item.product}/`, {
-            headers: {
-              Authorization: `Bearer ${user?.token}`,
-            },
-          });
-          return {
-            ...item,
-            vat_rate: productResponse.data.vat ?? 21 // Use product's VAT rate or default to 21
-          };
-        }))
-      };
+      console.log("🚀 ~ fetchPurchase ~ response.data:", response.data)
 
-      setCurrentPurchase(purchaseWithVat);
+      setCurrentPurchase(response.data);
       setHistory(response.data.history || []);
-      const supplierResponse = await axiosInstance.get(`/suppliers/${response.data.supplier}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
-      setSelectedSupplier(supplierResponse.data);
+      setSelectedSupplier(response.data?.supplier_detail);
     } catch (error) {
       console.error('Error fetching purchase:', error);
       enqueueSnackbar(t('failed_to_fetch_purchase'), { variant: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [id, user?.token, enqueueSnackbar, t]);
+  }, [id, enqueueSnackbar, t]);
 
   useEffect(() => {
     fetchPurchase();
     fetchSuppliers();
   }, [fetchPurchase, fetchSuppliers]);
 
+
   const handleAddProduct = async () => {
     if (!eanSearch) return;
     try {
-      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
       if (response.data?.length > 0) {
         const product = response.data[0];
         const newItem = {
@@ -159,8 +135,8 @@ export default function PurchaseEditView() {
   const calculateTotals = (items: IPurchaseItem['items']) => {
     const totals = items.reduce(
       (acc, item) => {
-        const itemPrice = Number(item.product_purchase_price) * item.product_quantity;
-        const itemVat = itemPrice * (item.vat_rate / 100);
+        const itemPrice = Number(item.product_detail.price_cost) * item.product_quantity;
+        const itemVat = itemPrice * (item.product_detail.vat / 100);
         return {
           totalExcBtw: acc.totalExcBtw + itemPrice,
           totalVat: acc.totalVat + itemVat,
@@ -257,11 +233,6 @@ export default function PurchaseEditView() {
       const response = await axiosInstance.put(
         `/purchases/${id}/`,
         cleanedPurchase,
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        }
       );
 
       // Update history with the new changes
@@ -373,49 +344,77 @@ export default function PurchaseEditView() {
                     </Button>
                   </Stack>
 
-                  {currentPurchase.items.map((item) => (
-                    <Card key={item.id} sx={{ p: 2 }}>
-                      <Stack direction="row" alignItems="center" spacing={2}>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="subtitle2">{item.product_detail.title}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            EAN: {item.product_detail.ean}
-                          </Typography>
-                        </Box>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>{t('product')}</TableCell>
+                          <TableCell>{t('ean')}</TableCell>
+                          <TableCell align="right">{t('stock')}</TableCell>
+                          <TableCell align="right">{t('stock')}</TableCell>
+                          <TableCell align="right">{t('price_cost')}</TableCell>
+                          <TableCell align="right">{t('quantity')}</TableCell>
+                          <TableCell align="center">{t('actions')}</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {currentPurchase.items.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              <Typography variant="subtitle2">{item.product_detail.title}</Typography>
+                            </TableCell>
+                            <TableCell>{item.product_detail.ean}</TableCell>
+                            <TableCell align="right">
+                              <Typography variant="caption" display="block">
+                                {t('overall_stock')}: {item.product_detail.overall_stock || 0}
+                              </Typography>
+                              <Typography variant="caption" display="block">
+                                {t('free_stock')}: {item.product_detail.free_stock || 0}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="caption" display="block">
+                                {t('min_stock_value')}: {item.product_detail.min_stock_value || 0}
+                              </Typography>
+                              <Typography variant="caption" display="block">
+                                {t('min_order_amount')}: {item.product_detail.min_order_amount || 0}
+                              </Typography>
+                              <Typography variant="caption" display="block">
+                                {t('max_order_allowed_per_unit')}: {item.product_detail.max_order_allowed_per_unit || 0}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
 
-                        <TextField
-                          type="number"
-                          label={t('quantity')}
-                          value={item.product_quantity}
-                          onChange={(e) => handleUpdateQuantity(item.id, Number(e.target.value))}
-                          sx={{ width: 100 }}
-                        />
-
-                        <TextField
-                          type="number"
-                          label={t('price')}
-                          value={item.product_purchase_price}
-                          onChange={(e) => handleUpdatePrice(item.id, e.target.value)}
-                          sx={{ width: 120 }}
-                        />
-
-                        <TextField
-                          type="number"
-                          label={t('vat_rate')}
-                          value={item.vat_rate}
-                          InputProps={{
-                            endAdornment: <Typography>%</Typography>,
-                            readOnly: true
-                          }}
-                          sx={{ width: 100 }}
-                        />
-
-                        <IconButton color="error" onClick={() => handleRemoveProduct(item.id)}>
-                          <Iconify icon="eva:trash-2-outline" />
-                        </IconButton>
-                      </Stack>
-                    </Card>
-                  ))}
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                € {item.product_detail.price_cost} +{item.product_detail.vat}% {t('vat')}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <TextField
+                                type="number"
+                                value={item.product_quantity}
+                                onChange={(e) => handleUpdateQuantity(item.id, Number(e.target.value))}
+                                size="small"
+                                sx={{ width: 80 }}
+                                InputProps={{
+                                  inputProps: { min: 1 }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <IconButton
+                                color="error"
+                                onClick={() => handleRemoveProduct(item.id)}
+                                title={t('remove')}
+                              >
+                                <Iconify icon="eva:trash-2-outline" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </Stack>
               </Stack>
             </Card>

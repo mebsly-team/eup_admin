@@ -88,72 +88,43 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
   const fetchSupplier = useCallback(async () => {
     try {
-      const response = await axiosInstance.get(`/suppliers/${supplierId}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/suppliers/${supplierId}/`);
       setSupplier(response.data || {});
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [user?.token, enqueueSnackbar, t]);
+  }, [ enqueueSnackbar, t]);
 
-  const addToSupplierRecommendedProducts = useCallback(async (product_id: string[]) => {
-    const payload = [...(supplier?.recommended_product_offer || []), { id: product_id[0], quantity: 1 }]
+  const addToSupplierRecommendedProducts = useCallback(async (product) => {
+    const payload = [...(supplier?.recommended_product_offer || []), product]
     try {
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
         recommended_product_offer: payload,
       });
       setSupplier(response.data || {});
       // After updating the supplier, we need to update the product quantities
-      const updatedProduct = supplierProducts.find(p => String(p.id) === product_id[0]);
-      if (updatedProduct) {
-        setSupplierRecommendedProducts(prev => [...prev, {
-          ...updatedProduct,
-          product_quantity: 1,
-          product_purchase_price: updatedProduct.price_cost || '0',
-          vat_rate: updatedProduct.vat || 21
-        }]);
-      }
+      const updatedProducts = response.data.recommended_product_offer.map(p => ({
+        ...p,
+        product_quantity: 1
+      }));
+      setSupplierRecommendedProducts(updatedProducts);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [user?.token, enqueueSnackbar, t, supplierRecommendedProducts, supplier, supplierProducts]);
+  }, [enqueueSnackbar, t, supplierRecommendedProducts, supplier, supplierProducts]);
 
-  const updateSupplierRecommendedProducts = useCallback(async (product_ids: string[]) => {
-    try {
-      const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-        recommended_product_offer: supplierRecommendedProducts,
-      });
-      setSupplier(response.data || {});
-    } catch (error) {
-      console.error('Error fetching suppliers:', error);
-      enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
-    }
-  }, [user?.token, enqueueSnackbar, t, supplierRecommendedProducts]);
 
   const fetchSupplierProducts = useCallback(async () => {
     try {
-      const response = await axiosInstance.get(`/products/?supplier=${supplierId}`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/products/?supplier=${supplierId}`);
       setSupplierProducts(response.data || []);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [user?.token, enqueueSnackbar, t]);
+  }, [ enqueueSnackbar, t]);
 
   useEffect(() => {
     fetchSupplier();
@@ -161,31 +132,20 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   }, [fetchSupplier, fetchSupplierProducts]);
 
   useEffect(() => {
-    const supplier_recommended_products_ids = supplier?.recommended_product_offer?.map((product) => product.id) || [];
-    console.log("🚀 ~ PurchaseOfferView ~ supplier_recommended_products_ids:", supplier_recommended_products_ids)
-    const recommendedProducts = supplierProducts
-      .filter((product) => supplier_recommended_products_ids.includes(String(product.id)))
-      .map(product => ({
-        ...product,
-        product_quantity: 1,
-        product_purchase_price: product.price_cost || '0',
-        vat_rate: product.vat || 21
-      }));
-    console.log("🚀 ~ PurchaseOfferView ~ recommendedProducts:", recommendedProducts)
-    setSupplierRecommendedProducts(recommendedProducts);
+    const updatedProducts = supplier?.recommended_product_offer.map(p => ({
+      ...p,
+      product_quantity: 1
+    }));
+    setSupplierRecommendedProducts(updatedProducts || []);
   }, [supplier, supplierProducts]);
 
   const handleAddProduct = async () => {
     if (!eanSearch) return;
     try {
-      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
       if (response.data?.length > 0) {
         const product = response.data[0];
-        await addToSupplierRecommendedProducts([String(product.id)]);
+        await addToSupplierRecommendedProducts(product);
         setEanSearch('');
         enqueueSnackbar(t('product_added_to_recommended'), { variant: 'success' });
       } else {
@@ -206,9 +166,6 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
       // Update the supplier via API
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
         recommended_product_offer: updatedRecommendedOffer,
       });
 
@@ -350,11 +307,6 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       const response = await axiosInstance.post(
         `/purchases/`,
         cleanedPurchase,
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        }
       );
       enqueueSnackbar(t('purchase_updated_successfully'));
       router.push(paths.dashboard.purchase.list);
@@ -665,7 +617,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                             onClick={() => {
                               const isAlreadyAdded = supplierRecommendedProducts.some(p => p.id === item.id);
                               if (!isAlreadyAdded) {
-                                addToSupplierRecommendedProducts([String(item.id)]);
+                                addToSupplierRecommendedProducts(item);
                                 enqueueSnackbar(t('product_added_to_recommended'), { variant: 'success' });
                               } else {
                                 enqueueSnackbar(t('product_already_in_recommended'), { variant: 'warning' });

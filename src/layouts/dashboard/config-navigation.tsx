@@ -128,6 +128,16 @@ export function useNavData() {
               { title: t('create'), path: paths.dashboard.category.new },
             ],
           },
+          // Supplier
+          {
+            title: t('supplier'),
+            path: paths.dashboard.supplier.list,
+            icon: ICONS.order,
+            children: [
+              { title: t('list'), path: paths.dashboard.supplier.list },
+              { title: t('create'), path: paths.dashboard.supplier.new },
+            ],
+          },
           // PURCHASE
           {
             title: t('purchase'),
@@ -140,16 +150,6 @@ export function useNavData() {
               { title: t('create'), path: paths.dashboard.purchase.new },
               // { title: t('edit'), path: paths.dashboard.statics.demo.edit },
               // { title: t('account'), path: paths.dashboard.statics.account },
-            ],
-          },
-          // Supplier
-          {
-            title: t('supplier'),
-            path: paths.dashboard.supplier.list,
-            icon: ICONS.order,
-            children: [
-              { title: t('list'), path: paths.dashboard.supplier.list },
-              { title: t('create'), path: paths.dashboard.supplier.new },
             ],
           },
           // USER
