@@ -185,7 +185,8 @@ export default function SupplierListView() {
 
   const handlePurchaseRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.purchase.list(id));
+      router.push(`/dashboard/purchase/${id}/offer`);
+
     },
     [router]
   );

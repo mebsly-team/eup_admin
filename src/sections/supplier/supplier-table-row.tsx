@@ -114,7 +114,7 @@ export default function SupplierTableRow({
           }}
         >
           <Iconify icon="solar:file-bold-duotone" />
-          {t('purchase')}
+          {t('aanbod')}
         </MenuItem>
         <MenuItem
           onClick={() => {

@@ -90,9 +90,13 @@ function Searchbar() {
           {data[group].map((item) => {
             const { title, path } = item;
 
-            const partsTitle = parse(title, match(title, searchQuery));
+            const partsTitle = searchQuery
+              ? parse(title || '', match(title || '', searchQuery))
+              : [{ text: title || '', highlight: false }];
 
-            const partsPath = parse(path, match(path, searchQuery));
+            const partsPath = searchQuery
+              ? parse(path || '', match(path || '', searchQuery))
+              : [{ text: path || '', highlight: false }];
 
             return (
               <ResultItem

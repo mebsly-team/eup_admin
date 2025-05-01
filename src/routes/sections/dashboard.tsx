@@ -71,6 +71,7 @@ const PurchaseListPage = lazy(() => import('src/pages/dashboard/purchase/list'))
 const PurchaseAccountPage = lazy(() => import('src/pages/dashboard/purchase/account'));
 const PurchaseCreatePage = lazy(() => import('src/pages/dashboard/purchase/new'));
 const PurchaseEditPage = lazy(() => import('src/pages/dashboard/purchase/edit'));
+const PurchaseOfferPage = lazy(() => import('src/pages/dashboard/purchase/offer'));
 // LOGS
 const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile'));
 const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards'));
@@ -158,6 +159,7 @@ export const dashboardRoutes = [
           { path: 'new', element: <PurchaseCreatePage /> },
           { path: ':id/edit', element: <PurchaseEditPage /> },
           { path: 'account', element: <PurchaseAccountPage /> },
+          { path: 'offer', element: <PurchaseOfferPage /> },
         ],
       },
       {   
