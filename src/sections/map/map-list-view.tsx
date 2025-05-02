@@ -1028,15 +1028,15 @@ const Map = () => {
                             </Box>
                           )}
 
-                          {user.days_closed && user.days_closed.length > 0 && (
+                          {user.days_closed (
                             <Box component="div" sx={{ mt: 1 }}>
-                              <strong>Gesloten dagen:</strong> {user.days_closed.join(', ')}
+                              <strong>Gesloten dagen:</strong> {user.days_closed}
                             </Box>
                           )}
 
-                          {user.days_no_delivery && user.days_no_delivery.length > 0 && (
+                          {user.days_no_delivery && (
                             <Box component="div">
-                              <strong>Geen bezorging op:</strong> {user.days_no_delivery.join(', ')}
+                              <strong>Geen bezorging op:</strong> {user.days_no_delivery}
                             </Box>
                           )}
 
