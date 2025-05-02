@@ -454,7 +454,7 @@ export default function PurchaseEditView() {
                                 {t('min_order_amount')}: {item.product_detail.min_order_amount || 0}
                               </Typography>
                               <Typography variant="caption" display="block">
-                                {t('max_order_allowed_per_unit')}: {item.product_detail.max_order_allowed_per_unit || 0}
+                                {t('max_stock_at_rack')}: {item.product_detail.max_stock_at_rack || 0}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">

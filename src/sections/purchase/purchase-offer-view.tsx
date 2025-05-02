@@ -404,7 +404,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                               {t('min_order_amount')}: {item.min_order_amount || 0}
                             </Typography>
                             <Typography variant="caption" display="block">
-                              {t('max_order_allowed_per_unit')}: {item.max_order_allowed_per_unit || 0}
+                              {t('max_stock_at_rack')}: {item.max_stock_at_rack || 0}
                             </Typography>
                           </TableCell>
                           <TableCell align="right">
@@ -594,7 +594,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                               {t('min_order_amount')}: {item.min_order_amount || '0'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {t('max_order_allowed_per_unit')}: {item.max_order_allowed_per_unit || '0'}
+                              {t('max_stock_at_rack')}: {item.max_stock_at_rack || '0'}
                             </Typography>
                           </Stack>
                         </Grid>

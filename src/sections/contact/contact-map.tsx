@@ -34,8 +34,8 @@ type CountryData = {
   branch?: string;
   type?: string;
   contact_person_branch?: string;
-  days_closed?: string[];
-  days_no_delivery?: string[];
+  days_closed?: string;
+  days_no_delivery?: string;
 };
 
 type Props = {
@@ -146,15 +146,15 @@ export default function ContactMap({ contacts }: Props) {
               </Typography>
             )}
 
-            {popupInfo.days_closed && popupInfo.days_closed.length > 0 && (
+            {popupInfo.days_closed && (
               <Typography component="div" variant="caption" sx={{ mt: 1 }}>
-                <strong>Closed Days:</strong> {popupInfo.days_closed.join(', ')}
+                <strong>Closed Days:</strong> {popupInfo.days_closed}
               </Typography>
             )}
 
-            {popupInfo.days_no_delivery && popupInfo.days_no_delivery.length > 0 && (
+            {popupInfo.days_no_delivery && (
               <Typography component="div" variant="caption">
-                <strong>No Delivery Days:</strong> {popupInfo.days_no_delivery.join(', ')}
+                <strong>No Delivery Days:</strong> {popupInfo.days_no_delivery}
               </Typography>
             )}
           </MapPopup>
