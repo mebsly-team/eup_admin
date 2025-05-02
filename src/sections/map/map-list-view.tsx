@@ -47,8 +47,8 @@ interface Address {
   phone_number?: string;
   mobile_number?: string;
   mobile_phone?: string;
-  days_closed?: string[];
-  days_no_delivery?: string[];
+  days_closed?: string;
+  days_no_delivery?: string;
 }
 
 interface User {
@@ -271,16 +271,12 @@ const Map = () => {
 
   const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
     if (newUserTypes.includes("all")) {
-      // If "all" is being selected, select all types except "particular"
+      // If "all" is being selected, select only "all"
       if (!selectedUserTypes.includes("all")) {
-        setSelectedUserTypes(USER_TYPES
-          .filter(type => type.value !== "particular")
-          .map(type => type.value)
-        );
+        setSelectedUserTypes(["all"]);
       } else {
-        // If "all" is being deselected, keep the previous selection
-        const filteredTypes = selectedUserTypes.filter(type => type !== "all");
-        setSelectedUserTypes(filteredTypes.length ? filteredTypes : ["wholesaler"]);
+        // If "all" is being deselected, default to "wholesaler"
+        setSelectedUserTypes(["wholesaler"]);
       }
     } else {
       // Handle regular multiple selection
@@ -1028,7 +1024,7 @@ const Map = () => {
                             </Box>
                           )}
 
-                          {user.days_closed (
+                          {user.days_closed && (
                             <Box component="div" sx={{ mt: 1 }}>
                               <strong>Gesloten dagen:</strong> {user.days_closed}
                             </Box>
