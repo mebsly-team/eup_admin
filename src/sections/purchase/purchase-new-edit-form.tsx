@@ -1,10 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'src/routes/hooks';
+import { format } from 'date-fns';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
 import Container from '@mui/material/Container';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableContainer from '@mui/material/TableContainer';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -39,20 +46,19 @@ export default function PurchaseEditView() {
   const { t } = useTranslate();
 
   const [currentPurchase, setCurrentPurchase] = useState<IPurchaseItem | null>(null);
+  console.log("🚀 ~ PurchaseEditView ~ currentPurchase:", currentPurchase)
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [suppliers, setSuppliers] = useState<ISupplierItem[]>([]);
   const [eanSearch, setEanSearch] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
   const [history, setHistory] = useState<PurchaseHistory[]>([]);
+  const [previousPurchases, setPreviousPurchases] = useState<IPurchaseItem[]>([]);
+  const [previousOffers, setPreviousOffers] = useState<IPurchaseItem[]>([]);
 
   const fetchSuppliers = useCallback(async () => {
     try {
-      const response = await axiosInstance.get('/suppliers/?limit=9999', {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get('/suppliers/?limit=9999');
       setSuppliers(response.data.results || []);
     } catch (error) {
       console.error('Error fetching suppliers:', error);
@@ -69,11 +75,7 @@ export default function PurchaseEditView() {
   const handleAddProduct = async () => {
     if (!eanSearch) return;
     try {
-      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
       if (response.data?.length > 0) {
         const product = response.data[0];
         const newItem = {
@@ -171,6 +173,45 @@ export default function PurchaseEditView() {
     }));
     calculateTotals(updatedItems);
   };
+  const fetchPreviousPurchases = useCallback(async (supplierId: string) => {
+    try {
+      const response = await axiosInstance.get(`/purchases/?type=purchase&supplier=${supplierId}`);
+      setPreviousPurchases(response.data || {});
+    } catch (error) {
+      console.error('Error fetching previous purchases:', error);
+      enqueueSnackbar(t('failed_to_fetch_previous_purchases'), { variant: 'error' });
+    }
+  }, [enqueueSnackbar, t]);
+
+  const fetchPreviousOffers = useCallback(async (supplierId: string) => {
+    try {
+      const response = await axiosInstance.get(`/purchases/?type=offer&supplier=${supplierId}`);
+      setPreviousOffers(response.data || {});
+    } catch (error) {
+      console.error('Error fetching previous offers:', error);
+      enqueueSnackbar(t('failed_to_fetch_previous_offers'), { variant: 'error' });
+    }
+  }, [enqueueSnackbar, t]);
+
+  // Fetch previous purchases and offers when the component first loads with an existing supplier
+  useEffect(() => {
+    if (selectedSupplier?.id) {
+      fetchPreviousPurchases(selectedSupplier.id);
+      fetchPreviousOffers(selectedSupplier.id);
+    }
+  }, [selectedSupplier?.id, fetchPreviousPurchases, fetchPreviousOffers]);
+
+  const handleSupplierChange = (event: any, newValue: ISupplierItem | null) => {
+    console.log("🚀 ~ handleSupplierChange ~ newValue:", newValue)
+    setSelectedSupplier(newValue);
+    if (newValue) {
+      fetchPreviousPurchases(newValue.id);
+      fetchPreviousOffers(newValue.id);
+    } else {
+      setPreviousPurchases([]);
+      setPreviousOffers([]);
+    }
+  };
 
   const handleCreate = async () => {
     if (!selectedSupplier) {
@@ -191,6 +232,7 @@ export default function PurchaseEditView() {
       };
 
       const cleanedPurchase = {
+        type: 'purchase',
         supplier: selectedSupplier?.id,
         purchase_invoice_date: currentPurchase?.purchase_invoice_date,
         total_exc_btw: currentPurchase?.total_exc_btw,
@@ -213,12 +255,7 @@ export default function PurchaseEditView() {
 
       const response = await axiosInstance.post(
         `/purchases/`,
-        cleanedPurchase,
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        }
+        cleanedPurchase
       );
 
       if (response.data.history) {
@@ -269,13 +306,14 @@ export default function PurchaseEditView() {
           <Grid item xs={12} md={8}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3}>
-                <Typography variant="h6">{t('purchase_details')}</Typography>
+                <Typography variant="h6">{t('purchase_details')}.</Typography>
 
                 <Stack spacing={2}>
                   <Autocomplete
                     value={selectedSupplier}
-                    onChange={(event, newValue) => setSelectedSupplier(newValue)}
-                    options={suppliers}
+                    onChange={(event: React.SyntheticEvent, newValue: ISupplierItem | null) => {
+                      handleSupplierChange(event, newValue);
+                    }} options={suppliers}
                     getOptionLabel={(option) => option.name}
                     renderInput={(params) => (
                       <TextField
@@ -423,6 +461,106 @@ export default function PurchaseEditView() {
           </Grid>
         </Grid>
       </Stack>
+      {/* Previous Purchases and Offers Section */}
+      {selectedSupplier && (
+        <Stack spacing={3} sx={{ mt: 3 }}>
+          {/* Previous Purchases Table */}
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Typography variant="h6">{t('previous_purchases')}</Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t('id')}</TableCell>
+                      <TableCell>{t('invoice_date')}</TableCell>
+                      <TableCell align="right">{t('items')}</TableCell>
+                      <TableCell align="right">{t('total_excl_btw')}</TableCell>
+                      <TableCell align="right">{t('total_incl_btw')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {previousPurchases.map((purchase) => (
+                      <TableRow key={purchase.id}>
+                        <TableCell>{purchase.id}</TableCell>
+                        <TableCell>
+                          {purchase.purchase_invoice_date && format(new Date(purchase.purchase_invoice_date), 'dd MMM yyyy')}
+                        </TableCell>
+                        <TableCell align="right">{purchase.items?.length || 0}</TableCell>
+                        <TableCell align="right">€{parseFloat(purchase.total_exc_btw).toFixed(2)}</TableCell>
+                        <TableCell align="right">€{parseFloat(purchase.total_inc_btw).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                    {previousPurchases.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">
+                          {t('no_previous_purchases')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+          </Card>
+
+          {/* Previous Offers Table */}
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Typography variant="h6">{t('previous_offers')}</Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t('id')}</TableCell>
+                      <TableCell>{t('invoice_date')}</TableCell>
+                      <TableCell align="right">{t('items')}</TableCell>
+                      <TableCell align="right">{t('total_excl_btw')}</TableCell>
+                      <TableCell align="right">{t('total_incl_btw')}</TableCell>
+                      <TableCell align="right">{t('import')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {previousOffers.map((offer) => (
+                      <TableRow key={offer.id}>
+                        <TableCell>{offer.id}</TableCell>
+                        <TableCell>
+                          {offer.purchase_invoice_date && format(new Date(offer.purchase_invoice_date), 'dd MMM yyyy')}
+                        </TableCell>
+                        <TableCell align="right">{offer.items?.length || 0}</TableCell>
+                        <TableCell align="right">€{parseFloat(offer.total_exc_btw).toFixed(2)}</TableCell>
+                        <TableCell align="right">€{parseFloat(offer.total_inc_btw).toFixed(2)}</TableCell>
+                        <TableCell align="right">
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => {
+                              setCurrentPurchase({
+                                ...offer,
+                                purchase_invoice_date: new Date().toISOString().split('T')[0],
+                              });
+                              enqueueSnackbar(t('offer_imported_successfully'), { variant: 'success' });
+                            }}
+                          >
+                            {t('import')}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {previousOffers.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">
+                          {t('no_previous_offers')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+          </Card>
+        </Stack>
+      )}
     </Container>
   );
 }

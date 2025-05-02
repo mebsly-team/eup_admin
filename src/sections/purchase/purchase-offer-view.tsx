@@ -94,7 +94,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [ enqueueSnackbar, t]);
+  }, [enqueueSnackbar, t]);
 
   const addToSupplierRecommendedProducts = useCallback(async (product) => {
     const payload = [...(supplier?.recommended_product_offer || []), product]
@@ -124,7 +124,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       console.error('Error fetching suppliers:', error);
       enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
     }
-  }, [ enqueueSnackbar, t]);
+  }, [enqueueSnackbar, t]);
 
   useEffect(() => {
     fetchSupplier();
@@ -284,6 +284,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       };
 
       const cleanedPurchase = {
+        type: 'offer',
         supplier: supplierId,
         purchase_invoice_date: currentPurchase?.purchase_invoice_date || today,
         total_exc_btw: currentPurchase?.total_exc_btw,
@@ -372,10 +373,12 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                                 textDecoration: 'underline',
                                 cursor: 'pointer',
                                 display: 'block',
-                                maxWidth: 250,
+                                maxWidth: '220px',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
+                                whiteSpace: 'normal',
+                                mb: 0.5,
+                                lineHeight: 1.2
                               }}
                             >
                               {item.title}
@@ -550,17 +553,19 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                             rel="noopener"
                             color="blue"
                             sx={{
-                              alignItems: 'center',
-                              typography: '',
-                              display: 'inline-flex',
-                              alignSelf: 'flex-end',
                               fontWeight: 'fontWeightBold',
                               textDecoration: 'underline',
                               cursor: 'pointer',
-                              marginLeft: 0,
+                              display: 'block',
+                              maxWidth: '220px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'normal',
+                              mb: 0.5,
+                              lineHeight: 1.2
                             }}
                           >
-                            <Typography variant="subtitle2" noWrap>{item.title}</Typography>
+                            {item.title}
                           </Link>
                           <Typography variant="caption" color="text.secondary" display="block">
                             {t('ean')}: {item.ean}

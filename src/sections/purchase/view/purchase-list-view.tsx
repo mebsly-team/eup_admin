@@ -72,6 +72,7 @@ export default function PurchaseListView() {
   const settings = useSettingsContext();
 
   const [tableData, setTableData] = useState<IPurchaseItem[]>([]);
+  const [offersData, setOffersData] = useState<IPurchaseItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -79,12 +80,12 @@ export default function PurchaseListView() {
   const fetchPurchases = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/purchases/', {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
-      setTableData(response.data);
+      const [purchasesResponse, offersResponse] = await Promise.all([
+        axiosInstance.get('/purchases/?type=purchase'),
+        axiosInstance.get('/purchases/?type=offer')
+      ]);
+      setTableData(purchasesResponse.data);
+      setOffersData(offersResponse.data);
     } catch (error) {
       console.error('Error fetching purchases:', error);
       enqueueSnackbar('Failed to fetch purchases', { variant: 'error' });
@@ -110,11 +111,7 @@ export default function PurchaseListView() {
 
   const handleDeleteRow = useCallback(async (id: string) => {
     try {
-      await axiosInstance.delete(`/purchases/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+      await axiosInstance.delete(`/purchases/${id}/`);
       enqueueSnackbar('Purchase deleted successfully');
       fetchPurchases();
     } catch (error) {
@@ -176,6 +173,19 @@ export default function PurchaseListView() {
     return true;
   });
 
+  const filteredOffers = offersData.filter((offer) => {
+    if (filters.name && !offer.supplier_detail.name.toLowerCase().includes(filters.name.toLowerCase())) {
+      return false;
+    }
+    if (filters.startDate && new Date(offer.purchase_invoice_date) < filters.startDate) {
+      return false;
+    }
+    if (filters.endDate && new Date(offer.purchase_invoice_date) > filters.endDate) {
+      return false;
+    }
+    return true;
+  });
+
   const denseHeight = table.dense ? 52 : 72;
   const canReset = !!(filters.name || !!filters.status.length || filters.startDate || filters.endDate);
 
@@ -184,7 +194,7 @@ export default function PurchaseListView() {
       <CustomBreadcrumbs
         heading={t('list')}
         links={[
-          { name: t('dashboard'), href: paths.dashboard.product },
+          { name: t('dashboard'), href: paths.dashboard.root },
           { name: t('purchases'), href: paths.dashboard.purchase.list },
           { name: t('list') },
         ]}
@@ -215,7 +225,7 @@ export default function PurchaseListView() {
             filters={filters}
             onFilters={handleFilters}
             onResetFilters={handleResetFilters}
-            results={filteredData.length}
+            results={filteredData.length + filteredOffers.length}
           />
         )}
 
@@ -241,7 +251,47 @@ export default function PurchaseListView() {
               />
 
               <TableBody>
+                <TableRow>
+                  <TableCell colSpan={9}>
+                    <Typography variant="h6" sx={{ py: 2 }}>
+                      {t('purchases')}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+
                 {filteredData
+                  .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
+                  .map((row) => (
+                    <>
+                      <PurchaseTableRow
+                        key={row.id}
+                        purchase={row}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
+                        onDeleteRow={() => handleDeleteRow(row.id)}
+                        onEditRow={() => handleEditRow(row.id)}
+                        expanded={expandedRow === row.id}
+                        onExpand={() => handleExpandRow(row.id)}
+                      />
+                      {expandedRow === row.id && (
+                        <TableRow>
+                          <TableCell colSpan={9} sx={{ p: 0 }}>
+                            {renderPurchaseItems(row.items)}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  ))}
+
+                <TableRow>
+                  <TableCell colSpan={9}>
+                    <Typography variant="h6" sx={{ py: 2 }}>
+                      {t('offers')}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+
+                {filteredOffers
                   .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
                   .map((row) => (
                     <>
@@ -267,17 +317,17 @@ export default function PurchaseListView() {
 
                 <TableEmptyRows
                   height={denseHeight}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, filteredData.length)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, filteredData.length + filteredOffers.length)}
                 />
 
-                <TableNoData notFound={!filteredData.length && canReset} />
+                <TableNoData notFound={!filteredData.length && !filteredOffers.length && canReset} />
               </TableBody>
             </Table>
           </Scrollbar>
         </TableContainer>
 
         <TablePaginationCustom
-          count={filteredData.length}
+          count={filteredData.length + filteredOffers.length}
           page={table.page}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
