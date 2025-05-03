@@ -201,7 +201,10 @@ export default function ProductNewEditForm({ id }: Props) {
         (value) =>
           value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
       ),
-    quantity_per_unit: Yup.number().required(t('required')).min(0.1, t('Moet groter zijn dan 0')),
+    quantity_per_unit: Yup.number()
+      .required(t('required'))
+      .min(0.1, t('Moet groter zijn dan 0'))
+      .transform((value) => (value === '' ? 1 : value)),
     variant_discount: Yup.number().test(
       'is-decimal',
       t('Max. 2 decimal places'),
@@ -320,7 +323,6 @@ export default function ProductNewEditForm({ id }: Props) {
       variants: currentProduct?.variants,
       title: currentProduct?.title || '',
       title_long: currentProduct?.title_long || '',
-      // description: currentProduct?.description || '',
       parent_product: currentProduct?.parent_product || '',
       min_price_to_sell: currentProduct?.min_price_to_sell || '',
       ean: currentProduct?.ean || '',
@@ -332,9 +334,8 @@ export default function ProductNewEditForm({ id }: Props) {
       categories: currentProduct?.categories || [],
       brand: currentProduct?.brand || null,
       supplier: currentProduct?.supplier || null,
-      // tags: currentProduct?.tags || [],
       images: currentProduct?.images || [],
-      quantity_per_unit: currentProduct?.quantity_per_unit || 0,
+      quantity_per_unit: currentProduct?.quantity_per_unit || 1,
       variant_discount: currentProduct?.variant_discount || 0,
       price_per_piece: currentProduct?.price_per_piece || 0,
       price_per_unit: currentProduct?.price_per_unit,
@@ -1657,10 +1658,23 @@ export default function ProductNewEditForm({ id }: Props) {
               type="number"
               value={getValues('quantity_per_unit')}
               onChange={(e) => {
-                setValue(
-                  'quantity_per_unit',
-                  e.target.value !== '' ? Number(e.target.value) : e.target.value
-                );
+                const value = e.target.value === '' ? 1 : Number(e.target.value);
+                setValue('quantity_per_unit', value);
+                // setValue(
+                //   'price_per_unit',
+                //   roundUp(value * Number(getValues('price_per_piece')))
+                // );
+                // setValue(
+                //   'inhoud_price',
+                //   (
+                //     (value * Number(getValues('price_per_piece') || 0)) /
+                //     Number(getValues('inhoud_number') || 1)
+                //   ).toFixed(4)
+                // );
+                // setValue(
+                //   'price_consumers',
+                //   roundUp(value * Number(getValues('price_per_piece')) * getRandomMarkup())
+                // );
               }}
               InputLabelProps={{ shrink: true, sx: { color: 'violet!important' } }}
             />
