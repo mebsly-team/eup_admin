@@ -185,9 +185,7 @@ export default function ProductNewEditForm({ id }: Props) {
     title: Yup.string().required(t('required')),
     unit: Yup.string().required(t('required')),
     price_per_piece: Yup.number()
-
       .when('price_cost', (price_cost, schema) => {
-        console.log('pc:', price_cost);
         return price_cost
           ? schema.min(
             price_cost * 1.15,
@@ -198,8 +196,12 @@ export default function ProductNewEditForm({ id }: Props) {
       .test(
         'is-decimal',
         t('Max. 2 decimale posities'),
-        (value) =>
-          value === undefined || value === null || /^[0-9]+(\.[0-9]{1,2})?$/.test(value.toString())
+        (value) => {
+          if (value === undefined || value === null) return true;
+          const stringValue = value.toString();
+          const decimalPlaces = stringValue.split('.')[1]?.length || 0;
+          return decimalPlaces <= 2;
+        }
       ),
     quantity_per_unit: Yup.number().required(t('required')).min(0.1, t('Moet groter zijn dan 0')),
     variant_discount: Yup.number().test(
