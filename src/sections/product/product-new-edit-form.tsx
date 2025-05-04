@@ -318,7 +318,7 @@ export default function ProductNewEditForm({ id }: Props) {
       is_variant: currentProduct?.is_variant,
       unit: currentProduct?.unit,
       color: currentProduct?.color || '',
-      size: currentProduct?.size,
+      size: currentProduct?.size?.replace(/%/g, ' ') || '',
       variants: currentProduct?.variants,
       title: currentProduct?.title || '',
       title_long: currentProduct?.title_long || '',
