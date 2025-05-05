@@ -515,7 +515,7 @@ export default function OrderDetailsInfo({
           )}
         </Stack>
 
-        {isDeliveryEdit ? (
+        {isDeliveryEdit && selectedShipmentMethod === 'dhl' ? (
           <Stack spacing={1.5}>
             <Stack direction="row" alignItems="center">
               <FormControlLabel
