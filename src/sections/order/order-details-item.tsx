@@ -103,8 +103,73 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     setEditedCart({ ...editedCart, items: updatedItems });
   };
 
-  const calculateSubtotal = () =>
-    editedCart?.items.reduce((acc, item) => acc + Number(item.single_product_discounted_price_per_unit_vat || 0) * item.quantity, 0);
+  const calculateVatTotals = () => {
+    const vatTotals = {
+      btw0: 0,
+      btw9: 0,
+      btw21: 0,
+      vatAmount0: 0,
+      vatAmount9: 0,
+      vatAmount21: 0
+    };
+
+    editedCart?.items.forEach((item) => {
+      const quantity = item.quantity;
+      const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
+      const priceInclVat = Number(item.single_product_discounted_price_per_unit_vat || 0);
+      const vatAmount = priceInclVat - priceExclVat;
+
+      console.log('Item:', item.product.title);
+      console.log('Price excl VAT:', priceExclVat);
+      console.log('Price incl VAT:', priceInclVat);
+      console.log('VAT amount:', vatAmount);
+
+      // Calculate expected VAT amounts for each rate
+      const expectedVat9 = priceExclVat * 0.09;
+      const expectedVat21 = priceExclVat * 0.21;
+
+      console.log('Expected VAT 9%:', expectedVat9);
+      console.log('Expected VAT 21%:', expectedVat21);
+
+      // Determine VAT rate based on the difference between incl and excl VAT
+      if (Math.abs(vatAmount) < 0.01) {
+        console.log('Adding to 0% VAT');
+        vatTotals.btw0 += priceExclVat * quantity;
+        vatTotals.vatAmount0 += 0;
+      } else if (Math.abs(vatAmount - expectedVat9) < 0.01) {
+        console.log('Adding to 9% VAT');
+        vatTotals.btw9 += priceExclVat * quantity;
+        vatTotals.vatAmount9 += vatAmount * quantity;
+      } else if (Math.abs(vatAmount - expectedVat21) < 0.01) {
+        console.log('Adding to 21% VAT');
+        vatTotals.btw21 += priceExclVat * quantity;
+        vatTotals.vatAmount21 += vatAmount * quantity;
+      } else {
+        console.log('VAT rate not recognized, defaulting to 21%');
+        vatTotals.btw21 += priceExclVat * quantity;
+        vatTotals.vatAmount21 += vatAmount * quantity;
+      }
+    });
+
+    console.log('Final VAT totals:', vatTotals);
+    return vatTotals;
+  };
+
+  const calculateSubtotalExclVat = () => {
+    const vatTotals = calculateVatTotals();
+    const total = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
+    console.log('Subtotal excl VAT:', total);
+    return total;
+  };
+
+  const calculateSubtotal = () => {
+    const vatTotals = calculateVatTotals();
+    const subtotalExclVat = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
+    const totalVat = vatTotals.vatAmount0 + vatTotals.vatAmount9 + vatTotals.vatAmount21;
+    const total = subtotalExclVat + totalVat;
+    console.log('Subtotal incl VAT:', total);
+    return total;
+  };
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
@@ -246,8 +311,39 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       alignItems="flex-end"
       sx={{ my: 3, textAlign: 'right', typography: 'body2' }}
     >
+      {(() => {
+        const vatTotals = calculateVatTotals();
+        return (
+          <>
+            <Stack direction="row" justifyContent="center" alignItems="center">
+              <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 0%</Box>
+              <Box sx={{ width: 160, typography: 'subtitle2' }}>
+                {fCurrency(vatTotals.btw0) || "-"}
+              </Box>
+            </Stack>
+            <Stack direction="row" justifyContent="center" alignItems="center">
+              <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 9%</Box>
+              <Box sx={{ width: 160, typography: 'subtitle2' }}>
+                {fCurrency(vatTotals.btw9) || "-"} + {fCurrency(vatTotals.vatAmount9) || "-"} BTW
+              </Box>
+            </Stack>
+            <Stack direction="row" justifyContent="center" alignItems="center">
+              <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 21%</Box>
+              <Box sx={{ width: 160, typography: 'subtitle2' }}>
+                {fCurrency(vatTotals.btw21) || "-"} + {fCurrency(vatTotals.vatAmount21) || "-"} BTW
+              </Box>
+            </Stack>
+          </>
+        );
+      })()}
       <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal</Box>
+        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (excl BTW)</Box>
+        <Box sx={{ width: 160, typography: 'subtitle2' }}>
+          {fCurrency(calculateSubtotalExclVat()) || '-'}
+        </Box>
+      </Stack>
+      <Stack direction="row" justifyContent="center" alignItems="center">
+        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (incl BTW)</Box>
         <Box sx={{ width: 160, typography: 'subtitle2' }}>
           {fCurrency(calculateSubtotal()) || '-'}
         </Box>
