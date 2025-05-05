@@ -220,7 +220,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       bic: currentUser?.bic || "",
       branch: currentUser?.branch || "",
       business_name: currentUser?.business_name || "",
-      discount_group: currentUser?.discount_group || "",
+      // discount_group: currentUser?.discount_group || "",
       extra_phone: currentUser?.extra_phone || "",
       fullname: currentUser?.fullname || "",
       iban: currentUser?.iban || "",
@@ -483,9 +483,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
         if (data.invoice_language !== currentUser.invoice_language) {
           changes.push(`Factuurtaal gewijzigd van "${currentUser.invoice_language}" naar "${data.invoice_language}" door ${user?.email}`);
         }
-        if (data.discount_group !== currentUser.discount_group) {
-          changes.push(`Kortingsgroep gewijzigd van "${currentUser.discount_group}" naar "${data.discount_group}" door ${user?.email}`);
-        }
+        // if (data.discount_group !== currentUser.discount_group) {
+        //   changes.push(`Kortingsgroep gewijzigd van "${currentUser.discount_group}" naar "${data.discount_group}" door ${user?.email}`);
+        // }
         if (data.inform_via !== currentUser.inform_via) {
           changes.push(`Informeren via gewijzigd van "${currentUser.inform_via}" naar "${data.inform_via}" door ${user?.email}`);
         }
@@ -792,7 +792,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
                 <RHFTextField name="invoice_address" label={t('invoice_address')} />
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
-                <RHFTextField name="discount_group" label={t('discount_group')} />
+                {/* <RHFTextField name="discount_group" label={t('discount_group')} /> */}
                 <RHFTextField name="inform_via" label={t('inform_via')} />
                 <RHFSelect
                   name="customer_color"

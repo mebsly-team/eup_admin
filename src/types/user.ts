@@ -140,7 +140,7 @@ export type IUserItem = {
   credit_limit: any
   incasseren: boolean
   invoice_address: any
-  discount_group: any
+  // discount_group: any
   customer_color: any
   relation_type: any
   relation_via: any
