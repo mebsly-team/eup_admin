@@ -121,6 +121,7 @@ export default function OrderDetailsInfo({
   orderId,
   currentOrder,
 }: Props) {
+  console.log("🚀 ~ customer:", customer)
   const [updatedShippingAddress, setUpdatedShippingAddress] = useState(shippingAddress);
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
@@ -413,6 +414,7 @@ export default function OrderDetailsInfo({
         />
 
         <Stack spacing={0.5} alignItems="flex-start" sx={{ typography: 'body2' }}>
+          <Typography variant="subtitle2">{customer.business_name}</Typography>
           <Typography variant="subtitle2">{customer.name}</Typography>
 
           <Link
