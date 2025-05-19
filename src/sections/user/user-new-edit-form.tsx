@@ -285,10 +285,10 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newType = e.target.value as UserType;
     const typeToPercentage: Record<UserType, number> = {
-      special: 25,
-      wholesaler: 20,
-      supermarket: 15,
-      particular: 10,
+      special: 15,
+      wholesaler: 10,
+      supermarket: 5,
+      particular: 0,
     };
 
     setValue('type', newType);
