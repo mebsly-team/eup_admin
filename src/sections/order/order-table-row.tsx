@@ -326,7 +326,15 @@ export default function OrderTableRow({
                   />
 
                   <ListItemText
-                    primary={`${item.quantity} x ${fCurrency(item.single_product_discounted_price_per_unit_vat)}`}
+                    primary={
+                      <>
+                        {`(excl BTW:) ${item.quantity} x ${fCurrency(item.single_product_discounted_price_per_unit)}`}
+                        <br />
+                        <span style={{ color: 'red' }}>
+                          {`(incl BTW:) ${item.quantity} x ${fCurrency(item.single_product_discounted_price_per_unit_vat)}`}
+                        </span>
+                      </>
+                    }
                     secondary={`${t('price_per_unit_vat')} : ${fCurrency(item.product_item_total_price_vat || Number(item.single_product_discounted_price_per_unit_vat) * item.quantity)}`}
                     primaryTypographyProps={{
                       typography: 'caption',
