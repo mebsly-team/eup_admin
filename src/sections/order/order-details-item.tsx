@@ -522,7 +522,10 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                 <>
                   <Stack spacing={0.5} sx={{ minWidth: 120 }}>
                     <Box sx={{ typography: 'caption', textAlign: 'right' }}>
-                      {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit_vat)}
+                      (excl BTW) {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit)}
+                    </Box>
+                    <Box sx={{ typography: 'caption', textAlign: 'right' }}>
+                      (incl BTW) {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit_vat)}
                     </Box>
                     <Box sx={{ typography: 'subtitle2', textAlign: 'right' }}>
                       Totaal: {fCurrency(item.single_product_discounted_price_per_unit_vat * item.quantity)}
