@@ -760,7 +760,6 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   label={t('contact_person_department')}
                 />
                 <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
-                <RHFTextField name="classification" label={t('classification')} />
                 <RHFTextField
                   name="contact_person_nationality"
                   label={t('contact_person_nationality')}
@@ -794,13 +793,15 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
                 {/* <RHFTextField name="discount_group" label={t('discount_group')} /> */}
                 <RHFTextField name="inform_via" label={t('inform_via')} />
+                <RHFTextField name="classification" label={t('classification')} />
+
                 <RHFSelect
                   name="customer_color"
                   label={t('customer_color')}
                   SelectProps={{
                     renderValue: (value) => {
-                      const option = mappedColors.find((c) => c.value === value);
-                      if (!option) return '';
+                      if (!value) return '';
+                      const option = MAP_USER_COLORS.find((c) => c.color === value);
                       return (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                           <Box
@@ -809,13 +810,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
                               width: 20,
                               height: 20,
                               borderRadius: '50%',
-                              backgroundColor: option.color,
+                              backgroundColor: value,
                               border: '2px solid #fff',
                               boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
                               flexShrink: 0
                             }}
                           />
-                          <Typography noWrap>{option.label}</Typography>
+                          <Typography noWrap>{option ? t(option.value) : value}</Typography>
                         </Box>
                       );
                     }
@@ -823,10 +824,10 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 >
                   <MenuItem value="">{t('none')}</MenuItem>
                   <Divider sx={{ borderStyle: 'dashed' }} />
-                  {mappedColors.map((option) => (
+                  {MAP_USER_COLORS.map((option) => (
                     <MenuItem
-                      key={option.value}
-                      value={option.value}
+                      key={option.color}
+                      value={option.color}
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -851,7 +852,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                           flexShrink: 0
                         }}
                       />
-                      <Typography noWrap>{option.label}</Typography>
+                      <Typography noWrap>{t(option.value)}</Typography>
                     </MenuItem>
                   ))}
                 </RHFSelect>
