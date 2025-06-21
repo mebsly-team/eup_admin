@@ -57,6 +57,15 @@ interface User {
   last_name: string;
   addresses: Address[];
   color?: string;
+  customer_color?: string;
+  branch?: string;
+  type?: string;
+  contact_person_branch?: string;
+  phone_number?: string;
+  mobile_number?: string;
+  mobile_phone?: string;
+  days_closed?: string;
+  days_no_delivery?: string;
 }
 
 interface SelectedUser {
@@ -94,7 +103,7 @@ const USER_TYPES = [
 ] as const;
 
 const MARKER_COLORS = [
-  { value: "all", label: "Alle", color: "#000000" },
+  { value: "all", label: "Alle", color: "all" },
   ...MAP_USER_COLORS.map(color => ({
     value: color.value,
     label: color.labelNL,
@@ -128,7 +137,6 @@ const MapInitializer = ({ onMapReady }: { onMapReady: (map: LeafletMap) => void 
 
 const Map = () => {
   const [users, setUsers] = useState<User[]>([]);
-  console.log("🚀 ~ Map ~ users:", users)
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 52.0452, lng: 4.6522 });
   const [zoom, setZoom] = useState(10);
@@ -138,7 +146,8 @@ const Map = () => {
       .filter(type => type.value !== "particular" && type.value !== "all")
       .map(type => type.value)
   );
-  const [selectedColors, setSelectedColors] = useState<string[]>(["all"]);
+  const [selectedColors, setSelectedColors] = useState<string[]>(["#33CC33"]);
+  const [isAllColorsSelected, setIsAllColorsSelected] = useState(false);
   const [filters, setFilters] = useState({
     is_delivery_address: true
   });
@@ -257,7 +266,7 @@ const Map = () => {
             sw_lng: southWest.lng,
             is_delivery_address: filters.is_delivery_address,
             ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
-            ...(selectedColors[0] !== "all" && { customer_colors: selectedColors.join(',') })
+            ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
           },
         });
         setUsers(response.data);
@@ -267,7 +276,7 @@ const Map = () => {
         setIsLoading(false);
       }
     }
-  }, [filters, selectedUserTypes, selectedColors]);
+  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected]);
 
   const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
     if (newUserTypes.includes("all")) {
@@ -284,19 +293,27 @@ const Map = () => {
     }
   };
 
-  const handleColorChange = (event: React.MouseEvent<HTMLElement>, newColors: string[]) => {
-    if (newColors.includes("all")) {
-      // If "all" is being selected, deselect everything else
-      if (!selectedColors.includes("all")) {
-        setSelectedColors(["all"]);
-      } else {
-        // If "all" is being deselected, default to "red"
-        setSelectedColors(["red"]);
-      }
+  const handleColorButtonClick = (colorValue: string) => {
+    if (colorValue === "all") {
+      setIsAllColorsSelected(true);
+      setSelectedColors(["all"]);
     } else {
-      // If selecting other options while "all" is selected, remove "all"
-      const filteredColors = newColors.filter(color => color !== "all");
-      setSelectedColors(filteredColors.length ? filteredColors : ["red"]);
+      if (isAllColorsSelected) {
+        // Transition from "all" to this specific color
+        setIsAllColorsSelected(false);
+        setSelectedColors([colorValue]);
+      } else {
+        // Toggle this color in the current selection
+        const newColors = selectedColors.includes(colorValue)
+          ? selectedColors.filter(c => c !== colorValue)
+          : [...selectedColors, colorValue];
+
+        if (newColors.length === 0) {
+          setSelectedColors(["#33CC33"]);
+        } else {
+          setSelectedColors(newColors);
+        }
+      }
     }
   };
 
@@ -333,7 +350,8 @@ const Map = () => {
     if (mapRef.current) {
       debouncedFetch(mapRef.current.getBounds());
     }
-  }, [filters, debouncedFetch]);
+  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, debouncedFetch]);
+
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -921,8 +939,7 @@ const Map = () => {
                 Kleur
               </Typography>
               <ToggleButtonGroup
-                value={selectedColors}
-                onChange={handleColorChange}
+                value={isAllColorsSelected ? ["all"] : selectedColors}
                 aria-label="marker colors"
                 size="small"
                 sx={{
@@ -936,7 +953,8 @@ const Map = () => {
                 {MARKER_COLORS.map((color) => (
                   <ToggleButton
                     key={color.value}
-                    value={color.value}
+                    value={color.value === "all" ? "all" : color.color}
+                    onClick={() => handleColorButtonClick(color.value === "all" ? "all" : color.color)}
                     sx={{
                       textTransform: 'none',
                       '&.Mui-selected': {
@@ -969,10 +987,9 @@ const Map = () => {
             <MarkerClusterGroup>
               {users.map((user) =>
                 user.addresses.map((address) => {
-                  console.log("🚀 ~ Map ~ user:", user)
                   const { latitude, longitude } = address;
                   if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
-                    const markerColor = MARKER_COLORS.find(c => c.value === user.customer_color)?.color || MARKER_COLORS[0].color;
+                    const markerColor = user.customer_color || MARKER_COLORS[0].color;
                     return (
                       <Marker
                         key={address.id}
