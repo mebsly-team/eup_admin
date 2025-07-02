@@ -272,7 +272,44 @@ const Map = () => {
             ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
           },
         });
-        setUsers(response.data);
+        // Deduplicate users by ID to prevent duplicate markers
+        const uniqueUsers = response.data.reduce((acc: User[], user: User) => {
+          const existingUser = acc.find(u => u.id === user.id);
+          if (!existingUser) {
+            // Deduplicate addresses within this user
+            const uniqueAddresses = user.addresses.reduce((addrAcc: Address[], address: Address) => {
+              const existingAddress = addrAcc.find(a => a.id === address.id);
+              if (!existingAddress) {
+                addrAcc.push(address);
+              }
+              return addrAcc;
+            }, []);
+
+            acc.push({
+              ...user,
+              addresses: uniqueAddresses
+            });
+          } else {
+            // If user already exists, merge and deduplicate addresses
+            const allAddresses = [...existingUser.addresses, ...user.addresses];
+            const uniqueAddresses = allAddresses.reduce((addrAcc: Address[], address: Address) => {
+              const existingAddress = addrAcc.find(a => a.id === address.id);
+              if (!existingAddress) {
+                addrAcc.push(address);
+              }
+              return addrAcc;
+            }, []);
+
+            existingUser.addresses = uniqueAddresses;
+          }
+          return acc;
+        }, []);
+
+        console.log('Original users:', response.data.length);
+        console.log('Unique users:', uniqueUsers.length);
+        console.log('Sample user addresses:', uniqueUsers[0]?.addresses?.length);
+
+        setUsers(uniqueUsers);
       } catch (error) {
         console.error("Error fetching map data:", error);
       } finally {
@@ -988,102 +1025,107 @@ const Map = () => {
             />
             <MapEventHandler />
             <MarkerClusterGroup>
-              {users.map((user) =>
-                user.addresses.map((address) => {
-                  const { latitude, longitude } = address;
-                  if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
-                    const markerColor = user.customer_color || MARKER_COLORS[0].color;
-                    return (
-                      <Marker
-                        key={address.id}
-                        position={[latitude, longitude]}
-                        icon={createCustomIcon(markerColor)}
-                      >
-                        <Popup>
-                          <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
-                          <Typography
-                            component="span"
-                            sx={{
-                              fontWeight: 'bold',
-                              cursor: 'pointer',
-                              textDecoration: 'underline',
-                              '&:hover': {
-                                color: 'primary.main',
-                              }
-                            }}
-                            onClick={() => router.push(paths.dashboard.user.edit(user.id))}
-                          >
-                            {user.first_name} {user.last_name}
-                          </Typography> <br />
-                          {address.street_name} {address.house_number}, {address.city} <br />
-                          {address.zip_code}, {address.country} <br />
+              {users.map((user) => {
+                // Filter addresses that have valid coordinates
+                const validAddresses = user.addresses.filter(address =>
+                  address.latitude &&
+                  address.longitude &&
+                  !isNaN(address.latitude) &&
+                  !isNaN(address.longitude)
+                );
 
-                          {user.branch && (
-                            <Box component="div" sx={{ mt: 1 }}>
-                              <strong>Filiaal:</strong> {user.branch}
-                            </Box>
-                          )}
+                // Create a marker for each valid address
+                return validAddresses.map((address) => {
+                  const markerColor = user.customer_color || MARKER_COLORS[0].color;
+                  return (
+                    <Marker
+                      key={`${user.id}-${address.id}`}
+                      position={[address.latitude, address.longitude]}
+                      icon={createCustomIcon(markerColor)}
+                    >
+                      <Popup>
+                        <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            '&:hover': {
+                              color: 'primary.main',
+                            }
+                          }}
+                          onClick={() => router.push(paths.dashboard.user.edit(user.id))}
+                        >
+                          {user.first_name} {user.last_name}
+                        </Typography> <br />
+                        {address.street_name} {address.house_number}, {address.city} <br />
+                        {address.zip_code}, {address.country} <br />
 
-                          {user.type && (
-                            <Box component="div">
-                              <strong>Type:</strong> {user.type}
-                            </Box>
-                          )}
+                        {user.branch && (
+                          <Box component="div" sx={{ mt: 1 }}>
+                            <strong>Filiaal:</strong> {user.branch}
+                          </Box>
+                        )}
 
-                          {user.contact_person_branch && (
-                            <Box component="div">
-                              <strong>Contactpersoon:</strong> {user.contact_person_branch}
-                            </Box>
-                          )}
+                        {user.type && (
+                          <Box component="div">
+                            <strong>Type:</strong> {user.type}
+                          </Box>
+                        )}
 
-                          {user.mobile_number && (
-                            <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                              <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
-                              {user.mobile_number}
-                            </Box>
-                          )}
+                        {user.contact_person_branch && (
+                          <Box component="div">
+                            <strong>Contactpersoon:</strong> {user.contact_person_branch}
+                          </Box>
+                        )}
 
-                          {user.mobile_phone && user.mobile_phone !== user.mobile_number && (
-                            <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
-                              {user.mobile_phone}
-                            </Box>
-                          )}
+                        {user.mobile_number && (
+                          <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                            <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                            {user.mobile_number}
+                          </Box>
+                        )}
 
-                          {user.phone_number && (
-                            <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
-                              {user.phone_number}
-                            </Box>
-                          )}
+                        {user.mobile_phone && user.mobile_phone !== user.mobile_number && (
+                          <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                            {user.mobile_phone}
+                          </Box>
+                        )}
 
-                          {user.days_closed && (
-                            <Box component="div" sx={{ mt: 1 }}>
-                              <strong>Gesloten dagen:</strong> {user.days_closed}
-                            </Box>
-                          )}
+                        {user.phone_number && (
+                          <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
+                            {user.phone_number}
+                          </Box>
+                        )}
 
-                          {user.days_no_delivery && (
-                            <Box component="div">
-                              <strong>Geen bezorging op:</strong> {user.days_no_delivery}
-                            </Box>
-                          )}
+                        {user.days_closed && (
+                          <Box component="div" sx={{ mt: 1 }}>
+                            <strong>Gesloten dagen:</strong> {user.days_closed}
+                          </Box>
+                        )}
 
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => handleAddToCalendar(user, address)}
-                            sx={{ mt: 1 }}
-                          >
-                            Plan bezoek (30m)
-                          </Button>
-                        </Popup>
-                      </Marker>
-                    );
-                  }
-                  return null;
-                })
-              )}
+                        {user.days_no_delivery && (
+                          <Box component="div">
+                            <strong>Geen bezorging op:</strong> {user.days_no_delivery}
+                          </Box>
+                        )}
+
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleAddToCalendar(user, address)}
+                          sx={{ mt: 1 }}
+                        >
+                          Plan bezoek (30m)
+                        </Button>
+                      </Popup>
+                    </Marker>
+                  );
+                });
+              })}
             </MarkerClusterGroup>
           </MapContainer>
 
