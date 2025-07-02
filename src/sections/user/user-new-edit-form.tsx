@@ -382,7 +382,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
     try {
       const addressId = addressList[index]?.id;
       if (addressId) {
-        await axiosInstance.delete(`/address/${addressId}/`);
+        await axiosInstance.delete(`/address/${addressId}/?all=true`);
       }
       setAddressList(addressList.filter((_, i) => i !== index));
     } catch (error) {
