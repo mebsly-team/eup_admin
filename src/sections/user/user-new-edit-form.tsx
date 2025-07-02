@@ -1019,7 +1019,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   </TableCell>
                   <TableCell>{address.address_name}</TableCell>
                   <TableCell>
-                    {`${address.street_name} ${address.house_number} ${address.house_suffix}, ${address.city}, ${address.country}`}
+                    {[
+                      address.street_name,
+                      address.house_number,
+                      address.house_suffix,
+                      address.city,
+                      address.country
+                    ].filter(Boolean).join(' ')}
                   </TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleOpenAddressForm(index)}>
