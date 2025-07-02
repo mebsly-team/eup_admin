@@ -31,6 +31,8 @@ import { createEvent, updateEvent, deleteEvent } from 'src/api/calendar';
 import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
 import { MAP_USER_COLORS } from 'src/constants/colors';
 import Iconify from 'src/components/iconify';
+import { useRouter } from 'src/routes/hooks';
+import { paths } from 'src/routes/paths';
 
 interface Address {
   id: string;
@@ -136,6 +138,7 @@ const MapInitializer = ({ onMapReady }: { onMapReady: (map: LeafletMap) => void 
 };
 
 const Map = () => {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 52.0452, lng: 4.6522 });
@@ -998,7 +1001,20 @@ const Map = () => {
                       >
                         <Popup>
                           <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
-                          <strong>{user.first_name} {user.last_name}</strong> <br />
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                              '&:hover': {
+                                color: 'primary.main',
+                              }
+                            }}
+                            onClick={() => router.push(paths.dashboard.user.edit(user.id))}
+                          >
+                            {user.first_name} {user.last_name}
+                          </Typography> <br />
                           {address.street_name} {address.house_number}, {address.city} <br />
                           {address.zip_code}, {address.country} <br />
 
