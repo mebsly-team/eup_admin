@@ -1,7 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import axiosInstance from "src/utils/axios";
-import MarkerClusterGroup from "react-leaflet-cluster";
 import Calendar from '@fullcalendar/react';
 import listPlugin from '@fullcalendar/list';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -141,8 +140,8 @@ const Map = () => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [mapCenter, setMapCenter] = useState({ lat: 52.0452, lng: 4.6522 });
-  const [zoom, setZoom] = useState(10);
+  const [mapCenter, setMapCenter] = useState({ lat: 51.6978, lng: 5.3037 });
+  const [zoom, setZoom] = useState(8);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUserTypes, setSelectedUserTypes] = useState<string[]>(
     USER_TYPES
@@ -933,7 +932,7 @@ const Map = () => {
         <Paper
           elevation={2}
           sx={{
-            p: 2,
+            p: 1,
             borderRadius: 0,
             position: 'sticky',
             top: 0,
@@ -943,11 +942,11 @@ const Map = () => {
             borderColor: 'divider'
           }}
         >
-          <Stack spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center">
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {/* <Typography variant="caption" sx={{ mb: 0.5, display: 'block' }}>
                 Gebruikerstype
-              </Typography>
+              </Typography> */}
               <ToggleButtonGroup
                 value={selectedUserTypes}
                 onChange={handleUserTypeChange}
@@ -957,8 +956,10 @@ const Map = () => {
                 sx={{
                   flexWrap: 'wrap',
                   '& .MuiToggleButton-root': {
-                    fontSize: '0.75rem',
-                    py: 0.5,
+                    fontSize: '0.7rem',
+                    py: 0.3,
+                    px: 0.8,
+                    minHeight: '28px',
                   }
                 }}
               >
@@ -975,9 +976,9 @@ const Map = () => {
             </Box>
 
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {/* <Typography variant="caption" sx={{ mb: 0.5, display: 'block' }}>
                 Kleur
-              </Typography>
+              </Typography> */}
               <ToggleButtonGroup
                 value={isAllColorsSelected ? ["all"] : selectedColors}
                 aria-label="marker colors"
@@ -985,8 +986,10 @@ const Map = () => {
                 sx={{
                   flexWrap: 'wrap',
                   '& .MuiToggleButton-root': {
-                    fontSize: '0.75rem',
-                    py: 0.5,
+                    fontSize: '0.7rem',
+                    py: 0.3,
+                    px: 0.8,
+                    minHeight: '28px',
                   }
                 }}
               >
@@ -1024,109 +1027,114 @@ const Map = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapEventHandler />
-            <MarkerClusterGroup>
-              {users.map((user) => {
-                // Filter addresses that have valid coordinates
-                const validAddresses = user.addresses.filter(address =>
-                  address.latitude &&
-                  address.longitude &&
-                  !isNaN(address.latitude) &&
-                  !isNaN(address.longitude)
-                );
+            {users.map((user) => {
+              // Filter addresses that have valid coordinates
+              const validAddresses = user.addresses.filter(address =>
+                address.latitude &&
+                address.longitude &&
+                !isNaN(address.latitude) &&
+                !isNaN(address.longitude)
+              );
 
-                // Create a marker for each valid address
-                return validAddresses.map((address) => {
-                  const markerColor = user.customer_color || MARKER_COLORS[0].color;
-                  return (
-                    <Marker
-                      key={`${user.id}-${address.id}`}
-                      position={[address.latitude, address.longitude]}
-                      icon={createCustomIcon(markerColor)}
+              // Create a marker for each valid address
+              return validAddresses.map((address) => {
+                const markerColor = user.customer_color || MARKER_COLORS[0].color;
+                return (
+                  <Marker
+                    key={`${user.id}-${address.id}`}
+                    position={[address.latitude, address.longitude]}
+                    icon={createCustomIcon(markerColor)}
+                    autoPan={true}
+                    autoPanPadding={[50, 50]}
+                  >
+                    <Popup
+                      closeButton={false}
+                      autoPan={true}
+                      autoPanPadding={[50, 50]}
+                      keepInView={true}
                     >
-                      <Popup>
-                        <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
-                        <Typography
-                          component="span"
-                          sx={{
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            '&:hover': {
-                              color: 'primary.main',
-                            }
-                          }}
-                          onClick={() => router.push(paths.dashboard.user.edit(user.id))}
-                        >
-                          {user.first_name} {user.last_name}
-                        </Typography> <br />
-                        {address.street_name} {address.house_number}, {address.city} <br />
-                        {address.zip_code}, {address.country} <br />
+                      <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          '&:hover': {
+                            color: 'primary.main',
+                          }
+                        }}
+                        onClick={() => router.push(paths.dashboard.user.edit(user.id))}
+                      >
+                        {user.first_name} {user.last_name}
+                      </Typography> <br />
+                      {address.street_name} {address.house_number}, {address.city} <br />
+                      {address.zip_code}, {address.country} <br />
 
-                        {user.branch && (
-                          <Box component="div" sx={{ mt: 1 }}>
-                            <strong>Filiaal:</strong> {user.branch}
-                          </Box>
-                        )}
+                      {user.branch && (
+                        <Box component="div" sx={{ mt: 1 }}>
+                          <strong>Filiaal:</strong> {user.branch}
+                        </Box>
+                      )}
 
-                        {user.type && (
-                          <Box component="div">
-                            <strong>Type:</strong> {user.type}
-                          </Box>
-                        )}
+                      {user.type && (
+                        <Box component="div">
+                          <strong>Type:</strong> {user.type}
+                        </Box>
+                      )}
 
-                        {user.contact_person_branch && (
-                          <Box component="div">
-                            <strong>Contactpersoon:</strong> {user.contact_person_branch}
-                          </Box>
-                        )}
+                      {user.contact_person_branch && (
+                        <Box component="div">
+                          <strong>Contactpersoon:</strong> {user.contact_person_branch}
+                        </Box>
+                      )}
 
-                        {user.mobile_number && (
-                          <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
-                            {user.mobile_number}
-                          </Box>
-                        )}
+                      {user.mobile_number && (
+                        <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                          {user.mobile_number}
+                        </Box>
+                      )}
 
-                        {user.mobile_phone && user.mobile_phone !== user.mobile_number && (
-                          <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
-                            {user.mobile_phone}
-                          </Box>
-                        )}
+                      {user.mobile_phone && user.mobile_phone !== user.mobile_number && (
+                        <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Iconify icon="solar:smartphone-bold" width={14} sx={{ mr: 0.5 }} />
+                          {user.mobile_phone}
+                        </Box>
+                      )}
 
-                        {user.phone_number && (
-                          <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
-                            {user.phone_number}
-                          </Box>
-                        )}
+                      {user.phone_number && (
+                        <Box component="div" sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
+                          {user.phone_number}
+                        </Box>
+                      )}
 
-                        {user.days_closed && (
-                          <Box component="div" sx={{ mt: 1 }}>
-                            <strong>Gesloten dagen:</strong> {user.days_closed}
-                          </Box>
-                        )}
+                      {user.days_closed && (
+                        <Box component="div" sx={{ mt: 1 }}>
+                          <strong>Gesloten dagen:</strong> {user.days_closed}
+                        </Box>
+                      )}
 
-                        {user.days_no_delivery && (
-                          <Box component="div">
-                            <strong>Geen bezorging op:</strong> {user.days_no_delivery}
-                          </Box>
-                        )}
+                      {user.days_no_delivery && (
+                        <Box component="div">
+                          <strong>Geen bezorging op:</strong> {user.days_no_delivery}
+                        </Box>
+                      )}
 
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() => handleAddToCalendar(user, address)}
-                          sx={{ mt: 1 }}
-                        >
-                          Plan bezoek (30m)
-                        </Button>
-                      </Popup>
-                    </Marker>
-                  );
-                });
-              })}
-            </MarkerClusterGroup>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleAddToCalendar(user, address)}
+                        sx={{ mt: 1 }}
+                      >
+                        Plan bezoek (30m)
+                      </Button>
+                    </Popup>
+                  </Marker>
+                );
+              });
+            })}
           </MapContainer>
 
           {isLoading && (
