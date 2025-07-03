@@ -1064,7 +1064,7 @@ const Map = () => {
                             color: 'primary.main',
                           }
                         }}
-                        onClick={() => router.push(paths.dashboard.user.edit(user.id))}
+                        onClick={() => window.open(paths.dashboard.user.edit(user.id), '_blank')}
                       >
                         {user.first_name} {user.last_name}
                       </Typography> <br />
