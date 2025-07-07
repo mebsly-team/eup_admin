@@ -132,9 +132,11 @@ export default function OrderDetailsInfo({
 
   const [addressSearchText, setAddressSearchText] = useState('');
   const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
+  console.log("🚀 ~ selectedShipmentMethod:", selectedShipmentMethod)
   const [selectedCountry, setSelectedCountry] = useState(updatedShippingAddress?.country || shippingAddress?.country || "NL");
   const [parcelTypes, setParcelTypes] = useState<IParcelTypeOption[]>([]);
   const [selectedParcelType, setSelectedParcelType] = useState('');
+  console.log("🚀 ~ selectedParcelType:", selectedParcelType)
   const [klantType, setKlantType] = useState<'business' | 'consumer'>('business');
   const [autoCalculateParcel, setAutoCalculateParcel] = useState(false);
 
@@ -579,7 +581,7 @@ export default function OrderDetailsInfo({
             Volgen No.
           </Box>
 
-          {selectedShipmentMethod === 'dhl' ? (
+          {(selectedShipmentMethod === 'dhl' || currentOrder?.delivery_details?.carrier === 'dhl') ? (
             <Link
               href={`https://my.dhlecommerce.nl/home/tracktrace/${updatedDeliveryDetails?.tracking_number}/${updatedDeliveryDetails?.postal_code}`}
               target="_blank"
