@@ -14,6 +14,7 @@ import axiosInstance from 'src/utils/axios';
 import { useTranslate } from 'src/locales';
 
 import { useSettingsContext } from 'src/components/settings';
+import { useAuthContext } from 'src/auth/hooks';
 
 import OrderDetailsInfo from '../order-details-info';
 import OrderDetailsItems from '../order-details-item';
@@ -49,6 +50,7 @@ export default function OrderDetailsView({ id }: Props) {
   const settings = useSettingsContext();
   const { t } = useTranslate();
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuthContext();
 
   useEffect(() => {
     if (id) {
@@ -81,6 +83,13 @@ export default function OrderDetailsView({ id }: Props) {
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
+
+      updateOrder(id, {
+        history: [...currentOrder.history, {
+          date: new Date(),
+          event: `Invoice gedownload door ${user?.email}`,
+        }],
+      });
     } catch (error) {
       console.error('Failed to download:', error);
     }

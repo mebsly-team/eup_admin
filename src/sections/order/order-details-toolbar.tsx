@@ -17,16 +17,20 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 // ----------------------------------------------------------------------
 
 type Props = {
-  status: string;
+  currentOrder: any;
   backLink: string;
-  orderNumber: string;
-  createdAt: Date;
-  onChangeStatus: (newValue: string) => void;
-  handleDownloadInvoice: (value: { doc: string }) => void;
   statusOptions: {
     value: string;
     label: string;
   }[];
+  paymentStatusOptions: {
+    value: string;
+    label: string;
+  }[];
+  onChangeStatus: (newValue: string) => void;
+  onPaymentChangeStatus: (newValue: string) => void;
+  handleDownloadInvoice: (value: { doc: string }) => void;
+  sendToSnelstart: (value: { id: string }) => void;
 };
 
 export default function OrderDetailsToolbar({
@@ -42,8 +46,38 @@ export default function OrderDetailsToolbar({
   const popoverStatus = usePopover();
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
-  const { id, is_paid, ordered_date, status, source_host } = currentOrder;
+  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
+
+  const checkHistoryForStatusChange = (statusToCheck: string) => {
+    if (!currentOrder?.history || !Array.isArray(currentOrder.history)) {
+      return false;
+    }
+
+    return currentOrder.history.some((item: any) => {
+      if (item.event && typeof item.event === 'string') {
+        return item.event.includes(`Status gewijzigd in ${t(statusToCheck)}`);
+      }
+      return false;
+    });
+  };
+
+  const checkHistoryForInvoiceDownload = () => {
+    if (!currentOrder?.history || !Array.isArray(currentOrder.history)) {
+      return false;
+    }
+
+    return currentOrder.history.some((item: any) => {
+      if (item.event && typeof item.event === 'string') {
+        return item.event.includes('Invoice gedownload');
+      }
+      return false;
+    });
+  };
+
+  const isWerkbonCompleted = checkHistoryForStatusChange('werkbon');
+  const isPackingCompleted = checkHistoryForStatusChange('packing');
+  const isInvoiceDownloaded = checkHistoryForInvoiceDownload();
 
   return (
     <>
@@ -99,6 +133,12 @@ export default function OrderDetailsToolbar({
               handleDownloadInvoice({ doc: 'werkbon' });
               onChangeStatus('werkbon');
             }}
+            sx={{
+              backgroundColor: isWerkbonCompleted ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: isWerkbonCompleted ? 'lightgreen' : undefined,
+              }
+            }}
           >
             {t('werkbon')}
           </Button>
@@ -111,6 +151,12 @@ export default function OrderDetailsToolbar({
               onChangeStatus('packing');
             }}
             disabled={!currentOrder?.delivery_details?.tracking_number}
+            sx={{
+              backgroundColor: isPackingCompleted ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: isPackingCompleted ? 'lightgreen' : undefined,
+              }
+            }}
           >
             {t('packing')}
           </Button>
@@ -118,7 +164,13 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={handleDownloadInvoice}
+            onClick={() => handleDownloadInvoice({ doc: 'invoice' })}
+            sx={{
+              backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: isInvoiceDownloaded ? 'lightgreen' : undefined,
+              }
+            }}
           >
             {t('invoice')}
           </Button>
@@ -127,6 +179,12 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
             onClick={() => sendToSnelstart({ id })}
+            sx={{
+              backgroundColor: is_sent_to_snelstart ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: is_sent_to_snelstart ? 'lightgreen' : undefined,
+              }
+            }}
           >
             {t('sendToSnelstart')}
           </Button>
@@ -165,7 +223,7 @@ export default function OrderDetailsToolbar({
         {paymentStatusOptions.map((option) => (
           <MenuItem
             key={option.value}
-            selected={option.value === status}
+            selected={option.value === (is_paid ? 'paid' : 'unpaid')}
             onClick={() => {
               popoverStatus.onClose();
               onPaymentChangeStatus(option.value);
