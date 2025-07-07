@@ -146,30 +146,28 @@ export default function OrderDetailsView({ id }: Props) {
       const newHistory = currentOrder.history;
       newHistory.push({
         date: new Date(),
-        event: `Status gewijzigd in ${t(newValue)} door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
-          }`,
+        event: `Status gewijzigd in ${t(newValue)} door ${user?.email}`,
       });
       updateOrder(id, {
         status: newValue,
         history: newHistory,
       });
     },
-    [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
+    [currentOrder.history, id, t]
   );
   const onPaymentChangeStatus = useCallback(
     (newValue: string) => {
       const newHistory = currentOrder.history;
       newHistory.push({
         date: new Date(),
-        event: `Betaling status gewijzigd in ${t(newValue)} door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
-          }`,
+        event: `Betaling status gewijzigd in ${t(newValue)} door ${user?.email}`,
       });
       updateOrder(id, {
         is_paid: newValue === 'paid',
         history: newHistory,
       });
     },
-    [currentOrder.history, currentOrder?.shipping_address?.email, currentOrder?.user?.email, id, t]
+    [currentOrder.history, user?.email, id, t]
   );
 
   if (!currentOrder) return <></>;

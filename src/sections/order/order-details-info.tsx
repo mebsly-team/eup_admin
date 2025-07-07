@@ -29,6 +29,7 @@ import {
   IOrderShippingAddress,
 } from 'src/types/order';
 import { HOST_API } from 'src/config-global';
+import { useAuthContext } from 'src/auth/hooks';
 
 interface IParcelType {
   key: string;
@@ -122,6 +123,7 @@ export default function OrderDetailsInfo({
   currentOrder,
 }: Props) {
   console.log("🚀 ~ customer:", customer)
+  const { user } = useAuthContext();
   const [updatedShippingAddress, setUpdatedShippingAddress] = useState(shippingAddress);
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
@@ -352,7 +354,7 @@ export default function OrderDetailsInfo({
       const newHistory = currentOrder.history;
       newHistory.push({
         date: new Date(),
-        event: `Shipment door europower gemaakt`,
+        event: `Shipment: Europower gemaakt door ${user?.email}`,
       });
 
       const updatedDeliveryDetails: IDeliveryDetails = {
