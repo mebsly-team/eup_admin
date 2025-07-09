@@ -1657,7 +1657,7 @@ export default function ProductNewEditForm({ id }: Props) {
               type="number"
               value={getValues('quantity_per_unit')}
               onChange={(e) => {
-                const value = e.target.value === '' ? 1 : Number(e.target.value);
+                const value = e.target.value;
                 setValue('quantity_per_unit', value);
                 // setValue(
                 //   'price_per_unit',
@@ -1871,7 +1871,7 @@ export default function ProductNewEditForm({ id }: Props) {
               type="number"
               value={getValues('inhoud_number')}
               onChange={(e) => {
-                setValue('inhoud_number', e.target.value !== '' ? Number(e.target.value) : '');
+                setValue('inhoud_number', e.target.value);
 
                 setValue(
                   'inhoud_price',
