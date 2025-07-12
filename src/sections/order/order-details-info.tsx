@@ -234,8 +234,7 @@ export default function OrderDetailsInfo({
     const newHistory = currentOrder.history;
     newHistory.push({
       date: new Date(),
-      event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
-        }`,
+      event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${user?.email}`,
     });
     updateOrder(orderId, {
       shipping_address: { ...shippingAddress, ...updatedShippingAddress },
@@ -326,7 +325,7 @@ export default function OrderDetailsInfo({
           const newHistory = currentOrder.history;
           newHistory.push({
             date: new Date(),
-            event: `DHL Shipment created: ${shipmentData.shipmentId}, Tracking: ${firstPiece.trackerCode}, door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email}`,
+            event: `DHL Shipment created: ${shipmentData.shipmentId}, Tracking: ${firstPiece.trackerCode}, door ${user?.email}`,
           });
 
           const updatedDeliveryDetails: IDeliveryDetails = {
