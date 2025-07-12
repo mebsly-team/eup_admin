@@ -16,6 +16,10 @@ import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
+import LoadingButton from '@mui/lab/LoadingButton';
+import Stack from '@mui/material/Stack';
 
 import { paths } from 'src/routes/paths';
 import { useTranslate } from 'src/locales';
@@ -30,6 +34,7 @@ import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 import { useSettingsContext } from 'src/components/settings';
 
 import { IPurchaseItem, IPurchaseTableFilters } from 'src/types/purchase';
+import { ISupplierItem } from 'src/types/supplier';
 
 import PurchaseTableRow from '../purchase-table-row';
 import PurchaseItemRow from '../purchase-item-row';
@@ -76,6 +81,9 @@ export default function PurchaseListView() {
   const [filters, setFilters] = useState(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [suppliers, setSuppliers] = useState<ISupplierItem[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
+  const [creatingOffer, setCreatingOffer] = useState(false);
 
   const fetchPurchases = useCallback(async () => {
     try {
@@ -94,9 +102,47 @@ export default function PurchaseListView() {
     }
   }, [user?.token, enqueueSnackbar]);
 
+  const fetchSuppliers = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/suppliers/?limit=9999');
+      setSuppliers(response.data.results || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+      enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
+    }
+  }, [enqueueSnackbar, t]);
+
+  const handleCreateOfferFromSupplier = useCallback(async () => {
+    if (!selectedSupplier) {
+      enqueueSnackbar(t('supplier_required') || 'Please select a supplier', { variant: 'error' });
+      return;
+    }
+
+    try {
+      setCreatingOffer(true);
+      const response = await axiosInstance.post('/purchase/prepare_supplier_offer/', {
+        supplier_id: selectedSupplier.id
+      });
+
+      enqueueSnackbar(t('offer_created_successfully') || 'Offer created successfully', { variant: 'success' });
+
+      // Refresh the offers list
+      fetchPurchases();
+
+      // Reset supplier selection
+      setSelectedSupplier(null);
+    } catch (error) {
+      console.error('Error creating offer:', error);
+      enqueueSnackbar(t('failed_to_create_offer') || 'Failed to create offer', { variant: 'error' });
+    } finally {
+      setCreatingOffer(false);
+    }
+  }, [selectedSupplier, enqueueSnackbar, t, fetchPurchases]);
+
   useEffect(() => {
     fetchPurchases();
-  }, [fetchPurchases]);
+    fetchSuppliers();
+  }, [fetchPurchases, fetchSuppliers]);
 
   const handleFilters = useCallback(
     (name: string, value: any) => {
@@ -285,9 +331,37 @@ export default function PurchaseListView() {
 
                 <TableRow>
                   <TableCell colSpan={9}>
-                    <Typography variant="h6" sx={{ py: 2 }}>
-                      {t('offers')}
-                    </Typography>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 2 }}>
+                      <Typography variant="h6">
+                        {t('offers')}
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Autocomplete
+                          value={selectedSupplier}
+                          onChange={(event, newValue) => setSelectedSupplier(newValue)}
+                          options={suppliers}
+                          getOptionLabel={(option) => option.name}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={t('select_supplier') || 'Select Supplier'}
+                              size="small"
+                              sx={{ minWidth: 200 }}
+                            />
+                          )}
+                        />
+                        <LoadingButton
+                          variant="contained"
+                          color="primary"
+                          loading={creatingOffer}
+                          onClick={handleCreateOfferFromSupplier}
+                          disabled={!selectedSupplier}
+                          startIcon={<Iconify icon="eva:plus-outline" />}
+                        >
+                          {t('create_offer_from_supplier') || 'Create Offer from Supplier'}
+                        </LoadingButton>
+                      </Stack>
+                    </Stack>
                   </TableCell>
                 </TableRow>
 
