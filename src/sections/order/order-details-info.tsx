@@ -581,9 +581,10 @@ export default function OrderDetailsInfo({
             Volgen No.
           </Box>
 
-          {(selectedShipmentMethod === 'dhl' || currentOrder?.delivery_details?.carrier === 'dhl') ? (
+          {updatedDeliveryDetails?.shipment_id && (selectedShipmentMethod === 'dhl' || currentOrder?.delivery_details?.carrier === 'dhl') ? (
             <Link
-              href={`https://my.dhlecommerce.nl/home/tracktrace/${updatedDeliveryDetails?.tracking_number}/${updatedDeliveryDetails?.postal_code}`}
+              href={`https://my.dhlecommerce.nl/business/shipments/sent/${updatedDeliveryDetails?.shipment_id}`}
+              // href={`https://my.dhlecommerce.nl/home/tracktrace/${updatedDeliveryDetails?.tracking_number}/${updatedDeliveryDetails?.postal_code}`}
               target="_blank"
               rel="noopener"
               sx={{ ml: 0.5 }}

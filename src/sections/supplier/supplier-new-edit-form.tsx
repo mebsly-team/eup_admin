@@ -45,6 +45,18 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
     { value: 'phone', label: t('phone') },
   ];
 
+  const COUNTRY_TYPES = [
+    { value: 'Netherlands', label: t('netherlands') },
+    { value: 'Germany', label: t('germany') },
+    { value: 'Belgium', label: t('belgium') },
+    { value: 'Turkiye', label: t('turkiye') },
+    { value: 'Fransa', label: t('fransa') },
+    { value: 'China', label: t('china') },
+    { value: 'England', label: t('england') },
+    { value: 'USA', label: t('usa') },
+    { value: 'Diger', label: t('diger') },
+  ];
+
   const NewSchema = Yup.object().shape({
     name: Yup.string().required(t('required')),
     // classification: Yup.string().required(t('required')),
@@ -252,7 +264,15 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
               <RHFTextField name="supplier_zip_code" label={t('postcode')} />
               <RHFTextField name="supplier_city" label={t('city')} />
               <RHFTextField name="supplier_state" label={t('state')} />
-              <RHFTextField name="supplier_country" label={t('country')} />
+              <RHFSelect name="supplier_country" label={t('country')}>
+                <MenuItem value="">---</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                {COUNTRY_TYPES.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
             </Box>
           </Card>
           <Card sx={{ p: 3, mt: 5 }}>

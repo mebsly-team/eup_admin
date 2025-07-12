@@ -14,6 +14,8 @@ import ListItemText from '@mui/material/ListItemText';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { useTranslate } from 'src/locales';
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -66,8 +68,21 @@ export default function PurchaseTableRow({
 
             <TableCell>{purchase.id}</TableCell>
 
-
-            <TableCell>{purchase.supplier_detail.name}</TableCell>
+            <TableCell>
+                <RouterLink
+                    href={paths.dashboard.supplier.edit(purchase.supplier_detail.id)}
+                    sx={{
+                        color: 'inherit',
+                        textDecoration: 'none',
+                        '&:hover': {
+                            textDecoration: 'underline',
+                            color: 'primary.main',
+                        },
+                    }}
+                >
+                    {purchase.supplier_detail.name}
+                </RouterLink>
+            </TableCell>
 
             <TableCell>
                 {purchase.purchase_invoice_date && format(new Date(purchase.purchase_invoice_date), 'dd MMM yyyy')}
