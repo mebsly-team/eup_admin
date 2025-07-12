@@ -615,7 +615,21 @@ export default function PurchaseEditView() {
                             <TableCell>
                               <Typography variant="subtitle2">{item.product_detail.title}</Typography>
                             </TableCell>
-                            <TableCell>{item.product_detail.ean}</TableCell>
+                            <TableCell>
+                              <Link
+                                href={paths.dashboard.product.edit(item.product_detail.id.toString())}
+                                target="_blank"
+                                rel="noreferrer"
+                                sx={{
+                                  fontWeight: 'normal',
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer',
+                                  color: 'primary.main',
+                                }}
+                              >
+                                <Typography variant="body2">{item.product_detail.ean}</Typography>
+                              </Link>
+                            </TableCell>
                             <TableCell align="right">
                               <Typography variant="caption" display="block">
                                 {t('overall_stock')}: {(item.product_detail as any)?.overall_stock || 0}
