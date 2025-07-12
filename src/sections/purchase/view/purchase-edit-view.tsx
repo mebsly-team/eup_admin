@@ -492,6 +492,105 @@ export default function PurchaseEditView() {
     }
   };
 
+  const handleConvertToPurchase = async () => {
+    if (!currentPurchase || !selectedSupplier) {
+      enqueueSnackbar(t('purchase_data_required') || 'Purchase data is required', { variant: 'error' });
+      return;
+    }
+
+    const hasCalculationErrors =
+      !currentPurchase.total_exc_btw ||
+      currentPurchase.total_exc_btw === '0.00' ||
+      !currentPurchase.total_vat ||
+      currentPurchase.total_vat === '0.00' ||
+      !currentPurchase.total_inc_btw ||
+      currentPurchase.total_inc_btw === '0.00' ||
+      currentPurchase.items.length === 0;
+
+    if (hasCalculationErrors) {
+      enqueueSnackbar(t('calculation_errors_prevent_conversion') || 'Cannot convert: Calculation errors detected', { variant: 'error' });
+      return;
+    }
+
+    const hasInvalidItems = currentPurchase.items.some(item =>
+      !item.product_purchase_price ||
+      !item.vat_rate ||
+      !item.product_quantity ||
+      Number(item.product_purchase_price) <= 0 ||
+      Number(item.vat_rate) <= 0 ||
+      item.product_quantity <= 0
+    );
+
+    if (hasInvalidItems) {
+      enqueueSnackbar(t('invalid_items_prevent_conversion') || 'Cannot convert: Invalid item data detected', { variant: 'error' });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const changes = {
+        type: 'offer_to_purchase',
+        supplier: selectedSupplier?.id,
+        purchase_invoice_date: currentPurchase?.purchase_invoice_date,
+        items: currentPurchase?.items.map(item => ({
+          id: item.id,
+          quantity: item.product_quantity,
+          price: item.product_purchase_price,
+          vat_rate: item.vat_rate,
+        })),
+      };
+
+      const cleanedPurchase = {
+        id: currentPurchase?.id,
+        type: 'purchase',
+        supplier: selectedSupplier?.id,
+        purchase_invoice_date: currentPurchase?.purchase_invoice_date,
+        total_exc_btw: currentPurchase?.total_exc_btw,
+        total_inc_btw: currentPurchase?.total_inc_btw,
+        total_vat: currentPurchase?.total_vat,
+        items: currentPurchase?.items.map(item => ({
+          id: item.id,
+          product: item.product,
+          product_quantity: item.product_quantity,
+          product_purchase_price: item.product_purchase_price,
+          vat_rate: item.vat_rate,
+        })),
+        history: [...history, {
+          id: crypto.randomUUID(),
+          action: 'convert_to_purchase',
+          changes,
+          created_at: new Date().toISOString(),
+          user: user?.email || 'Unknown',
+        }],
+      };
+
+      const response = await axiosInstance.put(
+        `/purchases/${id}/`,
+        cleanedPurchase,
+      );
+
+      if (response.data.history) {
+        setHistory(response.data.history);
+      } else {
+        const newHistoryEntry = {
+          id: crypto.randomUUID(),
+          action: 'convert_to_purchase',
+          changes,
+          created_at: new Date().toISOString(),
+          user: user?.name || 'Unknown',
+        };
+        setHistory([newHistoryEntry, ...history]);
+      }
+
+      enqueueSnackbar(t('offer_converted_to_purchase_successfully') || 'Offer converted to purchase successfully', { variant: 'success' });
+    } catch (error) {
+      console.error('Error converting offer to purchase:', error);
+      enqueueSnackbar(t('failed_to_convert_offer') || 'Failed to convert offer to purchase', { variant: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -520,6 +619,53 @@ export default function PurchaseEditView() {
             >
               {t('save_changes')}
             </LoadingButton>
+            {currentPurchase.type === 'offer' && (
+              <LoadingButton
+                variant="contained"
+                color="success"
+                loading={saving}
+                onClick={handleConvertToPurchase}
+                startIcon={<Iconify icon="eva:shopping-cart-outline" />}
+                disabled={
+                  !currentPurchase ||
+                  !currentPurchase.total_exc_btw ||
+                  currentPurchase.total_exc_btw === '0.00' ||
+                  !currentPurchase.total_vat ||
+                  currentPurchase.total_vat === '0.00' ||
+                  !currentPurchase.total_inc_btw ||
+                  currentPurchase.total_inc_btw === '0.00' ||
+                  currentPurchase.items.length === 0 ||
+                  currentPurchase.items.some(item =>
+                    !item.product_purchase_price ||
+                    !item.vat_rate ||
+                    !item.product_quantity ||
+                    Number(item.product_purchase_price) <= 0 ||
+                    Number(item.vat_rate) <= 0 ||
+                    item.product_quantity <= 0
+                  )
+                }
+                title={
+                  !currentPurchase ? t('no_purchase_data') :
+                    !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ||
+                      !currentPurchase.total_vat || currentPurchase.total_vat === '0.00' ||
+                      !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
+                      currentPurchase.items.length === 0 ?
+                      (t('calculation_errors_prevent_conversion') || 'Calculation errors prevent conversion') :
+                      currentPurchase.items.some(item =>
+                        !item.product_purchase_price ||
+                        !item.vat_rate ||
+                        !item.product_quantity ||
+                        Number(item.product_purchase_price) <= 0 ||
+                        Number(item.vat_rate) <= 0 ||
+                        item.product_quantity <= 0
+                      ) ?
+                        (t('invalid_items_prevent_conversion') || 'Invalid items prevent conversion') :
+                        t('convert_to_purchase')
+                }
+              >
+                {t('convert_to_purchase') || 'Inkoop\'a Aktar'}
+              </LoadingButton>
+            )}
             <LoadingButton
               variant="contained"
               color="primary"

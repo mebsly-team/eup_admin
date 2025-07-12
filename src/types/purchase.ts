@@ -5,6 +5,7 @@ export type IPurchaseStatus = 'pending' | 'completed' | 'cancelled';
 
 export type IPurchaseItem = {
     id: string;
+    type?: 'purchase' | 'offer';
     purchase_invoice_date: string;
     created_at: string;
     updated_at: string;
