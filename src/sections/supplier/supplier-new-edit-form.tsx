@@ -23,6 +23,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 
 import { ISupplierItem } from 'src/types/supplier';
+import { countries } from 'src/assets/data/countries';
 
 type Props = {
   currentSupplier?: ISupplierItem;
@@ -45,16 +46,21 @@ export default function SupplierNewEditForm({ currentSupplier }: Props) {
     { value: 'phone', label: t('phone') },
   ];
 
+  const getCountryName = (code: string) => {
+    const country = countries.find(c => c.code === code);
+    return country ? country.label : code;
+  };
+
   const COUNTRY_TYPES = [
-    { value: 'Netherlands', label: t('netherlands') },
-    { value: 'Germany', label: t('germany') },
-    { value: 'Belgium', label: t('belgium') },
-    { value: 'Turkiye', label: t('turkiye') },
-    { value: 'Fransa', label: t('fransa') },
-    { value: 'China', label: t('china') },
-    { value: 'England', label: t('england') },
-    { value: 'USA', label: t('usa') },
-    { value: 'Diger', label: t('diger') },
+    { value: 'NL', label: getCountryName('NL') },
+    { value: 'DE', label: getCountryName('DE') },
+    { value: 'BE', label: getCountryName('BE') },
+    { value: 'TR', label: getCountryName('TR') },
+    { value: 'FR', label: getCountryName('FR') },
+    { value: 'CN', label: getCountryName('CN') },
+    { value: 'GB', label: getCountryName('GB') },
+    { value: 'US', label: getCountryName('US') },
+    { value: 'OTHER', label: t('diger') },
   ];
 
   const NewSchema = Yup.object().shape({

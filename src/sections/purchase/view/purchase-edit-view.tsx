@@ -35,6 +35,7 @@ import { IPurchaseItem } from 'src/types/purchase';
 import { ISupplierItem } from 'src/types/supplier';
 import { IProductItem } from 'src/types/product';
 import PurchaseDetailsHistory from './purchase-details-history';
+import { countries } from 'src/assets/data/countries';
 
 type PurchaseHistory = {
   id: string;
@@ -59,6 +60,16 @@ export default function PurchaseEditView() {
   const [history, setHistory] = useState<PurchaseHistory[]>([]);
   const [previousPurchases, setPreviousPurchases] = useState<IPurchaseItem[]>([]);
   const [previousOffers, setPreviousOffers] = useState<IPurchaseItem[]>([]);
+
+  const getVatRate = useCallback((supplierCountry?: string) => {
+    return supplierCountry === 'NL' ? 21 : 0;
+  }, []);
+
+  const getCountryName = useCallback((code?: string) => {
+    if (!code) return 'Unknown';
+    const country = countries.find(c => c.code === code);
+    return country ? country.label : code;
+  }, []);
 
   const fetchSuppliers = useCallback(async () => {
     try {
@@ -94,7 +105,7 @@ export default function PurchaseEditView() {
         ...response.data,
         items: response.data.items?.map((item: any) => ({
           ...item,
-          vat_rate: item.vat_rate || item.product_detail?.vat || 21,
+          vat_rate: getVatRate(response.data.supplier_detail?.supplier_country),
         })) || []
       };
 
@@ -154,9 +165,29 @@ export default function PurchaseEditView() {
   const handleSupplierChange = (event: any, newValue: ISupplierItem | null) => {
     console.log("🚀 ~ handleSupplierChange ~ newValue:", newValue)
     setSelectedSupplier(newValue);
+
     if (newValue) {
       fetchPreviousPurchases(newValue.id);
       fetchPreviousOffers(newValue.id);
+
+      const newVatRate = getVatRate(newValue.supplier_country);
+
+      setCurrentPurchase((prev) => {
+        if (!prev) return prev;
+
+        const updatedItems = prev.items.map((item) => ({
+          ...item,
+          vat_rate: newVatRate,
+        }));
+
+        const updated = {
+          ...prev,
+          items: updatedItems,
+        };
+
+        calculateTotals(updatedItems);
+        return updated;
+      });
     } else {
       setPreviousPurchases([]);
       setPreviousOffers([]);
@@ -173,6 +204,8 @@ export default function PurchaseEditView() {
         console.log("🔍 Product price_cost:", product.price_cost);
         console.log("🔍 Product vat:", product.vat);
 
+        const vatRate = getVatRate(selectedSupplier?.supplier_country);
+
         const newItem = {
           id: crypto.randomUUID(),
           product: product.id,
@@ -182,7 +215,7 @@ export default function PurchaseEditView() {
             images: product.images,
             ean: product.ean,
             price_cost: product.price_cost || '0',
-            vat: product.vat || 21,
+            vat: vatRate,
             overall_stock: product.overall_stock || 0,
             free_stock: product.free_stock || 0,
             min_stock_value: product.min_stock_value || 0,
@@ -191,7 +224,7 @@ export default function PurchaseEditView() {
           },
           product_quantity: 1,
           product_purchase_price: product.price_cost || '0',
-          vat_rate: product.vat || 21,
+          vat_rate: vatRate,
         };
 
         console.log("🔍 New Item Created:", newItem);
@@ -327,20 +360,16 @@ export default function PurchaseEditView() {
     calculateTotals(updatedItems);
   };
 
-  const handleUpdateVat = (itemId: string, vatRate: number) => {
-    const updatedItems = currentPurchase!.items.map((item) =>
-      item.id === itemId ? { ...item, vat_rate: vatRate } : item
-    );
-    setCurrentPurchase((prev) => ({
-      ...prev!,
-      items: updatedItems,
-    }));
-    calculateTotals(updatedItems);
-  };
+
 
   const handleSave = async () => {
     if (!selectedSupplier) {
       enqueueSnackbar(t('supplier_required'), { variant: 'error' });
+      return;
+    }
+
+    if (!selectedSupplier.supplier_country) {
+      enqueueSnackbar(t('supplier_country_required') || 'Supplier country is required. Please update the supplier information.', { variant: 'error' });
       return;
     }
 
@@ -563,6 +592,11 @@ export default function PurchaseEditView() {
                       />
                     )}
                   />
+                  {selectedSupplier && !selectedSupplier.supplier_country && (
+                    <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 'bold', mt: 1 }}>
+                      ⚠️ {t('supplier_country_missing') || 'Warning: This supplier does not have a country set. Please update the supplier information.'}
+                    </Typography>
+                  )}
 
                   <DatePicker
                     label={t('invoice_date')}
@@ -605,6 +639,7 @@ export default function PurchaseEditView() {
                           <TableCell align="right">{t('stock')}</TableCell>
                           <TableCell align="right">{t('stock')}</TableCell>
                           <TableCell align="right">{t('price_cost')}</TableCell>
+                          <TableCell align="right">{t('vat')}</TableCell>
                           <TableCell align="right">{t('quantity')}</TableCell>
                           <TableCell align="center">{t('actions')}</TableCell>
                         </TableRow>
@@ -650,10 +685,29 @@ export default function PurchaseEditView() {
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
-
-                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                                € {item.product_purchase_price} +{item.vat_rate}% {t('vat')}
+                              <TextField
+                                type="number"
+                                value={item.product_purchase_price}
+                                onChange={(e) => handleUpdatePrice(item.id, e.target.value)}
+                                size="small"
+                                sx={{ width: 100 }}
+                                InputProps={{
+                                  startAdornment: <Typography variant="caption">€</Typography>,
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" sx={{
+                                color: getVatRate(selectedSupplier?.supplier_country) > 0 ? 'success.main' : 'warning.main',
+                                fontWeight: 'bold'
+                              }}>
+                                {item.vat_rate}% {getVatRate(selectedSupplier?.supplier_country) > 0 ? '(NL)' : `(${getCountryName(selectedSupplier?.supplier_country)})`}
                               </Typography>
+                              {!selectedSupplier?.supplier_country && (
+                                <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                                  ⚠️ {t('supplier_country_required') || 'Supplier country required'}
+                                </Typography>
+                              )}
                             </TableCell>
                             <TableCell align="right">
                               <TextField
@@ -727,19 +781,32 @@ export default function PurchaseEditView() {
                       {t('supplier')}
                     </Typography>
                     {selectedSupplier ? (
-                      <Link
-                        href={paths.dashboard.supplier.edit(selectedSupplier.id)}
-                        target="_blank"
-                        rel="noreferrer"
-                        sx={{
-                          fontWeight: 'normal',
-                          textDecoration: 'underline',
-                          cursor: 'pointer',
-                          color: 'primary.main',
-                        }}
-                      >
-                        <Typography variant="subtitle2">{selectedSupplier.name}</Typography>
-                      </Link>
+                      <Stack alignItems="flex-end" spacing={0.5}>
+                        <Link
+                          href={paths.dashboard.supplier.edit(selectedSupplier.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                          sx={{
+                            fontWeight: 'normal',
+                            textDecoration: 'underline',
+                            cursor: 'pointer',
+                            color: 'primary.main',
+                          }}
+                        >
+                          <Typography variant="subtitle2">{selectedSupplier.name}</Typography>
+                        </Link>
+                        <Typography variant="caption" sx={{
+                          color: getVatRate(selectedSupplier.supplier_country) > 0 ? 'success.main' : 'warning.main',
+                          fontWeight: 'bold'
+                        }}>
+                          {getCountryName(selectedSupplier.supplier_country)} - VAT: {getVatRate(selectedSupplier.supplier_country)}%
+                        </Typography>
+                        {!selectedSupplier.supplier_country && (
+                          <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                            ⚠️ {t('supplier_country_required') || 'Supplier country required'}
+                          </Typography>
+                        )}
+                      </Stack>
                     ) : (
                       <Typography variant="subtitle2">-</Typography>
                     )}
