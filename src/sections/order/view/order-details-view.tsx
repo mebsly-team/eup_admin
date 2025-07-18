@@ -89,6 +89,7 @@ export default function OrderDetailsView({ id }: Props) {
           date: new Date(),
           event: `Invoice gedownload door ${user?.email}`,
         }],
+        status: 'confirmed',
       });
     } catch (error) {
       console.error('Failed to download:', error);
