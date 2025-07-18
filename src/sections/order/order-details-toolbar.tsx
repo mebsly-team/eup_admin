@@ -46,7 +46,7 @@ export default function OrderDetailsToolbar({
   const popoverStatus = usePopover();
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
-  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart } = currentOrder;
+  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
 
   const checkHistoryForStatusChange = (statusToCheck: string) => {
@@ -111,6 +111,7 @@ export default function OrderDetailsToolbar({
                 {t(status)}
               </Button>
             </Stack>
+            <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || "-"} </Typography>
 
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
               {fDateTime(ordered_date)}
