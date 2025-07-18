@@ -47,13 +47,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       if (response.status === 200) {
         const product = response.data?.[0];
         if (product) {
+          // Get klantpercentage (customer_percentage) from currentOrder.user or default to 10
+          const klantpercentage = currentOrder?.user?.customer_percentage ?? 0;
+          const discountFactor = 1 - (Number(klantpercentage) / 100);
+          const discountedPricePerUnit = Number((Number(product.price_per_unit) * discountFactor).toFixed(2));
+          const discountedPricePerUnitVat = Number((Number(product.price_per_unit_vat) * discountFactor).toFixed(2));
           const newItem = {
             id: product.id,
             product,
             quantity: 1,
             completed: false,
-            single_product_discounted_price_per_unit: product.price_per_unit,
-            single_product_discounted_price_per_unit_vat: product.price_per_unit_vat,
+            single_product_discounted_price_per_unit: discountedPricePerUnit,
+            single_product_discounted_price_per_unit_vat: discountedPricePerUnitVat,
           };
           setEditedCart((prev: { items: any }) => ({ ...prev, items: [...prev.items, newItem] }));
           setEan('');
@@ -66,7 +71,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     }
   };
 
-  const handleVariantChange = async (item, variantId) => {
+  const handleVariantChange = async (item: any, variantId: any) => {
     try {
       const response = await axiosInstance.get(`/products/${variantId}/?nocache=true`);
       if (response.status === 200) {
@@ -80,7 +85,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             single_product_discounted_price_per_unit: product.price_per_unit,
             single_product_discounted_price_per_unit_vat: product.price_per_unit_vat,
           };
-          const updatedItems = editedCart.items.filter((i) => item.id !== i.id);
+          const updatedItems = editedCart.items.filter((i: any) => item.id !== i.id);
           console.log('updatedItems', updatedItems)
           setEditedCart({ ...editedCart, items: [...updatedItems, newItem] });
         }
@@ -91,15 +96,15 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       console.error('Error fetching product:', error);
     }
   };
-  const handleItemChange = (id, key, value) => {
-    const updatedItems = editedCart.items.map((item) =>
+  const handleItemChange = (id: any, key: string, value: any) => {
+    const updatedItems = editedCart.items.map((item: any) =>
       item.id === id ? { ...item, [key]: value } : item
     );
     setEditedCart({ ...editedCart, items: updatedItems });
   };
 
-  const handleDeleteItem = (id) => {
-    const updatedItems = editedCart.items.filter((item) => item.id !== id);
+  const handleDeleteItem = (id: any) => {
+    const updatedItems = editedCart.items.filter((item: any) => item.id !== id);
     setEditedCart({ ...editedCart, items: updatedItems });
   };
 
@@ -113,7 +118,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       vatAmount21: 0
     };
 
-    editedCart?.items.forEach((item) => {
+    editedCart?.items.forEach((item: any) => {
       const quantity = item.quantity;
       const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
       const priceInclVat = Number(item.single_product_discounted_price_per_unit_vat || 0);
@@ -175,8 +180,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     const newHistory = [...currentOrder.history]; // Clone the existing history
 
     // Check for changes in items
-    editedCart.items.forEach((editedItem) => {
-      const originalItem = cart.items.find((item) => item.id === editedItem.id);
+    editedCart.items.forEach((editedItem: any) => {
+      const originalItem = cart.items.find((item: any) => item.id === editedItem.id);
       if (!originalItem) {
         changes.push(`Toegevoegd item: ${editedItem.product.title}`);
         return;
@@ -204,8 +209,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     });
 
     // Check for deleted items
-    cart.items.forEach((originalItem) => {
-      if (!editedCart.items.find((editedItem) => editedItem.id === originalItem.id)) {
+    cart.items.forEach((originalItem: any) => {
+      if (!editedCart.items.find((editedItem: any) => editedItem.id === originalItem.id)) {
         changes.push(`Verwijderd item: ${originalItem.product.title}`);
       }
     });
@@ -264,7 +269,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     toggleEditMode();
   };
 
-  const handleFeeChange = (key, value) => {
+  const handleFeeChange = (key: string, value: any) => {
     // Only allow numbers and decimal points
     const sanitizedValue = value.replace(/[^0-9.]/g, '');
 
@@ -278,7 +283,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     }
   };
 
-  const handleFeeBlur = (key, value) => {
+  const handleFeeBlur = (key: string, value: any) => {
     // If empty or invalid, set to empty string
     if (!value || value === '' || isNaN(parseFloat(value))) {
       setEditedCart({ ...editedCart, [key]: '' });
@@ -290,8 +295,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     setEditedCart({ ...editedCart, [key]: formattedValue });
   };
 
-  const handleCheckboxChange = (id) => {
-    const updatedItems = editedCart.items.map((item) =>
+  const handleCheckboxChange = (id: any) => {
+    const updatedItems = editedCart.items.map((item: any) =>
       item.id === id ? { ...item, completed: !item.completed } : item
     );
     setEditedCart({ ...editedCart, items: updatedItems });
@@ -315,13 +320,13 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             <Stack direction="row" justifyContent="center" alignItems="center">
               <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 9%</Box>
               <Box sx={{ width: 160, typography: 'subtitle2' }}>
-             {fCurrency(vatTotals.vatAmount9) || "-"}
+                {fCurrency(vatTotals.vatAmount9) || "-"}
               </Box>
             </Stack>
             <Stack direction="row" justifyContent="center" alignItems="center">
               <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 21%</Box>
               <Box sx={{ width: 160, typography: 'subtitle2' }}>
-         {fCurrency(vatTotals.vatAmount21) || "-"}
+                {fCurrency(vatTotals.vatAmount21) || "-"}
               </Box>
             </Stack>
           </>
@@ -422,7 +427,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
 
       <Stack sx={{ px: 3 }}>
         <Scrollbar>
-          {editedCart?.items.map((item) => (
+          {editedCart?.items.map((item: any) => (
             <Stack
               key={item.id}
               direction="row"
