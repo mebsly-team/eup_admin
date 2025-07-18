@@ -112,7 +112,7 @@ export default function OrderDetailsToolbar({
               </Button>
             </Stack>
             <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || "-"} </Typography>
-
+            {/* TODO: add a link to the snelstart order */}
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
               {fDateTime(ordered_date)}
             </Typography>
