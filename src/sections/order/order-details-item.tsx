@@ -97,9 +97,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     }
   };
   const handleItemChange = (id: any, key: string, value: any) => {
-    const updatedItems = editedCart.items.map((item: any) =>
-      item.id === id ? { ...item, [key]: value } : item
-    );
+    const updatedItems = editedCart.items.map((item: any) => {
+      if (item.id === id) {
+        // If changing quantity, validate against free_stock
+        if (key === 'quantity') {
+          const maxQuantity = item.product.free_stock || 1;
+          const validatedValue = Math.min(Math.max(1, value), maxQuantity);
+          return { ...item, [key]: validatedValue };
+        }
+        return { ...item, [key]: value };
+      }
+      return item;
+    });
     setEditedCart({ ...editedCart, items: updatedItems });
   };
 
@@ -464,6 +473,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                     {item.product.ean ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
                       EAN: {item.product.ean}
                     </Box> : null}
+                    {item.product.free_stock ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
+                      Vrije voorraad: {item.product.free_stock}
+                    </Box> : null}
                     {item.product.price_per_piece ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
                       Prijs per stuk (exc BTW): {fCurrency(item.product.price_per_piece)}
                     </Box> : null}
@@ -501,6 +513,10 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                     onChange={(e) =>
                       handleItemChange(item.id, 'quantity', parseInt(e.target.value))
                     }
+                    inputProps={{
+                      min: 1,
+                      max: item.product.free_stock || 1
+                    }}
                     sx={{ width: 60, mr: 2 }}
                   />
                   <Stack spacing={0.5}>
