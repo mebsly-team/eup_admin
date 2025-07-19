@@ -748,11 +748,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 }}
               >
                 <RHFTextField name="business_name" label={t('business_name')} />
-                <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
+                {/* <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
                 <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
                 <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
                 <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
-                <RHFTextField name="contact_person_country" label={t('contact_person_country')} />
+                <RHFTextField name="contact_person_country" label={t('contact_person_country')} /> */}
                 <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
                 <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
                 <RHFTextField
@@ -770,6 +770,21 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
                 <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
                 <RHFTextField name="vat" label={t('vat')} />
+                <RHFSwitch
+                  name="is_vat_document_printed"
+                  labelPlacement="start"
+                  disabled={!getValues('vat')}
+                  label={<>
+                      <Typography variant="body1">
+                        {t('is_vat_zero')}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      {t('is_vat_document_printed')}
+                      </Typography>
+                  </>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
                 <RHFTextField name="kvk" label={t('kvk')} />
                 <RHFSelect name="payment_method" label={t('payment_method')}>
                   <MenuItem value="">{t('none')}</MenuItem>
