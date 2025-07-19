@@ -86,12 +86,13 @@ export default function OrderDetailsView({ id }: Props) {
 
       if (doc === 'invoice') {
         updateOrder(id, {
-        history: [...currentOrder.history, {
-          date: new Date(),
-          event: `Invoice gedownload door ${user?.email}`,
-        }],
-        status: 'confirmed',
-      });
+          history: [...currentOrder.history, {
+            date: new Date(),
+            event: `Invoice gedownload door ${user?.email}`,
+          }],
+          status: 'confirmed',
+        });
+      }
     } catch (error) {
       console.error('Failed to download:', error);
     }
