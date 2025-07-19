@@ -29,7 +29,7 @@ type Props = {
   }[];
   onChangeStatus: (newValue: string) => void;
   onPaymentChangeStatus: (newValue: string) => void;
-  handleDownloadInvoice: (value: { doc: string }) => void;
+  handleDownloadDocument: (value: { doc: string }) => void;
   sendToSnelstart: (value: { id: string }) => void;
 };
 
@@ -38,7 +38,7 @@ export default function OrderDetailsToolbar({
   backLink,
   statusOptions,
   onChangeStatus,
-  handleDownloadInvoice,
+  handleDownloadDocument,
   sendToSnelstart,
   paymentStatusOptions,
   onPaymentChangeStatus
@@ -131,7 +131,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => {
-              handleDownloadInvoice({ doc: 'werkbon' });
+              handleDownloadDocument({ doc: 'werkbon' });
               onChangeStatus('werkbon');
             }}
             sx={{
@@ -148,7 +148,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => {
-              handleDownloadInvoice({ doc: 'pakbon' });
+              handleDownloadDocument({ doc: 'pakbon' });
               onChangeStatus('packing');
             }}
             disabled={!currentOrder?.delivery_details?.tracking_number}
@@ -165,7 +165,7 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={() => handleDownloadInvoice({ doc: 'invoice' })}
+            onClick={() => handleDownloadDocument({ doc: 'invoice' })}
             sx={{
               backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
               '&:hover': {

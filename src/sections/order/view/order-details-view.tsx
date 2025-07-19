@@ -59,7 +59,7 @@ export default function OrderDetailsView({ id }: Props) {
   }, [id]);
 
   // Function to handle invoice download
-  const handleDownloadInvoice = async ({ doc = 'invoice' }) => {
+  const handleDownloadDocument = async ({ doc = 'invoice' }) => {
     try {
       const initialResponse = await axiosInstance.get(`/${doc}/${id}/?all=true`, {
         responseType: 'blob',
@@ -84,7 +84,8 @@ export default function OrderDetailsView({ id }: Props) {
       link.click();
       link.parentNode.removeChild(link);
 
-      updateOrder(id, {
+      if (doc === 'invoice') {
+        updateOrder(id, {
         history: [...currentOrder.history, {
           date: new Date(),
           event: `Invoice gedownload door ${user?.email}`,
@@ -182,7 +183,7 @@ export default function OrderDetailsView({ id }: Props) {
         onPaymentChangeStatus={onPaymentChangeStatus}
         statusOptions={ORDER_STATUS_OPTIONS}
         paymentStatusOptions={PAYMENT_STATUS_OPTIONS}
-        handleDownloadInvoice={handleDownloadInvoice}
+        handleDownloadDocument={handleDownloadDocument}
         sendToSnelstart={sendToSnelstart}
       />
 
