@@ -21,10 +21,12 @@ import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
+import { useSnackbar } from 'src/components/snackbar';
 
 export default function OrderDetailsItems({ currentOrder, updateOrder }) {
   const { cart } = currentOrder;
   console.log('cart', cart);
+  const { enqueueSnackbar } = useSnackbar();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
@@ -62,12 +64,17 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
           };
           setEditedCart((prev: { items: any }) => ({ ...prev, items: [...prev.items, newItem] }));
           setEan('');
+          enqueueSnackbar('Product succesvol toegevoegd', { variant: 'success' });
+        } else {
+          enqueueSnackbar('Product niet gevonden', { variant: 'error' });
         }
       } else {
         console.error('Failed to fetch product, status code:', response.status);
+        enqueueSnackbar(`API fout: ${response.status}`, { variant: 'error' });
       }
     } catch (error) {
       console.error('Error fetching product:', error);
+      enqueueSnackbar('Fout bij toevoegen van product', { variant: 'error' });
     }
   };
 
@@ -184,7 +191,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     return subtotal + shippingFee + transactionFee - discount;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const changes = [];
     const newHistory = [...currentOrder.history]; // Clone the existing history
 
@@ -257,19 +264,25 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       });
     }
 
-    // Update the order with the edited cart and calculated totals
-    updateOrder(currentOrder.id, {
-      sub_total: calculateSubtotal().toFixed(2),
-      total: calculateTotal().toFixed(2),
-      cart: {
-        ...editedCart,
-        cart_total_price_vat: calculateSubtotal().toFixed(2),
-        cart_total_price: calculateTotal().toFixed(2),
-      },
-      history: newHistory,
-    });
+    try {
+      // Update the order with the edited cart and calculated totals
+      await updateOrder(currentOrder.id, {
+        sub_total: calculateSubtotal().toFixed(2),
+        total: calculateTotal().toFixed(2),
+        cart: {
+          ...editedCart,
+          cart_total_price_vat: calculateSubtotal().toFixed(2),
+          cart_total_price: calculateTotal().toFixed(2),
+        },
+        history: newHistory,
+      });
 
-    toggleEditMode();
+      enqueueSnackbar('Bestelling succesvol bijgewerkt', { variant: 'success' });
+      toggleEditMode();
+    } catch (error) {
+      console.error('Error saving order:', error);
+      enqueueSnackbar('Fout bij bijwerken van bestelling', { variant: 'error' });
+    }
   };
 
   const handleCancel = () => {
