@@ -182,6 +182,7 @@ export default function OrderTableRow({
             variant="soft"
             color={
               (status === 'delivered' && 'success') ||
+              (status === 'confirmed' && 'success') ||
               (status === 'pending_order' && 'warning') ||
               (status === 'pending_offer' && 'warning') ||
               (status === 'cancelled' && 'error') ||
