@@ -456,6 +456,10 @@ export default function OrderDetailsInfo({
               {customer.customer_percentage}
             </Box>
           </Box>
+          {customer.is_vat_document_printed ? <Box>
+            BTW %0
+          </Box> : null}
+
 
 
           {/* <Box>

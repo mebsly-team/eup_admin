@@ -133,7 +133,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       vatAmount9: 0,
       vatAmount21: 0
     };
-
     editedCart?.items.forEach((item: any) => {
       const quantity = item.quantity;
       const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
@@ -180,7 +179,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     console.log('Subtotal excl VAT:', subtotalExclVat);
     console.log('Total VAT:', totalVat);
     console.log('Subtotal incl VAT:', total);
-    return total;
+    return currentOrder?.user?.is_vat_document_printed ? subtotalExclVat : total;
   };
 
   const calculateTotal = () => {
@@ -432,6 +431,15 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       >
         <Box sx={{ width: 160, mr: '0.5rem' }}>Totaal</Box>
         <Box sx={{ width: 160 }}>{fCurrency(calculateTotal()) || '-'}</Box>
+      </Stack>
+      <Stack
+        direction="row"
+        sx={{ typography: 'body2', color: 'text.disabled' }}
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Box sx={{ width: 160, mr: '0.5rem' }}>Klant totaal om te betalen:</Box>
+        <Box sx={{ width: 160 }}>{fCurrency(currentOrder?.total) || '-'}</Box>
       </Stack>
     </Stack>
   );
