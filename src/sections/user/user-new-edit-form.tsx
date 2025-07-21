@@ -775,12 +775,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   labelPlacement="start"
                   disabled={!getValues('vat')}
                   label={<>
-                      <Typography variant="body1">
-                        {t('is_vat_zero')}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    <Typography variant="body1">
+                      {t('is_vat_zero')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
                       {t('is_vat_document_printed')}
-                      </Typography>
+                    </Typography>
                   </>
                   }
                   sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
@@ -1078,8 +1078,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 autoComplete="street-address"
               />
               <TextField
-                {...register("house_number")}
+                {...register("house_number", { valueAsNumber: true })}
                 label="Huisnummer"
+                type="number"
                 fullWidth
                 sx={{ my: 1 }}
                 autoComplete="house-number"
