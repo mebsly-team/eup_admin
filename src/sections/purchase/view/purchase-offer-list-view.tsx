@@ -76,32 +76,72 @@ export default function PurchaseListView() {
   const router = useRouter();
   const settings = useSettingsContext();
 
-  const [tableData, setTableData] = useState<IPurchaseItem[]>([]);
-  const [count, setCount] = useState(0);
+  const [offersData, setOffersData] = useState<IPurchaseItem[]>([]);
+  const [offersCount, setOffersCount] = useState(0);
   const [filters, setFilters] = useState(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [suppliers, setSuppliers] = useState<ISupplierItem[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
+  const [creatingOffer, setCreatingOffer] = useState(false);
 
-  const fetchPurchases = useCallback(async () => {
+  const fetchOffers = useCallback(async () => {
     try {
       setLoading(true);
       const limit = table.rowsPerPage;
       const offset = table.page * table.rowsPerPage;
-      const purchasesResponse = await axiosInstance.get(`/purchases/?type=purchase&limit=${limit}&offset=${offset}`);
-      setTableData(purchasesResponse.data.results || []);
-      setCount(purchasesResponse.data.count || 0);
+      const offersResponse = await axiosInstance.get(`/purchases/?type=offer&limit=${limit}&offset=${offset}`);
+      setOffersData(offersResponse.data.results || []);
+      setOffersCount(offersResponse.data.count || 0);
     } catch (error) {
-      console.error('Error fetching purchases:', error);
-      enqueueSnackbar('Failed to fetch purchases', { variant: 'error' });
+      console.error('Error fetching offers:', error);
+      enqueueSnackbar('Failed to fetch offers', { variant: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [user?.token, enqueueSnackbar, table.page, table.rowsPerPage]);
+  }, [enqueueSnackbar, table.page, table.rowsPerPage]);
 
+  const fetchSuppliers = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/suppliers/?limit=9999');
+      setSuppliers(response.data.results || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+      enqueueSnackbar(t('failed_to_fetch_suppliers'), { variant: 'error' });
+    }
+  }, [enqueueSnackbar, t]);
+
+  const handleCreateOfferFromSupplier = useCallback(async () => {
+    if (!selectedSupplier) {
+      enqueueSnackbar(t('supplier_required') || 'Please select a supplier', { variant: 'error' });
+      return;
+    }
+
+    try {
+      setCreatingOffer(true);
+      const response = await axiosInstance.post('/purchase/prepare_supplier_offer/', {
+        supplier_id: selectedSupplier.id
+      });
+
+      enqueueSnackbar(t('offer_created_successfully') || 'Offer created successfully', { variant: 'success' });
+
+      // Refresh the offers list
+      fetchOffers();
+
+      // Reset supplier selection
+      setSelectedSupplier(null);
+    } catch (error) {
+      console.error('Error creating offer:', error);
+      enqueueSnackbar(t('failed_to_create_offer') || 'Failed to create offer', { variant: 'error' });
+    } finally {
+      setCreatingOffer(false);
+    }
+  }, [selectedSupplier, enqueueSnackbar, t, fetchOffers]);
 
   useEffect(() => {
-    fetchPurchases();
-  }, [fetchPurchases]);
+    fetchOffers();
+    fetchSuppliers();
+  }, [fetchOffers, fetchSuppliers]);
 
   const handleFilters = useCallback(
     (name: string, value: any) => {
@@ -117,13 +157,13 @@ export default function PurchaseListView() {
   const handleDeleteRow = useCallback(async (id: string) => {
     try {
       await axiosInstance.delete(`/purchases/${id}/`);
-      enqueueSnackbar('Purchase deleted successfully');
-      fetchPurchases();
+      enqueueSnackbar('Offer deleted successfully');
+      fetchOffers();
     } catch (error) {
-      console.error('Error deleting purchase:', error);
-      enqueueSnackbar('Failed to delete purchase', { variant: 'error' });
+      console.error('Error deleting offer:', error);
+      enqueueSnackbar('Failed to delete offer', { variant: 'error' });
     }
-  }, [user?.token, enqueueSnackbar, fetchPurchases]);
+  }, [enqueueSnackbar, fetchOffers]);
 
   const handleExpandRow = (rowId: string) => {
     setExpandedRow(expandedRow === rowId ? null : rowId);
@@ -165,14 +205,14 @@ export default function PurchaseListView() {
     return <LoadingScreen />;
   }
 
-  const filteredData = tableData.filter((purchase) => {
-    if (filters.name && !purchase.supplier_detail.name.toLowerCase().includes(filters.name.toLowerCase())) {
+  const filteredOffers = offersData.filter((offer) => {
+    if (filters.name && !offer.supplier_detail.name.toLowerCase().includes(filters.name.toLowerCase())) {
       return false;
     }
-    if (filters.startDate && new Date(purchase.purchase_invoice_date) < filters.startDate) {
+    if (filters.startDate && new Date(offer.purchase_invoice_date) < filters.startDate) {
       return false;
     }
-    if (filters.endDate && new Date(purchase.purchase_invoice_date) > filters.endDate) {
+    if (filters.endDate && new Date(offer.purchase_invoice_date) > filters.endDate) {
       return false;
     }
     return true;
@@ -184,27 +224,45 @@ export default function PurchaseListView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading={t('purchases')}
+        heading={t('list')}
         links={[
           { name: t('dashboard'), href: paths.dashboard.root },
           { name: t('purchases'), href: paths.dashboard.purchase.list },
-          { name: t('list') },
+          { name: t('offers') },
         ]}
-        action={
-          <Button
-            component={RouterLink}
-            href={paths.dashboard.purchase.new}
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-          >
-            {t('new_purchase')}
-          </Button>
-        }
         sx={{
           mb: { xs: 3, md: 5 },
         }}
       />
-
+      <Typography variant="h6" sx={{ mb: 3 }}>
+        {t('offers')}
+      </Typography>
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+        <Autocomplete
+          value={selectedSupplier}
+          onChange={(event, newValue) => setSelectedSupplier(newValue)}
+          options={suppliers}
+          getOptionLabel={(option) => option.name}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={t('select_supplier') || 'Select Supplier'}
+              size="small"
+              sx={{ minWidth: 200 }}
+            />
+          )}
+        />
+        <LoadingButton
+          variant="contained"
+          color="primary"
+          loading={creatingOffer}
+          onClick={handleCreateOfferFromSupplier}
+          disabled={!selectedSupplier}
+          startIcon={<Iconify icon="eva:plus-outline" />}
+        >
+          {t('create_offer_from_supplier') || 'Create Offer from Supplier'}
+        </LoadingButton>
+      </Stack>
       <Card>
         <PurchaseTableToolbar
           filters={filters}
@@ -217,7 +275,7 @@ export default function PurchaseListView() {
             filters={filters}
             onFilters={handleFilters}
             onResetFilters={handleResetFilters}
-            results={count}
+            results={offersCount}
           />
         )}
 
@@ -231,20 +289,27 @@ export default function PurchaseListView() {
                   ...head,
                   label: head.label ? t(head.label) : ''
                 }))}
-                rowCount={count}
+                rowCount={offersCount}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    tableData.map((row) => row.id)
+                    offersData.map((row) => row.id)
                   )
                 }
               />
 
               <TableBody>
+                <TableRow>
+                  <TableCell colSpan={9}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 2 }}>
 
-                {filteredData.map((row) => (
+
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+                {filteredOffers.map((row) => (
                   <>
                     <PurchaseTableRow
                       key={row.id}
@@ -267,16 +332,16 @@ export default function PurchaseListView() {
                 ))}
                 <TableEmptyRows
                   height={denseHeight}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, count)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, offersCount)}
                 />
-                <TableNoData notFound={!filteredData.length && canReset} />
+                <TableNoData notFound={!filteredOffers.length && canReset} />
               </TableBody>
             </Table>
           </Scrollbar>
         </TableContainer>
 
         <TablePaginationCustom
-          count={count}
+          count={offersCount}
           page={table.page}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}

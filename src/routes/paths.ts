@@ -122,7 +122,7 @@ export const paths = {
       list: `${ROOTS.DASHBOARD}/purchase/list`,
       cards: `${ROOTS.DASHBOARD}/purchase/cards`,
       profile: `${ROOTS.DASHBOARD}/purchase/profile`,
-      account: `${ROOTS.DASHBOARD}/purchase/account`,
+      offers: `${ROOTS.DASHBOARD}/purchase/offers`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/purchase/${id}/edit`,
     },
     logs: {

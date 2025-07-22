@@ -76,10 +76,9 @@ const StaticsEditPage = lazy(() => import('src/pages/dashboard/statics/edit'));
 const PurchaseProfilePage = lazy(() => import('src/pages/dashboard/purchase/profile'));
 const PurchaseCardsPage = lazy(() => import('src/pages/dashboard/purchase/cards'));
 const PurchaseListPage = lazy(() => import('src/pages/dashboard/purchase/list'));
-const PurchaseAccountPage = lazy(() => import('src/pages/dashboard/purchase/account'));
+const PurchaseOffersPage = lazy(() => import('src/pages/dashboard/purchase/offers'));
 const PurchaseCreatePage = lazy(() => import('src/pages/dashboard/purchase/new'));
 const PurchaseEditPage = lazy(() => import('src/pages/dashboard/purchase/edit'));
-const PurchaseOfferPage = lazy(() => import('src/pages/dashboard/purchase/offer'));
 // LOGS
 const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile'));
 const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards'));
@@ -180,8 +179,7 @@ export const mainRoutes = [
           { path: 'list', element: <PurchaseListPage /> },
           { path: 'new', element: <PurchaseCreatePage /> },
           { path: ':id/edit', element: <PurchaseEditPage /> },
-          { path: 'account', element: <PurchaseAccountPage /> },
-          { path: ':id/offer', element: <PurchaseOfferPage /> },
+          { path: 'offers', element: <PurchaseOffersPage /> },
         ],
       },
       {

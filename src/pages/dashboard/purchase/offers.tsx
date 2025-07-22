@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 
-import { PurchaseListView } from 'src/sections/purchase/view';
+import PurchaseOffersListView from 'src/sections/purchase/view/purchase-offer-list-view';
 
 // ----------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ export default function UserListPage() {
         <title> Dashboard: Purchases</title>
       </Helmet>
 
-      <PurchaseListView />
+      <PurchaseOffersListView />
     </>
   );
 }
