@@ -344,7 +344,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       alignItems="flex-end"
       sx={{ my: 3, textAlign: 'right', typography: 'body2' }}
     >
-      {(() => {
+      {currentOrder?.user?.is_vat_document_printed ? null : (() => {
         const vatTotals = calculateVatTotals();
         return (
           <>
@@ -375,12 +375,12 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
           {fCurrency(calculateSubtotalExclVat()) || '-'}
         </Box>
       </Stack>
-      <Stack direction="row" justifyContent="center" alignItems="center">
+      {currentOrder?.user?.is_vat_document_printed ? null : <Stack direction="row" justifyContent="center" alignItems="center">
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (incl BTW)</Box>
         <Box sx={{ width: 160, typography: 'subtitle2' }}>
           {fCurrency(calculateSubtotal()) || '-'}
         </Box>
-      </Stack>
+      </Stack>}
 
       <Stack direction="row" justifyContent="center" alignItems="center">
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Verzendkosten</Box>
@@ -582,11 +582,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
                     <Box sx={{ typography: 'caption', textAlign: 'right' }}>
                       (excl BTW) {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit)}
                     </Box>
-                    <Box sx={{ typography: 'caption', textAlign: 'right' }}>
+                    {currentOrder?.user?.is_vat_document_printed ? null : <Box sx={{ typography: 'caption', textAlign: 'right' }}>
                       (incl BTW) {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit_vat)}
-                    </Box>
+                    </Box>}
                     <Box sx={{ typography: 'subtitle2', textAlign: 'right' }}>
-                      Totaal: {fCurrency(item.single_product_discounted_price_per_unit_vat * item.quantity)}
+                      Totaal: {fCurrency((currentOrder?.user?.is_vat_document_printed ? item.single_product_discounted_price_per_unit : item.single_product_discounted_price_per_unit_vat) * item.quantity)}
                     </Box>
                   </Stack>
                 </>
