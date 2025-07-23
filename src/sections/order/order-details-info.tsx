@@ -236,6 +236,8 @@ export default function OrderDetailsInfo({
       date: new Date(),
       event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${user?.email}`,
     });
+    console.log("🚀 ~ handleAddressUpdate ~ shipping_address before update:", { ...shippingAddress })
+    console.log("🚀 ~ handleAddressUpdate ~ shipping_address after update:", { ...shippingAddress, ...updatedShippingAddress })
     updateOrder(orderId, {
       shipping_address: { ...shippingAddress, ...updatedShippingAddress },
       history: newHistory,
@@ -653,6 +655,10 @@ export default function OrderDetailsInfo({
                 value={selectedCountry}
                 onChange={(e) => {
                   setSelectedCountry(e.target.value);
+                  setUpdatedShippingAddress({
+                    ...updatedShippingAddress,
+                    country: e.target.value,
+                  });
                   setOptions([]);
                 }}
                 sx={{ width: "auto" }}
