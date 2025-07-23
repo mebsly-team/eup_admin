@@ -117,6 +117,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const [parentProduct, setParentProduct] = useState({});
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
+  const [pendingChanges, setPendingChanges] = useState([]);
 
   useEffect(() => {
     if (tab) {
