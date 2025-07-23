@@ -296,23 +296,32 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
       toggleEditMode();
     } catch (error) {
       console.error('Error saving order:', error);
+      let errorShown = false;
       if (error.response && error.response.data) {
         const data = error.response.data;
-        // Handle non_field_errors
-        if (data.non_field_errors && Array.isArray(data.non_field_errors)) {
-          data.non_field_errors.forEach((msg) => {
-            enqueueSnackbar(msg, { variant: 'error' });
-          });
+        // Handle non_field_errors (array or string)
+        if (data.non_field_errors) {
+          if (Array.isArray(data.non_field_errors)) {
+            data.non_field_errors.forEach((msg: string) => {
+              enqueueSnackbar(msg, { variant: 'error' });
+              errorShown = true;
+            });
+          } else if (typeof data.non_field_errors === 'string') {
+            enqueueSnackbar(data.non_field_errors, { variant: 'error' });
+            errorShown = true;
+          }
         }
         // Handle field errors
         Object.entries(data).forEach(([field, errors]) => {
           if (field !== 'non_field_errors' && Array.isArray(errors)) {
-            errors.forEach((msg) => {
+            errors.forEach((msg: string) => {
               enqueueSnackbar(`${field}: ${msg}`, { variant: 'error' });
+              errorShown = true;
             });
           }
         });
-      } else {
+      }
+      if (!errorShown) {
         enqueueSnackbar('Fout bij bijwerken van bestelling', { variant: 'error' });
       }
     }
