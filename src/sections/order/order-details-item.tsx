@@ -47,24 +47,40 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
     try {
       const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
       if (response.status === 200) {
-        const product = response.data?.[0];
-        if (product) {
+        const products = response.data;
+        if (Array.isArray(products) && products.length > 0) {
           // Get klantpercentage (customer_percentage) from currentOrder.user or default to 10
           const klantpercentage = currentOrder?.user?.customer_percentage ?? 0;
           const discountFactor = 1 - (Number(klantpercentage) / 100);
-          const discountedPricePerUnit = Number((Number(product.price_per_unit) * discountFactor).toFixed(2));
-          const discountedPricePerUnitVat = Number((Number(product.price_per_unit_vat) * discountFactor).toFixed(2));
-          const newItem = {
+          // Helper to create new item from product
+          const createNewItem = (product: any) => ({
             id: product.id,
             product,
             quantity: 1,
             completed: false,
-            single_product_discounted_price_per_unit: discountedPricePerUnit,
-            single_product_discounted_price_per_unit_vat: discountedPricePerUnitVat,
+            single_product_discounted_price_per_unit: Number((Number(product.price_per_unit) * discountFactor).toFixed(2)),
+            single_product_discounted_price_per_unit_vat: Number((Number(product.price_per_unit_vat) * discountFactor).toFixed(2)),
+          });
+          // Collect all products and their variants recursively
+          const collectProductsAndVariants = (product: any): any[] => {
+            const items: any[] = [createNewItem(product)];
+            if (Array.isArray(product.variants)) {
+              product.variants.forEach((variant: any) => {
+                // If variant has full product info (not just id/slug), add as product
+                if (variant.price_per_unit !== undefined) {
+                  items.push(...collectProductsAndVariants(variant));
+                }
+              });
+            }
+            return items;
           };
-          setEditedCart((prev: { items: any }) => ({ ...prev, items: [...prev.items, newItem] }));
+          let newItems: any[] = [];
+          products.forEach((product: any) => {
+            newItems.push(...collectProductsAndVariants(product));
+          });
+          setEditedCart((prev: any) => ({ ...prev, items: [...prev.items, ...newItems] }));
           setEan('');
-          enqueueSnackbar('Product succesvol toegevoegd', { variant: 'success' });
+          enqueueSnackbar('Producten succesvol toegevoegd', { variant: 'success' });
         } else {
           enqueueSnackbar('Product niet gevonden', { variant: 'error' });
         }
