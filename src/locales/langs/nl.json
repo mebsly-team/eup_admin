@@ -304,6 +304,8 @@
   "preview": "Voorbeeld",
   "price": "Prijs",
   "chip": "Banner",
+  "pdf_downloaded_successfully": "PDF succesvol gedownload",
+  "pdf_download_failed": "PDF downloaden mislukt",
   "price_consumers": "Consumentenprijs",
   "price_cost": "Kostprijs per stuk",
   "price_per_piece": "Prijs per Stuk",

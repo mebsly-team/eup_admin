@@ -809,6 +809,7 @@ export default function PurchaseEditView() {
                                 }}
                               >
                                 <Typography variant="body2">{item.product_detail.ean}</Typography>
+                                <Typography variant="caption">Leverancierscode: {item.product_detail.supplier_article_code}</Typography>
                               </Link>
                             </TableCell>
                             <TableCell align="right">

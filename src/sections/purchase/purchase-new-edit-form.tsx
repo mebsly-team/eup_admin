@@ -86,6 +86,7 @@ export default function PurchaseEditView() {
             title: product.title,
             images: product.images,
             ean: product.ean,
+            supplier_article_code: product.supplier_article_code,
           },
           product_quantity: 1,
           product_purchase_price: product.price_cost || '0',

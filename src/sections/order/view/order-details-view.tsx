@@ -118,11 +118,17 @@ export default function OrderDetailsView({ id }: Props) {
       if (response.status === 200) {
         const { data } = response;
         setCurrentOrder(data || {});
+        return data;
       } else {
-        console.error('Failed to fetch order, status code:', response.status);
+        // Throw an error with the response for catch block
+        const error = new Error('Failed to update order');
+        // @ts-ignore
+        error.response = response;
+        throw error;
       }
     } catch (error) {
-      console.error('Error fetching order:', error);
+      // Rethrow error so caller can handle it
+      throw error;
     }
   };
   const sendToSnelstart = async ({ id }) => {
