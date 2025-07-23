@@ -821,71 +821,124 @@ export default function ProductNewEditForm({ id }: Props) {
       ).toFixed(2);
 
       // Track changes for history
-      const changes = [];
+      let changes = [];
       if (currentProduct?.id) {
-        // Custom messages for important fields
-        if (data.title !== currentProduct.title) {
-          changes.push(`Titel gewijzigd van "${currentProduct.title}" naar "${data.title}" door ${user?.email}`);
-        }
-        if (data.title_long !== currentProduct.title_long) {
-          changes.push(`Lange titel gewijzigd van "${currentProduct.title_long}" naar "${data.title_long}" door ${user?.email}`);
-        }
-        if (data.price_per_piece !== currentProduct.price_per_piece) {
-          changes.push(`Prijs per stuk gewijzigd van ${currentProduct.price_per_piece} naar ${data.price_per_piece} door ${user?.email}`);
-        }
-        if (data.price_per_unit !== currentProduct.price_per_unit) {
-          changes.push(`Prijs per eenheid gewijzigd van ${currentProduct.price_per_unit} naar ${data.price_per_unit} door ${user?.email}`);
-        }
-        if (data.price_cost !== currentProduct.price_cost) {
-          changes.push(`Kostprijs gewijzigd van ${currentProduct.price_cost} naar ${data.price_cost} door ${user?.email}`);
-        }
-        if (data.price_consumers !== currentProduct.price_consumers) {
-          changes.push(`Consumentenprijs gewijzigd van ${currentProduct.price_consumers} naar ${data.price_consumers} door ${user?.email}`);
-        }
-        if (data.overall_stock !== currentProduct.overall_stock) {
-          changes.push(`Totale voorraad gewijzigd van ${currentProduct.overall_stock} naar ${data.overall_stock} door ${user?.email}`);
-        }
-        if (data.free_stock !== currentProduct.free_stock) {
-          changes.push(`Vrije voorraad gewijzigd van ${currentProduct.free_stock} naar ${data.free_stock} door ${user?.email}`);
-        }
-        if (data.location !== currentProduct.location) {
-          changes.push(`Locatie gewijzigd van "${currentProduct.location}" naar "${data.location}" door ${user?.email}`);
-        }
-        if (data.extra_location !== currentProduct.extra_location) {
-          changes.push(`Extra locatie gewijzigd van "${currentProduct.extra_location}" naar "${data.extra_location}" door ${user?.email}`);
-        }
-        if (data.ean !== currentProduct.ean) {
-          changes.push(`EAN gewijzigd van "${currentProduct.ean}" naar "${data.ean}" door ${user?.email}`);
-        }
-        if (data.sku !== currentProduct.sku) {
-          changes.push(`SKU gewijzigd van "${currentProduct.sku}" naar "${data.sku}" door ${user?.email}`);
-        }
-        if (data.article_code !== currentProduct.article_code) {
-          changes.push(`Artikelcode gewijzigd van "${currentProduct.article_code}" naar "${data.article_code}" door ${user?.email}`);
-        }
-        if (data.supplier !== currentProduct.supplier?.id) {
-          changes.push(`Leverancier gewijzigd van "${currentProduct.supplier?.id}" naar "${data.supplier}" door ${user?.email}`);
-        }
-        if (data.brand !== currentProduct.brand?.id) {
-          changes.push(`Merk gewijzigd van "${currentProduct.brand?.id}" naar "${data.brand}" door ${user?.email}`);
-        }
-        if (data.quantity_per_unit !== currentProduct.quantity_per_unit) {
-          changes.push(`Aantal per eenheid gewijzigd van ${currentProduct.quantity_per_unit} naar ${data.quantity_per_unit} door ${user?.email}`);
-        }
-        if (data.vat !== currentProduct.vat) {
-          changes.push(`BTW percentage gewijzigd van ${currentProduct.vat}% naar ${data.vat}% door ${user?.email}`);
-        }
-        // Add generic change tracking for all other fields in defaultValues
-        const trackedKeys = [
-          'title', 'title_long', 'price_per_piece', 'price_per_unit', 'price_cost', 'price_consumers', 'overall_stock', 'free_stock', 'location', 'extra_location', 'ean', 'sku', 'article_code', 'supplier', 'brand', 'quantity_per_unit', 'vat'
+        const customMessages = {
+          title: (oldValue, newValue) => `Titel gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          title_long: (oldValue, newValue) => `Lange titel gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          price_per_piece: (oldValue, newValue) => `Prijs per stuk gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          price_per_unit: (oldValue, newValue) => `Prijs per eenheid gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          price_cost: (oldValue, newValue) => `Kostprijs gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          price_consumers: (oldValue, newValue) => `Consumentenprijs gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          overall_stock: (oldValue, newValue) => `Totale voorraad gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          free_stock: (oldValue, newValue) => `Vrije voorraad gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          location: (oldValue, newValue) => `Locatie gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          extra_location: (oldValue, newValue) => `Extra locatie gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          ean: (oldValue, newValue) => `EAN gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          sku: (oldValue, newValue) => `SKU gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          article_code: (oldValue, newValue) => `Artikelcode gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          supplier: (oldValue, newValue) => `Leverancier gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          brand: (oldValue, newValue) => `Merk gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          quantity_per_unit: (oldValue, newValue) => `Aantal per eenheid gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          vat: (oldValue, newValue) => `BTW percentage gewijzigd van ${oldValue}% naar ${newValue}% door ${user?.email}`,
+          unit: (oldValue, newValue) => `Eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          color: (oldValue, newValue) => `Kleur gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          size: (oldValue, newValue) => `Maat gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          variants: (oldValue, newValue) => `Varianten gewijzigd door ${user?.email}`,
+          parent_product: (oldValue, newValue) => `Hoofdproduct gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          min_price_to_sell: (oldValue, newValue) => `Minimale verkoopprijs gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          hs_code: (oldValue, newValue) => `HS-code gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          chip: (oldValue, newValue) => `Chip gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          supplier_article_code: (oldValue, newValue) => `Leveranciersartikelcode gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          categories: (oldValue, newValue) => `Categorieën gewijzigd door ${user?.email}`,
+          images: (oldValue, newValue) => `Afbeeldingen gewijzigd door ${user?.email}`,
+          variant_discount: (oldValue, newValue) => `Variantkorting gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          expiry_date: (oldValue, newValue) => `Vervaldatum gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          unit_in_pallet: (oldValue, newValue) => `Eenheid in pallet gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          comm_channel_after_out_of_stock: (oldValue, newValue) => `Communicatie na uitverkocht gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          ordered_in_progress_stock: (oldValue, newValue) => `Besteld in voortgang voorraad gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          number_in_order: (oldValue, newValue) => `Aantal in order gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          number_in_offer: (oldValue, newValue) => `Aantal in offerte gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          number_in_pakbon: (oldValue, newValue) => `Aantal in pakbon gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          number_in_confirmation: (oldValue, newValue) => `Aantal in bevestiging gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          number_in_werkbon: (oldValue, newValue) => `Aantal in werkbon gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          number_in_other: (oldValue, newValue) => `Aantal in anders gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          order_unit_amount: (oldValue, newValue) => `Order eenheidsaantal gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          min_order_amount: (oldValue, newValue) => `Minimale orderhoeveelheid gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          min_stock_value: (oldValue, newValue) => `Minimale voorraad gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          max_stock_at_rack: (oldValue, newValue) => `Max voorraad in rek gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          stock_at_supplier: (oldValue, newValue) => `Voorraad bij leverancier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          location_stock: (oldValue, newValue) => `Locatie voorraad gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          extra_location_stock: (oldValue, newValue) => `Extra locatie voorraad gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          max_order_allowed_per_unit: (oldValue, newValue) => `Maximaal toegestaan per eenheid gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          delivery_time: (oldValue, newValue) => `Levertijd gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          important_information: (oldValue, newValue) => `Belangrijke info gewijzigd door ${user?.email}`,
+          extra_etiket_nl: (oldValue, newValue) => `Extra etiket NL gewijzigd door ${user?.email}`,
+          extra_etiket_fr: (oldValue, newValue) => `Extra etiket FR gewijzigd door ${user?.email}`,
+          languages_on_item_package: (oldValue, newValue) => `Talen op verpakking gewijzigd door ${user?.email}`,
+          sell_count: (oldValue, newValue) => `Verkocht aantal gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_only_for_logged_in_user: (oldValue, newValue) => `Alleen voor ingelogde gebruikers gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_used: (oldValue, newValue) => `Gebruikt gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_regular: (oldValue, newValue) => `Regulier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_featured: (oldValue, newValue) => `Uitgelicht gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_only_for_export: (oldValue, newValue) => `Alleen voor export gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_listed_on_marktplaats: (oldValue, newValue) => `Marktplaats status gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_listed_on_2dehands: (oldValue, newValue) => `2dehands status gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          has_electronic_barcode: (oldValue, newValue) => `Elektronische barcode gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          alternative_product_ean_1: (oldValue, newValue) => `Alternatief EAN 1 gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          alternative_product_ean_2: (oldValue, newValue) => `Alternatief EAN 2 gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          alternative_product_ean_3: (oldValue, newValue) => `Alternatief EAN 3 gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          size_x_value: (oldValue, newValue) => `Maat X gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          size_y_value: (oldValue, newValue) => `Maat Y gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          pallet_x_value: (oldValue, newValue) => `Pallet X gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          pallet_y_value: (oldValue, newValue) => `Pallet Y gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          pallet_z_value: (oldValue, newValue) => `Pallet Z gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          pallet_max_weight_value: (oldValue, newValue) => `Pallet max gewicht gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          liter: (oldValue, newValue) => `Liter gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          liter_unit: (oldValue, newValue) => `Liter eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          is_clearance: (oldValue, newValue) => `Opruiming gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_party_sale: (oldValue, newValue) => `Partijverkoop gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          sell_from_supplier: (oldValue, newValue) => `Verkoop van leverancier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          ean_to_follow_stock: (oldValue, newValue) => `EAN voor voorraad volgen gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          is_follow_stock_with_ean: (oldValue, newValue) => `Voorraad volgen met EAN gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_taken_from_another_package: (oldValue, newValue) => `Uit ander pakket gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_taken_from_another_package_ean: (oldValue, newValue) => `Uit ander pakket EAN gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          size_z_value: (oldValue, newValue) => `Maat Z gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          size_unit: (oldValue, newValue) => `Maat eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          weight: (oldValue, newValue) => `Gewicht gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          weight_unit: (oldValue, newValue) => `Gewicht eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          volume_unit: (oldValue, newValue) => `Volume eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          volume: (oldValue, newValue) => `Volume gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          pallet_full_total_number: (oldValue, newValue) => `Pallet vol totaal aantal gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          pallet_layer_total_number: (oldValue, newValue) => `Pallet laag totaal aantal gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_brief_box: (oldValue, newValue) => `Briefbox gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          meta_title: (oldValue, newValue) => `Meta titel gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          meta_description: (oldValue, newValue) => `Meta beschrijving gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          meta_keywords: (oldValue, newValue) => `Meta keywords gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          url: (oldValue, newValue) => `URL gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          is_visible_particular: (oldValue, newValue) => `Zichtbaar voor particulier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          is_visible_B2B: (oldValue, newValue) => `Zichtbaar voor B2B gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          inhoud_number: (oldValue, newValue) => `Inhoud aantal gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          inhoud_unit: (oldValue, newValue) => `Inhoud eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          inhoud_price: (oldValue, newValue) => `Inhoud prijs gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+        };
+        const fields = [
+          'title', 'title_long', 'price_per_piece', 'price_per_unit', 'price_cost', 'price_consumers', 'overall_stock', 'free_stock', 'location', 'extra_location', 'ean', 'sku', 'article_code', 'supplier',
+          'brand', 'quantity_per_unit', 'vat', 'unit', 'color', 'size', 'variants', 'parent_product', 'min_price_to_sell', 'hs_code', 'chip', 'supplier_article_code', 'categories', 'images', 'variant_discount', 'expiry_date', 'unit_in_pallet', 'comm_channel_after_out_of_stock',
+          'ordered_in_progress_stock', 'number_in_order', 'number_in_offer', 'number_in_pakbon', 'number_in_confirmation', 'number_in_werkbon', 'number_in_other', 'order_unit_amount', 'min_order_amount', 'min_stock_value', 'max_stock_at_rack', 'stock_at_supplier', 'location_stock',
+          'extra_location_stock', 'max_order_allowed_per_unit', 'delivery_time', 'important_information', 'extra_etiket_nl', 'extra_etiket_fr', 'languages_on_item_package', 'sell_count', 'is_only_for_logged_in_user', 'is_used', 'is_regular', 'is_featured', 'is_only_for_export', 'is_listed_on_marktplaats',
+          'is_listed_on_2dehands', 'has_electronic_barcode', 'alternative_product_ean_1', 'alternative_product_ean_2', 'alternative_product_ean_3', 'size_x_value', 'size_y_value', 'pallet_x_value', 'pallet_y_value', 'pallet_z_value', 'pallet_max_weight_value', 'liter', 'liter_unit', 'is_clearance', 'is_party_sale',
+          'sell_from_supplier', 'ean_to_follow_stock', 'is_follow_stock_with_ean', 'is_taken_from_another_package', 'is_taken_from_another_package_ean', 'size_z_value', 'size_unit', 'weight', 'weight_unit', 'volume_unit', 'volume', 'pallet_full_total_number', 'pallet_layer_total_number', 'is_brief_box', 'meta_title',
+          'meta_description', 'meta_keywords', 'url', 'is_visible_particular', 'is_visible_B2B', 'inhoud_number', 'inhoud_unit', 'inhoud_price'
         ];
-        Object.keys(defaultValues).forEach((key) => {
-          if (trackedKeys.includes(key)) return;
-          // Compare values, handle arrays and objects
+        fields.forEach((key) => {
+          if (!customMessages[key]) return;
           const oldValue = currentProduct[key];
           const newValue = data[key];
           let changed = false;
-          if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+          if ((oldValue === null && newValue === '') || (oldValue === '' && newValue === null)) {
+            changed = false;
+          } else if (Array.isArray(oldValue) && Array.isArray(newValue)) {
             changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
           } else if (typeof oldValue === 'object' && typeof newValue === 'object') {
             changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
@@ -893,19 +946,21 @@ export default function ProductNewEditForm({ id }: Props) {
             changed = oldValue !== newValue;
           }
           if (changed) {
-            changes.push(`Veld "${key}" gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`);
+            let message = customMessages[key](oldValue, newValue);
+            changes.push({ field: key, oldValue, newValue, message });
           }
         });
       } else {
-        changes.push(`Product aangemaakt door ${user?.email}`);
+        changes = [{ field: 'create', oldValue: '', newValue: '', message: `Product aangemaakt door ${user?.email}` }];
       }
+      setPendingChanges(changes);
 
       // Add history entry if there are changes
       if (changes.length > 0) {
         const newHistory = [...(currentProduct?.history || [])];
         newHistory.push({
           date: new Date(),
-          event: changes.join(', '),
+          event: changes.map(change => change.message).join(', '),
         });
         data.history = newHistory;
       }
@@ -2921,6 +2976,20 @@ export default function ProductNewEditForm({ id }: Props) {
           );
         })}
       </div>
+      {pendingChanges && pendingChanges.length > 0 && (
+        <Grid xs={12}>
+          <Card sx={{ mb: 2 }}>
+            <CardHeader title={t('Wijzigingen')} />
+            <Stack spacing={1} sx={{ p: 3 }}>
+              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                {pendingChanges.map((change, idx) => (
+                  <li key={idx}>{change.message}</li>
+                ))}
+              </ul>
+            </Stack>
+          </Card>
+        </Grid>
+      )}
     </FormProvider>
   );
 }
