@@ -272,20 +272,16 @@ export default function OrderDetailsInfo({
   //   }
   // };
 
-  const handleAddressFetch = async ({ searchText }: any) => {
-    setAddressSearchText(searchText); // Update search text state
-
-    // Extract 'input' query parameter
+  const handleAddressFetch = async ({ searchText, country }: any) => {
+    setAddressSearchText(searchText);
     const input = searchText;
-    let country = selectedCountry;
+    const selected = country || selectedCountry;
 
     if (input) {
       try {
-        const response = await axiosInstance.get(`/get-address-details/?input=${input}&country=${country}`);
+        const response = await axiosInstance.get(`/get-address-details/?input=${input}&country=${selected}`);
         const data = response.data;
-
-        // Set options from the response (matches array)
-        setOptions(data.matches || []); // Store fetched matches in state
+        setOptions(data.matches || []);
       } catch (error) {
         console.error('Error fetching address data:', error);
       }
@@ -655,7 +651,10 @@ export default function OrderDetailsInfo({
               <TextField
                 select
                 value={selectedCountry}
-                onChange={(e) => setSelectedCountry(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCountry(e.target.value);
+                  setOptions([]);
+                }}
                 sx={{ width: "auto" }}
               >
                 {countryOptions.map((option) => (
@@ -670,12 +669,9 @@ export default function OrderDetailsInfo({
               options={options} // Display matches as options
               getOptionLabel={(option: any) => option.value || ''} // Display full address in the dropdown
               onInputChange={(e, newValue) => {
-                console.log("🚀 ~ newValue:", newValue)
-                handleAddressFetch({ searchText: newValue })
+                handleAddressFetch({ searchText: newValue, country: selectedCountry });
               }} // Fetch on input change
               onChange={(e, selectedOption) => {
-                console.log("🚀 ~ selectedOption:", selectedOption)
-                // When an option is selected, call handleAddressDetails with the context
                 handleAddressDetails({ context: selectedOption?.context });
               }}
               renderInput={(params) => <TextField {...params} label="Adres" fullWidth />}
