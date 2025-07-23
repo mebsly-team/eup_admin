@@ -823,7 +823,7 @@ export default function ProductNewEditForm({ id }: Props) {
       // Track changes for history
       const changes = [];
       if (currentProduct?.id) {
-        // Compare fields and record changes
+        // Custom messages for important fields
         if (data.title !== currentProduct.title) {
           changes.push(`Titel gewijzigd van "${currentProduct.title}" naar "${data.title}" door ${user?.email}`);
         }
@@ -875,6 +875,27 @@ export default function ProductNewEditForm({ id }: Props) {
         if (data.vat !== currentProduct.vat) {
           changes.push(`BTW percentage gewijzigd van ${currentProduct.vat}% naar ${data.vat}% door ${user?.email}`);
         }
+        // Add generic change tracking for all other fields in defaultValues
+        const trackedKeys = [
+          'title', 'title_long', 'price_per_piece', 'price_per_unit', 'price_cost', 'price_consumers', 'overall_stock', 'free_stock', 'location', 'extra_location', 'ean', 'sku', 'article_code', 'supplier', 'brand', 'quantity_per_unit', 'vat'
+        ];
+        Object.keys(defaultValues).forEach((key) => {
+          if (trackedKeys.includes(key)) return;
+          // Compare values, handle arrays and objects
+          const oldValue = currentProduct[key];
+          const newValue = data[key];
+          let changed = false;
+          if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+            changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
+          } else if (typeof oldValue === 'object' && typeof newValue === 'object') {
+            changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
+          } else {
+            changed = oldValue !== newValue;
+          }
+          if (changed) {
+            changes.push(`Veld "${key}" gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`);
+          }
+        });
       } else {
         changes.push(`Product aangemaakt door ${user?.email}`);
       }
