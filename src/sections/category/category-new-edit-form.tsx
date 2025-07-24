@@ -200,9 +200,9 @@ export default function CategoryNewEditForm({ currentCategory }: Props) {
               <RHFTextField name="name" label={t('name')} />
               {radioValue === 'parent' && (
                 <Grid container spacing={2}>
-                  <Grid xs={6} sm={3}>
+                  {/* <Grid xs={6} sm={3}>
                     <RHFTextField name="data0" label={t('btw0')} />
-                  </Grid>
+                  </Grid> */}
                   <Grid xs={6} sm={3}>
                     <RHFTextField name="data1" label={t('omzetNL')} />
                   </Grid>
