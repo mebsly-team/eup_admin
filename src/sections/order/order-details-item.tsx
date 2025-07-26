@@ -23,7 +23,7 @@ import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
 
-export default function OrderDetailsItems({ currentOrder, updateOrder }) {
+export default function OrderDetailsItems({ currentOrder, updateOrder }: { currentOrder: any; updateOrder: any }) {
   const { cart } = currentOrder;
   console.log('cart', cart);
   const { enqueueSnackbar } = useSnackbar();
@@ -75,9 +75,22 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             return items;
           };
           let newItems: any[] = [];
+
           products.forEach((product: any) => {
             newItems.push(...collectProductsAndVariants(product));
           });
+
+          // Remove duplicates based on product ID
+          const seenIds = new Set();
+          newItems = newItems.filter((item) => {
+            if (seenIds.has(item.id)) {
+              return false;
+            }
+            seenIds.add(item.id);
+            return true;
+          });
+
+          console.log('New items being added:', newItems);
           setEditedCart((prev: any) => ({ ...prev, items: [...prev.items, ...newItems] }));
           setEan('');
           enqueueSnackbar('Producten succesvol toegevoegd', { variant: 'success' });
