@@ -66,9 +66,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }) {
             const items: any[] = [createNewItem(product)];
             if (Array.isArray(product.variants)) {
               product.variants.forEach((variant: any) => {
-                // If variant has full product info (not just id/slug), add as product
+                // If variant has full product info (not just id/slug), add as direct variant
                 if (variant.price_per_unit !== undefined) {
-                  items.push(...collectProductsAndVariants(variant));
+                  items.push(createNewItem(variant));
                 }
               });
             }
