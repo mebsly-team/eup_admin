@@ -22,12 +22,13 @@ import { IMAGE_FOLDER_PATH } from 'src/config-global';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
+import { useAuthContext } from 'src/auth/hooks';
 
 export default function OrderDetailsItems({ currentOrder, updateOrder }: { currentOrder: any; updateOrder: any }) {
   const { cart } = currentOrder;
   console.log('cart', cart);
   const { enqueueSnackbar } = useSnackbar();
-
+  const { user } = useAuthContext();
   const [isEditing, setIsEditing] = useState(false);
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
   console.log('editedCart', editedCart);
@@ -287,8 +288,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     if (changes.length > 0) {
       newHistory.push({
         date: new Date(),
-        event: `Bestelling bijgewerkt door ${currentOrder?.shipping_address?.email || currentOrder?.user?.email
-          }: ${changes.join(', ')}`,
+        event: `Bestelling bijgewerkt door ${user?.email}: ${changes.join(', ')}`,
       });
     }
 
