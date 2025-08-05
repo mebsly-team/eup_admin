@@ -135,7 +135,7 @@ export default function OrderTableRow({
       <TableCell sx={{ padding: 1, ...styles.hideOnMd, width: '80px' }}>
         <ListItemText
           primary={fDate(ordered_date)}
-          secondary={fTime(delivered_date) || t('not_delivered')}
+          secondary={fTime(delivered_date)}
           primaryTypographyProps={{ typography: 'body2', noWrap: true }}
           secondaryTypographyProps={{
             typography: 'body2',

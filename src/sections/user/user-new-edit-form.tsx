@@ -598,6 +598,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
           enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
         }
       }
+    } finally {
+      reset({}, { keepValues: true });
     }
   });
 
@@ -1061,6 +1063,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
           startIcon={<Add />}
           onClick={() => handleAddAddress()}
           sx={{ mt: 2 }}
+          disabled={!currentUser?.id}
         >
           Adres Toevoegen
         </Button>
