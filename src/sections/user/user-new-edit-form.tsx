@@ -582,7 +582,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
           const errorMessages = Object.values(error.response.data.errors).flat();
           errorMessages.forEach((errorMessage) => {
             console.error(errorMessage);
-            enqueueSnackbar(errorMessage, { variant: 'error' });
+            enqueueSnackbar(String(errorMessage), { variant: 'error' });
           });
         } else if (typeof error.response.data === 'object') {
           Object.entries(error.response.data).forEach(([fieldName, errorMsg]) => {
@@ -592,8 +592,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
           enqueueSnackbar(error.response.data, { variant: 'error' });
         }
       } else {
-        console.error('An unexpected error occurred:', error);
-        enqueueSnackbar('An unexpected error occurred', { variant: 'error' });
+        enqueueSnackbar(JSON.stringify(error), { variant: 'error' });
       }
     } finally {
       reset({}, { keepValues: true });
