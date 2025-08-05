@@ -586,7 +586,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
           });
         } else if (typeof error.response.data === 'object') {
           Object.entries(error.response.data).forEach(([fieldName, errorMsg]) => {
-            enqueueSnackbar(`${t(fieldName)}: ${errorMsg}`, { variant: 'error' });
+            enqueueSnackbar(`${errorMsg}`, { variant: 'error' });
           });
         } else {
           enqueueSnackbar(error.response.data, { variant: 'error' });
