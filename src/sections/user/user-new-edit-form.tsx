@@ -200,6 +200,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       contact_person_nationality: currentUser?.contact_person_nationality || '',
       type: currentUser?.type || 'particular',
       birthdate: currentUser?.birthdate || null,
+      password: currentUser?.password || "New@#$Default@#$Pass@#$123",
       fax: currentUser?.fax || null,
       facebook: currentUser?.facebook || null,
       linkedin: currentUser?.linkedin || null,
@@ -576,27 +577,23 @@ export default function UserNewEditForm({ currentUser }: Props) {
       router.push(paths.dashboard.user.list);
     } catch (error) {
       console.log('error', error);
-      if (error.response && error.response.data && error.response.data.errors) {
-        const errorMessages = Object.values(error.response.data.errors).flat();
-        errorMessages.forEach((errorMessage) => {
-          console.error(errorMessage);
-          enqueueSnackbar({ variant: 'error', message: errorMessage });
-        });
-      } else {
-        const errorMessages = Object.entries(error);
-        if (errorMessages.length) {
-          errorMessages.forEach(([fieldName, errors]) => {
-            errors?.forEach((errorMsg) => {
-              enqueueSnackbar({
-                variant: 'error',
-                message: `${t(fieldName)}: ${errorMsg}`,
-              });
-            });
+      if (error.response && error.response.data) {
+        if (error.response.data.errors) {
+          const errorMessages = Object.values(error.response.data.errors).flat();
+          errorMessages.forEach((errorMessage) => {
+            console.error(errorMessage);
+            enqueueSnackbar(errorMessage, { variant: 'error' });
+          });
+        } else if (typeof error.response.data === 'object') {
+          Object.entries(error.response.data).forEach(([fieldName, errorMsg]) => {
+            enqueueSnackbar(`${t(fieldName)}: ${errorMsg}`, { variant: 'error' });
           });
         } else {
-          console.error('An unexpected error occurred:', error);
-          enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
+          enqueueSnackbar(error.response.data, { variant: 'error' });
         }
+      } else {
+        console.error('An unexpected error occurred:', error);
+        enqueueSnackbar('An unexpected error occurred', { variant: 'error' });
       }
     } finally {
       reset({}, { keepValues: true });
@@ -661,9 +658,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="email" label={t('email')} />
                 <RHFTextField name="first_name" label={t('name')} />
                 <RHFTextField name="last_name" label={t('lastname')} />
-                {currentUser ? null : (
+                {/* {currentUser ? null : (
                   <RHFTextField name="password" label={t('password')} type="password" />
-                )}
+                )} */}
                 <RHFSelect
                   name="gender"
                   label={t('gender')}
