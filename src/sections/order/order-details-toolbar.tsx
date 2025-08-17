@@ -31,6 +31,7 @@ type Props = {
   onPaymentChangeStatus: (newValue: string) => void;
   handleDownloadDocument: (value: { doc: string }) => void;
   sendToSnelstart: (value: { id: string }) => void;
+  handleSendInvoice: (value: { id: string }) => void;
 };
 
 export default function OrderDetailsToolbar({
@@ -40,6 +41,7 @@ export default function OrderDetailsToolbar({
   onChangeStatus,
   handleDownloadDocument,
   sendToSnelstart,
+  handleSendInvoice,
   paymentStatusOptions,
   onPaymentChangeStatus
 }: Props) {
@@ -174,6 +176,20 @@ export default function OrderDetailsToolbar({
             }}
           >
             {t('invoice')}
+          </Button>
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+            onClick={() => handleSendInvoice({ id })}
+            sx={{
+              backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: isInvoiceDownloaded ? 'lightgreen' : undefined,
+              }
+            }}
+          >
+            {t('send_invoice')}
           </Button>
           <Button
             color="inherit"

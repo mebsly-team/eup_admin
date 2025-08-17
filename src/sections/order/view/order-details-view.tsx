@@ -150,6 +150,30 @@ export default function OrderDetailsView({ id }: Props) {
     }
   };
 
+  const handleSendInvoice = async ({ id }: { id: string }) => {
+    try {
+      const response = await axiosInstance.post(`/send_invoice_to_customer/${id}/`);
+      if (response.status === 200 || response.status === 201) {
+        console.log("🚀 ~ handleSendInvoice ~ response:", response)
+        enqueueSnackbar(t('Invoice is succesvol verzonden naar klant'), { variant: 'success' });
+        const newHistory = (currentOrder as any).history || [];
+        newHistory.push({
+          date: new Date(),
+          event: `Invoice verzonden naar klant door ${user?.email}`,
+        });
+        updateOrder(id, {
+          history: newHistory,
+        });
+      } else {
+        console.error('Failed to send invoice to customer, status code:', response.status);
+        enqueueSnackbar(t('Niet gelukt om invoice naar klant te verzenden'), { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error sending invoice to customer:', error);
+      enqueueSnackbar(t('Niet gelukt om invoice naar klant te verzenden.'), { variant: 'error' });
+    }
+  };
+
   const handleChangeStatus = useCallback(
     (newValue: string) => {
       const newHistory = currentOrder.history;
@@ -192,6 +216,7 @@ export default function OrderDetailsView({ id }: Props) {
         paymentStatusOptions={PAYMENT_STATUS_OPTIONS}
         handleDownloadDocument={handleDownloadDocument}
         sendToSnelstart={sendToSnelstart}
+        handleSendInvoice={handleSendInvoice}
       />
 
       <Grid container spacing={3}>

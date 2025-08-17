@@ -18,7 +18,7 @@ import { IOrderHistory } from 'src/types/order';
 // ----------------------------------------------------------------------
 
 type Props = {
-  currentOrder: IOrderHistory;
+  currentOrder: any;
 };
 
 export default function OrderDetailsHistory({ currentOrder }: Props) {
@@ -42,7 +42,7 @@ export default function OrderDetailsHistory({ currentOrder }: Props) {
       </Stack>
       <Stack spacing={0.5}>
         <Box sx={{ color: 'text.disabled' }}>Betalingsdatum</Box>
-        {fDateTime(currentOrder?.ordered_date)}
+        {fDateTime(currentOrder?.payment_date)}
       </Stack>
       <Stack spacing={0.5}>
         <Box sx={{ color: 'text.disabled' }}>Verzenddatum</Box>
@@ -66,28 +66,37 @@ export default function OrderDetailsHistory({ currentOrder }: Props) {
         },
       }}
     >
-      {currentOrder?.history?.map((item, index) => {
-        const firstTimeline = index === 0;
+      {(() => {
+        console.log('currentOrder:', currentOrder);
+        console.log('currentOrder.history:', currentOrder?.history);
+        console.log('typeof currentOrder.history:', typeof currentOrder?.history);
+        console.log('Array.isArray(currentOrder.history):', Array.isArray(currentOrder?.history));
 
-        const lastTimeline = index === (currentOrder?.timeline?.length || 0) - 1;
+        const historyArray = Array.isArray(currentOrder?.history) ? currentOrder.history : [];
 
-        return (
-          <TimelineItem key={item.date}>
-            <TimelineSeparator>
-              <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
-              {lastTimeline ? null : <TimelineConnector />}
-            </TimelineSeparator>
+        return historyArray.map((item: any, index: number) => {
+          const firstTimeline = index === 0;
 
-            <TimelineContent>
-              <Typography variant="subtitle2">{item.event}</Typography>
+          const lastTimeline = index === historyArray.length - 1;
 
-              <Box sx={{ color: 'text.disabled', typography: 'caption', mt: 0.5 }}>
-                {fDateTime(item.date)}
-              </Box>
-            </TimelineContent>
-          </TimelineItem>
-        );
-      })}
+          return (
+            <TimelineItem key={item.date}>
+              <TimelineSeparator>
+                <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
+                {lastTimeline ? null : <TimelineConnector />}
+              </TimelineSeparator>
+
+              <TimelineContent>
+                <Typography variant="subtitle2">{item.event}</Typography>
+
+                <Box sx={{ color: 'text.disabled', typography: 'caption', mt: 0.5 }}>
+                  {fDateTime(item.date)}
+                </Box>
+              </TimelineContent>
+            </TimelineItem>
+          );
+        });
+      })()}
     </Timeline>
   );
 
