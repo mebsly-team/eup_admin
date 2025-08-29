@@ -152,6 +152,8 @@
   "order_status": "order status",
   "ordered_in_progress_stock": "Ordered in Progress Stock",
   "orders": "orders",
+  "new_order": "New Order",
+  "create_order": "Create Order",
   "overview": "overview",
   "package": "package",
   "pallet_full": "pallet_full",

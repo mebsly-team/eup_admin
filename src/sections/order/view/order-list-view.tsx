@@ -12,6 +12,7 @@ import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
+import Link from '@mui/material/Link';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -215,6 +216,16 @@ export default function OrderListView() {
             },
             { name: t('list') },
           ]}
+          action={
+            <Button
+              component={Link}
+              href={paths.dashboard.order.new}
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+            >
+              {t('new_credit_note')}
+            </Button>
+          }
           sx={{
             mb: { xs: 3, md: 5 },
           }}

@@ -95,6 +95,7 @@ export function useNavData() {
             icon: ICONS.order,
             children: [
               { title: t('list'), path: paths.dashboard.order.root },
+              { title: t('new_order'), path: paths.dashboard.order.new },
               // { title: t('details'), path: paths.dashboard.order.demo.details },
             ],
           },

@@ -37,6 +37,7 @@ const SupplierCreatePage = lazy(() => import('src/pages/dashboard/supplier/new')
 const SupplierEditPage = lazy(() => import('src/pages/dashboard/supplier/edit'));
 // ORDER
 const OrderListPage = lazy(() => import('src/pages/dashboard/order/list'));
+const OrderCreatePage = lazy(() => import('src/pages/dashboard/order/new'));
 const OrderDetailsPage = lazy(() => import('src/pages/dashboard/order/details'));
 // INVOICE
 const InvoiceListPage = lazy(() => import('src/pages/dashboard/invoice/list'));
@@ -161,7 +162,7 @@ export const dashboardRoutes = [
           { path: 'offers', element: <PurchaseOffersPage /> },
         ],
       },
-      {   
+      {
         path: 'logs',
         children: [
           { element: <LogsProfilePage />, index: true },
@@ -235,6 +236,7 @@ export const dashboardRoutes = [
         children: [
           { element: <OrderListPage />, index: true },
           { path: 'list', element: <OrderListPage /> },
+          { path: 'new', element: <OrderCreatePage /> },
           { path: ':id', element: <OrderDetailsPage /> },
         ],
       },
