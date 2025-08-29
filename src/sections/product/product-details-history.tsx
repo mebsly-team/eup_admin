@@ -21,6 +21,55 @@ type Props = {
 };
 
 export default function ProductDetailsHistory({ currentProduct }: Props) {
+    const formatHistoryEvent = (event: unknown): string => {
+        if (typeof event === 'string') {
+            return event;
+        }
+        if (event && typeof event === 'object') {
+            const e = event as {
+                order_id?: number | string;
+                status?: string;
+                delta?: number | string;
+            };
+            const parts: string[] = [];
+            if (e.order_id !== undefined) parts.push(`Order ${e.order_id}`);
+            if (e.status) parts.push(String(e.status));
+            if (e.delta !== undefined) parts.push(`Δ${e.delta}`);
+            const joined = parts.join(' ');
+            return joined || '[event]';
+        }
+        return '';
+    };
+
+    const renderEventDetails = (event: unknown) => {
+        if (!event || typeof event !== 'object') return null;
+        const e = event as {
+            is_parent?: boolean;
+            stocks?: Record<string, unknown> | undefined;
+        };
+        const hasMeta = e.is_parent !== undefined;
+        const hasStocks = e.stocks && typeof e.stocks === 'object';
+        if (!hasMeta && !hasStocks) return null;
+        return (
+            <Box sx={{ mt: 0.5 }}>
+                {hasMeta ? (
+                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                        is_parent: {String(e.is_parent)}
+                    </Typography>
+                ) : null}
+                {hasStocks ? (
+                    <Box sx={{ mt: 0.25 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                            stocks
+                        </Typography>
+                        <Box sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', color: 'text.secondary', typography: 'caption' }}>
+                            {JSON.stringify(e.stocks, null, 2)}
+                        </Box>
+                    </Box>
+                ) : null}
+            </Box>
+        );
+    };
     const renderTimeline = (
         <Timeline
             sx={{
@@ -37,14 +86,16 @@ export default function ProductDetailsHistory({ currentProduct }: Props) {
                 const lastTimeline = index === (currentProduct?.history?.length || 0) - 1;
 
                 return (
-                    <TimelineItem key={item.date}>
+                    <TimelineItem key={String(item.date)}>
                         <TimelineSeparator>
                             <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
                             {lastTimeline ? null : <TimelineConnector />}
                         </TimelineSeparator>
 
                         <TimelineContent>
-                            <Typography variant="subtitle2">{item.event}</Typography>
+                            <Typography variant="subtitle2">{formatHistoryEvent(item.event)}</Typography>
+
+                            {renderEventDetails(item.event)}
 
                             <Box sx={{ color: 'text.disabled', typography: 'caption', mt: 0.5 }}>
                                 {fDateTime(item.date)}

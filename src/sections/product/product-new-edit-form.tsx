@@ -838,8 +838,16 @@ export default function ProductNewEditForm({ id }: Props) {
           ean: (oldValue, newValue) => `EAN gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           sku: (oldValue, newValue) => `SKU gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           article_code: (oldValue, newValue) => `Artikelcode gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
-          supplier: (oldValue, newValue) => `Leverancier gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
-          brand: (oldValue, newValue) => `Merk gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          supplier: (oldValue, newValue) => {
+            const oldId = typeof oldValue === 'object' ? oldValue?.id : oldValue;
+            const newId = typeof newValue === 'object' ? newValue?.id : newValue;
+            return `Leverancier gewijzigd van "${oldId}" naar "${newId}" door ${user?.email}`;
+          },
+          brand: (oldValue, newValue) => {
+            const oldId = typeof oldValue === 'object' ? oldValue?.id : oldValue;
+            const newId = typeof newValue === 'object' ? newValue?.id : newValue;
+            return `Merk gewijzigd van "${oldId}" naar "${newId}" door ${user?.email}`;
+          },
           quantity_per_unit: (oldValue, newValue) => `Aantal per eenheid gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           vat: (oldValue, newValue) => `BTW percentage gewijzigd van ${oldValue}% naar ${newValue}% door ${user?.email}`,
           unit: (oldValue, newValue) => `Eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
@@ -941,10 +949,20 @@ export default function ProductNewEditForm({ id }: Props) {
             changed = false;
           } else if (Array.isArray(oldValue) && Array.isArray(newValue)) {
             changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
+          } else if (key === 'supplier' || key === 'brand') {
+            const oldId = typeof oldValue === 'object' ? oldValue?.id : oldValue;
+            const newId = typeof newValue === 'object' ? newValue?.id : newValue;
+            changed = String(oldId ?? '') !== String(newId ?? '');
           } else if (typeof oldValue === 'object' && typeof newValue === 'object') {
             changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
           } else {
-            changed = oldValue !== newValue;
+            const oldIsNumeric = (typeof oldValue === 'number') || (typeof oldValue === 'string' && oldValue.trim() !== '' && !Number.isNaN(Number(oldValue)));
+            const newIsNumeric = (typeof newValue === 'number') || (typeof newValue === 'string' && newValue.trim() !== '' && !Number.isNaN(Number(newValue)));
+            if (oldIsNumeric && newIsNumeric) {
+              changed = Number(oldValue) !== Number(newValue);
+            } else {
+              changed = oldValue !== newValue;
+            }
           }
           if (changed) {
             let message = customMessages[key](oldValue, newValue);
