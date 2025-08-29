@@ -68,6 +68,23 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   type UserType = 'special' | 'wholesaler' | 'supermarket' | 'particular';
 
+  const AddressSchema = Yup.object().shape({
+    addressType: Yup.string().required(t('required')),
+    address_name: Yup.string().required(t('required')),
+    zip_code: Yup.string().required(t('required')),
+    first_name: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    last_name: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    salutation: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    phone_number: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    street_name: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    house_number: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    house_suffix: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    city: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    state: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    country: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+    customer_color: Yup.string().nullable().transform((value) => (value === '' ? null : value)),
+  });
+
   const {
     control: controlAddressForm,
     handleSubmit: handleSubmitAddressForm,
@@ -75,7 +92,10 @@ export default function UserNewEditForm({ currentUser }: Props) {
     setValue: setValueAddressForm,
     register,
     watch: watchAddress,
+    formState: { errors: addressErrors },
   } = useForm({
+    resolver: yupResolver(AddressSchema),
+    mode: 'onChange',
     defaultValues: {
       address_name: '',
       first_name: '',
@@ -348,6 +368,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   const onSubmitAddress = async (data) => {
     console.log("🚀 ~ onSubmitAddress ~ data:", data);
+    console.log("🚀 ~ onSubmitAddress ~ addressErrors:", addressErrors);
 
     try {
       const formData = {
@@ -373,8 +394,10 @@ export default function UserNewEditForm({ currentUser }: Props) {
       }
 
       setOpenAddressForm(false);
+      enqueueSnackbar('Address saved successfully!', { variant: 'success' });
     } catch (error) {
       console.error("Error saving address:", error);
+      enqueueSnackbar('Error saving address', { variant: 'error' });
     }
   };
 
@@ -1111,6 +1134,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 fullWidth
                 sx={{ my: 1 }}
                 autoComplete="postal-code"
+                error={!!addressErrors.zip_code}
+                helperText={addressErrors.zip_code?.message}
               />
               <TextField
                 {...register("country")}
@@ -1119,13 +1144,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 sx={{ my: 1 }}
                 autoComplete="country"
               />
-              <Controller
-                name="addressType"
-                control={controlAddressForm}
-                defaultValue="" // Standaard leeg
-                render={({ field }) => (
-                  <FormControl fullWidth sx={{ my: 1 }}>
-                    <InputLabel>Adres Type</InputLabel>
+              <FormControl fullWidth sx={{ my: 1 }} error={!!addressErrors.addressType}>
+                <InputLabel>Adres Type</InputLabel>
+                <Controller
+                  name="addressType"
+                  control={controlAddressForm}
+                  defaultValue=""
+                  render={({ field }) => (
                     <Select {...field} label="Adres Type">
                       <MenuItem value="">Geen</MenuItem>
                       {ADDRESS_TYPES.map((option) => (
@@ -1134,23 +1159,30 @@ export default function UserNewEditForm({ currentUser }: Props) {
                         </MenuItem>
                       ))}
                     </Select>
-                  </FormControl>
-
+                  )}
+                />
+                {addressErrors.addressType && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                    {addressErrors.addressType.message}
+                  </Typography>
                 )}
-              />
+              </FormControl>
               <TextField
                 {...register("address_name")}
                 label="Adres Naam"
                 fullWidth
                 sx={{ my: 1 }}
                 autoComplete="address-name"
+                error={!!addressErrors.address_name}
+                helperText={addressErrors.address_name?.message}
               />
+
+              <DialogActions sx={{ mt: 2, px: 0 }}>
+                <Button onClick={handleCloseAddressForm}>Annuleren</Button>
+                <Button type="submit" variant="contained">Opslaan</Button>
+              </DialogActions>
             </form>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseAddressForm}>Annuleren</Button>
-            <Button onClick={handleSubmitAddressForm(onSubmitAddress)}>Opslaan</Button>
-          </DialogActions>
         </Dialog>
 
       </div>
