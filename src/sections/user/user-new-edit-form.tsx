@@ -366,7 +366,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
         updatedList[editingIndex] = formData;
         setAddressList(updatedList);
 
-        await axiosInstance.put(`/address/${addressList[editingIndex].id}/`, formData);
+        await axiosInstance.put(`/address/${addressList[editingIndex].id}/?all=true`, formData);
       } else {
         const response = await axiosInstance.post("/address/", formData);
         setAddressList([...addressList, response.data]);
