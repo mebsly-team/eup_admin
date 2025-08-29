@@ -15,14 +15,27 @@ import {
 const URL = endpoints.calendar;
 
 const options = {
-  revalidateIfStale: false,
-  revalidateOnFocus: false,
-  revalidateOnReconnect: false,
+  revalidateIfStale: true,
+  revalidateOnFocus: true,
+  revalidateOnReconnect: true,
 };
 
 export function useGetEvents() {
   const { data, isLoading, error, isValidating } = useSWR(URL, async () => {
     try {
+      const waitFor = async (predicate: () => boolean, timeoutMs = 5000, intervalMs = 150) => {
+        const start = Date.now();
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          if (predicate()) return;
+          if (Date.now() - start > timeoutMs) return;
+          await new Promise((r) => setTimeout(r, intervalMs));
+        }
+      };
+
+      await waitFor(() => !!(window as any)?.gapi?.client?.calendar);
+      await waitFor(() => !!(window as any)?.gapi?.client?.getToken?.());
+
       // Get events from 30 days ago to 60 days in the future
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

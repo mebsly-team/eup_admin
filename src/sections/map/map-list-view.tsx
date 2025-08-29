@@ -112,17 +112,30 @@ const MARKER_COLORS = [
   }))
 ];
 
-// Create a function to generate custom colored marker icons
-const createCustomIcon = (color: string) => new Icon({
+const DAY_LABEL_COLORS: Record<number, string> = {
+  [-5]: '#1F77B4', // blue
+  [-4]: '#FF7F0E', // orange
+  [-3]: '#2CA02C', // green
+  [-2]: '#D62728', // red
+  [-1]: '#6A3D9A', // purple
+  [1]: '#007B83',  // teal
+  [2]: '#6B4C3B',  // brown
+  [3]: '#E377C2',  // pink
+  [4]: '#4D4D4D',  // dark gray
+  [5]: '#556B2F',  // olive
+};
+
+const createCustomIcon = (color: string, label?: string | number, labelBgColor?: string) => new Icon({
   iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-      <path fill="${color}" stroke="#fff" stroke-width="2" d="M16 2 C10.477 2 6 6.477 6 12 C6 17.523 16 30 16 30 C16 30 26 17.523 26 12 C26 6.477 21.523 2 16 2 z"/>
-      <circle fill="#fff" cx="16" cy="12" r="4"/>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 40" width="36" height="40">
+      <path fill="${color}" stroke="#fff" stroke-width="2" d="M18 2 C11.373 2 6 7.373 6 14 C6 20.627 18 38 18 38 C18 38 30 20.627 30 14 C30 7.373 24.627 2 18 2 z"/>
+      ${label ? `<circle fill="${labelBgColor || '#11F'}" cx="18" cy="14" r="8"/>` : ''}
+      ${label ? `<text x="18" y="18" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${String(label)}</text>` : ''}
     </svg>
   `),
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32]
+  iconSize: [36, 40],
+  iconAnchor: [18, 40],
+  popupAnchor: [0, -40]
 });
 
 // Separate component to handle map initialization
@@ -457,7 +470,7 @@ const Map = () => {
 
       // Check each existing event to find gaps
       for (let i = 0; i <= dayEvents.length; i++) {
-        const slotStart = i === 0 ? visitDate : new Date(dayEvents[i - 1].end + 30 * 60 * 1000); // 30 min pauze na vorig event
+        const slotStart = i === 0 ? visitDate : new Date(dayEvents[i - 1].end);
         const slotEnd = new Date(slotStart.getTime() + bezoekDuur);
 
         // Als dit de laatste iteratie is of er is een gat voor het volgende event
@@ -486,7 +499,7 @@ const Map = () => {
       }
 
       const eventData = {
-        summary: `Bezoek ${user.first_name} ${user.last_name}`,
+        summary: `${user.first_name} ${user.last_name}`,
         description: `Bezoek aan ${address.street_name} ${address.house_number}, ${address.city} <br /> ${address.zip_code}, ${address.country}`,
         start: {
           dateTime: new Date(bezoekStart).toISOString(),
@@ -837,6 +850,17 @@ const Map = () => {
           },
           '& .fc .fc-toolbar-title': {
             fontSize: '1rem'
+          },
+          '& .fc .fc-timegrid-slot': {
+            height: '40px'
+          },
+          '& .fc .fc-timegrid-axis-cushion': {
+            padding: '0 2px',
+            fontSize: '0.7rem'
+          },
+          '& .fc .fc-timegrid-slot-label-cushion': {
+            padding: '0 2px',
+            fontSize: '0.7rem'
           }
         }}>
           <Calendar
@@ -864,6 +888,12 @@ const Map = () => {
               list: 'Lijst'
             }}
             initialView="timeGridDay"
+            slotDuration="00:15:00"
+            slotLabelInterval="00:30:00"
+            slotMinTime="07:00:00"
+            slotMaxTime="19:00:00"
+            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             eventDrop={handleEventDrop}
             eventResize={handleEventResize}
             eventClick={(eventInfo) => handleOpenTimeChange(eventInfo)}
@@ -1039,11 +1069,48 @@ const Map = () => {
               // Create a marker for each valid address
               return validAddresses.map((address) => {
                 const markerColor = user.customer_color || MARKER_COLORS[0].color;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const startWindow = new Date(today);
+                startWindow.setDate(startWindow.getDate() - 5);
+                const endWindow = new Date(today);
+                endWindow.setDate(endWindow.getDate() + 5);
+
+                const windowEvents = events
+                  .filter((e) => e.start >= startWindow.getTime() && e.start <= endWindow.getTime())
+                  .sort((a, b) => a.start - b.start);
+
+                const matchingEvents = windowEvents.filter((e) => {
+                  const title = (e.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                  const first = (user.first_name || '').toLowerCase().trim();
+                  const last = (user.last_name || '').toLowerCase().trim();
+                  const full = `${first} ${last}`.replace(/\s+/g, ' ').trim();
+                  if (!first && !last) return false;
+                  return (full && title.includes(full)) || (first && title.includes(first)) || (last && title.includes(last));
+                });
+
+                let label: number | undefined;
+                let labelBg: string | undefined;
+                if (matchingEvents.length) {
+                  // Pick the earliest matching event; compute its day offset from today
+                  const firstEvent = matchingEvents[0];
+                  const eventDate = new Date(firstEvent.start);
+                  eventDate.setHours(0, 0, 0, 0);
+                  const diffDays = Math.round((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  const dayStartTs = eventDate.getTime();
+                  const dayEndTs = dayStartTs + 24 * 60 * 60 * 1000 - 1;
+                  const eventsSameDay = events
+                    .filter((e) => e.start >= dayStartTs && e.start <= dayEndTs)
+                    .sort((a, b) => a.start - b.start);
+                  const indexInDay = eventsSameDay.findIndex((e) => e.id === firstEvent.id);
+                  label = indexInDay >= 0 ? indexInDay + 1 : undefined;
+                  labelBg = DAY_LABEL_COLORS[diffDays as -5 | -4 | -3 | -2 | -1 | 1 | 2 | 3 | 4 | 5];
+                }
                 return (
                   <Marker
                     key={`${user.id}-${address.id}`}
                     position={[address.latitude, address.longitude]}
-                    icon={createCustomIcon(markerColor)}
+                    icon={createCustomIcon(markerColor, label, labelBg)}
                     autoPan={true}
                     autoPanPadding={[50, 50]}
                   >
