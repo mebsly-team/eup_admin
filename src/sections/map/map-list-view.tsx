@@ -56,6 +56,7 @@ interface User {
   id: string;
   first_name: string;
   last_name: string;
+  business_name?: string;
   addresses: Address[];
   color?: string;
   customer_color?: string;
@@ -499,7 +500,9 @@ const Map = () => {
       }
 
       const eventData = {
-        summary: `${user.first_name} ${user.last_name}`,
+        summary: user.first_name || user.last_name
+          ? `${user.first_name} ${user.last_name} ${user.business_name ? `- ${user.business_name}` : ''}`.trim()
+          : user.business_name || 'Onbekende klant',
         description: `Bezoek aan ${address.street_name} ${address.house_number}, ${address.city} <br /> ${address.zip_code}, ${address.country}`,
         start: {
           dateTime: new Date(bezoekStart).toISOString(),
@@ -1084,9 +1087,20 @@ const Map = () => {
                   const title = (e.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
                   const first = (user.first_name || '').toLowerCase().trim();
                   const last = (user.last_name || '').toLowerCase().trim();
+                  const business = (user.business_name || '').toLowerCase().trim();
                   const full = `${first} ${last}`.replace(/\s+/g, ' ').trim();
-                  if (!first && !last) return false;
-                  return (full && title.includes(full)) || (first && title.includes(first)) || (last && title.includes(last));
+
+                  // If user has no first/last name but has business name, match by business name
+                  if (!first && !last && business) {
+                    return title.includes(business);
+                  }
+
+                  // If user has first/last name, match by those
+                  if (first || last) {
+                    return (full && title.includes(full)) || (first && title.includes(first)) || (last && title.includes(last));
+                  }
+
+                  return false;
                 });
 
                 let label: number | undefined;
@@ -1133,7 +1147,10 @@ const Map = () => {
                         }}
                         onClick={() => window.open(paths.dashboard.user.edit(user.id), '_blank')}
                       >
-                        {user.first_name} {user.last_name}
+                        {user.first_name || user.last_name
+                          ? `${user.first_name} ${user.last_name}`.trim()
+                          : ''}
+                        {user.business_name ? ` - ${user.business_name}` : ''}
                       </Typography> <br />
                       {address.street_name} {address.house_number}, {address.city} <br />
                       {address.zip_code}, {address.country} <br />
