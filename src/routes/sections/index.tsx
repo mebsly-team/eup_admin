@@ -16,19 +16,7 @@ export default function Router() {
     // SET INDEX PAGE WITH SKIP HOME PAGE
     {
       path: '/',
-      element: <Navigate to={"dashboard"} replace />,
-    },
-
-    // ----------------------------------------------------------------------
-
-    // SET INDEX PAGE WITH HOME PAGE
-    {
-      path: '/',
-      element: (
-        <MainLayout>
-          <HomePage />
-        </MainLayout>
-      ),
+      element: <Navigate to="dashboard" replace />,
     },
 
     // Auth routes

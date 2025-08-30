@@ -9,92 +9,92 @@ import { LoadingScreen } from 'src/components/loading-screen';
 // ----------------------------------------------------------------------
 
 // OVERVIEW
-const OverviewEcommercePage = lazy(() => import('src/pages/dashboard/ecommerce'));
-const OverviewAnalyticsPage = lazy(() => import('src/pages/dashboard/analytics'));
+const OverviewEcommercePage = lazy(() => import('src/pages/dashboard/ecommerce').catch(() => ({ default: () => <div>Error loading page</div> })));
+const OverviewAnalyticsPage = lazy(() => import('src/pages/dashboard/analytics').catch(() => ({ default: () => <div>Error loading page</div> })));
 // PRODUCT
-const ProductListPage = lazy(() => import('src/pages/dashboard/product/list'));
-const ProductCreatePage = lazy(() => import('src/pages/dashboard/product/new'));
-const ProductEditPage = lazy(() => import('src/pages/dashboard/product/edit'));
+const ProductListPage = lazy(() => import('src/pages/dashboard/product/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const ProductCreatePage = lazy(() => import('src/pages/dashboard/product/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const ProductEditPage = lazy(() => import('src/pages/dashboard/product/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // Campaign
-const CampaignListPage = lazy(() => import('src/pages/dashboard/campaign/list'));
-const CampaignCreatePage = lazy(() => import('src/pages/dashboard/campaign/new'));
-const CampaignEditPage = lazy(() => import('src/pages/dashboard/campaign/edit'));
+const CampaignListPage = lazy(() => import('src/pages/dashboard/campaign/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const CampaignCreatePage = lazy(() => import('src/pages/dashboard/campaign/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const CampaignEditPage = lazy(() => import('src/pages/dashboard/campaign/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // BRAND
-const BrandListPage = lazy(() => import('src/pages/dashboard/brand/list'));
-const BrandCreatePage = lazy(() => import('src/pages/dashboard/brand/new'));
-const BrandEditPage = lazy(() => import('src/pages/dashboard/brand/edit'));
+const BrandListPage = lazy(() => import('src/pages/dashboard/brand/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const BrandCreatePage = lazy(() => import('src/pages/dashboard/brand/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const BrandEditPage = lazy(() => import('src/pages/dashboard/brand/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // LANGUAGE
-const LanguageListPage = lazy(() => import('src/pages/dashboard/language/list'));
-const LanguageCreatePage = lazy(() => import('src/pages/dashboard/language/new'));
-const LanguageEditPage = lazy(() => import('src/pages/dashboard/language/edit'));
+const LanguageListPage = lazy(() => import('src/pages/dashboard/language/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LanguageCreatePage = lazy(() => import('src/pages/dashboard/language/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LanguageEditPage = lazy(() => import('src/pages/dashboard/language/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // CATEGORY
-const CategoryListPage = lazy(() => import('src/pages/dashboard/category/list'));
-const CategoryCreatePage = lazy(() => import('src/pages/dashboard/category/new'));
-const CategoryEditPage = lazy(() => import('src/pages/dashboard/category/edit'));
+const CategoryListPage = lazy(() => import('src/pages/dashboard/category/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const CategoryCreatePage = lazy(() => import('src/pages/dashboard/category/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const CategoryEditPage = lazy(() => import('src/pages/dashboard/category/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // CATEGORY
-const SupplierListPage = lazy(() => import('src/pages/dashboard/supplier/list'));
-const SupplierCreatePage = lazy(() => import('src/pages/dashboard/supplier/new'));
-const SupplierEditPage = lazy(() => import('src/pages/dashboard/supplier/edit'));
+const SupplierListPage = lazy(() => import('src/pages/dashboard/supplier/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const SupplierCreatePage = lazy(() => import('src/pages/dashboard/supplier/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const SupplierEditPage = lazy(() => import('src/pages/dashboard/supplier/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // ORDER
-const OrderListPage = lazy(() => import('src/pages/dashboard/order/list'));
-const OrderCreatePage = lazy(() => import('src/pages/dashboard/order/new'));
-const OrderDetailsPage = lazy(() => import('src/pages/dashboard/order/details'));
+const OrderListPage = lazy(() => import('src/pages/dashboard/order/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const OrderCreatePage = lazy(() => import('src/pages/dashboard/order/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const OrderDetailsPage = lazy(() => import('src/pages/dashboard/order/details').catch(() => ({ default: () => <div>Error loading page</div> })));
 // INVOICE
-const InvoiceListPage = lazy(() => import('src/pages/dashboard/invoice/list'));
-const InvoiceDetailsPage = lazy(() => import('src/pages/dashboard/invoice/details'));
-const InvoiceCreatePage = lazy(() => import('src/pages/dashboard/invoice/new'));
-const InvoiceEditPage = lazy(() => import('src/pages/dashboard/invoice/edit'));
+const InvoiceListPage = lazy(() => import('src/pages/dashboard/invoice/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const InvoiceDetailsPage = lazy(() => import('src/pages/dashboard/invoice/details').catch(() => ({ default: () => <div>Error loading page</div> })));
+const InvoiceCreatePage = lazy(() => import('src/pages/dashboard/invoice/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const InvoiceEditPage = lazy(() => import('src/pages/dashboard/invoice/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // USER
-const UserProfilePage = lazy(() => import('src/pages/dashboard/user/profile'));
-const UserCardsPage = lazy(() => import('src/pages/dashboard/user/cards'));
-const UserListPage = lazy(() => import('src/pages/dashboard/user/list'));
-const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account'));
-const UserCreatePage = lazy(() => import('src/pages/dashboard/user/new'));
-const UserEditPage = lazy(() => import('src/pages/dashboard/user/edit'));
+const UserProfilePage = lazy(() => import('src/pages/dashboard/user/profile').catch(() => ({ default: () => <div>Error loading page</div> })));
+const UserCardsPage = lazy(() => import('src/pages/dashboard/user/cards').catch(() => ({ default: () => <div>Error loading page</div> })));
+const UserListPage = lazy(() => import('src/pages/dashboard/user/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const UserAccountPage = lazy(() => import('src/pages/dashboard/user/account').catch(() => ({ default: () => <div>Error loading page</div> })));
+const UserCreatePage = lazy(() => import('src/pages/dashboard/user/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const UserEditPage = lazy(() => import('src/pages/dashboard/user/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // EMPLOYEE
-const EmployeeProfilePage = lazy(() => import('src/pages/dashboard/employee/profile'));
-const EmployeeCardsPage = lazy(() => import('src/pages/dashboard/employee/cards'));
-const EmployeeListPage = lazy(() => import('src/pages/dashboard/employee/list'));
-const EmployeeAccountPage = lazy(() => import('src/pages/dashboard/employee/account'));
-const EmployeeCreatePage = lazy(() => import('src/pages/dashboard/employee/new'));
-const EmployeeEditPage = lazy(() => import('src/pages/dashboard/employee/edit'));
+const EmployeeProfilePage = lazy(() => import('src/pages/dashboard/employee/profile').catch(() => ({ default: () => <div>Error loading page</div> })));
+const EmployeeCardsPage = lazy(() => import('src/pages/dashboard/employee/cards').catch(() => ({ default: () => <div>Error loading page</div> })));
+const EmployeeListPage = lazy(() => import('src/pages/dashboard/employee/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const EmployeeAccountPage = lazy(() => import('src/pages/dashboard/employee/account').catch(() => ({ default: () => <div>Error loading page</div> })));
+const EmployeeCreatePage = lazy(() => import('src/pages/dashboard/employee/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const EmployeeEditPage = lazy(() => import('src/pages/dashboard/employee/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // STATICS
-const StaticsProfilePage = lazy(() => import('src/pages/dashboard/statics/profile'));
-const StaticsCardsPage = lazy(() => import('src/pages/dashboard/statics/cards'));
-const StaticsListPage = lazy(() => import('src/pages/dashboard/statics/list'));
-const StaticsAccountPage = lazy(() => import('src/pages/dashboard/statics/account'));
-const StaticsCreatePage = lazy(() => import('src/pages/dashboard/statics/new'));
-const StaticsEditPage = lazy(() => import('src/pages/dashboard/statics/edit'));
+const StaticsProfilePage = lazy(() => import('src/pages/dashboard/statics/profile').catch(() => ({ default: () => <div>Error loading page</div> })));
+const StaticsCardsPage = lazy(() => import('src/pages/dashboard/statics/cards').catch(() => ({ default: () => <div>Error loading page</div> })));
+const StaticsListPage = lazy(() => import('src/pages/dashboard/statics/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const StaticsAccountPage = lazy(() => import('src/pages/dashboard/statics/account').catch(() => ({ default: () => <div>Error loading page</div> })));
+const StaticsCreatePage = lazy(() => import('src/pages/dashboard/statics/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const StaticsEditPage = lazy(() => import('src/pages/dashboard/statics/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // PURCHASE
-const PurchaseProfilePage = lazy(() => import('src/pages/dashboard/purchase/profile'));
-const PurchaseCardsPage = lazy(() => import('src/pages/dashboard/purchase/cards'));
-const PurchaseListPage = lazy(() => import('src/pages/dashboard/purchase/list'));
-const PurchaseOffersPage = lazy(() => import('src/pages/dashboard/purchase/offers'));
-const PurchaseCreatePage = lazy(() => import('src/pages/dashboard/purchase/new'));
-const PurchaseEditPage = lazy(() => import('src/pages/dashboard/purchase/edit'));
-const PurchaseOfferPage = lazy(() => import('src/pages/dashboard/purchase/offer'));
+const PurchaseProfilePage = lazy(() => import('src/pages/dashboard/purchase/profile').catch(() => ({ default: () => <div>Error loading page</div> })));
+const PurchaseCardsPage = lazy(() => import('src/pages/dashboard/purchase/cards').catch(() => ({ default: () => <div>Error loading page</div> })));
+const PurchaseListPage = lazy(() => import('src/pages/dashboard/purchase/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const PurchaseOffersPage = lazy(() => import('src/pages/dashboard/purchase/offers').catch(() => ({ default: () => <div>Error loading page</div> })));
+const PurchaseCreatePage = lazy(() => import('src/pages/dashboard/purchase/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const PurchaseEditPage = lazy(() => import('src/pages/dashboard/purchase/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
+const PurchaseOfferPage = lazy(() => import('src/pages/dashboard/purchase/offer').catch(() => ({ default: () => <div>Error loading page</div> })));
 // LOGS
-const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile'));
-const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards'));
-const LogsListPage = lazy(() => import('src/pages/dashboard/logs/list'));
-const LogsAccountPage = lazy(() => import('src/pages/dashboard/logs/account'));
-const LogsCreatePage = lazy(() => import('src/pages/dashboard/logs/new'));
-const LogsEditPage = lazy(() => import('src/pages/dashboard/logs/edit'));
+const LogsProfilePage = lazy(() => import('src/pages/dashboard/logs/profile').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LogsCardsPage = lazy(() => import('src/pages/dashboard/logs/cards').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LogsListPage = lazy(() => import('src/pages/dashboard/logs/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LogsAccountPage = lazy(() => import('src/pages/dashboard/logs/account').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LogsCreatePage = lazy(() => import('src/pages/dashboard/logs/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const LogsEditPage = lazy(() => import('src/pages/dashboard/logs/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 // MAP
-const MapProfilePage = lazy(() => import('src/pages/dashboard/map/profile'));
-const MapCardsPage = lazy(() => import('src/pages/dashboard/map/cards'));
-const MapListPage = lazy(() => import('src/pages/dashboard/map/list'));
-const MapAccountPage = lazy(() => import('src/pages/dashboard/map/account'));
-const MapCreatePage = lazy(() => import('src/pages/dashboard/map/new'));
-const MapEditPage = lazy(() => import('src/pages/dashboard/map/edit'));
+const MapProfilePage = lazy(() => import('src/pages/dashboard/map/profile').catch(() => ({ default: () => <div>Error loading page</div> })));
+const MapCardsPage = lazy(() => import('src/pages/dashboard/map/cards').catch(() => ({ default: () => <div>Error loading page</div> })));
+const MapListPage = lazy(() => import('src/pages/dashboard/map/list').catch(() => ({ default: () => <div>Error loading page</div> })));
+const MapAccountPage = lazy(() => import('src/pages/dashboard/map/account').catch(() => ({ default: () => <div>Error loading page</div> })));
+const MapCreatePage = lazy(() => import('src/pages/dashboard/map/new').catch(() => ({ default: () => <div>Error loading page</div> })));
+const MapEditPage = lazy(() => import('src/pages/dashboard/map/edit').catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // APP
-const CalendarPage = lazy(() => import('src/pages/dashboard/calendar'));
-const KanbanPage = lazy(() => import('src/pages/dashboard/kanban'));
+const CalendarPage = lazy(() => import('src/pages/dashboard/calendar').catch(() => ({ default: () => <div>Error loading page</div> })));
+const KanbanPage = lazy(() => import('src/pages/dashboard/kanban').catch(() => ({ default: () => <div>Error loading page</div> })));
 // TEST RENDER PAGE BY ROLE
-const PermissionDeniedPage = lazy(() => import('src/pages/dashboard/permission'));
+const PermissionDeniedPage = lazy(() => import('src/pages/dashboard/permission').catch(() => ({ default: () => <div>Error loading page</div> })));
 // BLANK PAGE
-const BlankPage = lazy(() => import('src/pages/dashboard/blank'));
+const BlankPage = lazy(() => import('src/pages/dashboard/blank').catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // ----------------------------------------------------------------------
 

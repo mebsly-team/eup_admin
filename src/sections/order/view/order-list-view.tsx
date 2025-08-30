@@ -13,6 +13,7 @@ import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 import Link from '@mui/material/Link';
+import Box from '@mui/material/Box';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -36,6 +37,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from 'src/components/table';
+import { LoadingScreen } from 'src/components/loading-screen';
 
 import { IOrderItem, IOrderTableFilters, IOrderTableFilterValue } from 'src/types/order';
 
@@ -73,6 +75,8 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export default function OrderListView() {
+  console.log('OrderListView - component rendering');
+
   const { enqueueSnackbar } = useSnackbar();
 
   const table = useTable({ defaultOrderBy: 'ordered_date' });
@@ -88,6 +92,12 @@ export default function OrderListView() {
 
   const [tableData, setTableData] = useState<IOrderItem[]>(orderList);
   const queryParams = new URLSearchParams(location.search);
+
+  console.log('OrderListView - initial state:', {
+    orderList: orderList.length,
+    tableData: tableData.length,
+    location: location.pathname,
+  });
 
   const defaultFilters: IOrderTableFilters = {
     status: queryParams.get('status') || 'all',
@@ -121,22 +131,32 @@ export default function OrderListView() {
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
   const getAll = async () => {
-    setIsLoading(true);
-    const statusFilter = filters.status !== 'all' ? `&status=${filters.status}` : '';
-    const orderByParam = table.orderBy
-      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
-      : '';
-    const searchFilter = filters.name ? `&search=${filters.name}` : '';
-    const startDateFilter = filters.startDate ? `&start_date=${formatDate(filters.startDate)}` : '';
-    const endDateFilter = filters.endDate ? `&end_date=${formatDate(filters.endDate)}` : '';
+    try {
+      console.log('OrderListView - fetching orders...');
+      setIsLoading(true);
+      const statusFilter = filters.status !== 'all' ? `&status=${filters.status}` : '';
+      const orderByParam = table.orderBy
+        ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
+        : '';
+      const searchFilter = filters.name ? `&search=${filters.name}` : '';
+      const startDateFilter = filters.startDate ? `&start_date=${formatDate(filters.startDate)}` : '';
+      const endDateFilter = filters.endDate ? `&end_date=${formatDate(filters.endDate)}` : '';
 
-    const { data } = await axiosInstance.get(
-      `/orders/?all=true&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
-      }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}`
-    );
-    setCount(data.count || 0);
-    setOrderList(data.results || []);
-    setIsLoading(false);
+      const { data } = await axiosInstance.get(
+        `/orders/?all=true&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
+        }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}`
+      );
+      console.log('OrderListView - orders fetched successfully:', data);
+      setCount(data.count || 0);
+      setOrderList(data.results || []);
+    } catch (error) {
+      console.error('OrderListView - error fetching orders:', error);
+      enqueueSnackbar('Error loading orders', { variant: 'error' });
+      setOrderList([]);
+      setCount(0);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const canReset =
@@ -196,8 +216,8 @@ export default function OrderListView() {
     },
     [handleFilters]
   );
-  const handleTablePageChange = useCallback((e, pageNo) => {
-    handleFilters('page', pageNo + 1);
+  const handleTablePageChange = useCallback((e: any, pageNo: number) => {
+    handleFilters('page', (pageNo + 1).toString());
     table.onChangePage(e, pageNo);
   }, []);
   return (
@@ -296,6 +316,24 @@ export default function OrderListView() {
           )}
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
+            {isLoading && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  zIndex: 1,
+                }}
+              >
+                <LoadingScreen />
+              </Box>
+            )}
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
@@ -440,7 +478,7 @@ function applyFilter({
   return inputData;
 }
 
-const formatDate = (date) => {
+const formatDate = (date: any) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

@@ -60,8 +60,6 @@ export const tokenExpired = (exp: number) => {
 export const setSession = (accessToken: string | null) => {
   if (accessToken) {
     localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('accessToken', accessToken);
-
 
     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 

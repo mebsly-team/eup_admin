@@ -22,7 +22,14 @@ type Props = {
 export default function AuthGuard({ children }: Props) {
   const { loading } = useAuthContext();
 
-  return <>{loading ? <SplashScreen /> : <Container>{children}</Container>}</>;
+  console.log('AuthGuard - loading:', loading);
+
+  if (loading) {
+    console.log('AuthGuard - showing splash screen');
+    return <SplashScreen />;
+  }
+
+  return <Container>{children}</Container>;
 }
 
 // ----------------------------------------------------------------------
@@ -34,8 +41,12 @@ function Container({ children }: Props) {
 
   const [checked, setChecked] = useState(false);
 
+  console.log('AuthGuard Container - authenticated:', authenticated, 'method:', method, 'checked:', checked);
+
   const check = useCallback(() => {
+    console.log('AuthGuard check - authenticated:', authenticated);
     if (!authenticated) {
+      console.log('AuthGuard - not authenticated, redirecting to login');
       const searchParams = new URLSearchParams({
         returnTo: window.location.pathname,
       }).toString();
@@ -46,18 +57,22 @@ function Container({ children }: Props) {
 
       router.replace(href);
     } else {
+      console.log('AuthGuard - authenticated, setting checked to true');
       setChecked(true);
     }
   }, [authenticated, method, router]);
 
   useEffect(() => {
+    console.log('AuthGuard useEffect - running check');
     check();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!checked) {
+    console.log('AuthGuard - not checked yet, returning null');
     return null;
   }
 
+  console.log('AuthGuard - rendering children');
   return <>{children}</>;
 }

@@ -97,17 +97,31 @@ export function AuthProvider({ children }: Props) {
         const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
         console.log('Saved user from storage:', savedUser);
 
-        dispatch({
-          type: Types.INITIAL,
-          payload: {
-            user: {
-              accessToken,
-              ...savedUser,
+        // Ensure we have valid user data
+        if (savedUser && savedUser.id) {
+          dispatch({
+            type: Types.INITIAL,
+            payload: {
+              user: {
+                accessToken,
+                ...savedUser,
+              },
             },
-          },
-        });
+          });
+        } else {
+          console.log('No valid user data found, dispatching null user...');
+          dispatch({
+            type: Types.INITIAL,
+            payload: {
+              user: null,
+            },
+          });
+        }
       } else {
         console.log('No valid token found, dispatching null user...');
+        // Clear any invalid tokens
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('user');
         dispatch({
           type: Types.INITIAL,
           payload: {
@@ -117,6 +131,9 @@ export function AuthProvider({ children }: Props) {
       }
     } catch (error) {
       console.error('Error during auth initialization:', error);
+      // Clear any corrupted data
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('user');
       dispatch({
         type: Types.INITIAL,
         payload: {
@@ -130,6 +147,15 @@ export function AuthProvider({ children }: Props) {
     console.log('Auth provider mounted, initializing...');
     initialize();
   }, [initialize]);
+
+  // Add debugging for state changes
+  useEffect(() => {
+    console.log('Auth state changed:', {
+      user: state.user,
+      loading: state.loading,
+      authenticated: !!state.user,
+    });
+  }, [state]);
 
   // LOGIN
   const login = useCallback(async (email: string, password: string) => {
