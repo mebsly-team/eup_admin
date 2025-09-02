@@ -113,7 +113,35 @@ export default function OrderDetailsToolbar({
                 {t(status)}
               </Button>
             </Stack>
-            <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || "-"} </Typography>
+            <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number ? (
+              snelstart_order_number
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`https://be.kooptop.com/api/orders/${id}/generate_snelstart_number/`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'Content-Type': 'application/json'
+                      }
+                    });
+
+                    if (response.ok) {
+                      window.location.reload();
+                    } else {
+                      console.error('Failed to generate snelstart number');
+                    }
+                  } catch (error) {
+                    console.error('Error generating snelstart number:', error);
+                  }
+                }}
+              >
+                Nieuwe
+              </Button>
+            )} </Typography>
             {/* TODO: add a link to the snelstart order */}
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
               {fDateTime(ordered_date)}
