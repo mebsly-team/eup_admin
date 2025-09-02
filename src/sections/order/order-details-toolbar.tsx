@@ -196,6 +196,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => handleDownloadDocument({ doc: 'invoice' })}
+            disabled={!currentOrder?.delivery_details?.tracking_number}
             sx={{
               backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -210,6 +211,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => handleSendInvoice({ id })}
+            disabled={!currentOrder?.delivery_details?.tracking_number}
             sx={{
               backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -224,6 +226,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
             onClick={() => sendToSnelstart({ id })}
+            disabled={!currentOrder?.delivery_details?.tracking_number}
             sx={{
               backgroundColor: is_sent_to_snelstart ? 'lightgreen' : 'transparent',
               '&:hover': {
