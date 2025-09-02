@@ -1,5 +1,5 @@
 # Base image
-FROM --platform=linux/amd64 node:18-alpine AS base
+FROM --platform=linux/amd64 node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -41,8 +41,8 @@ USER nextjs
 
 EXPOSE 3001
 
-ENV PORT 3001
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3001
+ENV HOSTNAME="0.0.0.0"
 
 # Serve the built Vite app using a static file server
 CMD ["npx", "serve", "-s", "dist", "-l", "3001"]
