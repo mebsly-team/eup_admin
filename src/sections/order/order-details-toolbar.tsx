@@ -113,11 +113,8 @@ export default function OrderDetailsToolbar({
                 {t(status)}
               </Button>
             </Stack>
-            <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number ? (
-              snelstart_order_number
-            ) : (
-              <Button
-                variant="contained"
+            <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || ""}
+              <IconButton
                 color="primary"
                 onClick={async () => {
                   try {
@@ -139,9 +136,9 @@ export default function OrderDetailsToolbar({
                   }
                 }}
               >
-                Nieuwe
-              </Button>
-            )} </Typography>
+                <Iconify icon="eva:refresh-fill" />
+              </IconButton>
+            </Typography>
             {/* TODO: add a link to the snelstart order */}
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
               {fDateTime(ordered_date)}
