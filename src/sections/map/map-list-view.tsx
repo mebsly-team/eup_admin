@@ -180,6 +180,8 @@ const Map = () => {
     end: null,
   });
 
+  const GOOGLE_CALENDAR_ID = import.meta.env.VITE_GOOGLE_CALENDAR_ID || 'm.sahin@europowerbv.nl';
+
   // Fetch events from Google Calendar
   useEffect(() => {
     const fetchEvents = async () => {
@@ -191,7 +193,16 @@ const Map = () => {
         const sixtyDaysFromNow = new Date();
         sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
 
-        const token = window.gapi?.client?.getToken();
+        const tokenFromGapi = window.gapi?.client?.getToken();
+        let token = tokenFromGapi;
+        if (!tokenFromGapi) {
+          const storedToken = localStorage.getItem('googleCalendarToken');
+          const tokenExpiry = localStorage.getItem('googleCalendarTokenExpiry');
+          if (storedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
+            window.gapi?.client?.setToken({ access_token: storedToken });
+            token = window.gapi?.client?.getToken();
+          }
+        }
         console.log('Google Calendar token:', token ? 'Present' : 'Missing');
 
         if (!window.gapi?.client?.calendar) {
@@ -203,7 +214,7 @@ const Map = () => {
         if (token) {
           console.log('Fetching Google Calendar events...');
           const response = await window.gapi.client.calendar.events.list({
-            calendarId: 'primary',
+            calendarId: GOOGLE_CALENDAR_ID,
             timeMin: thirtyDaysAgo.toISOString(),
             timeMax: sixtyDaysFromNow.toISOString(),
             singleEvents: true,
@@ -243,7 +254,8 @@ const Map = () => {
           window.google.accounts.oauth2.revoke(token.access_token);
           window.gapi.client.setToken(null);
         }
-        localStorage.removeItem('googleCalendarTokens');
+        localStorage.removeItem('googleCalendarToken');
+        localStorage.removeItem('googleCalendarTokenExpiry');
         enqueueSnackbar('Error fetching calendar events - Disconnected from Google Calendar', { variant: 'error' });
       }
     };
@@ -519,7 +531,7 @@ const Map = () => {
       console.log('Agenda-afspraak maken:', eventData);
 
       const response = await window.gapi.client.calendar.events.insert({
-        calendarId: 'primary',
+        calendarId: GOOGLE_CALENDAR_ID,
         resource: eventData,
       });
 
@@ -578,7 +590,8 @@ const Map = () => {
         window.google.accounts.oauth2.revoke(token.access_token);
         window.gapi.client.setToken(null);
       }
-      localStorage.removeItem('googleCalendarTokens');
+      localStorage.removeItem('googleCalendarToken');
+      localStorage.removeItem('googleCalendarTokenExpiry');
       enqueueSnackbar(
         error instanceof Error
           ? `${error.message} - Verbinding met Google Agenda verbroken`
@@ -609,7 +622,7 @@ const Map = () => {
       };
 
       const response = await window.gapi.client.calendar.events.patch({
-        calendarId: 'primary',
+        calendarId: GOOGLE_CALENDAR_ID,
         eventId: event.id,
         resource: eventData,
       });
@@ -662,7 +675,7 @@ const Map = () => {
       };
 
       const response = await window.gapi.client.calendar.events.patch({
-        calendarId: 'primary',
+        calendarId: GOOGLE_CALENDAR_ID,
         eventId: event.id,
         resource: eventData,
       });
@@ -702,7 +715,7 @@ const Map = () => {
 
       // Delete from Google Calendar
       const response = await window.gapi.client.calendar.events.delete({
-        calendarId: 'primary',
+        calendarId: GOOGLE_CALENDAR_ID,
         eventId: eventId,
       });
 
@@ -729,7 +742,8 @@ const Map = () => {
         window.google.accounts.oauth2.revoke(token.access_token);
         window.gapi.client.setToken(null);
       }
-      localStorage.removeItem('googleCalendarTokens');
+      localStorage.removeItem('googleCalendarToken');
+      localStorage.removeItem('googleCalendarTokenExpiry');
       enqueueSnackbar(
         error instanceof Error
           ? `${error.message} - Disconnected from Google Calendar`
@@ -786,7 +800,7 @@ const Map = () => {
       };
 
       const response = await window.gapi.client.calendar.events.patch({
-        calendarId: 'primary',
+        calendarId: GOOGLE_CALENDAR_ID,
         eventId: timeChangeDialog.eventId,
         resource: eventData,
       });

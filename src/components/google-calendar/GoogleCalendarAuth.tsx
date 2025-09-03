@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { useSnackbar } from 'src/components/snackbar';
 import { mutate } from 'swr';
 import { endpoints } from 'src/utils/axios';
@@ -10,14 +13,15 @@ declare global {
     }
 }
 
-
-
 const SERVICE_ACCOUNT_EMAIL = import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const SERVICE_ACCOUNT_PRIVATE_KEY = import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+const DELEGATED_USER = import.meta.env.VITE_GOOGLE_DELEGATED_USER;
+const GOOGLE_CALENDAR_ID = import.meta.env.VITE_GOOGLE_CALENDAR_ID || DELEGATED_USER || 'primary';
 
 export default function GoogleCalendarAuth() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [testing, setTesting] = useState(false);
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
@@ -25,12 +29,10 @@ export default function GoogleCalendarAuth() {
             try {
                 setIsLoading(true);
 
-                // Check if we already have a valid token
                 const storedToken = localStorage.getItem('googleCalendarToken');
                 const tokenExpiry = localStorage.getItem('googleCalendarTokenExpiry');
 
                 if (storedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
-                    // Token is still valid
                     await ensureGapiInitialized(storedToken);
                     setIsAuthenticated(true);
                     mutate(endpoints.calendar);
@@ -38,12 +40,10 @@ export default function GoogleCalendarAuth() {
                     return;
                 }
 
-                // Get new access token using service account
                 const accessToken = await getServiceAccountAccessToken();
 
                 if (accessToken) {
-                    // Store token with expiry (typically 1 hour)
-                    const expiryTime = Date.now() + 3500000; // 58 minutes for safety
+                    const expiryTime = Date.now() + 3500000;
                     localStorage.setItem('googleCalendarToken', accessToken);
                     localStorage.setItem('googleCalendarTokenExpiry', expiryTime.toString());
 
@@ -73,33 +73,32 @@ export default function GoogleCalendarAuth() {
                 throw new Error('Service account credentials not configured');
             }
 
-            // Create JWT for service account authentication
             const header = {
                 alg: 'RS256',
                 typ: 'JWT'
-            };
+            } as const;
 
             const now = Math.floor(Date.now() / 1000);
-            const claimSet = {
+            const claimSet: Record<string, string | number> = {
                 iss: SERVICE_ACCOUNT_EMAIL,
                 scope: 'https://www.googleapis.com/auth/calendar',
                 aud: 'https://oauth2.googleapis.com/token',
-                exp: now + 3600, // 1 hour
+                exp: now + 3600,
                 iat: now
             };
 
-            // Encode header and claim set (base64url)
+            if (DELEGATED_USER) {
+                claimSet.sub = DELEGATED_USER;
+            }
+
             const encodedHeader = base64UrlEncode(JSON.stringify(header));
             const encodedClaimSet = base64UrlEncode(JSON.stringify(claimSet));
 
-            // Create signature
             const signatureInput = `${encodedHeader}.${encodedClaimSet}`;
             const signature = await signWithPrivateKey(signatureInput, SERVICE_ACCOUNT_PRIVATE_KEY);
 
-            // Create JWT
             const jwt = `${signatureInput}.${signature}`;
 
-            // Exchange JWT for access token
             const response = await fetch('https://oauth2.googleapis.com/token', {
                 method: 'POST',
                 headers: {
@@ -155,11 +154,7 @@ export default function GoogleCalendarAuth() {
     };
 
     const signWithPrivateKey = async (data: string, privateKey: string): Promise<string> => {
-        // For browser environments, we need to use the Web Crypto API
-        // Note: This is a simplified version - you might want to use a library like jsrsasign
-
         try {
-            // Import the private key
             const key = await window.crypto.subtle.importKey(
                 'pkcs8',
                 pemToArrayBuffer(privateKey),
@@ -171,7 +166,6 @@ export default function GoogleCalendarAuth() {
                 ['sign']
             );
 
-            // Sign the data
             const signature = await window.crypto.subtle.sign(
                 'RSASSA-PKCS1-v1_5',
                 key,
@@ -220,5 +214,36 @@ export default function GoogleCalendarAuth() {
             .replace(/=+$/g, '');
     };
 
-    return null;
+    const testWriteAccess = async () => {
+        try {
+            setTesting(true);
+            if (!(window as any).gapi?.client?.calendar) throw new Error('Google Calendar API not initialized');
+            const start = new Date(Date.now() + 5 * 60 * 1000);
+            const end = new Date(start.getTime() + 10 * 60 * 1000);
+            const event = {
+                summary: 'WriteTest',
+                description: 'Temporary event to verify write access',
+                location: 'Test Location',
+                start: { dateTime: start.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+                end: { dateTime: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+            };
+            const insert = await (window as any).gapi.client.calendar.events.insert({ calendarId: GOOGLE_CALENDAR_ID, resource: event });
+            if (insert.status !== 200) throw new Error(`Insert failed: ${insert.status}`);
+            const eventId = insert.result.id;
+            const del = await (window as any).gapi.client.calendar.events.delete({ calendarId: GOOGLE_CALENDAR_ID, eventId });
+            if (del.status !== 204) throw new Error(`Delete failed: ${del.status}`);
+            enqueueSnackbar('Write access OK: insert/delete succeeded', { variant: 'success' });
+        } catch (e: any) {
+            const msg = e?.result?.error?.message || e?.message || 'Unknown error';
+            enqueueSnackbar(`Write access failed: ${msg}`, { variant: 'error' });
+        } finally {
+            setTesting(false);
+        }
+    };
+
+    return (
+        <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="caption">{isAuthenticated ? 'Google Calendar connected' : 'Google Calendar disconnected'}</Typography>
+        </Stack>
+    );
 }
