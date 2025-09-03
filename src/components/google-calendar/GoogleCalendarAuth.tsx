@@ -1,13 +1,7 @@
-import { useState, useEffect } from 'react';
-import Button from '@mui/material/Button';
-import Iconify from 'src/components/iconify';
+import { useState, useEffect, useRef } from 'react';
 import { useSnackbar } from 'src/components/snackbar';
 import { mutate } from 'swr';
 import { endpoints } from 'src/utils/axios';
-
-// Add these to your index.html:
-// <script src="https://apis.google.com/js/api.js"></script>
-// <script src="https://accounts.google.com/gsi/client"></script>
 
 declare global {
     interface Window {
@@ -16,172 +10,215 @@ declare global {
     }
 }
 
-const SCOPES = 'https://www.googleapis.com/auth/calendar';
-const REDIRECT_URI = import.meta.env.DEV
-    ? 'https://localhost:3000'  // Development
-    : 'https://admin.europowerbv.com'; // Production
+
+
+const SERVICE_ACCOUNT_EMAIL = import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const SERVICE_ACCOUNT_PRIVATE_KEY = import.meta.env.VITE_GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
 export default function GoogleCalendarAuth() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [gapiInited, setGapiInited] = useState(false);
-    const [gisInited, setGisInited] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
-        const initializeGapi = async () => {
+        const initializeCalendarConnection = async () => {
             try {
-                console.log('Initializing GAPI...');
-                if (!window.gapi) {
-                    console.error('Google API client library not loaded');
-                    enqueueSnackbar('Failed to load Google Calendar API', { variant: 'error' });
+                setIsLoading(true);
+
+                // Check if we already have a valid token
+                const storedToken = localStorage.getItem('googleCalendarToken');
+                const tokenExpiry = localStorage.getItem('googleCalendarTokenExpiry');
+
+                if (storedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
+                    // Token is still valid
+                    await ensureGapiInitialized(storedToken);
+                    setIsAuthenticated(true);
+                    mutate(endpoints.calendar);
+                    setIsLoading(false);
                     return;
                 }
 
-                await new Promise((resolve) => window.gapi.load('client', resolve));
-                console.log('GAPI client loaded');
+                // Get new access token using service account
+                const accessToken = await getServiceAccountAccessToken();
 
-                await window.gapi.client.init({
-                    apiKey: import.meta.env.VITE_GOOGLE_API_KEY || "AIzaSyBH17J5aZoj9jdY4mY0pCLA2iUstkAXcgo",
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-                });
-                console.log('GAPI client initialized');
+                if (accessToken) {
+                    // Store token with expiry (typically 1 hour)
+                    const expiryTime = Date.now() + 3500000; // 58 minutes for safety
+                    localStorage.setItem('googleCalendarToken', accessToken);
+                    localStorage.setItem('googleCalendarTokenExpiry', expiryTime.toString());
 
-                // Check for existing tokens after initialization
-                const tokens = localStorage.getItem('googleCalendarTokens');
-                if (tokens) {
-                    console.log('Found existing tokens');
-                    const { access_token } = JSON.parse(tokens);
-                    if (access_token) {
-                        window.gapi.client.setToken({ access_token });
-                        setIsAuthenticated(true);
-                        // Refresh calendar events when restoring token
-                        mutate(endpoints.calendar);
-                    }
+                    await ensureGapiInitialized(accessToken);
+                    setIsAuthenticated(true);
+                    mutate(endpoints.calendar);
+                    enqueueSnackbar('Google Calendar connected', { variant: 'success' });
+                } else {
+                    throw new Error('Failed to obtain access token');
                 }
 
-                setGapiInited(true);
-            } catch (error) {
-                console.error('Error initializing GAPI client:', error);
-                // Disconnect on initialization error
-                const token = window.gapi?.client?.getToken();
-                if (token) {
-                    window.google.accounts.oauth2.revoke(token.access_token);
-                    window.gapi.client.setToken(null);
-                }
-                localStorage.removeItem('googleCalendarTokens');
+            } catch (error: any) {
+                console.error('Error connecting to Google Calendar:', error);
+                enqueueSnackbar(`Calendar connection failed: ${error.message || error}`, { variant: 'error' });
                 setIsAuthenticated(false);
-                enqueueSnackbar('Failed to initialize Google Calendar - Disconnected', { variant: 'error' });
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        const initializeGis = () => {
-            try {
-                console.log('Initializing GIS...');
-                if (!window.google?.accounts?.oauth2) {
-                    console.error('Google Identity Services not loaded');
-                    enqueueSnackbar('Failed to load Google Sign-In', { variant: 'error' });
-                    return;
-                }
-
-                setGisInited(true);
-            } catch (error) {
-                console.error('Error initializing GIS client:', error);
-                // Disconnect on GIS initialization error
-                const token = window.gapi?.client?.getToken();
-                if (token) {
-                    window.google.accounts.oauth2.revoke(token.access_token);
-                    window.gapi.client.setToken(null);
-                }
-                localStorage.removeItem('googleCalendarTokens');
-                setIsAuthenticated(false);
-                enqueueSnackbar('Failed to initialize Google Sign-In - Disconnected', { variant: 'error' });
-            }
-        };
-
-        // Check if scripts are loaded
-        if (!window.gapi) {
-            console.error('Google API client library not loaded. Make sure the script is in index.html');
-            return;
-        }
-
-        if (!window.google?.accounts?.oauth2) {
-            console.error('Google Identity Services not loaded. Make sure the script is in index.html');
-            return;
-        }
-
-        initializeGapi();
-        initializeGis();
+        initializeCalendarConnection();
     }, [enqueueSnackbar]);
 
-    const handleTokenResponse = (response: any) => {
-        console.log('Received token response:', response);
+    const getServiceAccountAccessToken = async (): Promise<string | null> => {
         try {
-            if (response.access_token) {
-                localStorage.setItem('googleCalendarTokens', JSON.stringify(response));
-                window.gapi.client.setToken({ access_token: response.access_token });
-                setIsAuthenticated(true);
-                // Refresh calendar events after new token received
-                mutate(endpoints.calendar);
-                enqueueSnackbar('Successfully connected to Google Calendar!', { variant: 'success' });
-            } else {
-                throw new Error('No access token received');
+            if (!SERVICE_ACCOUNT_EMAIL || !SERVICE_ACCOUNT_PRIVATE_KEY) {
+                throw new Error('Service account credentials not configured');
             }
+
+            // Create JWT for service account authentication
+            const header = {
+                alg: 'RS256',
+                typ: 'JWT'
+            };
+
+            const now = Math.floor(Date.now() / 1000);
+            const claimSet = {
+                iss: SERVICE_ACCOUNT_EMAIL,
+                scope: 'https://www.googleapis.com/auth/calendar',
+                aud: 'https://oauth2.googleapis.com/token',
+                exp: now + 3600, // 1 hour
+                iat: now
+            };
+
+            // Encode header and claim set (base64url)
+            const encodedHeader = base64UrlEncode(JSON.stringify(header));
+            const encodedClaimSet = base64UrlEncode(JSON.stringify(claimSet));
+
+            // Create signature
+            const signatureInput = `${encodedHeader}.${encodedClaimSet}`;
+            const signature = await signWithPrivateKey(signatureInput, SERVICE_ACCOUNT_PRIVATE_KEY);
+
+            // Create JWT
+            const jwt = `${signatureInput}.${signature}`;
+
+            // Exchange JWT for access token
+            const response = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: jwt
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Token request failed: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.access_token;
+
         } catch (error) {
-            console.error('Error handling token response:', error);
-            // Disconnect on token handling error
-            const token = window.gapi?.client?.getToken();
-            if (token) {
-                window.google.accounts.oauth2.revoke(token.access_token);
-                window.gapi.client.setToken(null);
-            }
-            localStorage.removeItem('googleCalendarTokens');
-            setIsAuthenticated(false);
-            enqueueSnackbar('Failed to connect to Google Calendar - Disconnected', { variant: 'error' });
+            console.error('Error getting service account access token:', error);
+            return null;
         }
     };
 
-    const handleAuthClick = () => {
-        if (!gapiInited || !gisInited) {
-            console.log('Not initialized yet. GAPI:', gapiInited, 'GIS:', gisInited);
-            enqueueSnackbar('Google Calendar is not initialized yet', { variant: 'warning' });
-            return;
-        }
-
-        console.log('Requesting access token...');
-        const client = window.google.accounts.oauth2.initTokenClient({
-            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "63545553853-6p449srf24g399nq70is8oao2bt8lndj.apps.googleusercontent.com",
-            scope: SCOPES,
-            callback: handleTokenResponse,
-            ux_mode: 'redirect',
-            redirect_uri: REDIRECT_URI
+    const loadGapiScript = (): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            if ((window as any).gapi) return resolve();
+            const script = document.createElement('script');
+            script.src = 'https://apis.google.com/js/api.js';
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load gapi script'));
+            document.body.appendChild(script);
         });
-
-        client.requestAccessToken();
     };
 
-    const handleDisconnect = () => {
-        console.log('Disconnecting...');
-        const token = window.gapi.client.getToken();
-        if (token) {
-            window.google.accounts.oauth2.revoke(token.access_token);
-            window.gapi.client.setToken(null);
+    const ensureGapiInitialized = async (accessToken: string): Promise<void> => {
+        await loadGapiScript();
+        await new Promise<void>((resolve, reject) => {
+            (window as any).gapi.load('client', async () => {
+                try {
+                    if (!(window as any).gapi.client?.calendar) {
+                        await (window as any).gapi.client.init({});
+                        await (window as any).gapi.client.load('calendar', 'v3');
+                    }
+                    (window as any).gapi.client.setToken({ access_token: accessToken });
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        });
+    };
+
+    const signWithPrivateKey = async (data: string, privateKey: string): Promise<string> => {
+        // For browser environments, we need to use the Web Crypto API
+        // Note: This is a simplified version - you might want to use a library like jsrsasign
+
+        try {
+            // Import the private key
+            const key = await window.crypto.subtle.importKey(
+                'pkcs8',
+                pemToArrayBuffer(privateKey),
+                {
+                    name: 'RSASSA-PKCS1-v1_5',
+                    hash: { name: 'SHA-256' }
+                },
+                false,
+                ['sign']
+            );
+
+            // Sign the data
+            const signature = await window.crypto.subtle.sign(
+                'RSASSA-PKCS1-v1_5',
+                key,
+                new TextEncoder().encode(data)
+            );
+
+            return arrayBufferToBase64(signature).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        } catch (error) {
+            console.error('Error signing with private key:', error);
+            throw error;
         }
-        localStorage.removeItem('googleCalendarTokens');
-        setIsAuthenticated(false);
-        // Refresh calendar events after disconnecting
-        mutate(endpoints.calendar);
-        enqueueSnackbar('Disconnected from Google Calendar', { variant: 'info' });
     };
 
-    return (
-        <Button
-            variant={isAuthenticated ? 'outlined' : 'contained'}
-            startIcon={<Iconify icon={isAuthenticated ? 'mdi:google-calendar' : 'flat-color-icons:google'} />}
-            onClick={isAuthenticated ? handleDisconnect : handleAuthClick}
-            sx={{ ml: 2 }}
-            disabled={!gapiInited || !gisInited}
-        >
-            {isAuthenticated ? 'Disconnect Calendar' : 'Connect Google Calendar'}
-        </Button>
-    );
-} 
+    const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+        const cleaned = base64.replace(/\s+/g, '');
+        const binaryString = atob(cleaned);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+    };
+
+    const pemToArrayBuffer = (pem: string): ArrayBuffer => {
+        const pemBody = pem
+            .replace(/-----BEGIN [^-]+-----/g, '')
+            .replace(/-----END [^-]+-----/g, '')
+            .replace(/\r?\n/g, '')
+            .replace(/\s+/g, '');
+        return base64ToArrayBuffer(pemBody);
+    };
+
+    const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    };
+
+    const base64UrlEncode = (input: string): string => {
+        return btoa(input)
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/g, '');
+    };
+
+    return null;
+}
