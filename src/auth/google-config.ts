@@ -1,10 +1,10 @@
 export const GOOGLE_CONFIG = {
-    client_id: '63545553853-6p449srf24g399nq70is8oao2bt8lndj.apps.googleusercontent.com',
-    project_id: 'europower',
+    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
+    project_id: import.meta.env.VITE_GOOGLE_PROJECT_ID || '',
     auth_uri: 'https://accounts.google.com/o/oauth2/auth',
     token_uri: 'https://oauth2.googleapis.com/token',
     auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-    client_secret: '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',
+    client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
     redirect_uris: [
         'https://admin.kooptop.com',
         'https://admin.europowerbv.com',
@@ -21,7 +21,6 @@ export const GOOGLE_CONFIG = {
     ],
 } as const;
 
-// Helper function to get the appropriate redirect URI based on the current environment
 export const getRedirectUri = () => {
     const hostname = window.location.hostname;
 
