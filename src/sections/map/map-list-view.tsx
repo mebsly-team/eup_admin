@@ -504,6 +504,7 @@ const Map = () => {
           ? `${user.first_name} ${user.last_name} ${user.business_name ? `- ${user.business_name}` : ''}`.trim()
           : user.business_name || 'Onbekende klant',
         description: `Bezoek aan ${address.street_name} ${address.house_number}, ${address.city} <br /> ${address.zip_code}, ${address.country}`,
+        location: `${address.street_name} ${address.house_number}, ${address.zip_code} ${address.city}, ${address.country}`,
         start: {
           dateTime: new Date(bezoekStart).toISOString(),
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
