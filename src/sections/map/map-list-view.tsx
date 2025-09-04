@@ -402,6 +402,43 @@ const Map = () => {
       },
     });
 
+    // Prevent default touch behaviors on the map
+    useEffect(() => {
+      const mapContainer = map.getContainer();
+
+      const preventDefaultTouch = (e: TouchEvent) => {
+        e.preventDefault();
+      };
+
+      const preventDefaultGesture = (e: any) => {
+        e.preventDefault();
+      };
+
+      // Prevent default touch behaviors
+      mapContainer.addEventListener('touchstart', preventDefaultTouch, { passive: false });
+      mapContainer.addEventListener('touchmove', preventDefaultTouch, { passive: false });
+      mapContainer.addEventListener('touchend', preventDefaultTouch, { passive: false });
+
+      // Prevent gesture events (iOS)
+      if ('ongesturestart' in window) {
+        mapContainer.addEventListener('gesturestart', preventDefaultGesture);
+        mapContainer.addEventListener('gesturechange', preventDefaultGesture);
+        mapContainer.addEventListener('gestureend', preventDefaultGesture);
+      }
+
+      return () => {
+        mapContainer.removeEventListener('touchstart', preventDefaultTouch);
+        mapContainer.removeEventListener('touchmove', preventDefaultTouch);
+        mapContainer.removeEventListener('touchend', preventDefaultTouch);
+
+        if ('ongesturestart' in window) {
+          mapContainer.removeEventListener('gesturestart', preventDefaultGesture);
+          mapContainer.removeEventListener('gesturechange', preventDefaultGesture);
+          mapContainer.removeEventListener('gestureend', preventDefaultGesture);
+        }
+      };
+    }, [map]);
+
     return null;
   };
 
@@ -1063,11 +1100,29 @@ const Map = () => {
         </Paper>
 
         {/* Map Container */}
-        <Box sx={{ flexGrow: 1, position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{
+          flexGrow: 1,
+          position: 'relative',
+          overflow: 'hidden',
+          touchAction: 'pan-x pan-y',
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none'
+        }}>
           <MapContainer
             center={[mapCenter.lat, mapCenter.lng]}
             zoom={zoom}
-            style={{ height: "100%", width: "100%" }}
+            style={{
+              height: "100%",
+              width: "100%",
+              touchAction: "pan-x pan-y",
+              WebkitTouchCallout: "none",
+              WebkitUserSelect: "none",
+              KhtmlUserSelect: "none",
+              MozUserSelect: "none",
+              msUserSelect: "none",
+              userSelect: "none"
+            }}
           >
             <MapInitializer onMapReady={handleMapReady} />
             <TileLayer
