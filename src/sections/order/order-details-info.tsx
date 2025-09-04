@@ -648,6 +648,40 @@ export default function OrderDetailsInfo({
           <Stack spacing={1.5}>
             <Stack direction="row" alignItems="center">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Voornaam:
+              </Box>
+              <TextField
+                value={updatedShippingAddress.first_name}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, first_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Achternaam:
+              </Box>
+
+              <TextField
+                value={updatedShippingAddress.last_name}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, last_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Bedrijfsnaam:
+              </Box>
+
+              <TextField
+                value={updatedShippingAddress.business_name}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, business_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Land:
               </Box>
               <TextField
@@ -715,6 +749,21 @@ export default function OrderDetailsInfo({
         ) : (
           <>
             <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Naam:
+              </Box>
+              {shippingAddress.first_name || ''}
+              {' '}
+              {shippingAddress.last_name || ''}
+            </Stack>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Bedrijfsnaam:
+              </Box>
+              {shippingAddress.business_name || ''}
+            </Stack>
+            <Stack direction="row">
+
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Adres
               </Box>
