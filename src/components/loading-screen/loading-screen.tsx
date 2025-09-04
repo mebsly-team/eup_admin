@@ -1,9 +1,12 @@
 import Box, { BoxProps } from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 // ----------------------------------------------------------------------
 
-export default function LoadingScreen({ sx, ...other }: BoxProps) {
+function LoadingScreenWrapper({ sx, ...other }: BoxProps) {
+  useErrorRefresh();
+
   return (
     <Box
       sx={{
@@ -21,4 +24,8 @@ export default function LoadingScreen({ sx, ...other }: BoxProps) {
       <LinearProgress color="inherit" sx={{ width: 1, maxWidth: 360 }} />
     </Box>
   );
+}
+
+export default function LoadingScreen({ sx, ...other }: BoxProps) {
+  return <LoadingScreenWrapper sx={sx} {...other} />;
 }

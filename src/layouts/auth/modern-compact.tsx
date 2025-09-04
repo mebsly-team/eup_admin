@@ -2,6 +2,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 
 import Header from '../common/header-simple';
+import ErrorRefresh from 'src/components/error-refresh';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -9,7 +11,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AuthModernCompactLayout({ children }: Props) {
+function AuthModernCompactLayoutWrapper({ children }: Props) {
+  useErrorRefresh();
+
   return (
     <>
       <Header />
@@ -49,6 +53,11 @@ export default function AuthModernCompactLayout({ children }: Props) {
           {children}
         </Card>
       </Box>
+      <ErrorRefresh />
     </>
   );
+}
+
+export default function AuthModernCompactLayout({ children }: Props) {
+  return <AuthModernCompactLayoutWrapper>{children}</AuthModernCompactLayoutWrapper>;
 }

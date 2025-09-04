@@ -5,6 +5,8 @@ import Stack from '@mui/material/Stack';
 import { useResponsive } from 'src/hooks/use-responsive';
 
 import Logo from 'src/components/logo';
+import ErrorRefresh from 'src/components/error-refresh';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -13,7 +15,8 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AuthModernLayout({ children, image }: Props) {
+function AuthModernLayoutWrapper({ children, image }: Props) {
+  useErrorRefresh();
   const mdUp = useResponsive('up', 'md');
 
   const renderContent = (
@@ -88,6 +91,11 @@ export default function AuthModernLayout({ children, image }: Props) {
       {renderContent}
 
       {mdUp && renderSection}
+      <ErrorRefresh />
     </Stack>
   );
+}
+
+export default function AuthModernLayout({ children, image }: Props) {
+  return <AuthModernLayoutWrapper children={children} image={image} />;
 }

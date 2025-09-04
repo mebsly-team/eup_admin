@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import CompactLayout from 'src/layouts/compact';
 
@@ -15,15 +16,20 @@ const MaintenancePage = lazy(() => import('src/pages/maintenance'));
 
 // ----------------------------------------------------------------------
 
+function MainWrapper() {
+  useErrorRefresh();
+  return (
+    <CompactLayout>
+      <Suspense fallback={<SplashScreen />}>
+        <Outlet />
+      </Suspense>
+    </CompactLayout>
+  );
+}
+
 export const mainRoutes = [
   {
-    element: (
-      <CompactLayout>
-        <Suspense fallback={<SplashScreen />}>
-          <Outlet />
-        </Suspense>
-      </CompactLayout>
-    ),
+    element: <MainWrapper />,
     children: [
       { path: 'maintenance', element: <MaintenancePage /> },
       { path: '500', element: <Page500 /> },

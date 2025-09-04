@@ -2,8 +2,10 @@ import Box from '@mui/material/Box';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useResponsive } from 'src/hooks/use-responsive';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import { useSettingsContext } from 'src/components/settings';
+import ErrorRefresh from 'src/components/error-refresh';
 
 import Main from './main';
 import Header from './header';
@@ -17,8 +19,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function DashboardLayout({ children }: Props) {
+function DashboardLayoutWrapper({ children }: Props) {
   const settings = useSettingsContext();
+  useErrorRefresh();
 
   const lgUp = useResponsive('up', 'lg');
 
@@ -42,6 +45,7 @@ export default function DashboardLayout({ children }: Props) {
         {lgUp ? renderHorizontal : renderNavVertical}
 
         <Main>{children}</Main>
+        <ErrorRefresh />
       </>
     );
   }
@@ -62,6 +66,7 @@ export default function DashboardLayout({ children }: Props) {
 
           <Main>{children}</Main>
         </Box>
+        <ErrorRefresh />
       </>
     );
   }
@@ -81,6 +86,11 @@ export default function DashboardLayout({ children }: Props) {
 
         <Main>{children}</Main>
       </Box>
+      <ErrorRefresh />
     </>
   );
+}
+
+export default function DashboardLayout({ children }: Props) {
+  return <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>;
 }

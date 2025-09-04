@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import MainLayout from 'src/layouts/main';
 
@@ -71,15 +72,20 @@ const WalktourPage = lazy(() => import('src/pages/components/extra/walktour'));
 
 // ----------------------------------------------------------------------
 
+function ComponentsWrapper() {
+  useErrorRefresh();
+  return (
+    <MainLayout>
+      <Suspense fallback={<SplashScreen />}>
+        <Outlet />
+      </Suspense>
+    </MainLayout>
+  );
+}
+
 export const componentsRoutes = [
   {
-    element: (
-      <MainLayout>
-        <Suspense fallback={<SplashScreen />}>
-          <Outlet />
-        </Suspense>
-      </MainLayout>
-    ),
+    element: <ComponentsWrapper />,
     children: [
       {
         path: 'components',

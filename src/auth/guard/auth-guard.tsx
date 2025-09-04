@@ -4,6 +4,7 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { SplashScreen } from 'src/components/loading-screen';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import { useAuthContext } from '../hooks';
 
@@ -19,8 +20,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AuthGuard({ children }: Props) {
+function AuthGuardWrapper({ children }: Props) {
   const { loading } = useAuthContext();
+  useErrorRefresh();
 
   console.log('AuthGuard - loading:', loading);
 
@@ -32,10 +34,15 @@ export default function AuthGuard({ children }: Props) {
   return <Container>{children}</Container>;
 }
 
+export default function AuthGuard({ children }: Props) {
+  return <AuthGuardWrapper>{children}</AuthGuardWrapper>;
+}
+
 // ----------------------------------------------------------------------
 
 function Container({ children }: Props) {
   const router = useRouter();
+  useErrorRefresh();
 
   const { authenticated, method } = useAuthContext();
 

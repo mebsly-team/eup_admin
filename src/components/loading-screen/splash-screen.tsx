@@ -5,11 +5,13 @@ import { alpha } from '@mui/material/styles';
 import Box, { BoxProps } from '@mui/material/Box';
 
 import Logo from '../logo';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 // ----------------------------------------------------------------------
 
-export default function SplashScreen({ sx, ...other }: BoxProps) {
+function SplashScreenWrapper({ sx, ...other }: BoxProps) {
   const [mounted, setMounted] = useState(false);
+  useErrorRefresh();
 
   useEffect(() => {
     setMounted(true);
@@ -92,4 +94,8 @@ export default function SplashScreen({ sx, ...other }: BoxProps) {
       </>
     </Box>
   );
+}
+
+export default function SplashScreen({ sx, ...other }: BoxProps) {
+  return <SplashScreenWrapper sx={sx} {...other} />;
 }

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import { GuestGuard } from 'src/auth/guard';
 import CompactLayout from 'src/layouts/compact';
@@ -16,13 +17,18 @@ const JwtRegisterPage = lazy(() => import('src/pages/auth/jwt/register'));
 // ----------------------------------------------------------------------
 
 
-const authJwt = {
-  path: 'jwt',
-  element: (
+function AuthJwtWrapper() {
+  useErrorRefresh();
+  return (
     <Suspense fallback={<SplashScreen />}>
       <Outlet />
     </Suspense>
-  ),
+  );
+}
+
+const authJwt = {
+  path: 'jwt',
+  element: <AuthJwtWrapper />,
   children: [
     {
       path: 'login',

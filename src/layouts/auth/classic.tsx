@@ -14,6 +14,8 @@ import { bgGradient } from 'src/theme/css';
 import { useAuthContext } from 'src/auth/hooks';
 
 import Logo from 'src/components/logo';
+import ErrorRefresh from 'src/components/error-refresh';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -32,8 +34,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AuthClassicLayout({ children, image, title }: Props) {
+function AuthClassicLayoutWrapper({ children, image, title }: Props) {
   const { method } = useAuthContext();
+  useErrorRefresh();
 
   const theme = useTheme();
 
@@ -133,6 +136,11 @@ export default function AuthClassicLayout({ children, image, title }: Props) {
       {mdUp && renderSection}
 
       {renderContent}
+      <ErrorRefresh />
     </Stack>
   );
+}
+
+export default function AuthClassicLayout({ children, image, title }: Props) {
+  return <AuthClassicLayoutWrapper children={children} image={image} title={title} />;
 }

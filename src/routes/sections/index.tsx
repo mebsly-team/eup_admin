@@ -1,4 +1,5 @@
 import { Navigate, useRoutes } from 'react-router-dom';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import MainLayout from 'src/layouts/main';
 
@@ -11,7 +12,9 @@ import DashboardLayout from 'src/layouts/dashboard';
 
 // ----------------------------------------------------------------------
 
-export default function Router() {
+function RouterWrapper() {
+  useErrorRefresh();
+
   return useRoutes([
     // SET INDEX PAGE WITH SKIP HOME PAGE
     {
@@ -34,4 +37,8 @@ export default function Router() {
     // No match 404
     { path: '*', element: <Navigate to="/404" replace /> },
   ]);
+}
+
+export default function Router() {
+  return <RouterWrapper />;
 }

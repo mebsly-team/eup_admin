@@ -3,10 +3,24 @@ import { Outlet } from 'react-router-dom';
 
 import { AuthGuard } from 'src/auth/guard';
 import DashboardLayout from 'src/layouts/dashboard';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
 // ----------------------------------------------------------------------
+
+function DashboardWrapper() {
+  useErrorRefresh();
+  return (
+    <AuthGuard>
+      <DashboardLayout>
+        <Suspense fallback={<LoadingScreen />}>
+          <Outlet />
+        </Suspense>
+      </DashboardLayout>
+    </AuthGuard>
+  );
+}
 
 // OVERVIEW
 const OverviewEcommercePage = lazy(() => import('src/pages/dashboard/ecommerce').catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -101,15 +115,7 @@ const BlankPage = lazy(() => import('src/pages/dashboard/blank').catch(() => ({ 
 export const dashboardRoutes = [
   {
     path: 'dashboard',
-    element: (
-      <AuthGuard>
-        <DashboardLayout>
-          <Suspense fallback={<LoadingScreen />}>
-            <Outlet />
-          </Suspense>
-        </DashboardLayout>
-      </AuthGuard>
-    ),
+    element: <DashboardWrapper />,
     children: [
       // { element: <OverviewEcommercePage />, index: true },
       { element: <ProductListPage />, index: true },

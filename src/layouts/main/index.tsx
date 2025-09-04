@@ -1,9 +1,11 @@
 import Box from '@mui/material/Box';
 
 import { usePathname } from 'src/routes/hooks';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 import Footer from './footer';
 import Header from './header';
+import ErrorRefresh from 'src/components/error-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -11,8 +13,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function MainLayout({ children }: Props) {
+function MainLayoutWrapper({ children }: Props) {
   const pathname = usePathname();
+  useErrorRefresh();
 
   const homePage = pathname === '/';
 
@@ -33,6 +36,11 @@ export default function MainLayout({ children }: Props) {
       </Box>
 
       <Footer />
+      <ErrorRefresh />
     </Box>
   );
+}
+
+export default function MainLayout({ children }: Props) {
+  return <MainLayoutWrapper>{children}</MainLayoutWrapper>;
 }

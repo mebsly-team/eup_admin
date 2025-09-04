@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { SplashScreen } from 'src/components/loading-screen';
 
 import { useAuthContext } from '../hooks';
+import { useErrorRefresh } from 'src/hooks/use-error-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -13,8 +14,9 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function GuestGuard({ children }: Props) {
+function GuestGuardWrapper({ children }: Props) {
   const { loading } = useAuthContext();
+  useErrorRefresh();
 
   return <>{loading ? <SplashScreen /> : <Container>{children}</Container>}</>;
 }
@@ -23,6 +25,7 @@ export default function GuestGuard({ children }: Props) {
 
 function Container({ children }: Props) {
   const router = useRouter();
+  useErrorRefresh();
 
   const searchParams = useSearchParams();
 
@@ -41,4 +44,8 @@ function Container({ children }: Props) {
   }, [check]);
 
   return <>{children}</>;
+}
+
+export default function GuestGuard({ children }: Props) {
+  return <GuestGuardWrapper>{children}</GuestGuardWrapper>;
 }
