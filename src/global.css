@@ -32,7 +32,6 @@
 }
 
 .leaflet-container * {
-    touch-action: pan-x pan-y !important;
     -webkit-user-select: none !important;
     user-select: none !important;
 }
@@ -40,10 +39,17 @@
 /* Additional touch handling for map areas */
 .leaflet-pane,
 .leaflet-overlay-pane,
-.leaflet-marker-pane,
 .leaflet-tooltip-pane,
 .leaflet-popup-pane {
     touch-action: pan-x pan-y !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Allow marker pane to be interactive */
+.leaflet-marker-pane {
+    touch-action: manipulation !important;
     -webkit-touch-callout: none !important;
     -webkit-user-select: none !important;
     user-select: none !important;
@@ -69,10 +75,16 @@
     touch-action: manipulation !important;
     -webkit-user-select: none !important;
     user-select: none !important;
+    pointer-events: auto !important;
 }
 
 .leaflet-marker {
     touch-action: manipulation !important;
+    pointer-events: auto !important;
+}
+
+.leaflet-marker-pane img {
+    pointer-events: auto !important;
 }
 
 /* Ensure zoom controls work properly */
@@ -82,6 +94,13 @@
 
 .leaflet-control-zoom a {
     touch-action: manipulation !important;
+    pointer-events: auto !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
 }
 
 /* Custom popup styling for mobile */

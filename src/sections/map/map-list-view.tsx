@@ -229,10 +229,6 @@ const Map = () => {
             const startTime = event.start.dateTime || event.start.date;
             const endTime = event.end.dateTime || event.end.date;
 
-            console.log(`Processing event: ${event.summary}`, {
-              start: startTime,
-              end: endTime,
-            });
 
             return {
               id: event.id,
@@ -245,7 +241,6 @@ const Map = () => {
             };
           }) || [];
 
-          console.log('Processed events:', googleEvents);
           setEvents(googleEvents);
         }
       } catch (error) {
@@ -402,42 +397,32 @@ const Map = () => {
       zoomend: () => {
         debouncedFetch(map.getBounds());
       },
+      click: (e) => {
+        console.log('Map clicked at:', e.latlng);
+      },
+      zoom: (e) => {
+        console.log('Map zoom:', e);
+      }
     });
 
-    // Prevent default touch behaviors on the map
+    // Only prevent browser zoom gestures, not all touch events
     useEffect(() => {
       const mapContainer = map.getContainer();
 
-      const preventDefaultTouch = (e: TouchEvent) => {
-        e.preventDefault();
+      const preventBrowserZoom = (e: any) => {
+        // Only prevent pinch-to-zoom gestures, allow other touches
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault();
+        }
       };
 
-      const preventDefaultGesture = (e: any) => {
-        e.preventDefault();
-      };
-
-      // Prevent default touch behaviors
-      mapContainer.addEventListener('touchstart', preventDefaultTouch, { passive: false });
-      mapContainer.addEventListener('touchmove', preventDefaultTouch, { passive: false });
-      mapContainer.addEventListener('touchend', preventDefaultTouch, { passive: false });
-
-      // Prevent gesture events (iOS)
-      if ('ongesturestart' in window) {
-        mapContainer.addEventListener('gesturestart', preventDefaultGesture);
-        mapContainer.addEventListener('gesturechange', preventDefaultGesture);
-        mapContainer.addEventListener('gestureend', preventDefaultGesture);
-      }
+      // Only prevent multi-touch gestures that cause browser zoom
+      mapContainer.addEventListener('touchstart', preventBrowserZoom, { passive: false });
+      mapContainer.addEventListener('touchmove', preventBrowserZoom, { passive: false });
 
       return () => {
-        mapContainer.removeEventListener('touchstart', preventDefaultTouch);
-        mapContainer.removeEventListener('touchmove', preventDefaultTouch);
-        mapContainer.removeEventListener('touchend', preventDefaultTouch);
-
-        if ('ongesturestart' in window) {
-          mapContainer.removeEventListener('gesturestart', preventDefaultGesture);
-          mapContainer.removeEventListener('gesturechange', preventDefaultGesture);
-          mapContainer.removeEventListener('gestureend', preventDefaultGesture);
-        }
+        mapContainer.removeEventListener('touchstart', preventBrowserZoom);
+        mapContainer.removeEventListener('touchmove', preventBrowserZoom);
       };
     }, [map]);
 
@@ -446,8 +431,31 @@ const Map = () => {
 
   // Handle map initialization
   const handleMapReady = useCallback((map: LeafletMap) => {
+    console.log('Map ready, container:', map.getContainer());
+    console.log('Map container touch-action:', getComputedStyle(map.getContainer()).touchAction);
+    console.log('Map container pointer-events:', getComputedStyle(map.getContainer()).pointerEvents);
+
     mapRef.current = map;
     debouncedFetch(map.getBounds());
+
+    // Debug: check if markers are interactive
+    setTimeout(() => {
+      const markers = document.querySelectorAll('.leaflet-marker-icon');
+      console.log('Found markers:', markers.length);
+      markers.forEach((marker, i) => {
+        const style = getComputedStyle(marker);
+        console.log(`Marker ${i} touch-action:`, style.touchAction);
+        console.log(`Marker ${i} pointer-events:`, style.pointerEvents);
+      });
+
+      const zoomControls = document.querySelectorAll('.leaflet-control-zoom a');
+      console.log('Found zoom controls:', zoomControls.length);
+      zoomControls.forEach((control, i) => {
+        const style = getComputedStyle(control);
+        console.log(`Zoom control ${i} touch-action:`, style.touchAction);
+        console.log(`Zoom control ${i} pointer-events:`, style.pointerEvents);
+      });
+    }, 1000);
   }, [debouncedFetch]);
 
   useEffect(() => {
@@ -1124,25 +1132,14 @@ const Map = () => {
         <Box sx={{
           flexGrow: 1,
           position: 'relative',
-          overflow: 'hidden',
-          touchAction: 'pan-x pan-y',
-          WebkitTouchCallout: 'none',
-          WebkitUserSelect: 'none',
-          userSelect: 'none'
+          overflow: 'hidden'
         }}>
           <MapContainer
             center={[mapCenter.lat, mapCenter.lng]}
             zoom={zoom}
             style={{
               height: "100%",
-              width: "100%",
-              touchAction: "pan-x pan-y",
-              WebkitTouchCallout: "none",
-              WebkitUserSelect: "none",
-              KhtmlUserSelect: "none",
-              MozUserSelect: "none",
-              msUserSelect: "none",
-              userSelect: "none"
+              width: "100%"
             }}
           >
             <MapInitializer onMapReady={handleMapReady} />
@@ -1247,8 +1244,18 @@ const Map = () => {
                     interactive={true}
                     eventHandlers={{
                       click: (e) => {
+                        console.log('Marker clicked:', user.id, address.id, 'at position:', e.latlng);
                         e.originalEvent.preventDefault();
                         e.originalEvent.stopPropagation();
+                      },
+                      mouseover: () => {
+                        console.log('Marker hover:', user.id, address.id);
+                      },
+                      mouseout: () => {
+                        console.log('Marker mouseout:', user.id, address.id);
+                      },
+                      add: () => {
+                        console.log('Marker added to map:', user.id, address.id);
                       }
                     }}
                   >
@@ -1366,15 +1373,38 @@ const Map = () => {
               <CircularProgress />
             </Box>
           )}
-          {/* Locate Me floating button */}
+          {/* Debug and Locate buttons */}
           <Box
             sx={{
               position: 'absolute',
               right: 12,
               bottom: 12,
               zIndex: 1100,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1
             }}
           >
+            <IconButton
+              color="secondary"
+              onClick={() => {
+                console.log('Debug button clicked');
+                const markers = document.querySelectorAll('.leaflet-marker-icon');
+                console.log('Markers found:', markers.length);
+                markers.forEach((marker, i) => {
+                  console.log(`Marker ${i}:`, marker);
+                  console.log('Touch action:', getComputedStyle(marker).touchAction);
+                  console.log('Pointer events:', getComputedStyle(marker).pointerEvents);
+                });
+              }}
+              sx={{
+                bgcolor: 'background.paper',
+                boxShadow: 3,
+                '&:hover': { bgcolor: 'background.paper' }
+              }}
+            >
+              <Iconify icon="material-symbols:bug-report" width={22} />
+            </IconButton>
             <IconButton
               color="primary"
               onClick={centerOnCurrentLocation}
