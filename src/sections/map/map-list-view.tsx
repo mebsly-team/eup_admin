@@ -1244,12 +1244,22 @@ const Map = () => {
                     icon={createCustomIcon(markerColor, label, labelBg)}
                     autoPan={true}
                     autoPanPadding={[50, 50]}
+                    interactive={true}
+                    eventHandlers={{
+                      click: (e) => {
+                        e.originalEvent.preventDefault();
+                        e.originalEvent.stopPropagation();
+                      }
+                    }}
                   >
                     <Popup
                       closeButton={false}
                       autoPan={true}
                       autoPanPadding={[50, 50]}
                       keepInView={true}
+                      closeOnClick={false}
+                      closeOnEscapeKey={true}
+                      className="custom-popup"
                     >
                       <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
                       <Typography

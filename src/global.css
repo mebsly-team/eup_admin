@@ -7,6 +7,18 @@
 /* map */
 @import 'mapbox-gl/dist/mapbox-gl.css';
 
+/* editor */
+@import 'react-quill/dist/quill.snow.css';
+
+/* carousel */
+@import 'slick-carousel/slick/slick.css';
+@import 'slick-carousel/slick/slick-theme.css';
+
+/* lightbox */
+@import 'yet-another-react-lightbox/styles.css';
+@import 'yet-another-react-lightbox/plugins/captions.css';
+@import 'yet-another-react-lightbox/plugins/thumbnails.css';
+
 /* Prevent browser zoom on map touch gestures */
 .leaflet-container {
     touch-action: pan-x pan-y !important;
@@ -52,6 +64,17 @@
     user-select: none !important;
 }
 
+/* Ensure markers are interactive on mobile */
+.leaflet-marker-icon {
+    touch-action: manipulation !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+.leaflet-marker {
+    touch-action: manipulation !important;
+}
+
 /* Ensure zoom controls work properly */
 .leaflet-control-zoom {
     touch-action: manipulation !important;
@@ -61,17 +84,30 @@
     touch-action: manipulation !important;
 }
 
-/* editor */
-@import 'react-quill/dist/quill.snow.css';
+/* Custom popup styling for mobile */
+.custom-popup .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
 
-/* carousel */
-@import 'slick-carousel/slick/slick.css';
-@import 'slick-carousel/slick/slick-theme.css';
+.custom-popup .leaflet-popup-content {
+    margin: 12px 16px;
+    min-width: 200px;
+}
 
-/* lightbox */
-@import 'yet-another-react-lightbox/styles.css';
-@import 'yet-another-react-lightbox/plugins/captions.css';
-@import 'yet-another-react-lightbox/plugins/thumbnails.css';
+.custom-popup .leaflet-popup-tip {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure popups are above other elements on mobile */
+.leaflet-popup {
+    z-index: 1000 !important;
+}
+
+.leaflet-popup-pane {
+    z-index: 1000 !important;
+}
 
 /* Google Maps-like current location marker */
 .gm-current-location-icon {
