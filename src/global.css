@@ -72,3 +72,59 @@
 @import 'yet-another-react-lightbox/styles.css';
 @import 'yet-another-react-lightbox/plugins/captions.css';
 @import 'yet-another-react-lightbox/plugins/thumbnails.css';
+
+/* Google Maps-like current location marker */
+.gm-current-location-icon {
+    background: transparent !important;
+}
+
+.gm-current-location-dot {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #1a73e8;
+    /* Google blue */
+    box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(26, 115, 232, 0.7);
+}
+
+.gm-current-location-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 50%;
+}
+
+.gm-current-location-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(26, 115, 232, 0.25);
+    animation: gm-pulse 0.9s ease-out infinite;
+}
+
+@keyframes gm-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+    }
+
+    70% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

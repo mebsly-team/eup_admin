@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Circle, CircleMarker, Pane } from "react-leaflet";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import axiosInstance from "src/utils/axios";
 import Calendar from '@fullcalendar/react';
@@ -21,7 +21,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker';
-import { Map as LeafletMap, LatLngBounds, Icon } from 'leaflet';
+import { Map as LeafletMap, LatLngBounds, Icon, divIcon } from 'leaflet';
 import { useSnackbar } from 'src/components/snackbar';
 import { StyledCalendar } from 'src/sections/calendar/styles';
 import { fTimestamp } from 'src/utils/format-time';
@@ -167,6 +167,8 @@ const Map = () => {
   const [filters, setFilters] = useState({
     is_delivery_address: true
   });
+  const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentAccuracy, setCurrentAccuracy] = useState<number | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const calendarRef = useRef<Calendar>(null);
@@ -470,6 +472,25 @@ const Map = () => {
       lng: e.target.getCenter().lng,
     });
     setZoom(e.target.getZoom());
+  };
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        setCurrentPosition({ lat: latitude, lng: longitude });
+        if (typeof accuracy === 'number') setCurrentAccuracy(accuracy);
+      },
+      () => { },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }, []);
+
+  const centerOnCurrentLocation = () => {
+    if (currentPosition && mapRef.current) {
+      mapRef.current.flyTo([currentPosition.lat, currentPosition.lng], Math.max(15, mapRef.current.getZoom()));
+    }
   };
 
   const handleAddToCalendar = async (user: User, address: Address) => {
@@ -1130,6 +1151,32 @@ const Map = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapEventHandler />
+            {currentPosition && (
+              <>
+                {currentAccuracy && (
+                  <Pane name="accuracy-pane" style={{ zIndex: 450 }}>
+                    <Circle
+                      center={[currentPosition.lat, currentPosition.lng]}
+                      radius={currentAccuracy}
+                      pathOptions={{ color: '#1976d2', fillColor: '#1976d2', fillOpacity: 0.15, weight: 1 }}
+                      interactive={false}
+                    />
+                  </Pane>
+                )}
+                <Pane name="current-location-pane" style={{ zIndex: 1200 }}>
+                  <Marker
+                    position={[currentPosition.lat, currentPosition.lng]}
+                    icon={divIcon({
+                      className: 'gm-current-location-icon',
+                      html: '<div class="gm-current-location-dot"></div>',
+                      iconSize: [14, 14],
+                      iconAnchor: [7, 7]
+                    })}
+                    interactive={false}
+                  />
+                </Pane>
+              </>
+            )}
             {users.map((user) => {
               // Filter addresses that have valid coordinates
               const validAddresses = user.addresses.filter(address =>
@@ -1309,6 +1356,28 @@ const Map = () => {
               <CircularProgress />
             </Box>
           )}
+          {/* Locate Me floating button */}
+          <Box
+            sx={{
+              position: 'absolute',
+              right: 12,
+              bottom: 12,
+              zIndex: 1100,
+            }}
+          >
+            <IconButton
+              color="primary"
+              onClick={centerOnCurrentLocation}
+              disabled={!currentPosition}
+              sx={{
+                bgcolor: 'background.paper',
+                boxShadow: 3,
+                '&:hover': { bgcolor: 'background.paper' }
+              }}
+            >
+              <Iconify icon="material-symbols:my-location-rounded" width={22} />
+            </IconButton>
+          </Box>
         </Box>
       </Box>
 
