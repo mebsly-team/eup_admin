@@ -76,10 +76,22 @@ export default function OrderDetailsToolbar({
       return false;
     });
   };
+  const checkHistoryForInvoiceSent = () => {
+    if (!currentOrder?.history || !Array.isArray(currentOrder.history)) {
+      return false;
+    }
 
+    return currentOrder.history.some((item: any) => {
+      if (item.event && typeof item.event === 'string') {
+        return item.event.includes('Invoice verzonden naar klant');
+      }
+      return false;
+    });
+  };
   const isWerkbonCompleted = checkHistoryForStatusChange('werkbon');
   const isPackingCompleted = checkHistoryForStatusChange('packing');
   const isInvoiceDownloaded = checkHistoryForInvoiceDownload();
+  const isInvoiceSent = checkHistoryForInvoiceSent();
 
   return (
     <>
@@ -210,9 +222,9 @@ export default function OrderDetailsToolbar({
             onClick={() => handleSendInvoice({ id })}
             disabled={!currentOrder?.delivery_details?.tracking_number}
             sx={{
-              backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
+              backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
               '&:hover': {
-                backgroundColor: isInvoiceDownloaded ? 'lightgreen' : undefined,
+                backgroundColor: isInvoiceSent ? 'lightgreen' : undefined,
               }
             }}
           >
