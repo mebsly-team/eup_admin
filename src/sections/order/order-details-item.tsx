@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from '@mui/material/Link';
 
 import Box from '@mui/material/Box';
@@ -39,14 +39,28 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
   console.log('editedCart', editedCart);
   const [ean, setEan] = useState(''); // New state for EAN
+  const isEditingRef = useRef(false);
+  const editedCartRef = useRef(currentOrder.cart);
 
   // Sorting state
   const queryParams = new URLSearchParams(location.search);
   const [sortBy, setSortBy] = useState(queryParams.get('sortBy') || 'title');
   const [sortOrder, setSortOrder] = useState(queryParams.get('sortOrder') || 'asc');
 
+  // Initialize editedCart when component mounts
   useEffect(() => {
-    if (cart) setEditedCart(cart);
+    if (cart) {
+      editedCartRef.current = cart;
+      setEditedCart(cart);
+    }
+  }, []);
+
+  // Handle cart updates from parent, but don't override when editing
+  useEffect(() => {
+    if (cart && !isEditingRef.current) {
+      editedCartRef.current = cart;
+      setEditedCart(cart);
+    }
   }, [cart]);
 
   // Update URL parameters when sorting changes
@@ -102,7 +116,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   };
 
   const toggleEditMode = () => {
-    setIsEditing(!isEditing);
+    const newEditingState = !isEditing;
+    setIsEditing(newEditingState);
+    isEditingRef.current = newEditingState;
   };
 
   // Fetch product details using EAN
@@ -197,7 +213,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     }
   };
   const handleItemChange = (id: any, key: string, value: any) => {
-    const updatedItems = editedCart.items.map((item: any) => {
+    const updatedItems = editedCartRef.current.items.map((item: any) => {
       if (item.id === id) {
         // If changing quantity, validate against free_stock
         if (key === 'quantity') {
@@ -209,7 +225,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       }
       return item;
     });
-    setEditedCart({ ...editedCart, items: updatedItems });
+    const newEditedCart = { ...editedCartRef.current, items: updatedItems };
+    editedCartRef.current = newEditedCart;
+    setEditedCart(newEditedCart);
   };
 
   const handleDeleteItem = (id: any) => {
@@ -369,7 +387,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       });
 
       enqueueSnackbar('Bestelling succesvol bijgewerkt', { variant: 'success' });
-      toggleEditMode();
+      setIsEditing(false);
+      isEditingRef.current = false;
     } catch (error) {
       console.error('Error saving order:', error);
       let errorShown = false;
@@ -406,7 +425,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   const handleCancel = () => {
     // Reset changes and toggle edit mode
     setEditedCart(cart);
-    toggleEditMode();
+    setIsEditing(false);
+    isEditingRef.current = false;
   };
 
   const handleFeeChange = (key: string, value: any) => {
@@ -690,14 +710,18 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                   <Stack spacing={0.5}>
                     <TextField
                       type="number"
-                      value={item.single_product_discounted_price_per_unit_vat}
+                      value={item.single_product_discounted_price_per_unit_vat || ''}
                       onChange={(e) => {
-                        const newPrice = parseFloat(e.target.value);
+                        const newPrice = parseFloat(e.target.value) || 0;
                         handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', newPrice);
                         handleItemChange(item.id, 'product_item_total_price_vat', newPrice * item.quantity);
                       }}
                       sx={{ width: 100, textAlign: 'right' }}
                       label="Prijs incl. BTW"
+                      inputProps={{
+                        step: 0.01,
+                        min: 0
+                      }}
                     />
                     <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
                       Totaal: {fCurrency(item.single_product_discounted_price_per_unit_vat * item.quantity)}
