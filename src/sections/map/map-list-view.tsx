@@ -577,11 +577,14 @@ const Map = () => {
         throw new Error('Google Agenda API niet geïnitialiseerd');
       }
 
+      const phoneNumber = user.phone_number || user.mobile_number || user.mobile_phone;
+      const phoneInfo = phoneNumber ? `\nTelefoon: ${phoneNumber}` : '';
+
       const eventData = {
         summary: user.first_name || user.last_name
           ? `${user.first_name} ${user.last_name} ${user.business_name ? `- ${user.business_name}` : ''}`.trim()
           : user.business_name || 'Onbekende klant',
-        description: `Bezoek aan ${address.street_name || ""} ${address.house_number || ""}, ${address.city} ${address.zip_code}, ${address.country}`,
+        description: `Bezoek aan ${address.street_name || ""} ${address.house_number || ""}, ${address.city} ${address.zip_code}, ${address.country}${phoneInfo}`,
         location: `${address.street_name || ""} ${address.house_number || ""}, ${address.zip_code} ${address.city}, ${address.country}`,
         start: {
           dateTime: new Date(bezoekStart).toISOString(),
