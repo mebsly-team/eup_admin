@@ -13,6 +13,8 @@ import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 import axiosInstance from 'src/utils/axios';
 import { fCurrency } from 'src/utils/format-number';
@@ -23,20 +25,81 @@ import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
+import { useRouter } from 'src/routes/hooks/use-router';
+import { useLocation } from 'react-router-dom';
 
 export default function OrderDetailsItems({ currentOrder, updateOrder }: { currentOrder: any; updateOrder: any }) {
   const { cart } = currentOrder;
   console.log('cart', cart);
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
+  const router = useRouter();
+  const location = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
   console.log('editedCart', editedCart);
   const [ean, setEan] = useState(''); // New state for EAN
 
+  // Sorting state
+  const queryParams = new URLSearchParams(location.search);
+  const [sortBy, setSortBy] = useState(queryParams.get('sortBy') || 'title');
+  const [sortOrder, setSortOrder] = useState(queryParams.get('sortOrder') || 'asc');
+
   useEffect(() => {
     if (cart) setEditedCart(cart);
   }, [cart]);
+
+  // Update URL parameters when sorting changes
+  const updateSortParams = (newSortBy: string, newSortOrder: string) => {
+    const params = new URLSearchParams(location.search);
+    params.set('sortBy', newSortBy);
+    params.set('sortOrder', newSortOrder);
+    router.replace(`${location.pathname}?${params.toString()}`);
+  };
+
+  // Handle sort change
+  const handleSortChange = (newSortBy: string) => {
+    const newSortOrder = sortBy === newSortBy && sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    updateSortParams(newSortBy, newSortOrder);
+  };
+
+  // Sort items based on current sort settings
+  const getSortedItems = (items: any[]) => {
+    if (!items || items.length === 0) return items;
+
+    return [...items].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortBy) {
+        case 'ean':
+          aValue = a.product?.ean || '';
+          bValue = b.product?.ean || '';
+          break;
+        case 'location':
+          aValue = a.location || '';
+          bValue = b.location || '';
+          break;
+        case 'title':
+        default:
+          aValue = a.product?.title || '';
+          bValue = b.product?.title || '';
+          break;
+      }
+
+      // Convert to strings for comparison if needed
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (sortOrder === 'asc') {
+        return aStr.localeCompare(bStr);
+      } else {
+        return bStr.localeCompare(aStr);
+      }
+    });
+  };
 
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
@@ -512,8 +575,36 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       />
 
       <Stack sx={{ px: 3 }}>
+        {/* Sorting Controls */}
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Sorteer op</InputLabel>
+            <Select
+              value={sortBy}
+              label="Sorteer op"
+              onChange={(e) => handleSortChange(e.target.value)}
+            >
+              <MenuItem value="title">Titel</MenuItem>
+              <MenuItem value="ean">EAN</MenuItem>
+              <MenuItem value="location">Locatie</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => handleSortChange(sortBy)}
+            startIcon={
+              <Iconify
+                icon={sortOrder === 'asc' ? 'eva:arrow-upward-fill' : 'eva:arrow-downward-fill'}
+              />
+            }
+          >
+            {sortOrder === 'asc' ? 'Oplopend' : 'Aflopend'}
+          </Button>
+        </Stack>
+
         <Scrollbar>
-          {editedCart?.items.map((item: any) => (
+          {getSortedItems(editedCart?.items || []).map((item: any) => (
             <Stack
               key={item.id}
               direction="row"
