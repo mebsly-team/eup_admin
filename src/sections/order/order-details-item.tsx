@@ -293,6 +293,14 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     return currentOrder?.user?.is_vat_document_printed ? subtotalExclVat : total;
   };
 
+  const getVatExclusiveAmount = (amount: number) => {
+    if (currentOrder?.user?.is_vat_document_printed) {
+      const vatRate = 0.21;
+      return amount / (1 + vatRate);
+    }
+    return amount;
+  };
+
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const shippingFee = Number(editedCart?.shipping_fee) || 0;
@@ -506,7 +514,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       </Stack>}
 
       <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Verzendkosten</Box>
+        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>
+          Verzendkosten ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
+        </Box>
         {isEditing ? (
           <TextField
             type="text"
@@ -525,7 +535,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       </Stack>
 
       <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Transactiekosten</Box>
+        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>
+          Transactiekosten ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
+        </Box>
         {isEditing ? (
           <TextField
             type="text"
@@ -573,7 +585,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       </Stack>
       <Stack
         direction="row"
-        sx={{ typography: 'body2', color: 'text.disabled' }}
+        sx={{ typography: 'body2' }}
         justifyContent="center"
         alignItems="center"
       >
