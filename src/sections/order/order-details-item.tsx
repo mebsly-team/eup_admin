@@ -213,7 +213,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     }
   };
   const handleItemChange = (id: any, key: string, value: any) => {
-    const updatedItems = editedCartRef.current.items.map((item: any) => {
+    const updatedItems = editedCart.items.map((item: any) => {
       if (item.id === id) {
         // If changing quantity, validate against free_stock
         if (key === 'quantity') {
@@ -225,7 +225,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       }
       return item;
     });
-    const newEditedCart = { ...editedCartRef.current, items: updatedItems };
+    const newEditedCart = { ...editedCart, items: updatedItems };
     editedCartRef.current = newEditedCart;
     setEditedCart(newEditedCart);
   };
