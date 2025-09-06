@@ -39,6 +39,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
   console.log('editedCart', editedCart);
   const [ean, setEan] = useState(''); // New state for EAN
+  const [priceInputs, setPriceInputs] = useState<Record<string, string>>({}); // Local state for price inputs
   const isEditingRef = useRef(false);
   const editedCartRef = useRef(currentOrder.cart);
 
@@ -395,6 +396,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       });
 
       enqueueSnackbar('Bestelling succesvol bijgewerkt', { variant: 'success' });
+      setPriceInputs({}); // Clear local price inputs
       setIsEditing(false);
       isEditingRef.current = false;
     } catch (error) {
@@ -433,6 +435,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   const handleCancel = () => {
     // Reset changes and toggle edit mode
     setEditedCart(cart);
+    setPriceInputs({}); // Clear local price inputs
     setIsEditing(false);
     isEditingRef.current = false;
   };
@@ -721,18 +724,32 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                   />
                   <Stack spacing={0.5}>
                     <TextField
-                      type="number"
-                      value={item.single_product_discounted_price_per_unit_vat || ''}
+                      type="text"
+                      value={priceInputs[`${item.id}_price`] !== undefined
+                        ? priceInputs[`${item.id}_price`]
+                        : String(item.single_product_discounted_price_per_unit_vat || '')}
                       onChange={(e) => {
-                        const newPrice = parseFloat(e.target.value) || 0;
-                        handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', newPrice);
-                        handleItemChange(item.id, 'product_item_total_price_vat', newPrice * item.quantity);
+                        const inputValue = e.target.value;
+                        // Allow typing decimal numbers
+                        if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
+                          // Update local input state immediately
+                          setPriceInputs(prev => ({
+                            ...prev,
+                            [`${item.id}_price`]: inputValue
+                          }));
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const inputValue = e.target.value;
+                        const numericValue = inputValue === '' ? 0 : parseFloat(inputValue) || 0;
+                        handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', numericValue);
+                        handleItemChange(item.id, 'product_item_total_price_vat', numericValue * item.quantity);
                       }}
                       sx={{ width: 100, textAlign: 'right' }}
                       label="Prijs incl. BTW"
                       inputProps={{
-                        step: 0.01,
-                        min: 0
+                        inputMode: 'decimal',
+                        pattern: '[0-9]*[.,]?[0-9]*'
                       }}
                     />
                     <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
