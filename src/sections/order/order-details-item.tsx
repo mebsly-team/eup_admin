@@ -406,15 +406,32 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     }
 
     try {
+      // Recalculate all cart item prices to ensure consistency
+      const updatedCartItems = editedCart.items.map((item: any) => {
+        const priceExclVat = getCurrentPriceExclVat(item);
+        const priceInclVat = getCurrentPriceInclVat(item);
+
+        return {
+          ...item,
+          single_product_discounted_price_per_unit: priceExclVat,
+          single_product_discounted_price_per_unit_vat: priceInclVat,
+          product_item_total_price: (priceExclVat * item.quantity).toFixed(2),
+          product_item_total_price_vat: (priceInclVat * item.quantity).toFixed(2),
+        };
+      });
+
+      const updatedCart = {
+        ...editedCart,
+        items: updatedCartItems,
+        cart_total_price_vat: calculateSubtotal().toFixed(2),
+        cart_total_price: calculateTotal().toFixed(2),
+      };
+
       // Update the order with the edited cart and calculated totals
       await updateOrder(currentOrder.id, {
         sub_total: calculateSubtotal().toFixed(2),
         total: calculateTotal().toFixed(2),
-        cart: {
-          ...editedCart,
-          cart_total_price_vat: calculateSubtotal().toFixed(2),
-          cart_total_price: calculateTotal().toFixed(2),
-        },
+        cart: updatedCart,
         history: newHistory,
       });
 
