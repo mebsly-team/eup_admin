@@ -61,6 +61,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     if (cart && !isEditingRef.current) {
       editedCartRef.current = cart;
       setEditedCart(cart);
+      setPriceInputs({}); // Clear local price inputs when cart updates
     }
   }, [cart]);
 
@@ -120,6 +121,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     const newEditingState = !isEditing;
     setIsEditing(newEditingState);
     isEditingRef.current = newEditingState;
+
+    // Clear local price inputs when entering edit mode to ensure fresh state
+    if (newEditingState) {
+      setPriceInputs({});
+    }
   };
 
   // Fetch product details using EAN
@@ -236,14 +242,21 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     setEditedCart({ ...editedCart, items: updatedItems });
   };
 
-  // Helper function to get current price including input values
-  const getCurrentPrice = (item: any) => {
+  // Helper function to get current price exclusive BTW including input values
+  const getCurrentPriceExclVat = (item: any) => {
     const inputKey = `${item.id}_price`;
     if (priceInputs[inputKey] !== undefined) {
       const inputValue = parseFloat(priceInputs[inputKey]) || 0;
       return inputValue;
     }
-    return Number(item.single_product_discounted_price_per_unit_vat || 0);
+    return Number(item.single_product_discounted_price_per_unit || 0);
+  };
+
+  // Helper function to get current price inclusive BTW from exclusive BTW
+  const getCurrentPriceInclVat = (item: any) => {
+    const priceExclVat = getCurrentPriceExclVat(item);
+    const vatRate = item.product.vat || 0;
+    return priceExclVat * (1 + (vatRate / 100));
   };
 
   const calculateVatTotals = () => {
@@ -257,17 +270,10 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     };
     editedCart?.items.forEach((item: any) => {
       const quantity = item.quantity;
-      const priceInclVat = getCurrentPrice(item);
+      const priceExclVat = getCurrentPriceExclVat(item);
+      const priceInclVat = getCurrentPriceInclVat(item);
       const vatRate = item.product.vat; // VAT percentage
-
-      // Calculate price excluding VAT from price including VAT
-      let priceExclVat = priceInclVat;
-      let vatAmount = 0;
-
-      if (vatRate > 0) {
-        priceExclVat = priceInclVat / (1 + (vatRate / 100));
-        vatAmount = priceInclVat - priceExclVat;
-      }
+      const vatAmount = priceInclVat - priceExclVat;
 
       // Use the explicit VAT rate from the product
       switch (vatRate) {
@@ -600,7 +606,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
         justifyContent="center"
         alignItems="center"
       >
-        <Box sx={{ width: 160, mr: '0.5rem' }}>Totaal</Box>
+        <Box sx={{ width: 160, mr: '0.5rem' }}>Totaal ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})</Box>
         <Box sx={{ width: 160 }}>{fCurrency(calculateTotal()) || '-'}</Box>
       </Stack>
       <Stack
@@ -609,7 +615,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
         justifyContent="center"
         alignItems="center"
       >
-        <Box sx={{ width: 160, mr: '0.5rem' }}>Klant totaal om te betalen:</Box>
+        <Box sx={{ width: 160, mr: '0.5rem' }}>Klant totaal om te betalen: ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})</Box>
         <Box sx={{ width: 160 }}>{fCurrency(currentOrder?.total) || '-'}</Box>
       </Stack>
     </Stack>
@@ -744,7 +750,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                       type="text"
                       value={priceInputs[`${item.id}_price`] !== undefined
                         ? priceInputs[`${item.id}_price`]
-                        : String(item.single_product_discounted_price_per_unit_vat || '')}
+                        : String(item.single_product_discounted_price_per_unit || '')}
                       onChange={(e) => {
                         const inputValue = e.target.value;
                         // Allow typing decimal numbers
@@ -758,25 +764,25 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                       }}
                       onBlur={(e) => {
                         const inputValue = e.target.value;
-                        const priceInclVat = inputValue === '' ? 0 : parseFloat(inputValue) || 0;
+                        const priceExclVat = inputValue === '' ? 0 : parseFloat(inputValue) || 0;
                         const vatRate = item.product.vat || 0;
 
-                        // Calculate price excluding VAT
-                        const priceExclVat = vatRate > 0 ? priceInclVat / (1 + (vatRate / 100)) : priceInclVat;
+                        // Calculate price including VAT from excluding VAT
+                        const priceInclVat = priceExclVat * (1 + (vatRate / 100));
 
-                        handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', priceInclVat);
                         handleItemChange(item.id, 'single_product_discounted_price_per_unit', priceExclVat);
+                        handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', priceInclVat);
                         handleItemChange(item.id, 'product_item_total_price_vat', priceInclVat * item.quantity);
                       }}
                       sx={{ width: 100, textAlign: 'right' }}
-                      label="Prijs incl. BTW"
+                      label="Prijs excl. BTW"
                       inputProps={{
                         inputMode: 'decimal',
                         pattern: '[0-9]*[.,]?[0-9]*'
                       }}
                     />
                     <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
-                      Totaal: {fCurrency(getCurrentPrice(item) * item.quantity)}
+                      Totaal: {fCurrency(getCurrentPriceInclVat(item) * item.quantity)}
                     </Box>
                   </Stack>
                   <IconButton onClick={() => handleDeleteItem(item.id)}>
