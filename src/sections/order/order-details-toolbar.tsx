@@ -205,7 +205,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => handleDownloadDocument({ doc: 'invoice' })}
-            disabled={!currentOrder?.delivery_details?.tracking_number}
+            disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
             sx={{
               backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -220,7 +220,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => handleSendInvoice({ id })}
-            disabled={!currentOrder?.delivery_details?.tracking_number}
+            disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
             sx={{
               backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
               '&:hover': {
