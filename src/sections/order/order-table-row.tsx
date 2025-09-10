@@ -123,7 +123,7 @@ export default function OrderTableRow({
       <TableCell sx={{ display: 'flex', alignItems: 'center', width: '150px' }}>
         <ListItemText
           primary={user.email}
-          secondary={`Relatie Code: ${user.relation_code}`}
+          secondary={<><span>{`R.C.: ${user.relation_code}`}</span><br /><span>{user.business_name ? (user.business_name || "") : (user.first_name || "") + ' ' + (user.last_name || "")}</span></>}
           primaryTypographyProps={{ typography: 'body2' }}
           secondaryTypographyProps={{
             component: 'span',
