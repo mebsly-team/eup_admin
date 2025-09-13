@@ -32,6 +32,7 @@ type Props = {
   handleDownloadDocument: (value: { doc: string }) => void;
   sendToSnelstart: (value: { id: string }) => void;
   handleSendInvoice: (value: { id: string }) => void;
+  handleSendOffer: (value: { id: string }) => void;
 };
 
 export default function OrderDetailsToolbar({
@@ -43,7 +44,8 @@ export default function OrderDetailsToolbar({
   sendToSnelstart,
   handleSendInvoice,
   paymentStatusOptions,
-  onPaymentChangeStatus
+  onPaymentChangeStatus,
+  handleSendOffer
 }: Props) {
   const popoverStatus = usePopover();
   const popover = usePopover();
@@ -88,11 +90,23 @@ export default function OrderDetailsToolbar({
       return false;
     });
   };
+  const checkHistoryForOfferSent = () => {
+    if (!currentOrder?.history || !Array.isArray(currentOrder.history)) {
+      return false;
+    }
+
+    return currentOrder.history.some((item: any) => {
+      if (item.event && typeof item.event === 'string') {
+        return item.event.includes('Offer verzonden naar klant');
+      }
+      return false;
+    });
+  };
   const isWerkbonCompleted = checkHistoryForStatusChange('werkbon');
   const isPackingCompleted = checkHistoryForStatusChange('packing');
   const isInvoiceDownloaded = checkHistoryForInvoiceDownload();
   const isInvoiceSent = checkHistoryForInvoiceSent();
-
+  const isOfferSent = checkHistoryForOfferSent();
   return (
     <>
       <Stack
@@ -170,11 +184,11 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="eva:email-fill" />}
-            onClick={() => handleSendInvoice({ id })}
+            onClick={() => handleSendOffer({ id })}
             sx={{
-              backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
+              backgroundColor: isOfferSent ? 'lightgreen' : 'transparent',
               '&:hover': {
-                backgroundColor: isInvoiceSent ? 'lightgreen' : undefined,
+                backgroundColor: isOfferSent ? 'lightgreen' : undefined,
               }
             }}
           >

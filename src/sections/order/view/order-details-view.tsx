@@ -150,6 +150,28 @@ export default function OrderDetailsView({ id }: Props) {
     }
   };
 
+  const handleSendOffer = async ({ id }: { id: string }) => {
+    try {
+      const response = await axiosInstance.post(`/send_offer_to_customer/${id}/`);
+      if (response.status === 200 || response.status === 201) {
+        enqueueSnackbar(t('Offer is succesvol verzonden naar klant'), { variant: 'success' });
+        const newHistory = (currentOrder as any).history || [];
+        newHistory.push({
+          date: new Date(),
+          event: `Offer verzonden naar klant door ${user?.email}`,
+        });
+        updateOrder(id, {
+          history: newHistory,
+        });
+      } else {
+        console.error('Failed to send offer to customer, status code:', response.status);
+        enqueueSnackbar(t('Niet gelukt om offer naar klant te verzenden'), { variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error sending offer to customer:', error);
+      enqueueSnackbar(t('Niet gelukt om offer naar klant te verzenden.'), { variant: 'error' });
+    }
+  };
   const handleSendInvoice = async ({ id }: { id: string }) => {
     try {
       const response = await axiosInstance.post(`/send_invoice_to_customer/${id}/`);
@@ -218,6 +240,7 @@ export default function OrderDetailsView({ id }: Props) {
         handleDownloadDocument={handleDownloadDocument}
         sendToSnelstart={sendToSnelstart}
         handleSendInvoice={handleSendInvoice}
+        handleSendOffer={handleSendOffer}
       />
 
       <Grid container spacing={3}>

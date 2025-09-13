@@ -325,8 +325,15 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     return amount;
   };
 
+  const calculateSubtotalInclVat = () => {
+    const vatTotals = calculateVatTotals();
+    const subtotalExclVat = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
+    const totalVat = vatTotals.vatAmount0 + vatTotals.vatAmount9 + vatTotals.vatAmount21;
+    return subtotalExclVat + totalVat;
+  };
+
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
+    const subtotal = calculateSubtotalInclVat();
     const shippingFee = Number(editedCart?.shipping_fee) || 0;
     const transactionFee = Number(editedCart?.transaction_fee) || 0;
     const discount = Number(editedCart?.cart_discount) || 0;
@@ -423,8 +430,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       const updatedCart = {
         ...editedCart,
         items: updatedCartItems,
-        cart_total_price_vat: calculateSubtotal().toFixed(2),
-        cart_total_price: calculateTotal().toFixed(2),
+        cart_total_price_vat: calculateSubtotalInclVat().toFixed(2),
+        cart_total_price: calculateSubtotalExclVat().toFixed(2),
       };
 
       // Update the order with the edited cart and calculated totals

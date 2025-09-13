@@ -344,7 +344,8 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         setLoading(true);
         try {
             const subtotal = parseFloat(data.items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2));
-            const total = parseFloat((subtotal - (data.discount || 0) + (data.shipping || 0) + (data.taxes || 0)).toFixed(2));
+            const subtotalWithVat = parseFloat((subtotal + data.items.reduce((sum, item) => sum + (item.quantity * item.price * item.vat_rate / 100), 0)).toFixed(2));
+            const total = parseFloat((subtotalWithVat - (data.discount || 0) + (data.shipping || 0) + (data.taxes || 0)).toFixed(2));
 
             const cartItems = data.items.map(item => ({
                 id: item.product?.id,
@@ -368,7 +369,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 "cart": {
                     "items": cartItems,
                     "cart_total_price": subtotal.toFixed(2),
-                    "cart_total_price_vat": parseFloat((subtotal + data.items.reduce((sum, item) => sum + (item.quantity * item.price * item.vat_rate / 100), 0)).toFixed(2)),
+                    "cart_total_price_vat": subtotalWithVat,
                 },
                 "shipping_address": data.shipping_address,
                 "invoice_address": data.shipping_address,
