@@ -235,7 +235,7 @@ export default function PurchaseListView() {
         }}
       />
       <Typography variant="h6" sx={{ mb: 3 }}>
-        {t('offers')}
+        {t('orders_to_supplier')}
       </Typography>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
         <Autocomplete

@@ -275,6 +275,7 @@
   "order_status": "Bestelstatus",
   "ordered_in_progress_stock": "Besteld in",
   "orders": "Bestellingen",
+  "orders_to_supplier": "Bestellingen aan leverancier",
   "new_order": "Nieuwe Bestelling",
   "create_order": "Bestelling Aanmaken",
   "new_credit_note": "Nieuwe Credit Note",
