@@ -35,6 +35,7 @@ interface IOrderFormItem {
     product: IProductItem | null;
     quantity: number;
     price: number;
+    vat_rate: number;
 }
 
 interface IOrderFormCustomer {
@@ -123,6 +124,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             product: Yup.mixed().nullable(),
             quantity: Yup.number().required('Quantity is required'),
             price: Yup.number().required('Price is required'),
+            vat_rate: Yup.number().required('VAT rate is required'),
         })),
         shipping_address: Yup.object().shape({
             street_name: Yup.string(),
@@ -291,6 +293,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             product,
                             quantity: 1,
                             price: Number(discountedPrice.toFixed(2)),
+                            vat_rate: product.vat || 21,
                         };
                     });
 
@@ -349,9 +352,10 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 quantity: item.quantity,
                 completed: false,
                 single_product_discounted_price_per_unit: item.price,
-                single_product_discounted_price_per_unit_vat: parseFloat((item.price * 1.21).toFixed(2)), // Assuming 21% VAT
+                single_product_discounted_price_per_unit_vat: parseFloat((item.price * (1 + item.vat_rate / 100)).toFixed(2)),
                 product_item_total_price: parseFloat((item.quantity * item.price).toFixed(2)),
-                product_item_total_price_vat: parseFloat((item.quantity * item.price * 1.21).toFixed(2)),
+                product_item_total_price_vat: parseFloat((item.quantity * item.price * (1 + item.vat_rate / 100)).toFixed(2)),
+                vat_rate: item.vat_rate,
             }));
 
             const orderData = {
@@ -364,7 +368,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 "cart": {
                     "items": cartItems,
                     "cart_total_price": subtotal.toFixed(2),
-                    "cart_total_price_vat": parseFloat((subtotal * 1.21).toFixed(2)),
+                    "cart_total_price_vat": parseFloat((subtotal + data.items.reduce((sum, item) => sum + (item.quantity * item.price * item.vat_rate / 100), 0)).toFixed(2)),
                 },
                 "shipping_address": data.shipping_address,
                 "invoice_address": data.shipping_address,
@@ -410,6 +414,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 product: null,
                 quantity: 1,
                 price: 0,
+                vat_rate: 21,
             },
         ]);
     };
@@ -434,7 +439,8 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             updatedItems[index] = {
                 ...updatedItems[index],
                 [field]: value,
-                price: Number(discountedPrice.toFixed(2))
+                price: Number(discountedPrice.toFixed(2)),
+                vat_rate: value.vat || 21
             };
         } else {
             updatedItems[index] = { ...updatedItems[index], [field]: value };
@@ -443,13 +449,27 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         setValue('items', updatedItems);
     };
 
+    const calculateSubtotal = () => {
+        const items = watch('items') || [];
+        return items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    };
+
+    const calculateVAT = () => {
+        const items = watch('items') || [];
+        return items.reduce((sum, item) => {
+            const itemTotal = item.quantity * item.price;
+            const vatAmount = itemTotal * (item.vat_rate / 100);
+            return sum + vatAmount;
+        }, 0);
+    };
+
     const calculateTotal = () => {
-        const items = watch('items');
-        const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        const subtotal = calculateSubtotal();
+        const vat = calculateVAT();
         const discount = watch('discount') || 0;
         const shipping = watch('shipping') || 0;
         const taxes = watch('taxes') || 0;
-        return parseFloat((subtotal - discount + shipping + taxes).toFixed(2));
+        return parseFloat((subtotal + vat - discount + shipping + taxes).toFixed(2));
     };
 
     return (
@@ -631,8 +651,11 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                         name={`items.${index}.quantity`}
                                                         label={t('quantity')}
                                                         type="number"
-                                                        value={item.quantity}
-                                                        onChange={(event) => updateItem(index, 'quantity', parseInt(event.target.value) || 0)}
+                                                        value={item.quantity === 0 ? '' : item.quantity}
+                                                        onChange={(event) => {
+                                                            const value = event.target.value === '' ? 0 : parseInt(event.target.value);
+                                                            updateItem(index, 'quantity', isNaN(value) ? 0 : value);
+                                                        }}
                                                         inputProps={{ step: 1 }}
                                                     />
                                                 </Grid>
@@ -641,18 +664,40 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                         name={`items.${index}.price`}
                                                         label={t('price_euro')}
                                                         type="number"
-                                                        value={item.price}
-                                                        onChange={(event) => updateItem(index, 'price', parseFloat(event.target.value) || 0)}
+                                                        value={item.price === 0 ? '' : item.price}
+                                                        onChange={(event) => {
+                                                            const value = event.target.value === '' ? 0 : parseFloat(event.target.value);
+                                                            updateItem(index, 'price', isNaN(value) ? 0 : value);
+                                                        }}
                                                         inputProps={{ step: 0.01 }}
                                                     />
                                                 </Grid>
-                                                <Grid xs={6} md={2}>
+                                                <Grid xs={6} md={1.5}>
+                                                    <RHFSelect
+                                                        name={`items.${index}.vat_rate`}
+                                                        label={t('vat_rate')}
+                                                        value={item.vat_rate}
+                                                        onChange={(event) => updateItem(index, 'vat_rate', parseInt(event.target.value))}
+                                                        size="small"
+                                                    >
+                                                        <MenuItem value={0}>0%</MenuItem>
+                                                        <MenuItem value={9}>9%</MenuItem>
+                                                        <MenuItem value={21}>21%</MenuItem>
+                                                    </RHFSelect>
+                                                </Grid>
+                                                <Grid xs={6} md={1.5}>
                                                     <Box sx={{ textAlign: 'center' }}>
                                                         <Typography variant="body2" color="text.secondary">
-                                                            {t('total')}
+                                                            {t('total_excl_vat')}
+                                                        </Typography>
+                                                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                                            €{(item.quantity * item.price).toFixed(2)}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {t('total_incl_vat')}
                                                         </Typography>
                                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                                            €{(item.quantity * item.price).toFixed(2)}
+                                                            €{(item.quantity * item.price * (1 + item.vat_rate / 100)).toFixed(2)}
                                                         </Typography>
                                                     </Box>
                                                 </Grid>
@@ -678,10 +723,13 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Box>
                                     <Typography variant="body1" sx={{ mb: 1 }}>
-                                        {t('subtotal')}: €{watchedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
+                                        {t('subtotal')} (excl. BTW): €{calculateSubtotal().toFixed(2)}
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mb: 1 }}>
+                                        BTW: €{calculateVAT().toFixed(2)}
                                     </Typography>
                                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                        {t('total')}: €{calculateTotal().toFixed(2)}
+                                        {t('total')} (incl. BTW): €{calculateTotal().toFixed(2)}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -722,9 +770,16 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
 
                         <Stack spacing={2}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">{t('subtotal')}:</Typography>
+                                <Typography variant="body2">{t('subtotal')} (excl. BTW):</Typography>
                                 <Typography variant="body1">
-                                    €{watchedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
+                                    €{calculateSubtotal().toFixed(2)}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2">BTW:</Typography>
+                                <Typography variant="body1">
+                                    €{calculateVAT().toFixed(2)}
                                 </Typography>
                             </Box>
 
@@ -764,7 +819,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             <Divider />
 
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="h6" sx={{ fontWeight: 600 }}>{t('total')}:</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>{t('total')} (incl. BTW):</Typography>
                                 <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
                                     €{calculateTotal().toFixed(2)}
                                 </Typography>
