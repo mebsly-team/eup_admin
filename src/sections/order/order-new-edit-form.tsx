@@ -64,6 +64,7 @@ interface IOrderFormData {
     };
     notes: string;
     eanSearch: string;
+    source_host: string;
     discount: number;
     shipping: number;
     taxes: number;
@@ -134,6 +135,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         }),
         notes: Yup.string(),
         eanSearch: Yup.string(),
+        source_host: Yup.string().required('Source host is required'),
         discount: Yup.number().min(0),
         shipping: Yup.number().min(0),
         taxes: Yup.number().min(0),
@@ -157,6 +159,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         },
         notes: '',
         eanSearch: '',
+        source_host: 'europowerbv.com',
         discount: currentOrder?.discount || 0,
         shipping: currentOrder?.shipping || 0,
         taxes: currentOrder?.taxes || 0,
@@ -355,6 +358,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 "user_id": data.customer.id,
                 "status": status || "pending_order",
                 "extra_note": extra_note,
+                "source_host": data.source_host,
                 "sub_total": subtotal,
                 "total": total,
                 "cart": {
@@ -509,6 +513,11 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                     });
                                 }}
                             />
+
+                            <RHFSelect name="source_host" label={t('source_host')}>
+                                <MenuItem value="europowerbv.com">europowerbv.com</MenuItem>
+                                <MenuItem value="kooptop.com">kooptop.com</MenuItem>
+                            </RHFSelect>
 
                             {/* <RHFSelect name="status" label="Status">
                                 {ORDER_STATUS_OPTIONS.map((option) => (

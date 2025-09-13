@@ -884,5 +884,6 @@
   "please_add_at_least_one_product": "Voeg ten minste één product toe aan de order",
   "order_created_successfully": "Order succesvol aangemaakt!",
   "error_creating_offer": "Fout bij het maken van aanbieding",
-  "error_creating_order": "Fout bij het maken van order"
+  "error_creating_order": "Fout bij het maken van order",
+  "source_host": "Bron Website"
 }
