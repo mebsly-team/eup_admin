@@ -259,12 +259,12 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     const handleEanSearch = async () => {
         const eanValue = getValues('eanSearch');
         if (!eanValue) {
-            enqueueSnackbar('Please enter an EAN code', { variant: 'warning' });
+            enqueueSnackbar(t('please_enter_ean'), { variant: 'warning' });
             return;
         }
 
         if (!watch('customer')) {
-            enqueueSnackbar('Please select a customer first', { variant: 'warning' });
+            enqueueSnackbar(t('please_select_customer_first'), { variant: 'warning' });
             return;
         }
 
@@ -302,21 +302,21 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                     if (itemsToAdd.length > 0) {
                         setValue('items', [...currentItems, ...itemsToAdd]);
                         setValue('eanSearch', '');
-                        enqueueSnackbar(`${itemsToAdd.length} product(s) added to order`, { variant: 'success' });
+                        enqueueSnackbar(t('products_added_to_order', { count: itemsToAdd.length }), { variant: 'success' });
 
                         if (itemsToAdd.length < newItems.length) {
-                            enqueueSnackbar(`${newItems.length - itemsToAdd.length} product(s) already in the order`, { variant: 'info' });
+                            enqueueSnackbar(t('products_already_in_order', { count: newItems.length - itemsToAdd.length }), { variant: 'info' });
                         }
                     } else {
-                        enqueueSnackbar('All found products are already in the order', { variant: 'info' });
+                        enqueueSnackbar(t('all_products_already_in_order'), { variant: 'info' });
                     }
                 } else {
-                    enqueueSnackbar('No products found with this EAN', { variant: 'warning' });
+                    enqueueSnackbar(t('no_products_found_ean'), { variant: 'warning' });
                 }
             }
         } catch (error) {
             console.error('Error searching by EAN:', error);
-            enqueueSnackbar('Error searching by EAN. Please try again.', { variant: 'error' });
+            enqueueSnackbar(t('error_searching_ean'), { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -326,12 +326,12 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         console.log("🚀 ~ OrderNewEditForm ~ data:", data)
 
         if (!data.customer) {
-            enqueueSnackbar('Please select a customer', { variant: 'error' });
+            enqueueSnackbar(t('please_select_customer'), { variant: 'error' });
             return;
         }
 
         if (!data.items || data.items.length === 0) {
-            enqueueSnackbar('Please add at least one product to the order', { variant: 'error' });
+            enqueueSnackbar(t('please_add_at_least_one_product'), { variant: 'error' });
             return;
         }
 
@@ -378,12 +378,12 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             console.log("🚀 ~ Sending order data:", orderData);
             await axiosInstance.post('/orders/', orderData);
 
-            const successMessage = status === 'other' ? 'Offer created successfully!' : 'Order created successfully!';
+            const successMessage = status === 'other' ? t('offer_created_successfully') : t('order_created_successfully');
             enqueueSnackbar(successMessage);
             router.push(paths.dashboard.order.root);
         } catch (error) {
             console.error('Error creating order:', error);
-            const errorMessage = status === 'other' ? 'Error creating offer' : 'Error creating order';
+            const errorMessage = status === 'other' ? t('error_creating_offer') : t('error_creating_order');
             enqueueSnackbar(errorMessage, { variant: 'error' });
         } finally {
             setLoading(false);
@@ -454,16 +454,16 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 <Grid xs={12} md={8}>
                     <Card sx={{ p: 3 }}>
                         <Typography variant="h6" sx={{ mb: 3 }}>
-                            Order Information
+                            {t('order_information')}
                         </Typography>
 
                         <Stack spacing={3}>
                             <RHFAutocomplete
                                 name="customer"
-                                label="Customer"
-                                placeholder="Type at least 2 characters to search customers..."
+                                label={t('customer')}
+                                placeholder={t('customer_search_placeholder')}
                                 options={customers}
-                                noOptionsText={customerSearchTerm.length < 2 ? "Type at least 2 characters to search" : "No customers found"}
+                                noOptionsText={customerSearchTerm.length < 2 ? t('customer_search_min_chars') : t('no_customers_found')}
                                 getOptionLabel={(option) => {
                                     if (typeof option === 'object' && option) {
                                         const firstName = option.first_name || '';
@@ -494,9 +494,9 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                     return options.filter((option) => {
                                         if (typeof option === 'object' && option) {
                                             const fullName = `${option.first_name || ''} ${option.last_name || ''}`.toLowerCase();
-                                            const email = (option.email || '').toLowerCase();
-                                            const businessName = (option.business_name || '').toLowerCase();
-                                            const relationCode = (option.relation_code || '').toLowerCase();
+                                            const email = String(option.email || '').toLowerCase();
+                                            const businessName = String(option.business_name || '').toLowerCase();
+                                            const relationCode = String(option.relation_code || '').toLowerCase();
 
                                             return (
                                                 fullName.includes(searchTerm) ||
@@ -541,7 +541,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                     {watch('customer') && (
                         <Card sx={{ p: 3, mt: 3 }}>
                             <Box sx={{ mb: 3 }}>
-                                <Typography variant="h6">Order Items</Typography>
+                                <Typography variant="h6">{t('order_items')}</Typography>
                             </Box>
 
                             <Box sx={{ mb: 3 }}>
@@ -549,8 +549,8 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                     <Grid xs={12} md={8}>
                                         <RHFTextField
                                             name="eanSearch"
-                                            label="Search by EAN"
-                                            placeholder="Enter EAN code to search products"
+                                            label={t('search_by_ean')}
+                                            placeholder={t('enter_ean_placeholder')}
                                             onKeyPress={(e) => {
                                                 if (e.key === 'Enter') {
                                                     e.preventDefault();
@@ -567,7 +567,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                             sx={{ mt: 1 }}
                                             fullWidth
                                         >
-                                            Search & Add
+                                            {t('search_and_add')}
                                         </LoadingButton>
                                     </Grid>
                                 </Grid>
@@ -577,7 +577,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                 {watchedItems.length === 0 ? (
                                     <Box sx={{ p: 3, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: 1 }}>
                                         <Typography variant="body1" color="text.secondary">
-                                            No products added yet. Use the EAN search above or click "Add Item" to get started.
+                                            {t('no_products_added')}
                                         </Typography>
                                     </Box>
                                 ) : (
@@ -587,7 +587,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                 <Grid xs={12} md={5}>
                                                     <Box>
                                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                                                            Product
+                                                            {t('product')}
                                                         </Typography>
                                                         {item.product ? (
                                                             <Typography variant="body1" sx={{ fontWeight: 500 }}>
@@ -596,10 +596,10 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                         ) : (
                                                             <RHFAutocomplete
                                                                 name={`items.${index}.product`}
-                                                                label="Select Product"
-                                                                placeholder="Type at least 2 characters to search products..."
+                                                                label={t('select_product')}
+                                                                placeholder={t('product_search_placeholder')}
                                                                 options={products}
-                                                                noOptionsText="Type at least 2 characters to search products"
+                                                                noOptionsText={t('product_search_min_chars')}
                                                                 getOptionLabel={(option) =>
                                                                     typeof option === 'object' ? option.title : option
                                                                 }
@@ -612,7 +612,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                         )}
                                                         {item.product && (
                                                             <Typography variant="caption" color="text.secondary">
-                                                                EAN: {item.product.ean} | Price: €{item.product.price_per_unit}
+                                                                {t('ean')}: {item.product.ean} | {t('price')}: €{item.product.price_per_unit}
                                                             </Typography>
                                                         )}
                                                     </Box>
@@ -620,7 +620,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                 <Grid xs={6} md={2}>
                                                     <RHFTextField
                                                         name={`items.${index}.quantity`}
-                                                        label="Quantity"
+                                                        label={t('quantity')}
                                                         type="number"
                                                         value={item.quantity}
                                                         onChange={(event) => updateItem(index, 'quantity', parseInt(event.target.value) || 0)}
@@ -630,7 +630,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                 <Grid xs={6} md={2}>
                                                     <RHFTextField
                                                         name={`items.${index}.price`}
-                                                        label="Price (€)"
+                                                        label={t('price_euro')}
                                                         type="number"
                                                         value={item.price}
                                                         onChange={(event) => updateItem(index, 'price', parseFloat(event.target.value) || 0)}
@@ -640,7 +640,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                 <Grid xs={6} md={2}>
                                                     <Box sx={{ textAlign: 'center' }}>
                                                         <Typography variant="body2" color="text.secondary">
-                                                            Total
+                                                            {t('total')}
                                                         </Typography>
                                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
                                                             €{(item.quantity * item.price).toFixed(2)}
@@ -669,10 +669,10 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Box>
                                     <Typography variant="body1" sx={{ mb: 1 }}>
-                                        Subtotal: €{watchedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
+                                        {t('subtotal')}: €{watchedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
                                     </Typography>
                                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                        Total: €{calculateTotal().toFixed(2)}
+                                        {t('total')}: €{calculateTotal().toFixed(2)}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -708,19 +708,19 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
 
                     <Card sx={{ p: 3, mt: 3 }}>
                         <Typography variant="h6" sx={{ mb: 3 }}>
-                            Order Summary
+                            {t('order_summary')}
                         </Typography>
 
                         <Stack spacing={2}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">Subtotal:</Typography>
+                                <Typography variant="body2">{t('subtotal')}:</Typography>
                                 <Typography variant="body1">
                                     €{watchedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}
                                 </Typography>
                             </Box>
 
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">Discount:</Typography>
+                                <Typography variant="body2">{t('discount')}:</Typography>
                                 <RHFTextField
                                     name="discount"
                                     size="small"
@@ -731,7 +731,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             </Box>
 
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">Shipping:</Typography>
+                                <Typography variant="body2">{t('shipping')}:</Typography>
                                 <RHFTextField
                                     name="shipping"
                                     size="small"
@@ -742,7 +742,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             </Box>
 
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">Taxes:</Typography>
+                                <Typography variant="body2">{t('taxes')}:</Typography>
                                 <RHFTextField
                                     name="taxes"
                                     size="small"
@@ -755,7 +755,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             <Divider />
 
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="h6" sx={{ fontWeight: 600 }}>Total:</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>{t('total')}:</Typography>
                                 <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
                                     €{calculateTotal().toFixed(2)}
                                 </Typography>
@@ -778,7 +778,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                     loading={loading}
                     size="large"
                 >
-                    Create Order
+                    {t('create_order')}
                 </LoadingButton>
 
                 <LoadingButton
@@ -796,7 +796,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                         }
                     }}
                 >
-                    Create Offer
+                    {t('create_offer')}
                 </LoadingButton>
 
                 <Button
@@ -804,7 +804,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                     size="large"
                     onClick={() => router.push(paths.dashboard.order.root)}
                 >
-                    Cancel
+                    {t('cancel')}
                 </Button>
             </Stack>
         </FormProvider>
