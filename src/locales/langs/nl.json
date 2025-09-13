@@ -887,5 +887,8 @@
   "error_creating_order": "Fout bij het maken van order",
   "source_host": "Bron Website",
   "total_excl_vat": "Totaal excl. BTW",
-  "total_incl_vat": "Totaal incl. BTW"
+  "total_incl_vat": "Totaal incl. BTW",
+  "customer_total_to_pay": "Klant totaal om te betalen",
+  "total_mismatch_error": "Totalen komen niet overeen!",
+  "calculated_total": "Berekend totaal"
 }

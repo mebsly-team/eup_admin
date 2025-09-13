@@ -650,6 +650,38 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       />
 
       <Stack sx={{ px: 3 }}>
+        {/* Total Validation Error */}
+        {(() => {
+          const calculatedTotal = calculateTotal();
+          const customerTotal = currentOrder?.total || 0;
+          const totalMismatch = Math.abs(calculatedTotal - customerTotal) > 0.01 && customerTotal > 0;
+
+          if (totalMismatch) {
+            return (
+              <Box sx={{
+                p: 2,
+                backgroundColor: 'error.lighter',
+                border: '1px solid',
+                borderColor: 'error.main',
+                borderRadius: 1,
+                mb: 2
+              }}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Iconify icon="eva:alert-triangle-fill" sx={{ color: 'error.main' }} />
+                  <Box>
+                    <Box sx={{ fontWeight: 600, color: 'error.main', typography: 'body1' }}>
+                      Totalen komen niet overeen! Bewerk en sla op om dit te herstellen.
+                    </Box>
+                    <Box sx={{ color: 'error.main', typography: 'body2' }}>
+                      Berekend totaal: {fCurrency(calculatedTotal)} ≠ Klant totaal om te betalen: {fCurrency(customerTotal)}
+                    </Box>
+                  </Box>
+                </Stack>
+              </Box>
+            );
+          }
+          return null;
+        })()}
         {/* Sorting Controls */}
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
