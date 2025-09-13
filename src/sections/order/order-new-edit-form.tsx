@@ -179,8 +179,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     const watchedItems = watch('items') || [];
 
     useEffect(() => {
-        fetchCustomers();
-        fetchProducts();
+        // No initial loading of products
     }, []);
 
     useEffect(() => {
@@ -189,17 +188,21 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     }, [watchedItems, watch('discount'), watch('shipping'), watch('taxes'), setValue]);
 
     const fetchCustomers = async (searchTerm = '') => {
+        if (!searchTerm) {
+            setCustomers([]);
+            return;
+        }
+
         try {
-            const searchParam = searchTerm ? `&search=${searchTerm}` : '';
-            const { data } = await axiosInstance.get(`/users/?${searchParam}`);
+            const { data } = await axiosInstance.get(`/users/?search=${searchTerm}&limit=20`);
             console.log('Fetched customers:', data);
 
             // Handle different response formats
             let customers: IOrderFormCustomer[] = [];
             if (Array.isArray(data)) {
-                customers = data;
+                customers = data.slice(0, 20); // Ensure max 20 results
             } else if (data.results && Array.isArray(data.results)) {
-                customers = data.results;
+                customers = data.results.slice(0, 20); // Ensure max 20 results
             } else if (data && typeof data === 'object' && !Array.isArray(data)) {
                 // Single user object returned
                 customers = [data];
@@ -208,6 +211,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             setCustomers(customers);
         } catch (error) {
             console.error('Error fetching customers:', error);
+            setCustomers([]);
         }
     };
 
@@ -215,17 +219,40 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         setCustomerSearchTerm(searchTerm);
         if (searchTerm.length >= 2) {
             await fetchCustomers(searchTerm);
-        } else if (searchTerm.length === 0) {
-            await fetchCustomers();
+        } else {
+            setCustomers([]);
         }
     };
 
-    const fetchProducts = async () => {
+    const fetchProducts = async (searchTerm = '') => {
+        if (!searchTerm) {
+            setProducts([]);
+            return;
+        }
+
         try {
-            const { data } = await axiosInstance.get('/products/');
-            setProducts(data.results || []);
+            const { data } = await axiosInstance.get(`/products/?search=${searchTerm}&limit=20`);
+            console.log('Fetched products:', data);
+
+            let products: IProductItem[] = [];
+            if (Array.isArray(data)) {
+                products = data.slice(0, 20);
+            } else if (data.results && Array.isArray(data.results)) {
+                products = data.results.slice(0, 20);
+            }
+
+            setProducts(products);
         } catch (error) {
             console.error('Error fetching products:', error);
+            setProducts([]);
+        }
+    };
+
+    const handleProductSearch = async (searchTerm: string) => {
+        if (searchTerm.length >= 2) {
+            await fetchProducts(searchTerm);
+        } else {
+            setProducts([]);
         }
     };
 
@@ -434,8 +461,9 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             <RHFAutocomplete
                                 name="customer"
                                 label="Customer"
-                                placeholder="Search by name, email, business name, or relation code"
+                                placeholder="Type at least 2 characters to search customers..."
                                 options={customers}
+                                noOptionsText={customerSearchTerm.length < 2 ? "Type at least 2 characters to search" : "No customers found"}
                                 getOptionLabel={(option) => {
                                     if (typeof option === 'object' && option) {
                                         const firstName = option.first_name || '';
@@ -569,12 +597,17 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                                             <RHFAutocomplete
                                                                 name={`items.${index}.product`}
                                                                 label="Select Product"
+                                                                placeholder="Type at least 2 characters to search products..."
                                                                 options={products}
+                                                                noOptionsText="Type at least 2 characters to search products"
                                                                 getOptionLabel={(option) =>
                                                                     typeof option === 'object' ? option.title : option
                                                                 }
                                                                 isOptionEqualToValue={(option, value) => option.id === value.id}
                                                                 onChange={(event, newValue) => updateItem(index, 'product', newValue)}
+                                                                onInputChange={(event, newInputValue) => {
+                                                                    handleProductSearch(newInputValue);
+                                                                }}
                                                             />
                                                         )}
                                                         {item.product && (
