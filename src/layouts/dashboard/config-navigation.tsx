@@ -149,7 +149,7 @@ export function useNavData() {
               // { title: t('cards'), path: paths.dashboard.statics.cards },
               { title: t('list'), path: paths.dashboard.purchase.list },
               { title: t('create'), path: paths.dashboard.purchase.new },
-              { title: t('offers'), path: paths.dashboard.purchase.offers },
+              { title: t('offers_to_supplier'), path: paths.dashboard.purchase.offers },
               // { title: t('edit'), path: paths.dashboard.statics.demo.edit },
               // { title: t('account'), path: paths.dashboard.statics.account },
             ],

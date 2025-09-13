@@ -260,7 +260,7 @@ export default function OrderListView() {
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              {t('new_credit_note')}
+              {t('new_order')}
             </Button>
           }
           sx={{

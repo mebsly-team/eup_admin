@@ -228,7 +228,7 @@ export default function PurchaseListView() {
         links={[
           { name: t('dashboard'), href: paths.dashboard.root },
           { name: t('purchases'), href: paths.dashboard.purchase.list },
-          { name: t('offers') },
+          { name: t('offers_to_supplier') },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },
