@@ -184,6 +184,7 @@ export default function OrderDetailsView({ id }: Props) {
       updateOrder(id, {
         status: newValue,
         history: newHistory,
+        extra_note: "",
       });
     },
     [currentOrder.history, id, t]

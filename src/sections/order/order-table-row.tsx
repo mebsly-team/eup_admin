@@ -178,7 +178,12 @@ export default function OrderTableRow({
 
       <TableCell sx={{ width: 110, padding: 1 }}>
         <ListItemText
-          primary={<Label
+          primary={extra_note === "offer" ? <Label
+            variant="soft"
+            color={'info'}
+          >
+            {t("offer")}
+          </Label> : <Label
             variant="soft"
             color={
               (status === 'delivered' && 'success') ||

@@ -48,7 +48,7 @@ export default function OrderDetailsToolbar({
   const popoverStatus = usePopover();
   const popover = usePopover();
   const { t, onChangeLang } = useTranslate();
-  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number } = currentOrder;
+  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
 
   const checkHistoryForStatusChange = (statusToCheck: string) => {
@@ -111,10 +111,10 @@ export default function OrderDetailsToolbar({
             <Stack spacing={1} direction="row" alignItems="center">
               <Typography variant="h4"> Order {id} </Typography>
               <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`} alt="icon" />
-
-              <Label variant="soft" color={is_paid ? 'success' : 'error'} onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>
-                {t(is_paid ? 'paid' : 'unpaid')}
-              </Label>
+              {extra_note === "offer" ? <Label variant="soft" color="info" onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>{t("offer")}</Label> :
+                <Label variant="soft" color={is_paid ? 'success' : 'error'} onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>
+                  {t(is_paid ? 'paid' : 'unpaid')}
+                </Label>}
               <Button
                 color="inherit"
                 variant="outlined"
@@ -165,6 +165,21 @@ export default function OrderDetailsToolbar({
           alignItems="start"
           justifyContent="flex-end"
         >
+
+          {extra_note === "offer" ? <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon="eva:email-fill" />}
+            onClick={() => handleSendInvoice({ id })}
+            sx={{
+              backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: isInvoiceSent ? 'lightgreen' : undefined,
+              }
+            }}
+          >
+            {t('send_offer')}
+          </Button> : null}
           <Button
             color="inherit"
             variant="outlined"
@@ -218,7 +233,7 @@ export default function OrderDetailsToolbar({
           <Button
             color="inherit"
             variant="outlined"
-            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+            startIcon={<Iconify icon="eva:email-fill" />}
             onClick={() => handleSendInvoice({ id })}
             disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
             sx={{

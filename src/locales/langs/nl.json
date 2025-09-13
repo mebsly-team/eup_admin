@@ -760,6 +760,7 @@
   "werkbon": "Orderpicker",
   "packing": "Pakbon",
   "send_invoice": "Factuur versturen",
+  "send_offer": "Offerte versturen",
   "send_password_reset": "Verstuur wachtwoord reset link",
   "error_sending_password_reset": "Fout bij het versturen van de wachtwoord reset link",
   "password_reset_email_sent": "Wachtwoord reset link verstuurd",
