@@ -663,7 +663,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
           const calculatedTotal = roundToTwoDecimals(subtotal + (Number(editedCart?.shipping_fee) || 0) + (Number(editedCart?.transaction_fee) || 0) - (Number(editedCart?.cart_discount) || 0));
           const customerTotal = currentOrder?.total || 0;
           const totalMismatch = Math.abs(calculatedTotal - customerTotal) > 0.01 && customerTotal > 0;
-          const totalMismatch2 = currentOrder?.user?.is_vat_document_printed ? Math.abs(customerTotal) !== Math.abs(currentOrder?.cart?.cart_total_price) : Math.abs(customerTotal) !== Math.abs(currentOrder?.cart?.cart_total_price_vat);
+          const totalMismatch2 = currentOrder?.user?.is_vat_document_printed ? Math.abs(subtotal) !== Math.abs(currentOrder?.cart?.cart_total_price) : Math.abs(subtotal) !== Math.abs(currentOrder?.cart?.cart_total_price_vat);
 
           if (totalMismatch || totalMismatch2) {
             return (
@@ -685,7 +685,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                       Berekend totaal: {fCurrency(calculatedTotal)} ≠ Klant totaal om te betalen: {fCurrency(customerTotal)}
                     </Box>
                     {totalMismatch2 && <Box sx={{ color: 'error.main', typography: 'body2' }}>
-                      Berekend totaal: {fCurrency(customerTotal)} ≠ Klant totaal om te betalen: {fCurrency(currentOrder?.user?.is_vat_document_printed ? currentOrder?.cart?.cart_total_price : currentOrder?.cart?.cart_total_price_vat)}
+                      Berekend totaal: {fCurrency(subtotal)} ≠ Klant totaal om te betalen: {fCurrency(currentOrder?.user?.is_vat_document_printed ? currentOrder?.cart?.cart_total_price : currentOrder?.cart?.cart_total_price_vat)}
                     </Box>}
                   </Box>
                 </Stack>
