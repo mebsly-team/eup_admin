@@ -17,7 +17,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 
 import axiosInstance from 'src/utils/axios';
-import { fCurrency } from 'src/utils/format-number';
+import { fCurrency, roundToTwoDecimals } from 'src/utils/format-number';
 
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
@@ -337,7 +337,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     const shippingFee = Number(editedCart?.shipping_fee) || 0;
     const transactionFee = Number(editedCart?.transaction_fee) || 0;
     const discount = Number(editedCart?.cart_discount) || 0;
-    return subtotal + shippingFee + transactionFee - discount;
+    return roundToTwoDecimals(subtotal + shippingFee + transactionFee - discount);
   };
 
   const handleSave = async () => {
@@ -660,7 +660,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
         {/* Total Validation Error */}
         {(() => {
           const subtotal = currentOrder?.user?.is_vat_document_printed ? calculateSubtotal() : calculateSubtotalInclVat();
-          const calculatedTotal = subtotal + Number(editedCart?.shipping_fee) || 0 + Number(editedCart?.transaction_fee) || 0 - Number(editedCart?.cart_discount) || 0;
+          const calculatedTotal = roundToTwoDecimals(subtotal + (Number(editedCart?.shipping_fee) || 0) + (Number(editedCart?.transaction_fee) || 0) - (Number(editedCart?.cart_discount) || 0));
           const customerTotal = currentOrder?.total || 0;
           const totalMismatch = Math.abs(calculatedTotal - customerTotal) > 0.01 && customerTotal > 0;
           const totalMismatch2 = currentOrder?.user?.is_vat_document_printed ? Math.abs(customerTotal) !== Math.abs(currentOrder?.cart?.cart_total_price) : Math.abs(customerTotal) !== Math.abs(currentOrder?.cart?.cart_total_price_vat);

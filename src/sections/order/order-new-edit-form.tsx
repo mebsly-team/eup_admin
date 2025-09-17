@@ -17,6 +17,7 @@ import { useRouter } from 'src/routes/hooks';
 
 import { useSnackbar } from 'src/components/snackbar';
 import { useSettingsContext } from 'src/components/settings';
+import { roundToTwoDecimals } from 'src/utils/format-number';
 import FormProvider, {
     RHFSelect,
     RHFTextField,
@@ -343,9 +344,9 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
 
         setLoading(true);
         try {
-            const subtotal = parseFloat(data.items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2));
-            const subtotalWithVat = parseFloat((subtotal + data.items.reduce((sum, item) => sum + (item.quantity * item.price * item.vat_rate / 100), 0)).toFixed(2));
-            const total = parseFloat((subtotalWithVat - (data.discount || 0) + (data.shipping || 0) + (data.taxes || 0)).toFixed(2));
+            const subtotal = roundToTwoDecimals(data.items.reduce((sum, item) => sum + (item.quantity * item.price), 0));
+            const subtotalWithVat = roundToTwoDecimals(subtotal + data.items.reduce((sum, item) => sum + (item.quantity * item.price * item.vat_rate / 100), 0));
+            const total = roundToTwoDecimals(subtotalWithVat - (data.discount || 0) + (data.shipping || 0) + (data.taxes || 0));
 
             const cartItems = data.items.map(item => ({
                 id: item.product?.id,
@@ -353,9 +354,9 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 quantity: item.quantity,
                 completed: false,
                 single_product_discounted_price_per_unit: item.price,
-                single_product_discounted_price_per_unit_vat: parseFloat((item.price * (1 + item.vat_rate / 100)).toFixed(2)),
-                product_item_total_price: parseFloat((item.quantity * item.price).toFixed(2)),
-                product_item_total_price_vat: parseFloat((item.quantity * item.price * (1 + item.vat_rate / 100)).toFixed(2)),
+                single_product_discounted_price_per_unit_vat: roundToTwoDecimals(item.price * (1 + item.vat_rate / 100)),
+                product_item_total_price: roundToTwoDecimals(item.quantity * item.price),
+                product_item_total_price_vat: roundToTwoDecimals(item.quantity * item.price * (1 + item.vat_rate / 100)),
                 vat_rate: item.vat_rate,
             }));
 
@@ -368,7 +369,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 "total": total,
                 "cart": {
                     "items": cartItems,
-                    "cart_total_price": subtotal.toFixed(2),
+                    "cart_total_price": roundToTwoDecimals(subtotal),
                     "cart_total_price_vat": subtotalWithVat,
                 },
                 "shipping_address": data.shipping_address,
@@ -470,7 +471,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         const discount = watch('discount') || 0;
         const shipping = watch('shipping') || 0;
         const taxes = watch('taxes') || 0;
-        return parseFloat((subtotal + vat - discount + shipping + taxes).toFixed(2));
+        return roundToTwoDecimals(subtotal + vat - discount + shipping + taxes);
     };
 
     return (

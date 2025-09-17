@@ -24,6 +24,16 @@ function getLocaleCode() {
 
 // ----------------------------------------------------------------------
 
+/**
+ * CONSISTENT ROUNDING FUNCTION - ROUNDS TO 2 DECIMAL PLACES USING HALF-UP ROUNDING
+ * This matches the backend's Decimal.quantize(Decimal("0.00"), rounding=ROUND_HALF_UP)
+ * @param value - The number to round
+ * @returns - Rounded number to 2 decimal places
+ */
+export function roundToTwoDecimals(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 export function fNumber(inputValue: InputValue) {
   const { code } = getLocaleCode();
 
