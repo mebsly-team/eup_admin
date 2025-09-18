@@ -96,7 +96,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
     }
   }, [enqueueSnackbar, t]);
 
-  const addToSupplierRecommendedProducts = useCallback(async (product) => {
+  const addToSupplierRecommendedProducts = useCallback(async (product: any) => {
     const payload = [...(supplier?.recommended_product_offer || []), product]
     try {
       const response = await axiosInstance.put(`/suppliers/${supplierId}/`, {
@@ -104,7 +104,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       });
       setSupplier(response.data || {});
       // After updating the supplier, we need to update the product quantities
-      const updatedProducts = response.data.recommended_product_offer.map(p => ({
+      const updatedProducts = (response.data?.recommended_product_offer || []).map((p: any) => ({
         ...p,
         product_quantity: 1
       }));
@@ -132,7 +132,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   }, [fetchSupplier, fetchSupplierProducts]);
 
   useEffect(() => {
-    const updatedProducts = supplier?.recommended_product_offer.map(p => ({
+    const updatedProducts = supplier?.recommended_product_offer?.map((p: any) => ({
       ...p,
       product_quantity: 1
     }));
@@ -180,7 +180,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
     }
   };
 
-  const calculateTotals = (recommendedProducts: IProductItem[]) => {
+  const calculateTotals = (recommendedProducts: any[]) => {
     const totals = recommendedProducts?.reduce(
       (acc, item) => {
         const itemPrice = Number(item.price_cost || 0) * (item.product_quantity || 1);
@@ -404,7 +404,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                               {t('min_order_amount')}: {item.min_order_amount || 0}
                             </Typography>
                             <Typography variant="caption" display="block">
-                              {t('max_stock_at_rack')}: {item.max_stock_at_rack || 0}
+                              {t('max_stock_at_rack')}: {(item as any).max_stock_at_rack || 0}
                             </Typography>
                           </TableCell>
                           <TableCell align="right">
@@ -594,7 +594,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                               {t('min_order_amount')}: {item.min_order_amount || '0'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {t('max_stock_at_rack')}: {item.max_stock_at_rack || '0'}
+                              {t('max_stock_at_rack')}: {(item as any).max_stock_at_rack || '0'}
                             </Typography>
                           </Stack>
                         </Grid>
@@ -619,10 +619,10 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                           <Button
                             variant="contained"
                             size="small"
-                            onClick={() => {
+                            onClick={async () => {
                               const isAlreadyAdded = supplierRecommendedProducts.some(p => p.id === item.id);
                               if (!isAlreadyAdded) {
-                                addToSupplierRecommendedProducts(item);
+                                await addToSupplierRecommendedProducts(item);
                                 enqueueSnackbar(t('product_added_to_recommended'), { variant: 'success' });
                               } else {
                                 enqueueSnackbar(t('product_already_in_recommended'), { variant: 'warning' });

@@ -529,7 +529,7 @@ export default function PurchaseEditView() {
     try {
       setSaving(true);
       const changes = {
-        type: 'offer_to_purchase',
+        type: 'convert_to_purchase',
         supplier: selectedSupplier?.id,
         purchase_invoice_date: currentPurchase?.purchase_invoice_date,
         items: currentPurchase?.items.map(item => ({
@@ -663,7 +663,7 @@ export default function PurchaseEditView() {
                         t('convert_to_purchase')
                 }
               >
-                {t('convert_to_purchase') || 'Inkoop\'a Aktar'}
+                {t('convert_to_purchase')}
               </LoadingButton>
             )}
             <LoadingButton
