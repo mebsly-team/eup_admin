@@ -785,8 +785,8 @@ export default function PurchaseEditView() {
                           <TableCell align="right">{t('stock')}</TableCell>
                           <TableCell align="right">{t('stock')}</TableCell>
                           <TableCell align="right">{t('price_cost')}</TableCell>
-                          <TableCell align="right">{t('vat')}</TableCell>
                           <TableCell align="right">{t('quantity')}</TableCell>
+                          <TableCell align="right">{t('total')}</TableCell>
                           <TableCell align="center">{t('actions')}</TableCell>
                         </TableRow>
                       </TableHead>
@@ -810,6 +810,18 @@ export default function PurchaseEditView() {
                               >
                                 <Typography variant="body2">{item.product_detail.ean}</Typography>
                                 <Typography variant="caption">Leverancierscode: {item.product_detail.supplier_article_code}</Typography>
+                                <Typography variant="caption" sx={{
+                                  color: getVatRate(selectedSupplier?.supplier_country) > 0 ? 'success.main' : 'warning.main',
+                                  fontWeight: 'bold',
+                                  display: 'block'
+                                }}>
+                                  {item.vat_rate}% ({getCountryName(selectedSupplier?.supplier_country)})
+                                </Typography>
+                                {!selectedSupplier?.supplier_country && (
+                                  <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold', display: 'block' }}>
+                                    ⚠️ {t('supplier_country_required') || 'Supplier country required'}
+                                  </Typography>
+                                )}
                               </Link>
                             </TableCell>
                             <TableCell align="right">
@@ -844,19 +856,6 @@ export default function PurchaseEditView() {
                               />
                             </TableCell>
                             <TableCell align="right">
-                              <Typography variant="body2" sx={{
-                                color: getVatRate(selectedSupplier?.supplier_country) > 0 ? 'success.main' : 'warning.main',
-                                fontWeight: 'bold'
-                              }}>
-                                {item.vat_rate}% {getVatRate(selectedSupplier?.supplier_country) > 0 ? '(NL)' : `(${getCountryName(selectedSupplier?.supplier_country)})`}
-                              </Typography>
-                              {!selectedSupplier?.supplier_country && (
-                                <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold' }}>
-                                  ⚠️ {t('supplier_country_required') || 'Supplier country required'}
-                                </Typography>
-                              )}
-                            </TableCell>
-                            <TableCell align="right">
                               <TextField
                                 type="number"
                                 defaultValue={item.product_quantity}
@@ -867,6 +866,11 @@ export default function PurchaseEditView() {
                                   inputProps: { min: 1 }
                                 }}
                               />
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                €{(Number(item.product_purchase_price) * item.product_quantity).toFixed(2)}
+                              </Typography>
                             </TableCell>
                             <TableCell align="center">
                               <IconButton
