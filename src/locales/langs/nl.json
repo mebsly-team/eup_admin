@@ -697,6 +697,8 @@
   "max_order_allowed_per_unit": "Max verkoopaantal",
   "order_unit_amount": "Bestellenheid leverancier",
   "min_order_amount": "Minimum bestelaantal leverancier",
+  "exc_btw_total": "Excl. BTW totaal",
+  "excl_btw_price_cost": "Excl. BTW kostprijs",
   "write_here": "Schrijf hier",
   "extra_etiket_nl": "Label (Nederland)",
   "extra_etiket_fr": "Label (Frans)",

@@ -784,9 +784,9 @@ export default function PurchaseEditView() {
                           <TableCell>{t('ean')}</TableCell>
                           <TableCell align="right">{t('stock')}</TableCell>
                           <TableCell align="right">{t('stock')}</TableCell>
-                          <TableCell align="right">{t('price_cost')}</TableCell>
+                          <TableCell align="right">{t('excl_btw_price_cost')}</TableCell>
                           <TableCell align="right">{t('quantity')}</TableCell>
-                          <TableCell align="right">{t('total')}</TableCell>
+                          <TableCell align="right">{t('exc_btw_total')}</TableCell>
                           <TableCell align="center">{t('actions')}</TableCell>
                         </TableRow>
                       </TableHead>
