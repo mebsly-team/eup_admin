@@ -247,16 +247,16 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     const inputKey = `${item.id}_price`;
     if (priceInputs[inputKey] !== undefined) {
       const inputValue = parseFloat(priceInputs[inputKey]) || 0;
-      return inputValue;
+      return roundToTwoDecimals(inputValue);
     }
-    return Number(item.single_product_discounted_price_per_unit || 0);
+    return roundToTwoDecimals(Number(item.single_product_discounted_price_per_unit || 0));
   };
 
   // Helper function to get current price inclusive BTW from exclusive BTW
   const getCurrentPriceInclVat = (item: any) => {
     const priceExclVat = getCurrentPriceExclVat(item);
     const vatRate = item.product.vat || 0;
-    return priceExclVat * (1 + (vatRate / 100));
+    return roundToTwoDecimals(priceExclVat * (1 + (vatRate / 100)));
   };
 
   const calculateVatTotals = () => {
@@ -273,44 +273,52 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       const priceExclVat = getCurrentPriceExclVat(item);
       const priceInclVat = getCurrentPriceInclVat(item);
       const vatRate = item.product.vat; // VAT percentage
-      const vatAmount = priceInclVat - priceExclVat;
+      const vatAmount = roundToTwoDecimals(priceInclVat - priceExclVat);
 
       // Use the explicit VAT rate from the product
       switch (vatRate) {
         case 0:
-          vatTotals.btw0 += priceExclVat * quantity;
+          vatTotals.btw0 += roundToTwoDecimals(priceExclVat) * quantity;
           vatTotals.vatAmount0 += 0;
           break;
         case 9:
-          vatTotals.btw9 += priceExclVat * quantity;
-          vatTotals.vatAmount9 += vatAmount * quantity;
+          vatTotals.btw9 += roundToTwoDecimals(priceExclVat) * quantity;
+          vatTotals.vatAmount9 += roundToTwoDecimals(vatAmount * quantity);
           break;
         case 21:
-          vatTotals.btw21 += priceExclVat * quantity;
-          vatTotals.vatAmount21 += vatAmount * quantity;
+          vatTotals.btw21 += roundToTwoDecimals(priceExclVat) * quantity;
+          vatTotals.vatAmount21 += roundToTwoDecimals(vatAmount * quantity);
           break;
         default:
           // Default to 21% if VAT rate is not recognized
-          vatTotals.btw21 += priceExclVat * quantity;
-          vatTotals.vatAmount21 += vatAmount * quantity;
+          vatTotals.btw21 += roundToTwoDecimals(priceExclVat) * quantity;
+          vatTotals.vatAmount21 += roundToTwoDecimals(vatAmount * quantity);
       }
     });
 
-    return vatTotals;
+    // Final rounding of accumulated totals
+    return {
+      btw0: roundToTwoDecimals(vatTotals.btw0),
+      btw9: roundToTwoDecimals(vatTotals.btw9),
+      btw21: roundToTwoDecimals(vatTotals.btw21),
+      vatAmount0: roundToTwoDecimals(vatTotals.vatAmount0),
+      vatAmount9: roundToTwoDecimals(vatTotals.vatAmount9),
+      vatAmount21: roundToTwoDecimals(vatTotals.vatAmount21),
+    };
   };
 
   const calculateSubtotalExclVat = () => {
     const vatTotals = calculateVatTotals();
     const total = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
     console.log('Subtotal excl VAT:', total);
-    return total;
+    return roundToTwoDecimals(total);
   };
 
   const calculateSubtotal = () => {
     const vatTotals = calculateVatTotals();
     const subtotalExclVat = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
     const totalVat = vatTotals.vatAmount0 + vatTotals.vatAmount9 + vatTotals.vatAmount21;
-    const total = subtotalExclVat + totalVat;
+    const total = roundToTwoDecimals(subtotalExclVat + totalVat);
     console.log('Subtotal excl VAT:', subtotalExclVat);
     console.log('Total VAT:', totalVat);
     console.log('Subtotal incl VAT:', total);
@@ -329,7 +337,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     const vatTotals = calculateVatTotals();
     const subtotalExclVat = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
     const totalVat = vatTotals.vatAmount0 + vatTotals.vatAmount9 + vatTotals.vatAmount21;
-    return subtotalExclVat + totalVat;
+    return roundToTwoDecimals(subtotalExclVat + totalVat);
   };
 
   const calculateTotal = () => {
