@@ -27,8 +27,8 @@ export default class ErrorBoundary extends Component<Props, State> {
       const checkForErrorLoadingPage = () => {
         const errorElements = document.querySelectorAll('div');
         for (const element of errorElements) {
-          if (element.textContent === 'Error loading page') {
-            console.log('Error loading page detected, refreshing...');
+          if (element.textContent === 'Loading page') {
+            console.log('Loading page detected, refreshing...');
             window.location.reload();
             return;
           }
@@ -42,11 +42,11 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           height: '100vh',
           padding: '20px',
           textAlign: 'center'
