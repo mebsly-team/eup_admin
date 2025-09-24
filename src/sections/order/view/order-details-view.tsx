@@ -145,8 +145,8 @@ export default function OrderDetailsView({ id }: Props) {
         enqueueSnackbar(t('Niet gelukt om deze bestelling naar Snelstart te verzenden'), { variant: 'error' });
       }
     } catch (error) {
-      console.error('Error sending order to snelstart:', error);
-      enqueueSnackbar(t('Niet gelukt om deze bestelling naar Snelstart te verzenden.'), { variant: 'error' });
+      const backendMessage = (error as any)?.response?.data?.message;
+      enqueueSnackbar(String(backendMessage || t('Niet gelukt om deze bestelling naar Snelstart te verzenden.')), { variant: 'error' });
     }
   };
 
