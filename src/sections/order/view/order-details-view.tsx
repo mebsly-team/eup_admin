@@ -134,6 +134,16 @@ export default function OrderDetailsView({ id }: Props) {
   const sendToSnelstart = async ({ id }) => {
     try {
       const response = await axiosInstance.post(`/snelstart/`, { order_id: id });
+      const data = response?.data;
+      if (data?.status === 'error' && data?.message) {
+        let msg = data.message;
+        try {
+          const parsed = typeof msg === 'string' && (msg.startsWith('{') || msg.startsWith('[')) ? JSON.parse(msg) : null;
+          if (Array.isArray(parsed)) msg = parsed.map((e) => e?.message || JSON.stringify(e)).join(' | ');
+        } catch { }
+        enqueueSnackbar(String(msg), { variant: 'error' });
+        return;
+      }
       if (response.status === 201) {
         console.log("🚀 ~ sendToSnelstart ~ response:", response)
         enqueueSnackbar(t('Order is succesvol verzonden naar Snelstart'), { variant: 'success' });
@@ -141,12 +151,22 @@ export default function OrderDetailsView({ id }: Props) {
         //   is_sent_to_snelstart: true,
         // });
       } else {
-        console.error('Failed to send order to snelstart, status code:', response.status);
-        enqueueSnackbar(t('Niet gelukt om deze bestelling naar Snelstart te verzenden'), { variant: 'error' });
+        const msg = data?.message || t('Niet gelukt om deze bestelling naar Snelstart te verzenden');
+        let finalMsg = msg as any;
+        try {
+          const parsed = typeof msg === 'string' && (msg.startsWith('{') || msg.startsWith('[')) ? JSON.parse(msg) : null;
+          if (Array.isArray(parsed)) finalMsg = parsed.map((e) => e?.message || JSON.stringify(e)).join(' | ');
+        } catch { }
+        enqueueSnackbar(String(finalMsg), { variant: 'error' });
       }
     } catch (error) {
-      const backendMessage = (error as any)?.response?.data?.message;
-      enqueueSnackbar(String(backendMessage || t('Niet gelukt om deze bestelling naar Snelstart te verzenden.')), { variant: 'error' });
+      const err = error as any;
+      let msg = err?.message || err?.detail || err?.error || err?.data?.message || err;
+      try {
+        const parsed = typeof msg === 'string' && (msg.startsWith('{') || msg.startsWith('[')) ? JSON.parse(msg) : null;
+        if (Array.isArray(parsed)) msg = parsed.map((e) => e?.message || JSON.stringify(e)).join(' | ');
+      } catch { }
+      enqueueSnackbar(String(msg || t('Niet gelukt om deze bestelling naar Snelstart te verzenden.')), { variant: 'error' });
     }
   };
 
