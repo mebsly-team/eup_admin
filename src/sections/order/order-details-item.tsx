@@ -223,11 +223,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     const updatedItems = editedCart.items.map((item: any) => {
       if (item.id === id) {
         // If changing quantity, validate against free_stock
-        if (key === 'quantity') {
-          const maxQuantity = item.product.free_stock || 1;
-          const validatedValue = Math.min(Math.max(1, value), maxQuantity);
-          return { ...item, [key]: validatedValue };
-        }
+        // if (key === 'quantity') {
+        //   const maxQuantity = item.product.free_stock || 1;
+        //   const validatedValue = Math.min(Math.max(1, value), maxQuantity);
+        //   return { ...item, [key]: validatedValue };
+        // }
         return { ...item, [key]: value };
       }
       return item;
@@ -771,9 +771,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                     {item.product.ean ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
                       EAN: {item.product.ean}
                     </Box> : null}
-                    {item.product.free_stock ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
+                    {/* {item.product.free_stock ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
                       Vrije voorraad: {item.product.free_stock}
-                    </Box> : null}
+                    </Box> : null} */}
                     {item.product.price_per_piece ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
                       Prijs per stuk (exc BTW): {fCurrency(item.product.price_per_piece)}
                     </Box> : null}
@@ -805,18 +805,23 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
 
               {isEditing ? (
                 <>
-                  <TextField
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      handleItemChange(item.id, 'quantity', parseInt(e.target.value))
-                    }
-                    inputProps={{
-                      min: 1,
-                      max: item.product.free_stock || 1
-                    }}
-                    sx={{ width: 60, mr: 2 }}
-                  />
+                  <Stack spacing={0.5} sx={{ width: 100, mr: 3 }}>
+                    <TextField
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleItemChange(item.id, 'quantity', parseInt(e.target.value))
+                      }
+                      inputProps={{
+                        min: 1,
+                        max: item.product.free_stock || 1
+                      }}
+
+                    />
+                    {<Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'left' }}>
+                      Vrije voorraad: {item.product.free_stock}
+                    </Box>}
+                  </Stack>
                   <Stack spacing={0.5}>
                     <TextField
                       type="text"
