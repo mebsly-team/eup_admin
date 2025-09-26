@@ -274,11 +274,11 @@ export default function PurchaseEditView() {
           console.log(`🔍 VAT rate: ${item.vat_rate}`);
           console.log(`🔍 Quantity: ${item.product_quantity}`);
 
-          const priceCost = item.product_purchase_price;
-          const vat = item.vat_rate;
+          const priceCost = Number(item.product_purchase_price);
+          const vat = Number(item.vat_rate);
           const quantity = item.product_quantity;
 
-          if (!priceCost || !vat || !quantity) {
+          if (isNaN(priceCost) || isNaN(vat) || !quantity) {
             console.warn('❌ Missing data for calculation:', { priceCost, vat, quantity, item });
             return acc;
           }
@@ -630,17 +630,13 @@ export default function PurchaseEditView() {
                   !currentPurchase ||
                   !currentPurchase.total_exc_btw ||
                   currentPurchase.total_exc_btw === '0.00' ||
-                  !currentPurchase.total_vat ||
-                  currentPurchase.total_vat === '0.00' ||
                   !currentPurchase.total_inc_btw ||
                   currentPurchase.total_inc_btw === '0.00' ||
                   currentPurchase.items.length === 0 ||
                   currentPurchase.items.some(item =>
                     !item.product_purchase_price ||
-                    !item.vat_rate ||
                     !item.product_quantity ||
                     Number(item.product_purchase_price) <= 0 ||
-                    Number(item.vat_rate) <= 0 ||
                     item.product_quantity <= 0
                   )
                 }
@@ -653,10 +649,8 @@ export default function PurchaseEditView() {
                       (t('calculation_errors_prevent_conversion') || 'Calculation errors prevent conversion') :
                       currentPurchase.items.some(item =>
                         !item.product_purchase_price ||
-                        !item.vat_rate ||
                         !item.product_quantity ||
                         Number(item.product_purchase_price) <= 0 ||
-                        Number(item.vat_rate) <= 0 ||
                         item.product_quantity <= 0
                       ) ?
                         (t('invalid_items_prevent_conversion') || 'Invalid items prevent conversion') :
@@ -675,33 +669,26 @@ export default function PurchaseEditView() {
                 !currentPurchase ||
                 !currentPurchase.total_exc_btw ||
                 currentPurchase.total_exc_btw === '0.00' ||
-                !currentPurchase.total_vat ||
-                currentPurchase.total_vat === '0.00' ||
                 !currentPurchase.total_inc_btw ||
                 currentPurchase.total_inc_btw === '0.00' ||
                 currentPurchase.items.length === 0 ||
                 currentPurchase.items.some(item =>
                   !item.product_purchase_price ||
-                  !item.vat_rate ||
                   !item.product_quantity ||
                   Number(item.product_purchase_price) <= 0 ||
-                  Number(item.vat_rate) <= 0 ||
                   item.product_quantity <= 0
                 )
               }
               title={
                 !currentPurchase ? t('no_purchase_data') :
                   !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ||
-                    !currentPurchase.total_vat || currentPurchase.total_vat === '0.00' ||
                     !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
                     currentPurchase.items.length === 0 ?
                     (t('calculation_errors_prevent_pdf_download') || 'Calculation errors prevent PDF download') :
                     currentPurchase.items.some(item =>
                       !item.product_purchase_price ||
-                      !item.vat_rate ||
                       !item.product_quantity ||
                       Number(item.product_purchase_price) <= 0 ||
-                      Number(item.vat_rate) <= 0 ||
                       item.product_quantity <= 0
                     ) ?
                       (t('invalid_items_prevent_pdf_download') || 'Invalid items prevent PDF download') :
