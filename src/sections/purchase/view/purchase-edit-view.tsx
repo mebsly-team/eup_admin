@@ -449,8 +449,6 @@ export default function PurchaseEditView() {
     const hasCalculationErrors =
       !currentPurchase.total_exc_btw ||
       currentPurchase.total_exc_btw === '0.00' ||
-      !currentPurchase.total_vat ||
-      currentPurchase.total_vat === '0.00' ||
       !currentPurchase.total_inc_btw ||
       currentPurchase.total_inc_btw === '0.00' ||
       currentPurchase.items.length === 0;
@@ -462,10 +460,8 @@ export default function PurchaseEditView() {
 
     const hasInvalidItems = currentPurchase.items.some(item =>
       !item.product_purchase_price ||
-      !item.vat_rate ||
       !item.product_quantity ||
       Number(item.product_purchase_price) <= 0 ||
-      Number(item.vat_rate) <= 0 ||
       item.product_quantity <= 0
     );
 
@@ -514,10 +510,8 @@ export default function PurchaseEditView() {
 
     const hasInvalidItems = currentPurchase.items.some(item =>
       !item.product_purchase_price ||
-      !item.vat_rate ||
       !item.product_quantity ||
       Number(item.product_purchase_price) <= 0 ||
-      Number(item.vat_rate) <= 0 ||
       item.product_quantity <= 0
     );
 
