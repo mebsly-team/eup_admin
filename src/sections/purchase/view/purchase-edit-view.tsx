@@ -497,8 +497,6 @@ export default function PurchaseEditView() {
     const hasCalculationErrors =
       !currentPurchase.total_exc_btw ||
       currentPurchase.total_exc_btw === '0.00' ||
-      !currentPurchase.total_vat ||
-      currentPurchase.total_vat === '0.00' ||
       !currentPurchase.total_inc_btw ||
       currentPurchase.total_inc_btw === '0.00' ||
       currentPurchase.items.length === 0;
@@ -637,7 +635,6 @@ export default function PurchaseEditView() {
                 title={
                   !currentPurchase ? t('no_purchase_data') :
                     !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ||
-                      !currentPurchase.total_vat || currentPurchase.total_vat === '0.00' ||
                       !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
                       currentPurchase.items.length === 0 ?
                       (t('calculation_errors_prevent_conversion') || 'Calculation errors prevent conversion') :
