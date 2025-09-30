@@ -733,6 +733,11 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
           </Button>
         </Stack>
 
+        {currentOrder?.extra_note && <Box sx={{ typography: 'body2', mb: 2, p: 3, fontSize: '1.2rem', border: '2px solid', borderColor: 'green' }}>
+          Extra nota: {currentOrder?.extra_note}
+        </Box>}
+
+
         <Scrollbar>
           {getSortedItems(editedCart?.items || []).map((item: any) => (
             <Stack
