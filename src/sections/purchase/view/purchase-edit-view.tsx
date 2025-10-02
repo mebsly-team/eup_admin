@@ -61,14 +61,22 @@ export default function PurchaseEditView() {
   const [previousPurchases, setPreviousPurchases] = useState<IPurchaseItem[]>([]);
   const [previousOffers, setPreviousOffers] = useState<IPurchaseItem[]>([]);
 
-  const getVatRate = useCallback((supplierCountry?: string) => {
-    return supplierCountry === 'NL' ? 21 : 0;
+  const getVatRate = useCallback((supplierCountry?: string, itemVat?: number) => {
+    if (!supplierCountry) return 0;
+    return supplierCountry === 'NL' ? (Number(itemVat) || 0) : 0;
   }, []);
 
   const getCountryName = useCallback((code?: string) => {
     if (!code) return 'Unknown';
     const country = countries.find(c => c.code === code);
     return country ? country.label : code;
+  }, []);
+
+  const calculateItemTax = useCallback((supplierCountry?: string, itemVat?: number) => {
+    const code = (supplierCountry || '').toString();
+    const upper = code.toUpperCase();
+    const isNL = upper === 'NL' || upper === 'NLD' || code.toLowerCase() === 'netherlands';
+    return isNL ? Number(itemVat || 0) : 0;
   }, []);
 
   const fetchSuppliers = useCallback(async () => {
@@ -103,10 +111,17 @@ export default function PurchaseEditView() {
 
       const purchaseData = {
         ...response.data,
-        items: response.data.items?.map((item: any) => ({
-          ...item,
-          vat_rate: getVatRate(response.data.supplier_detail?.supplier_country),
-        })) || []
+        items: response.data.items?.map((item: any) => {
+          const appliedVat = getVatRate(
+            response.data.supplier_detail?.supplier_country,
+            item.vat ?? item.vat_rate ?? item.product_detail?.vat
+          );
+          return {
+            ...item,
+            vat: appliedVat,
+            vat_rate: appliedVat,
+          };
+        }) || []
       };
 
       console.log("🔍 Processed Purchase Data:", purchaseData);
@@ -120,7 +135,7 @@ export default function PurchaseEditView() {
       setHistory(response.data.history || []);
       setSelectedSupplier(response.data?.supplier_detail);
 
-      calculateTotals(purchaseData.items);
+      calculateTotals(purchaseData.items, response.data?.supplier_detail?.supplier_country);
     } catch (error) {
       console.error('Error fetching purchase:', error);
       enqueueSnackbar(t('failed_to_fetch_purchase'), { variant: 'error' });
@@ -170,15 +185,19 @@ export default function PurchaseEditView() {
       fetchPreviousPurchases(newValue.id);
       fetchPreviousOffers(newValue.id);
 
-      const newVatRate = getVatRate(newValue.supplier_country);
-
+      const country = newValue.supplier_country;
       setCurrentPurchase((prev) => {
         if (!prev) return prev;
 
-        const updatedItems = prev.items.map((item) => ({
-          ...item,
-          vat_rate: newVatRate,
-        }));
+        const updatedItems = prev.items.map((item) => {
+          const baseVat = (item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate;
+          const appliedVat = getVatRate(country, baseVat);
+          return {
+            ...item,
+            vat: appliedVat,
+            vat_rate: appliedVat,
+          };
+        });
 
         const updated = {
           ...prev,
@@ -204,7 +223,7 @@ export default function PurchaseEditView() {
         console.log("🔍 Product price_cost:", product.price_cost);
         console.log("🔍 Product vat:", product.vat);
 
-        const vatRate = getVatRate(selectedSupplier?.supplier_country);
+        const vatRate = getVatRate(selectedSupplier?.supplier_country, product.vat);
 
         const newItem = {
           id: crypto.randomUUID(),
@@ -224,6 +243,7 @@ export default function PurchaseEditView() {
           },
           product_quantity: 1,
           product_purchase_price: product.price_cost || '0',
+          vat: vatRate,
           vat_rate: vatRate,
         };
 
@@ -260,22 +280,30 @@ export default function PurchaseEditView() {
     calculateTotals(updatedItems);
   };
 
-  const calculateTotals = (items: IPurchaseItem['items']) => {
+  useEffect(() => {
+    if (currentPurchase?.items && currentPurchase.items.length > 0) {
+      const country = selectedSupplier?.supplier_country || (currentPurchase as any)?.supplier_detail?.supplier_country;
+      calculateTotals(currentPurchase.items, country);
+    }
+  }, [currentPurchase?.items, selectedSupplier?.supplier_country]);
+
+  const calculateTotals = (items: IPurchaseItem['items'], supplierCountryOverride?: string) => {
     console.log('🔍 calculateTotals called with items:', items);
     console.log('🔍 Items length:', items.length);
 
     try {
       const totals = items.reduce(
-        (acc, item, index) => {
+        (acc: any, item, index) => {
           console.log(`🔍 Processing item ${index + 1}:`, item);
           console.log(`🔍 Item ID: ${item.id}`);
           console.log(`🔍 Product detail:`, item.product_detail);
           console.log(`🔍 Product purchase price: ${item.product_purchase_price}`);
-          console.log(`🔍 VAT rate: ${item.vat_rate}`);
+          console.log(`🔍 VAT: ${(item as any).vat}`);
           console.log(`🔍 Quantity: ${item.product_quantity}`);
 
-          const priceCost = Number(item.product_purchase_price);
-          const vat = Number(item.vat_rate);
+          const priceCost = Number(String(item.product_purchase_price ?? '0').replace(',', '.'));
+          const baseVat = Number((item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate ?? 0);
+          const vat = calculateItemTax(supplierCountryOverride ?? selectedSupplier?.supplier_country, baseVat);
           const quantity = item.product_quantity;
 
           if (isNaN(priceCost) || isNaN(vat) || !quantity) {
@@ -297,12 +325,14 @@ export default function PurchaseEditView() {
           const newAcc = {
             totalExcBtw: acc.totalExcBtw + itemPrice,
             totalVat: acc.totalVat + itemVat,
+            totalVat9: acc.totalVat9 + (vat === 9 ? itemVat : 0),
+            totalVat21: acc.totalVat21 + (vat === 21 ? itemVat : 0),
           };
 
           console.log(`🔍 Running totals: excBtw=${newAcc.totalExcBtw}, vat=${newAcc.totalVat}`);
           return newAcc;
         },
-        { totalExcBtw: 0, totalVat: 0 }
+        { totalExcBtw: 0, totalVat: 0, totalVat9: 0, totalVat21: 0 }
       );
 
       const totalIncBtw = totals.totalExcBtw + totals.totalVat;
@@ -319,6 +349,8 @@ export default function PurchaseEditView() {
           total_exc_btw: totals.totalExcBtw.toFixed(2),
           total_inc_btw: totalIncBtw.toFixed(2),
           total_vat: totals.totalVat.toFixed(2),
+          total_vat_9: Number(totals.totalVat9).toFixed(2),
+          total_vat_21: Number(totals.totalVat21).toFixed(2),
         };
         console.log('🔍 Updated purchase totals:', updated);
         return updated;
@@ -399,7 +431,7 @@ export default function PurchaseEditView() {
           product: item.product,
           product_quantity: item.product_quantity,
           product_purchase_price: item.product_purchase_price,
-          vat_rate: item.vat_rate,
+          vat_rate: (item as any).vat,
         })),
         history: [...history, {
           id: crypto.randomUUID(),
@@ -545,7 +577,7 @@ export default function PurchaseEditView() {
           product: item.product,
           product_quantity: item.product_quantity,
           product_purchase_price: item.product_purchase_price,
-          vat_rate: item.vat_rate,
+          vat_rate: (item as any).vat,
         })),
         history: [...history, {
           id: crypto.randomUUID(),
@@ -787,13 +819,16 @@ export default function PurchaseEditView() {
                                 }}
                               >
                                 <Typography variant="body2">{item.product_detail.ean}</Typography>
-                                <Typography variant="caption">Leverancierscode: {item.product_detail.supplier_article_code}</Typography>
+                                <Typography variant="caption">Leverancierscode: {(item.product_detail as any).supplier_article_code}</Typography>
                                 <Typography variant="caption" sx={{
-                                  color: getVatRate(selectedSupplier?.supplier_country) > 0 ? 'success.main' : 'warning.main',
+                                  color: (selectedSupplier?.supplier_country === 'NL') ? 'success.main' : 'warning.main',
                                   fontWeight: 'bold',
                                   display: 'block'
                                 }}>
-                                  {item.vat_rate}% ({getCountryName(selectedSupplier?.supplier_country)})
+                                  {calculateItemTax(
+                                    selectedSupplier?.supplier_country,
+                                    Number((item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate ?? 0)
+                                  )}% ({getCountryName(selectedSupplier?.supplier_country)})
                                 </Typography>
                                 {!selectedSupplier?.supplier_country && (
                                   <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold', display: 'block' }}>
@@ -872,7 +907,7 @@ export default function PurchaseEditView() {
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3}>
-                <Typography variant="h6">{t('purchase_summary')}</Typography>
+                <Typography variant="h6">{t('purchase_summary')}3</Typography>
 
                 {(() => {
                   console.log('🔍 Purchase Summary Debug:', {
@@ -925,10 +960,10 @@ export default function PurchaseEditView() {
                           <Typography variant="subtitle2">{selectedSupplier.name}</Typography>
                         </Link>
                         <Typography variant="caption" sx={{
-                          color: getVatRate(selectedSupplier.supplier_country) > 0 ? 'success.main' : 'warning.main',
+                          color: (selectedSupplier.supplier_country === 'NL') ? 'success.main' : 'warning.main',
                           fontWeight: 'bold'
                         }}>
-                          {getCountryName(selectedSupplier.supplier_country)} - VAT: {getVatRate(selectedSupplier.supplier_country)}%
+                          {getCountryName(selectedSupplier.supplier_country)}{selectedSupplier.supplier_country === 'NL' ? '' : ' - VAT: 0%'}
                         </Typography>
                         {!selectedSupplier.supplier_country && (
                           <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold' }}>
@@ -970,7 +1005,7 @@ export default function PurchaseEditView() {
                     </Typography>
                   </Stack>
 
-                  <Stack direction="row" justifyContent="space-between">
+                  {/* <Stack direction="row" justifyContent="space-between">
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {t('vat_amount')}
                     </Typography>
@@ -982,6 +1017,24 @@ export default function PurchaseEditView() {
                       }}
                     >
                       €{currentPurchase.total_vat || '0.00'}
+                    </Typography>
+                  </Stack> */}
+
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      BTW-bedrag (%9)
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      €{((currentPurchase as any).total_vat_9 || '0.00')}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      BTW-bedrag (%21)
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      €{((currentPurchase as any).total_vat_21 || '0.00')}
                     </Typography>
                   </Stack>
 

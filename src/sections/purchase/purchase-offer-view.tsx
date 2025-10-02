@@ -85,6 +85,12 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   const [supplierRecommendedProducts, setSupplierRecommendedProducts] = useState<IProductItem[]>([]);
   console.log("🚀 ~ PurchaseOfferView ~ supplierRecommendedProducts1:", supplierRecommendedProducts)
   const [eanSearch, setEanSearch] = useState('');
+  const calculateItemTax = useCallback((supplierCountry?: string, itemVat?: number) => {
+    const code = (supplierCountry || '').toString();
+    const upper = code.toUpperCase();
+    const isNL = upper === 'NL' || upper === 'NLD' || code.toLowerCase() === 'netherlands';
+    return isNL ? Number(itemVat || 0) : 0;
+  }, []);
 
   const fetchSupplier = useCallback(async () => {
     try {
@@ -183,8 +189,10 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
   const calculateTotals = (recommendedProducts: any[]) => {
     const totals = recommendedProducts?.reduce(
       (acc, item) => {
-        const itemPrice = Number(item.price_cost || 0) * (item.product_quantity || 1);
-        const itemVat = itemPrice * (Number(item.vat || 0) / 100);
+        const priceNum = Number(String(item.price_cost ?? '0').replace(',', '.'));
+        const itemPrice = priceNum * (item.product_quantity || 1);
+        const appliedVat = calculateItemTax(supplier?.supplier_country, Number(item.vat ?? 0));
+        const itemVat = itemPrice * (appliedVat / 100);
         return {
           totalExcBtw: acc.totalExcBtw + itemPrice,
           totalVat: acc.totalVat + itemVat,
@@ -207,7 +215,8 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       },
       product_quantity: item.product_quantity || 1,
       product_purchase_price: item.price_cost || '0',
-      vat_rate: item.vat || 21,
+      vat: Number(item.vat || 0),
+      vat_rate: Number(item.vat || 0),
     })) as PurchaseItemDetail[];
 
     setCurrentPurchase((prev) => ({
@@ -250,18 +259,18 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
       ...prev!,
       items: updatedItems,
     }));
-    calculateTotals(updatedItems);
+    calculateTotals(updatedItems as any);
   };
 
   const handleUpdateVat = (itemId: string, vatRate: number) => {
     const updatedItems = currentPurchase?.items?.map((item) =>
-      item.id === itemId ? { ...item, vat_rate: vatRate } : item
+      item.id === itemId ? { ...item, vat: vatRate, vat_rate: vatRate } : item
     );
     setCurrentPurchase((prev) => ({
       ...prev!,
       items: updatedItems,
     }));
-    calculateTotals(updatedItems);
+    calculateTotals(updatedItems as any);
   };
 
   const handleCreate = async () => {
@@ -294,7 +303,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
           product: item.product,
           product_quantity: item.product_quantity,
           product_purchase_price: item.product_purchase_price,
-          vat_rate: item.vat_rate,
+          vat_rate: (item as any).vat ?? item.vat_rate,
         })),
         history: [{
           id: crypto.randomUUID(),
@@ -470,7 +479,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
           <Grid item xs={12} md={3}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3}>
-                <Typography variant="h6">{t('purchase_summary')}</Typography>
+                <Typography variant="h6">{t('purchase_summary')}2</Typography>
 
                 <Stack>
                   <DatePicker

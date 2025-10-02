@@ -56,6 +56,13 @@ export default function PurchaseEditView() {
   const [previousPurchases, setPreviousPurchases] = useState<IPurchaseItem[]>([]);
   const [previousOffers, setPreviousOffers] = useState<IPurchaseItem[]>([]);
 
+  const calculateItemTax = useCallback((supplierCountry?: string, itemVat?: number) => {
+    const code = (supplierCountry || '').toString();
+    const upper = code.toUpperCase();
+    const isNL = upper === 'NL' || upper === 'NLD' || code.toLowerCase() === 'netherlands';
+    return isNL ? Number(itemVat || 0) : 0;
+  }, []);
+
   const fetchSuppliers = useCallback(async () => {
     try {
       const response = await axiosInstance.get('/suppliers/?limit=9999');
@@ -78,6 +85,7 @@ export default function PurchaseEditView() {
       const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
       if (response.data?.length > 0) {
         const product = response.data[0];
+        const appliedVat = Number(product.vat) || 0;
         const newItem = {
           id: crypto.randomUUID(),
           product: product.id,
@@ -87,10 +95,12 @@ export default function PurchaseEditView() {
             images: product.images,
             ean: product.ean,
             supplier_article_code: product.supplier_article_code,
+            vat: product.vat,
           },
           product_quantity: 1,
           product_purchase_price: product.price_cost || '0',
-          vat_rate: product.vat || 21,
+          vat: appliedVat,
+          vat_rate: appliedVat,
         };
 
         // Ensure items is initialized as an array
@@ -98,7 +108,7 @@ export default function PurchaseEditView() {
         setCurrentPurchase((prev) => ({
           ...prev!,
           items: [...currentItems, newItem],
-        }));
+        }) as any);
         setEanSearch('');
         calculateTotals([...currentItems, newItem]);
       } else {
@@ -111,19 +121,21 @@ export default function PurchaseEditView() {
   };
 
   const handleRemoveProduct = (itemId: string) => {
-    const updatedItems = currentPurchase?.items?.filter((item) => item.id !== itemId);
+    const updatedItems = (currentPurchase?.items || []).filter((item) => item.id !== itemId);
     setCurrentPurchase((prev) => ({
       ...prev!,
       items: updatedItems,
-    }));
+    }) as any);
     calculateTotals(updatedItems);
   };
 
   const calculateTotals = (items: IPurchaseItem['items']) => {
     const totals = items?.reduce(
       (acc, item) => {
-        const itemPrice = Number(item.product_purchase_price) * item.product_quantity;
-        const itemVat = itemPrice * (item.vat_rate / 100);
+        const priceNum = Number(String(item.product_purchase_price ?? '0').replace(',', '.'));
+        const itemPrice = priceNum * item.product_quantity;
+        const vat = calculateItemTax(selectedSupplier?.supplier_country, Number((item as any).vat ?? (item as any).product_detail?.vat ?? item.vat_rate ?? 0));
+        const itemVat = itemPrice * (vat / 100);
         return {
           totalExcBtw: acc.totalExcBtw + itemPrice,
           totalVat: acc.totalVat + itemVat,
@@ -143,35 +155,35 @@ export default function PurchaseEditView() {
   };
 
   const handleUpdateQuantity = (itemId: string, quantity: number) => {
-    const updatedItems = currentPurchase?.items?.map((item) =>
+    const updatedItems = (currentPurchase?.items || []).map((item) =>
       item.id === itemId ? { ...item, product_quantity: quantity } : item
     );
     setCurrentPurchase((prev) => ({
       ...prev!,
       items: updatedItems,
-    }));
+    }) as any);
     calculateTotals(updatedItems);
   };
 
   const handleUpdatePrice = (itemId: string, price: string) => {
-    const updatedItems = currentPurchase?.items?.map((item) =>
+    const updatedItems = (currentPurchase?.items || []).map((item) =>
       item.id === itemId ? { ...item, product_purchase_price: price } : item
     );
     setCurrentPurchase((prev) => ({
       ...prev!,
       items: updatedItems,
-    }));
+    }) as any);
     calculateTotals(updatedItems);
   };
 
   const handleUpdateVat = (itemId: string, vatRate: number) => {
-    const updatedItems = currentPurchase?.items?.map((item) =>
+    const updatedItems = (currentPurchase?.items || []).map((item) =>
       item.id === itemId ? { ...item, vat_rate: vatRate } : item
     );
     setCurrentPurchase((prev) => ({
       ...prev!,
       items: updatedItems,
-    }));
+    }) as any);
     calculateTotals(updatedItems);
   };
   const fetchPreviousPurchases = useCallback(async (supplierId: string) => {
@@ -208,6 +220,9 @@ export default function PurchaseEditView() {
     if (newValue) {
       fetchPreviousPurchases(newValue.id);
       fetchPreviousOffers(newValue.id);
+      if (currentPurchase?.items?.length) {
+        calculateTotals(currentPurchase.items);
+      }
     } else {
       setPreviousPurchases([]);
       setPreviousOffers([]);
@@ -243,7 +258,7 @@ export default function PurchaseEditView() {
           product: item.product,
           product_quantity: item.product_quantity,
           product_purchase_price: item.product_purchase_price,
-          vat_rate: item.vat_rate,
+          vat_rate: (item as any).vat ?? item.vat_rate,
         })),
         history: [...(history || []), {
           id: crypto.randomUUID(),
@@ -389,7 +404,7 @@ export default function PurchaseEditView() {
                         <TextField
                           type="number"
                           label={t('vat_rate')}
-                          value={item.vat_rate}
+                          value={(item as any).vat ?? (item as any).product_detail?.vat ?? item.vat_rate}
                           InputProps={{
                             endAdornment: <Typography>%</Typography>,
                             readOnly: true
@@ -411,7 +426,7 @@ export default function PurchaseEditView() {
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3}>
-                <Typography variant="h6">{t('purchase_summary')}</Typography>
+                <Typography variant="h6">{t('purchase_summary')}1</Typography>
 
                 <Stack spacing={2}>
                   <Stack direction="row" justifyContent="space-between">
@@ -536,10 +551,22 @@ export default function PurchaseEditView() {
                             variant="contained"
                             size="small"
                             onClick={() => {
-                              setCurrentPurchase({
-                                ...offer,
-                                purchase_invoice_date: new Date().toISOString().split('T')[0],
+                              const mappedItems = (offer.items || []).map((it: any) => {
+                                const baseVat = it?.product_detail?.vat ?? it?.vat ?? it?.vat_rate ?? 0;
+                                const appliedVat = Number(baseVat) || 0;
+                                return {
+                                  ...it,
+                                  vat: appliedVat,
+                                  vat_rate: appliedVat,
+                                };
                               });
+                              setCurrentPurchase((prev) => ({
+                                ...(prev as any),
+                                ...offer,
+                                items: mappedItems,
+                                purchase_invoice_date: new Date().toISOString().split('T')[0],
+                              }) as any);
+                              calculateTotals(mappedItems);
                               enqueueSnackbar(t('offer_imported_successfully'), { variant: 'success' });
                             }}
                           >
