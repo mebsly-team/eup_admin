@@ -1292,6 +1292,13 @@ const Map = () => {
                       {address.street_name} {address.house_number}, {address.city} <br />
                       {address.zip_code}, {address.country} <br />
 
+                      {matchingEvents.length > 0 && (
+                        <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <Iconify icon="solar:calendar-bold" width={14} sx={{ mr: 0.5 }} />
+                          <strong> {new Date(matchingEvents[0].start).toLocaleString('nl-NL')}</strong>
+                        </Box>
+                      )}
+
                       {user.branch && (
                         <Box component="div" sx={{ mt: 1 }}>
                           <strong>Filiaal:</strong> {user.branch}
