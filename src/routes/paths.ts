@@ -193,6 +193,7 @@ export const paths = {
       root: `${ROOTS.DASHBOARD}/order`,
       new: `${ROOTS.DASHBOARD}/order/new`,
       details: (id: string) => `${ROOTS.DASHBOARD}/order/${id}`,
+      carts: `${ROOTS.DASHBOARD}/order/carts`,
       demo: {
         details: `${ROOTS.DASHBOARD}/order/${MOCK_ID}`,
       },

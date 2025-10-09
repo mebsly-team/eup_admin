@@ -53,6 +53,7 @@ const SupplierEditPage = lazy(() => import('src/pages/dashboard/supplier/edit').
 const OrderListPage = lazy(() => import('src/pages/dashboard/order/list').catch(() => ({ default: () => <div>Loading page</div> })));
 const OrderCreatePage = lazy(() => import('src/pages/dashboard/order/new').catch(() => ({ default: () => <div>Loading page</div> })));
 const OrderDetailsPage = lazy(() => import('src/pages/dashboard/order/details').catch(() => ({ default: () => <div>Loading page</div> })));
+const OrderCartsPage = lazy(() => import('src/pages/dashboard/order/carts').catch(() => ({ default: () => <div>Loading page</div> })));
 // INVOICE
 const InvoiceListPage = lazy(() => import('src/pages/dashboard/invoice/list').catch(() => ({ default: () => <div>Loading page</div> })));
 const InvoiceDetailsPage = lazy(() => import('src/pages/dashboard/invoice/details').catch(() => ({ default: () => <div>Loading page</div> })));
@@ -244,6 +245,7 @@ export const dashboardRoutes = [
           { path: 'list', element: <OrderListPage /> },
           { path: 'new', element: <OrderCreatePage /> },
           { path: ':id', element: <OrderDetailsPage /> },
+          { path: 'carts', element: <OrderCartsPage /> },
         ],
       },
       {
