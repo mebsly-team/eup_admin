@@ -1187,7 +1187,7 @@ const Map = () => {
                 </Pane>
               </>
             )}
-            {users.map((user) => {
+            {users.flatMap((user) => {
               // Filter addresses that have valid coordinates
               const validAddresses = user.addresses.filter(address =>
                 address.latitude &&
