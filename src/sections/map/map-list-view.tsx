@@ -114,6 +114,11 @@ const MARKER_COLORS = [
 ];
 
 const DAY_LABEL_COLORS: Record<number, string> = {
+  [-10]: '#8B4513', // saddle brown
+  [-9]: '#2F4F4F',  // dark slate gray
+  [-8]: '#800080',  // purple
+  [-7]: '#FF6347',  // tomato
+  [-6]: '#20B2AA',  // light sea green
   [-5]: '#1F77B4', // blue
   [-4]: '#FF7F0E', // orange
   [-3]: '#2CA02C', // green
@@ -124,6 +129,11 @@ const DAY_LABEL_COLORS: Record<number, string> = {
   [3]: '#E377C2',  // pink
   [4]: '#4D4D4D',  // dark gray
   [5]: '#556B2F',  // olive
+  [6]: '#FF1493',  // deep pink
+  [7]: '#00CED1',  // dark turquoise
+  [8]: '#FFD700',  // gold
+  [9]: '#ADFF2F',  // green yellow
+  [10]: '#FF69B4', // hot pink
 };
 
 const createCustomIcon = (color: string, label?: string | number, labelBgColor?: string) => new Icon({
@@ -977,8 +987,8 @@ const Map = () => {
             initialView="timeGridDay"
             slotDuration="00:15:00"
             slotLabelInterval="00:30:00"
-            slotMinTime="07:00:00"
-            slotMaxTime="19:00:00"
+            slotMinTime="06:00:00"
+            slotMaxTime="24:00:00"
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             eventDrop={handleEventDrop}
@@ -1192,9 +1202,9 @@ const Map = () => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const startWindow = new Date(today);
-                startWindow.setDate(startWindow.getDate() - 5);
+                startWindow.setDate(startWindow.getDate() - 10);
                 const endWindow = new Date(today);
-                endWindow.setDate(endWindow.getDate() + 5);
+                endWindow.setDate(endWindow.getDate() + 10);
 
                 const windowEvents = events
                   .filter((e) => e.start >= startWindow.getTime() && e.start <= endWindow.getTime())
