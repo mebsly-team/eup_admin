@@ -47,6 +47,7 @@ interface IOrderFormCustomer {
     business_name?: string;
     relation_code?: string;
     customer_percentage?: number;
+    is_vat_document_printed?: boolean;
 }
 
 interface IOrderFormData {
@@ -346,7 +347,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         try {
             const subtotal = roundToTwoDecimals(data.items.reduce((sum, item) => sum + (item.quantity * item.price), 0));
             const subtotalWithVat = roundToTwoDecimals(subtotal + data.items.reduce((sum, item) => sum + (item.quantity * item.price * item.vat_rate / 100), 0));
-            const total = roundToTwoDecimals(subtotalWithVat - (data.discount || 0) + (data.shipping || 0) + (data.taxes || 0));
+            const total = roundToTwoDecimals((data.customer?.is_vat_document_printed ? subtotal : subtotalWithVat) - (data.discount || 0) + (data.shipping || 0) + (data.taxes || 0));
 
             const cartItems = data.items.map(item => ({
                 id: item.product?.id,
@@ -370,7 +371,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 "cart": {
                     "items": cartItems,
                     "cart_total_price": roundToTwoDecimals(subtotal),
-                    "cart_total_price_vat": subtotalWithVat,
+                    "cart_total_price_vat": data.customer?.is_vat_document_printed ? roundToTwoDecimals(subtotal) : subtotalWithVat,
                 },
                 "shipping_address": data.shipping_address,
                 "invoice_address": data.shipping_address,
@@ -457,6 +458,8 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     };
 
     const calculateVAT = () => {
+        const isVatZero = !!watch('customer')?.is_vat_document_printed;
+        if (isVatZero) return 0;
         const items = watch('items') || [];
         return items.reduce((sum, item) => {
             const itemTotal = item.quantity * item.price;

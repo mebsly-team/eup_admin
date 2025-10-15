@@ -316,6 +316,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
 
   const calculateSubtotal = () => {
     const vatTotals = calculateVatTotals();
+    console.log("🚀 ~ calculateSubtotal ~ vatTotals:", vatTotals)
     const subtotalExclVat = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
     const totalVat = vatTotals.vatAmount0 + vatTotals.vatAmount9 + vatTotals.vatAmount21;
     const total = roundToTwoDecimals(subtotalExclVat + totalVat);
