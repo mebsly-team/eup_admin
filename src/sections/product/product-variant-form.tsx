@@ -247,11 +247,10 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   const handleActiveSwitchChange = (row) => async (e) => {
     e.stopPropagation(); // Stop event propagation
 
-    // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
-      return; // Do nothing if not superuser
-    }
+    const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+    const canToggle = allowedEmails.includes(currentUser?.email);
+    if (!canToggle) return;
 
     setIsWaiting(true);
     const newStatus = e.target.checked;
@@ -282,11 +281,10 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
   const handleActiveSwitchChange2 = (row) => async (e) => {
     e.stopPropagation(); // Stop event propagation
 
-    // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
-      return; // Do nothing if not superuser
-    }
+    const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+    const canToggle = allowedEmails.includes(currentUser?.email);
+    if (!canToggle) return;
 
     setIsWaiting(true);
     const newStatus = e.target.checked;
@@ -456,6 +454,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
         <Switch
           size="small"
           checked={row?.is_visible_particular}
+          disabled={!['info@europowerbv.com', 'm.sahin@europowerbv.nl'].includes((JSON.parse(localStorage.getItem('user') || '{}')?.email))}
           onChange={handleActiveSwitchChange(row)}
         />,
       ],
@@ -470,6 +469,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
         <Switch
           size="small"
           checked={row?.is_visible_B2B}
+          disabled={!['info@europowerbv.com', 'm.sahin@europowerbv.nl'].includes((JSON.parse(localStorage.getItem('user') || '{}')?.email))}
           onChange={handleActiveSwitchChange2(row)}
         />,
       ],

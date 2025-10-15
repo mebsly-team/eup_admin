@@ -70,6 +70,9 @@ export default function ProductTableRow({
 
   const [isActive, setIsActive] = useState(is_visible_particular);
   const [isActiveB2B, setIsActiveB2B] = useState(is_visible_B2B);
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+  const canToggle = allowedEmails.includes(currentUser?.email);
   const theme = useTheme();
   const styles = {
     hideOnSm: {
@@ -99,9 +102,7 @@ export default function ProductTableRow({
   const handleActiveSwitchChange = async (e) => {
     e.stopPropagation(); // Stop event propagation
 
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
+    if (!canToggle) {
       return; // Do nothing if not superuser
     }
 
@@ -122,9 +123,7 @@ export default function ProductTableRow({
   const handleActiveSwitchChange2 = async (e) => {
     e.stopPropagation(); // Stop event propagation
 
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
+    if (!canToggle) {
       return; // Do nothing if not superuser
     }
 
@@ -227,6 +226,7 @@ export default function ProductTableRow({
             <Switch
               name="is_visible_particular"
               checked={isActive}
+              disabled={!canToggle || !is_product_active}
               onChange={handleActiveSwitchChange}
             />
           </div>
@@ -238,6 +238,7 @@ export default function ProductTableRow({
             <Switch
               name="is_visible_B2B"
               checked={isActiveB2B}
+              disabled={!canToggle || !is_product_active}
               onChange={handleActiveSwitchChange2}
             />
           </div>

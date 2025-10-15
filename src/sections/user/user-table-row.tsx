@@ -59,6 +59,9 @@ export default function UserTableRow({
   } = row;
   const { t, onChangeLang } = useTranslate();
   const [isActive, setIsActive] = useState(is_active);
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+  const canToggle = allowedEmails.includes(currentUser?.email);
 
   const confirm = useBoolean();
 
@@ -66,10 +69,7 @@ export default function UserTableRow({
 
   const popover = usePopover();
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
-      return; // Do nothing if not superuser
-    }
+    if (!canToggle) return;
     const response = await axiosInstance.patch(`/users/${id}/`, {
       is_active: e.target.checked,
     });
@@ -147,7 +147,7 @@ export default function UserTableRow({
         </TableCell>
 
         <TableCell>
-          <Switch name="is_active" checked={isActive} onChange={handleActiveSwitchChange} />
+          <Switch name="is_active" checked={isActive} disabled={!canToggle} onChange={handleActiveSwitchChange} />
         </TableCell>
 
         <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
