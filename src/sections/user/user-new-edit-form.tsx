@@ -419,6 +419,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      // Convert all email fields to lowercase
+      if (data.email) data.email = data.email.toLowerCase();
+      if (data.contact_person_email) data.contact_person_email = data.contact_person_email.toLowerCase();
+      if (data.invoice_email) data.invoice_email = data.invoice_email.toLowerCase();
+      if (data.invoice_cc_email) data.invoice_cc_email = data.invoice_cc_email.toLowerCase();
+
       data.birthdate = moment.isDate(data.birthdate)
         ? moment(data.birthdate).format('YYYY-MM-DD')
         : null;
@@ -677,7 +683,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
                     </MenuItem>
                   ))}
                 </RHFSelect>
-                <RHFTextField name="email" label={t('email')} />
+                <RHFTextField 
+                  name="email" 
+                  label={t('email')} 
+                  onChange={(e) => {
+                    setValue('email', e.target.value.toLowerCase());
+                  }}
+                />
                 <RHFTextField name="first_name" label={t('name')} />
                 <RHFTextField name="last_name" label={t('lastname')} />
                 {/* {currentUser ? null : (
@@ -775,7 +787,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
                 <RHFTextField name="contact_person_country" label={t('contact_person_country')} /> */}
                 <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
-                <RHFTextField name="contact_person_email" label={t('contact_person_email')} />
+                <RHFTextField 
+                  name="contact_person_email" 
+                  label={t('contact_person_email')} 
+                  onChange={(e) => {
+                    setValue('contact_person_email', e.target.value.toLowerCase());
+                  }}
+                />
                 <RHFTextField
                   name="contact_person_department"
                   label={t('contact_person_department')}
