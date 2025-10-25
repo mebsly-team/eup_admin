@@ -386,6 +386,8 @@ const Map = () => {
     const map = useMapEvents({
       click: (e) => {
         console.log('Map clicked at:', e.latlng);
+        // Close all open popups when clicking on the map
+        map.closePopup();
       },
       zoom: (e) => {
         console.log('Map zoom:', e);
