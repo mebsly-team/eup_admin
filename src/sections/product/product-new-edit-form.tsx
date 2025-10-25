@@ -61,6 +61,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { random } from 'lodash';
 
 // ----------------------------------------------------------------------
+const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
 
 type Props = {
   id: string;
@@ -118,6 +119,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const [isSupplierEdit, setSupplierEdit] = useState(false);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
   const [pendingChanges, setPendingChanges] = useState([]);
+  const canToggle = allowedEmails.includes(user?.email);
 
   useEffect(() => {
     if (tab) {
@@ -2587,6 +2589,7 @@ export default function ProductNewEditForm({ id }: Props) {
       <FormControlLabel
         control={
           <Switch
+            disabled={!canToggle}
             checked={getValues('is_visible_particular')}
             onChange={async (e) => {
               try {
@@ -2620,6 +2623,8 @@ export default function ProductNewEditForm({ id }: Props) {
               textDecoration: 'underline',
               cursor: 'pointer',
               marginRight: 3,
+              pointerEvents: canToggle ? 'auto' : 'none',
+
             }}
           >
             WEB
@@ -2629,6 +2634,7 @@ export default function ProductNewEditForm({ id }: Props) {
       <FormControlLabel
         control={
           <Switch
+            disabled={!canToggle}
             checked={getValues('is_visible_B2B')}
             onChange={async (e) => {
               try {
@@ -2662,6 +2668,7 @@ export default function ProductNewEditForm({ id }: Props) {
               textDecoration: 'underline',
               cursor: 'pointer',
               marginRight: 3,
+              pointerEvents: canToggle ? 'auto' : 'none',
             }}
           >
             B2B
