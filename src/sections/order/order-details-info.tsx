@@ -16,6 +16,7 @@ import IconButton from '@mui/material/IconButton';
 import Autocomplete from '@mui/material/Autocomplete';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import axios from 'axios';
 import axiosInstance from 'src/utils/axios';
@@ -127,6 +128,8 @@ export default function OrderDetailsInfo({
   const [updatedShippingAddress, setUpdatedShippingAddress] = useState(shippingAddress);
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
+  const [isInvoiceDateEdit, setIsInvoiceDateEdit] = useState(false);
+  const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
   const [totalWeight, setTotalWeight] = useState('');
   const [options, setOptions] = useState([]);
 
@@ -147,6 +150,12 @@ export default function OrderDetailsInfo({
   useEffect(() => {
     if (deliveryDetails?.tracking_number) setUpdatedDeliveryDetails(deliveryDetails);
   }, [deliveryDetails]);
+
+  useEffect(() => {
+    if (currentOrder?.invoice_date) {
+      setInvoiceDate(new Date(currentOrder.invoice_date));
+    }
+  }, [currentOrder?.invoice_date]);
 
   // useEffect(() => {
   //   if (!deliveryDetails?.tracking_number) get_sendcloud_parcel_details();
@@ -229,6 +238,26 @@ export default function OrderDetailsInfo({
   const handleDeliveryEditClick = () => {
     // if (!shipmentMethods?.length) handleGetShipmentMethods();
     setIsDeliveryEdit(!isDeliveryEdit);
+  };
+
+  // Function to handle invoice date edit
+  const handleInvoiceDateEditClick = () => {
+    setIsInvoiceDateEdit(!isInvoiceDateEdit);
+  };
+
+  // Function to handle invoice date update
+  const handleInvoiceDateUpdate = () => {
+    const newHistory = currentOrder.history;
+    newHistory.push({
+      date: new Date(),
+      event: `Factuurdatum gewijzigd naar ${invoiceDate?.toLocaleDateString('nl-NL')} door ${user?.email}`,
+    });
+    
+    updateOrder(orderId, {
+      invoice_date: invoiceDate?.toISOString().split('T')[0] || '',
+      history: newHistory,
+    });
+    setIsInvoiceDateEdit(false);
   };
   const handleAddressUpdate = (e) => {
     const newHistory = currentOrder.history;
@@ -815,8 +844,62 @@ export default function OrderDetailsInfo({
     </>
   );
 
+  const renderInvoiceDate = (
+    <>
+      <CardHeader
+        title="Factuurdatum"
+        action={
+          <IconButton onClick={handleInvoiceDateEditClick}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+        }
+      />
+      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        {isInvoiceDateEdit ? (
+          <Stack spacing={1.5}>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Factuurdatum:
+              </Box>
+              <DatePicker
+                value={invoiceDate}
+                onChange={(newValue) => setInvoiceDate(newValue)}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    sx: { width: 200 }
+                  }
+                }}
+              />
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button onClick={handleInvoiceDateUpdate} variant="contained">
+                Opslaan
+              </Button>
+              <Button variant="outlined" onClick={() => setIsInvoiceDateEdit(false)}>
+                Annuleren
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          <Stack direction="row" alignItems="center">
+            <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+              Factuurdatum:
+            </Box>
+            {currentOrder?.invoice_date ? new Date(currentOrder.invoice_date).toLocaleDateString('nl-NL') : 'Niet ingesteld'}
+          </Stack>
+        )}
+      </Stack>
+    </>
+  );
+
   return (
     <Card>
+
+      {renderInvoiceDate}
+
+      <Divider sx={{ borderStyle: 'dashed' }} />
+
       {renderCustomer}
 
       <Divider sx={{ borderStyle: 'dashed' }} />
@@ -830,6 +913,7 @@ export default function OrderDetailsInfo({
       <Divider sx={{ borderStyle: 'dashed' }} />
 
       {renderPayment}
+
     </Card>
   );
 }
