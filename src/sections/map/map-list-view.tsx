@@ -180,6 +180,7 @@ const Map = () => {
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [currentAccuracy, setCurrentAccuracy] = useState<number | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const calendarRef = useRef<Calendar>(null);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -281,60 +282,71 @@ const Map = () => {
     initAndFetch();
   }, [enqueueSnackbar]);
 
-  // Function to fetch all users based on filters (no bounds)
-  const fetchAllUsers = useCallback(async () => {
-    setIsLoading(true);
-    const apiUrl = `/get-map-data/`;
-    try {
-      const response = await axiosInstance.get(apiUrl, {
-        params: {
-          is_delivery_address: filters.is_delivery_address,
-          ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
-          ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
-        },
-      });
-      // Deduplicate users by ID to prevent duplicate markers
-      const uniqueUsers = response.data.reduce((acc: User[], user: User) => {
-        const existingUser = acc.find(u => u.id === user.id);
-        if (!existingUser) {
-          // Deduplicate addresses within this user
-          const uniqueAddresses = user.addresses.reduce((addrAcc: Address[], address: Address) => {
-            const existingAddress = addrAcc.find(a => a.id === address.id);
-            if (!existingAddress) {
-              addrAcc.push(address);
-            }
-            return addrAcc;
-          }, []);
+  // Function to fetch users based on the current map state and filters
+  const fetchAddresses = useCallback(async (bounds: LatLngBounds) => {
+    if (!bounds) return;
 
-          acc.push({
-            ...user,
-            addresses: uniqueAddresses
-          });
-        } else {
-          // If user already exists, merge and deduplicate addresses
-          const allAddresses = [...existingUser.addresses, ...user.addresses];
-          const uniqueAddresses = allAddresses.reduce((addrAcc: Address[], address: Address) => {
-            const existingAddress = addrAcc.find(a => a.id === address.id);
-            if (!existingAddress) {
-              addrAcc.push(address);
-            }
-            return addrAcc;
-          }, []);
+    const northEast = bounds.getNorthEast();
+    const southWest = bounds.getSouthWest();
 
-          existingUser.addresses = uniqueAddresses;
-        }
-        return acc;
-      }, []);
+    if (northEast && southWest) {
+      setIsLoading(true);
+      const apiUrl = `/get-map-data/`;
+      try {
+        const response = await axiosInstance.get(apiUrl, {
+          params: {
+            ne_lat: northEast.lat,
+            ne_lng: northEast.lng,
+            sw_lat: southWest.lat,
+            sw_lng: southWest.lng,
+            is_delivery_address: filters.is_delivery_address,
+            ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
+            ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
+          },
+        });
+        // Deduplicate users by ID to prevent duplicate markers
+        const uniqueUsers = response.data.reduce((acc: User[], user: User) => {
+          const existingUser = acc.find(u => u.id === user.id);
+          if (!existingUser) {
+            // Deduplicate addresses within this user
+            const uniqueAddresses = user.addresses.reduce((addrAcc: Address[], address: Address) => {
+              const existingAddress = addrAcc.find(a => a.id === address.id);
+              if (!existingAddress) {
+                addrAcc.push(address);
+              }
+              return addrAcc;
+            }, []);
 
-      console.log('Original users:', response.data.length);
-      console.log('Unique users:', uniqueUsers.length);
-      console.log('Sample user addresses:', uniqueUsers[0]?.addresses?.length);
+            acc.push({
+              ...user,
+              addresses: uniqueAddresses
+            });
+          } else {
+            // If user already exists, merge and deduplicate addresses
+            const allAddresses = [...existingUser.addresses, ...user.addresses];
+            const uniqueAddresses = allAddresses.reduce((addrAcc: Address[], address: Address) => {
+              const existingAddress = addrAcc.find(a => a.id === address.id);
+              if (!existingAddress) {
+                addrAcc.push(address);
+              }
+              return addrAcc;
+            }, []);
 
-      setUsers(uniqueUsers);
-    } catch (error) {
-      console.error("Error fetching map data:", error);
-    } finally {
-      setIsLoading(false);
+            existingUser.addresses = uniqueAddresses;
+          }
+          return acc;
+        }, []);
+
+        console.log('Original users:', response.data.length);
+        console.log('Unique users:', uniqueUsers.length);
+        console.log('Sample user addresses:', uniqueUsers[0]?.addresses?.length);
+
+        setUsers(uniqueUsers);
+      } catch (error) {
+        console.error("Error fetching map data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected]);
 
@@ -377,17 +389,26 @@ const Map = () => {
     }
   };
 
-  // Load all users on component mount and when filters change
-  useEffect(() => {
-    fetchAllUsers();
-  }, [fetchAllUsers]);
+  // Debounced fetch to prevent too many API calls
+  const debouncedFetch = useCallback((bounds: LatLngBounds) => {
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+    fetchTimeoutRef.current = setTimeout(() => {
+      fetchAddresses(bounds);
+    }, 300);
+  }, [fetchAddresses]);
 
   const MapEventHandler = () => {
     const map = useMapEvents({
+      moveend: () => {
+        debouncedFetch(map.getBounds());
+      },
+      zoomend: () => {
+        debouncedFetch(map.getBounds());
+      },
       click: (e) => {
         console.log('Map clicked at:', e.latlng);
-        // Close all open popups when clicking on the map
-        map.closePopup();
       },
       zoom: (e) => {
         console.log('Map zoom:', e);
@@ -425,6 +446,7 @@ const Map = () => {
     console.log('Map container pointer-events:', getComputedStyle(map.getContainer()).pointerEvents);
 
     mapRef.current = map;
+    debouncedFetch(map.getBounds());
 
     // Debug: check if markers are interactive
     setTimeout(() => {
@@ -444,9 +466,23 @@ const Map = () => {
         console.log(`Zoom control ${i} pointer-events:`, style.pointerEvents);
       });
     }, 1000);
+  }, [debouncedFetch]);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      debouncedFetch(mapRef.current.getBounds());
+    }
+  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, debouncedFetch]);
+
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
   }, []);
-
-
 
   const handleMapMove = (e: { target: LeafletMap }) => {
     setMapCenter({
@@ -951,7 +987,7 @@ const Map = () => {
             initialView="timeGridDay"
             slotDuration="00:15:00"
             slotLabelInterval="00:30:00"
-            slotMinTime="06:00:00"
+            slotMinTime="00:00:00"
             slotMaxTime="24:00:00"
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
