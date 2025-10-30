@@ -528,7 +528,7 @@ const Map = () => {
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
-        9, // Start checking from 9 AM
+        8, // Start checking from 6 AM
         0,
         0
       );
