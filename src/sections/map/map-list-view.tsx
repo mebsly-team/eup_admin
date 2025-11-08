@@ -427,6 +427,18 @@ const Map = () => {
     console.log('Map container pointer-events:', getComputedStyle(map.getContainer()).pointerEvents);
 
     mapRef.current = map;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const latParam = urlParams.get('lat');
+    const lngParam = urlParams.get('lng');
+    if (latParam && lngParam) {
+      const lat = parseFloat(latParam);
+      const lng = parseFloat(lngParam);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        map.flyTo([lat, lng], 15);
+      }
+    }
+    
     debouncedFetch();
 
     // Debug: check if markers are interactive
@@ -470,6 +482,23 @@ const Map = () => {
     });
     setZoom(e.target.getZoom());
   };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const latParam = urlParams.get('lat');
+    const lngParam = urlParams.get('lng');
+    if (latParam && lngParam) {
+      const lat = parseFloat(latParam);
+      const lng = parseFloat(lngParam);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setMapCenter({ lat, lng });
+        setZoom(15);
+        if (mapRef.current) {
+          mapRef.current.flyTo([lat, lng], 15);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
