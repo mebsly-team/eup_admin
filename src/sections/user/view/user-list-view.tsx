@@ -74,6 +74,8 @@ export default function UserListView() {
     { id: 'email', label: t('email_phone'), width: 180 },
     // { id: 'company', label: t('poc'), width: 220 },
     { id: 'type', label: t('kvk_vat'), width: 180 },
+    { id: 'customer_color', label: t('customer_color'), width: 150 },
+    { id: 'classification', label: t('classification'), width: 150 },
     { id: 'is_active', label: `${t('active')}?`, width: 100 },
     { id: '', width: 88 },
   ];
