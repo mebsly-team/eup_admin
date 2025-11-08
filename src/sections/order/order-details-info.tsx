@@ -253,8 +253,16 @@ export default function OrderDetailsInfo({
       event: `Factuurdatum gewijzigd naar ${invoiceDate?.toLocaleDateString('nl-NL')} door ${user?.email}`,
     });
     
+    let formattedDate = '';
+    if (invoiceDate) {
+      const year = invoiceDate.getFullYear();
+      const month = String(invoiceDate.getMonth() + 1).padStart(2, '0');
+      const day = String(invoiceDate.getDate()).padStart(2, '0');
+      formattedDate = `${year}-${month}-${day}`;
+    }
+    
     updateOrder(orderId, {
-      invoice_date: invoiceDate?.toISOString().split('T')[0] || '',
+      invoice_date: formattedDate,
       history: newHistory,
     });
     setIsInvoiceDateEdit(false);
