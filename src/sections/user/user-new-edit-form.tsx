@@ -39,7 +39,7 @@ import {
   Paper,
   IconButton,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
+import { Add, Edit, Delete, Map } from '@mui/icons-material';
 import { MAP_USER_COLORS } from 'src/constants/colors';
 import { useAuthContext } from 'src/auth/hooks';
 
@@ -411,6 +411,13 @@ export default function UserNewEditForm({ currentUser }: Props) {
       setAddressList(addressList.filter((_, i) => i !== index));
     } catch (error) {
       console.error("Error deleting address:", error);
+    }
+  };
+
+  const handleShowOnMap = (address: any) => {
+    if (address.latitude && address.longitude) {
+      const mapUrl = `${window.location.origin}${paths.dashboard.map.list}?lat=${address.latitude}&lng=${address.longitude}`;
+      window.open(mapUrl, '_blank');
     }
   };
 
@@ -1088,6 +1095,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
                     <IconButton onClick={() => handleDeleteAddress(index)}>
                       <Delete />
                     </IconButton>
+                    {address.latitude && address.longitude && (
+                      <IconButton onClick={() => handleShowOnMap(address)} title="Show on map">
+                        <Map />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
