@@ -64,7 +64,8 @@ export default function ProductTableRow({
     slug,
     is_visible_particular,
     is_visible_B2B,
-    siblings_count
+    siblings_count,
+    vat
   } = row;
   const { enqueueSnackbar } = useSnackbar();
 
@@ -214,6 +215,7 @@ export default function ProductTableRow({
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
           {siblings_count || '-'}
         </TableCell>
+        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{vat}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>{ean}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
           {free_stock}/{overall_stock}

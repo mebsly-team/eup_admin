@@ -105,6 +105,7 @@ export default function ProductListView() {
     { id: 'price_per_piece', label: t('price') },
     { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
     { id: 'variants', label: t('number_of_variants2'), hideOnSm: true },
+    { id: 'vat', label: t('vat') },
     { id: 'ean', label: t('ean'), hideOnSm: true },
     { id: 'overall_stock', label: t('free_all_stock'), hideOnMd: true },
     { id: 'is_visible_particular', label: `${t('is_particular')}` },
