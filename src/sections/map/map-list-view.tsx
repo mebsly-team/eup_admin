@@ -21,7 +21,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker';
-import { Map as LeafletMap, LatLngBounds, Icon, divIcon } from 'leaflet';
+import { Map as LeafletMap, Icon, divIcon } from 'leaflet';
 import { useSnackbar } from 'src/components/snackbar';
 import { StyledCalendar } from 'src/sections/calendar/styles';
 import { fTimestamp } from 'src/utils/format-time';
@@ -282,71 +282,60 @@ const Map = () => {
     initAndFetch();
   }, [enqueueSnackbar]);
 
-  // Function to fetch users based on the current map state and filters
-  const fetchAddresses = useCallback(async (bounds: LatLngBounds) => {
-    if (!bounds) return;
+  const fetchAddresses = useCallback(async () => {
+    setIsLoading(true);
+    const apiUrl = `/get-map-data/`;
+    try {
+      const response = await axiosInstance.get(apiUrl, {
+        params: {
+          ne_lat: 90,
+          ne_lng: 180,
+          sw_lat: -90,
+          sw_lng: -180,
+          is_delivery_address: filters.is_delivery_address,
+          ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
+          ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
+        },
+      });
+      const uniqueUsers = response.data.reduce((acc: User[], user: User) => {
+        const existingUser = acc.find(u => u.id === user.id);
+        if (!existingUser) {
+          const uniqueAddresses = user.addresses.reduce((addrAcc: Address[], address: Address) => {
+            const existingAddress = addrAcc.find(a => a.id === address.id);
+            if (!existingAddress) {
+              addrAcc.push(address);
+            }
+            return addrAcc;
+          }, []);
 
-    const northEast = bounds.getNorthEast();
-    const southWest = bounds.getSouthWest();
+          acc.push({
+            ...user,
+            addresses: uniqueAddresses
+          });
+        } else {
+          const allAddresses = [...existingUser.addresses, ...user.addresses];
+          const uniqueAddresses = allAddresses.reduce((addrAcc: Address[], address: Address) => {
+            const existingAddress = addrAcc.find(a => a.id === address.id);
+            if (!existingAddress) {
+              addrAcc.push(address);
+            }
+            return addrAcc;
+          }, []);
 
-    if (northEast && southWest) {
-      setIsLoading(true);
-      const apiUrl = `/get-map-data/`;
-      try {
-        const response = await axiosInstance.get(apiUrl, {
-          params: {
-            ne_lat: northEast.lat,
-            ne_lng: northEast.lng,
-            sw_lat: southWest.lat,
-            sw_lng: southWest.lng,
-            is_delivery_address: filters.is_delivery_address,
-            ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
-            ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
-          },
-        });
-        // Deduplicate users by ID to prevent duplicate markers
-        const uniqueUsers = response.data.reduce((acc: User[], user: User) => {
-          const existingUser = acc.find(u => u.id === user.id);
-          if (!existingUser) {
-            // Deduplicate addresses within this user
-            const uniqueAddresses = user.addresses.reduce((addrAcc: Address[], address: Address) => {
-              const existingAddress = addrAcc.find(a => a.id === address.id);
-              if (!existingAddress) {
-                addrAcc.push(address);
-              }
-              return addrAcc;
-            }, []);
+          existingUser.addresses = uniqueAddresses;
+        }
+        return acc;
+      }, []);
 
-            acc.push({
-              ...user,
-              addresses: uniqueAddresses
-            });
-          } else {
-            // If user already exists, merge and deduplicate addresses
-            const allAddresses = [...existingUser.addresses, ...user.addresses];
-            const uniqueAddresses = allAddresses.reduce((addrAcc: Address[], address: Address) => {
-              const existingAddress = addrAcc.find(a => a.id === address.id);
-              if (!existingAddress) {
-                addrAcc.push(address);
-              }
-              return addrAcc;
-            }, []);
+      console.log('Original users:', response.data.length);
+      console.log('Unique users:', uniqueUsers.length);
+      console.log('Sample user addresses:', uniqueUsers[0]?.addresses?.length);
 
-            existingUser.addresses = uniqueAddresses;
-          }
-          return acc;
-        }, []);
-
-        console.log('Original users:', response.data.length);
-        console.log('Unique users:', uniqueUsers.length);
-        console.log('Sample user addresses:', uniqueUsers[0]?.addresses?.length);
-
-        setUsers(uniqueUsers);
-      } catch (error) {
-        console.error("Error fetching map data:", error);
-      } finally {
-        setIsLoading(false);
-      }
+      setUsers(uniqueUsers);
+    } catch (error) {
+      console.error("Error fetching map data:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected]);
 
@@ -389,24 +378,17 @@ const Map = () => {
     }
   };
 
-  // Debounced fetch to prevent too many API calls
-  const debouncedFetch = useCallback((bounds: LatLngBounds) => {
+  const debouncedFetch = useCallback(() => {
     if (fetchTimeoutRef.current) {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
-      fetchAddresses(bounds);
+      fetchAddresses();
     }, 300);
   }, [fetchAddresses]);
 
   const MapEventHandler = () => {
     const map = useMapEvents({
-      moveend: () => {
-        debouncedFetch(map.getBounds());
-      },
-      zoomend: () => {
-        debouncedFetch(map.getBounds());
-      },
       click: (e) => {
         console.log('Map clicked at:', e.latlng);
       },
@@ -439,14 +421,13 @@ const Map = () => {
     return null;
   };
 
-  // Handle map initialization
   const handleMapReady = useCallback((map: LeafletMap) => {
     console.log('Map ready, container:', map.getContainer());
     console.log('Map container touch-action:', getComputedStyle(map.getContainer()).touchAction);
     console.log('Map container pointer-events:', getComputedStyle(map.getContainer()).pointerEvents);
 
     mapRef.current = map;
-    debouncedFetch(map.getBounds());
+    debouncedFetch();
 
     // Debug: check if markers are interactive
     setTimeout(() => {
@@ -469,9 +450,7 @@ const Map = () => {
   }, [debouncedFetch]);
 
   useEffect(() => {
-    if (mapRef.current) {
-      debouncedFetch(mapRef.current.getBounds());
-    }
+    debouncedFetch();
   }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, debouncedFetch]);
 
 
@@ -1303,9 +1282,27 @@ const Map = () => {
                       {address.zip_code}, {address.country} <br />
 
                       {matchingEvents.length > 0 && (
-                        <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                          <Iconify icon="solar:calendar-bold" width={14} sx={{ mr: 0.5 }} />
-                          <strong> {new Date(matchingEvents[0].start).toLocaleString('nl-NL')}</strong>
+                        <Box component="div" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Iconify icon="solar:calendar-bold" width={14} sx={{ mr: 0.5 }} />
+                            <strong> {new Date(matchingEvents[0].start).toLocaleString('nl-NL')}</strong>
+                          </Box>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEventDelete(matchingEvents[0].id);
+                            }}
+                            sx={{
+                              p: 0.5,
+                              color: 'error.main',
+                              '&:hover': {
+                                backgroundColor: 'error.lighter',
+                              }
+                            }}
+                          >
+                            <DeleteIcon sx={{ fontSize: '1rem' }} />
+                          </IconButton>
                         </Box>
                       )}
 
