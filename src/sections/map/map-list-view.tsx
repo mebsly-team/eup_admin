@@ -85,6 +85,7 @@ interface CalendarEvent {
   end: number;
   color: string;
   allDay: boolean;
+  eventType?: string;
 }
 
 interface TimeChangeDialogState {
@@ -248,6 +249,7 @@ const Map = () => {
               end: new Date(endTime).getTime(),
               color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
               allDay: !event.start.dateTime,
+              eventType: event.eventType,
             };
           }) || [];
 
@@ -800,6 +802,40 @@ const Map = () => {
         throw new Error('Google Calendar API niet geïnitialiseerd');
       }
 
+      // First, check if we have the event in local state and check its type
+      const localEvent = events.find(e => e.id === eventId);
+      if (localEvent?.eventType === 'birthday') {
+        enqueueSnackbar('Verjaardagsafspraken kunnen niet worden verwijderd', { variant: 'warning' });
+        return;
+      }
+
+      // If not in local state or type is unknown, fetch the event to check its type
+      let event: any = null;
+      if (!localEvent || !localEvent.eventType) {
+        const eventResponse = await window.gapi.client.calendar.events.get({
+          calendarId: GOOGLE_CALENDAR_ID,
+          eventId: eventId,
+        });
+
+        if (eventResponse.status !== 200) {
+          throw new Error('Kan afspraak niet ophalen uit Google Agenda');
+        }
+
+        event = eventResponse.result;
+
+        // Check if event is a special type that cannot be deleted (like birthday events)
+        if (event.eventType === 'birthday' || event.eventType === 'outOfOffice' || event.eventType === 'focusTime') {
+          enqueueSnackbar('Dit type afspraak kan niet worden verwijderd (bijv. verjaardag)', { variant: 'warning' });
+          return;
+        }
+
+        // Check if event has extendedProperties indicating it's a special event
+        if (event.extendedProperties?.private?.eventType === 'birthday') {
+          enqueueSnackbar('Verjaardagsafspraken kunnen niet worden verwijderd', { variant: 'warning' });
+          return;
+        }
+      }
+
       // Delete from Google Calendar
       const response = await window.gapi.client.calendar.events.delete({
         calendarId: GOOGLE_CALENDAR_ID,
@@ -821,20 +857,25 @@ const Map = () => {
       }
 
       enqueueSnackbar('Afspraak succesvol verwijderd', { variant: 'success' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting event:', error);
-      // Disconnect Google Calendar on error
-      const token = window.gapi?.client?.getToken();
-      if (token) {
-        window.google.accounts.oauth2.revoke(token.access_token);
-        window.gapi.client.setToken(null);
+      
+      // Check if error is about event type restriction
+      if (error?.result?.error?.errors?.some((e: any) => e.reason === 'eventTypeRestriction')) {
+        enqueueSnackbar('Dit type afspraak kan niet worden verwijderd (bijv. verjaardag)', { variant: 'warning' });
+        return;
       }
-      localStorage.removeItem('googleCalendarToken');
-      localStorage.removeItem('googleCalendarTokenExpiry');
+
+      // Only disconnect on actual API errors, not on user-friendly warnings
+      if (error?.result?.error?.code === 400 && error?.result?.error?.errors?.some((e: any) => e.reason === 'eventTypeRestriction')) {
+        return;
+      }
+
+      // For other errors, show error message but don't disconnect
       enqueueSnackbar(
         error instanceof Error
-          ? `${error.message} - Disconnected from Google Calendar`
-          : 'Error deleting event - Disconnected from Google Calendar',
+          ? error.message
+          : 'Error deleting event',
         { variant: 'error' }
       );
     }
@@ -1227,12 +1268,24 @@ const Map = () => {
 
                   // If user has no first/last name but has business name, match by business name
                   if (!first && !last && business) {
-                    return title.includes(business);
+                    return title === business || title.includes(business);
                   }
 
-                  // If user has first/last name, match by those
-                  if (first || last) {
-                    return (full && title.includes(full)) || (first && title.includes(first)) || (last && title.includes(last));
+                  // If user has first/last name, match by full name (both first and last must be present and match)
+                  if (first && last) {
+                    return title.includes(full);
+                  }
+
+                  // If only first name or only last name, match only if the title contains that single name
+                  // but be more strict - require the name to be a complete word
+                  if (first && !last) {
+                    const regex = new RegExp(`\\b${first}\\b`, 'i');
+                    return regex.test(title);
+                  }
+
+                  if (last && !first) {
+                    const regex = new RegExp(`\\b${last}\\b`, 'i');
+                    return regex.test(title);
                   }
 
                   return false;
