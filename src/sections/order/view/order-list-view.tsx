@@ -145,6 +145,43 @@ export default function OrderListView() {
   }, [table.page, location.pathname, location.search, router]);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlStatus = params.get('status') || 'all';
+    const urlName = params.get('name') || '';
+    const urlStartDateStr = params.get('start_date') || '';
+    const urlEndDateStr = params.get('end_date') || '';
+    
+    const urlStartDate = urlStartDateStr ? new Date(urlStartDateStr) : '';
+    const urlEndDate = urlEndDateStr ? new Date(urlEndDateStr) : '';
+    
+    const urlPage = Number(params.get('page'));
+    if (!Number.isNaN(urlPage) && urlPage > 0 && table.page !== urlPage - 1) {
+      table.setPage(urlPage - 1);
+    }
+    
+    const currentStartDate = filters.startDate instanceof Date 
+      ? formatDate(filters.startDate) 
+      : filters.startDate || '';
+    const currentEndDate = filters.endDate instanceof Date 
+      ? formatDate(filters.endDate) 
+      : filters.endDate || '';
+    
+    if (
+      filters.status !== urlStatus ||
+      filters.name !== urlName ||
+      currentStartDate !== urlStartDateStr ||
+      currentEndDate !== urlEndDateStr
+    ) {
+      setFilters({
+        status: urlStatus,
+        name: urlName,
+        startDate: urlStartDate || '',
+        endDate: urlEndDate || '',
+      });
+    }
+  }, [location.search, table]);
+
+  useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
@@ -157,8 +194,12 @@ export default function OrderListView() {
         ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
         : '';
       const searchFilter = filters.name ? `&search=${filters.name}` : '';
-      const startDateFilter = filters.startDate ? `&start_date=${formatDate(filters.startDate)}` : '';
-      const endDateFilter = filters.endDate ? `&end_date=${formatDate(filters.endDate)}` : '';
+      const startDateFilter = filters.startDate 
+        ? `&start_date=${filters.startDate instanceof Date ? formatDate(filters.startDate) : filters.startDate}` 
+        : '';
+      const endDateFilter = filters.endDate 
+        ? `&end_date=${filters.endDate instanceof Date ? formatDate(filters.endDate) : filters.endDate}` 
+        : '';
 
       const { data } = await axiosInstance.get(
         `/orders/?all=true&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
@@ -182,18 +223,59 @@ export default function OrderListView() {
 
   const handleFilters = useCallback(
     (name: string, value: IOrderTableFilterValue) => {
-      table.onResetPage();
+      const newSearchParams = new URLSearchParams(location.search);
+      
+      if (name === 'status') {
+        if (value === 'all' || value === null || value === '') {
+          newSearchParams.delete('status');
+        } else {
+          newSearchParams.set('status', String(value));
+        }
+      } else if (name === 'name') {
+        if (value === '' || value === null) {
+          newSearchParams.delete('name');
+        } else {
+          newSearchParams.set('name', String(value));
+        }
+      } else if (name === 'startDate') {
+        if (value === '' || value === null) {
+          newSearchParams.delete('start_date');
+        } else {
+          const dateValue = value instanceof Date ? formatDate(value) : String(value);
+          newSearchParams.set('start_date', dateValue);
+        }
+      } else if (name === 'endDate') {
+        if (value === '' || value === null) {
+          newSearchParams.delete('end_date');
+        } else {
+          const dateValue = value instanceof Date ? formatDate(value) : String(value);
+          newSearchParams.set('end_date', dateValue);
+        }
+      }
+      
+      if (name !== 'page') {
+        newSearchParams.set('page', '1');
+        table.onChangePage(null, 0);
+      }
+      
+      router.push(`${location.pathname}?${newSearchParams.toString()}`);
       setFilters((prevState) => ({
         ...prevState,
         [name]: value,
       }));
     },
-    [table]
+    [location.pathname, location.search, router, table]
   );
 
   const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
+    setFilters({
+      status: 'all',
+      name: '',
+      startDate: '',
+      endDate: '',
+    });
+    router.push(`${location.pathname}?page=1`);
+  }, [location.pathname, router]);
 
   const handleDeleteRow = useCallback(
     (id: string) => {
