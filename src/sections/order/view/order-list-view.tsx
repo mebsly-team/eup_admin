@@ -127,14 +127,6 @@ export default function OrderListView() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const pageParam = Number(queryParams.get('page'));
-    if (!Number.isNaN(pageParam) && pageParam > 0 && table.page !== pageParam - 1) {
-      table.setPage(pageParam - 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const desired = String(table.page + 1);
     const current = params.get('page') || '1';
@@ -142,7 +134,7 @@ export default function OrderListView() {
       params.set('page', desired);
       router.replace(`${location.pathname}?${params.toString()}`);
     }
-  }, [table.page, location.pathname, location.search, router]);
+  }, [table.page, location.pathname, router]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -179,7 +171,7 @@ export default function OrderListView() {
         endDate: urlEndDate || '',
       });
     }
-  }, [location.search, table]);
+  }, [location.search]);
 
   useEffect(() => {
     getAll();
