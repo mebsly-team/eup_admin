@@ -20,7 +20,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN echo "VITE_IMAGE_FOLDER_PATH=https://d3r7qcgexpw3ka.cloudfront.net/" > .env.production
+RUN echo "VITE_IMAGE_FOLDER_PATH=https://cdn.depotely.com/eup/uploads/" > .env.production
 RUN echo "VITE_HOST_API=https://be.kooptop.com/api" >> .env.production
 
 RUN yarn build
