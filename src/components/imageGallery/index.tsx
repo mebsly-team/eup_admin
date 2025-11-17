@@ -77,11 +77,15 @@ export default function ImageGallery({
       `/images/?&offset=${offset}&limit=${limit}${searchFilter}`
     );
     setTotalItems(data.count);
-    setImageList(data?.results);
+    const transformedResults = (data?.results || []).map((item: any) => ({
+      ...item,
+      url: `${IMAGE_FOLDER_PATH}${item.name}`,
+    }));
+    setImageList(transformedResults);
   };
 
   const slides = imageList.map((slide) => ({
-    src: `${IMAGE_FOLDER_PATH}${slide.name}`,
+    src: slide.url || `${IMAGE_FOLDER_PATH}${slide.name}`,
   }));
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -222,12 +226,7 @@ export default function ImageGallery({
                     },
                   }}
                 />
-                <Image
-                  alt="gallery"
-                  ratio="1/1"
-                  src={`${IMAGE_FOLDER_PATH}${image.name}`}
-                  onClick={() => handleSelect(`${image.name}`)}
-                />
+                <Image alt="gallery" ratio="1/1" src={image.url} onClick={() => handleSelect(`${image.name}`)} />
                 <IconButton
                   style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
                   onClick={() => handleDeleteImage(image.id)}
