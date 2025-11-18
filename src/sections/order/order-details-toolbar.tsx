@@ -4,8 +4,6 @@ import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
-import { RouterLink } from 'src/routes/components';
-
 import { fDateTime } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
@@ -18,7 +16,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 type Props = {
   currentOrder: any;
-  backLink: string;
+  onBack: () => void;
   statusOptions: {
     value: string;
     label: string;
@@ -37,7 +35,7 @@ type Props = {
 
 export default function OrderDetailsToolbar({
   currentOrder,
-  backLink,
+  onBack,
   statusOptions,
   onChangeStatus,
   handleDownloadDocument,
@@ -117,7 +115,7 @@ export default function OrderDetailsToolbar({
         }}
       >
         <Stack spacing={1} direction="row" alignItems="flex-start">
-          <IconButton component={RouterLink} href={backLink}>
+          <IconButton onClick={onBack}>
             <Iconify icon="eva:arrow-ios-back-fill" />
           </IconButton>
 

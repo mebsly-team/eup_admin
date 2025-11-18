@@ -7,7 +7,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useSnackbar } from 'src/components/snackbar';
 
-import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
 
 import axiosInstance from 'src/utils/axios';
 
@@ -51,6 +51,7 @@ export default function OrderDetailsView({ id }: Props) {
   const { t } = useTranslate();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuthContext();
+  const router = useRouter();
 
   useEffect(() => {
     if (id) {
@@ -261,7 +262,7 @@ export default function OrderDetailsView({ id }: Props) {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <OrderDetailsToolbar
-        backLink={paths.dashboard.order.root}
+        onBack={router.back}
         currentOrder={currentOrder}
         onChangeStatus={handleChangeStatus}
         onPaymentChangeStatus={onPaymentChangeStatus}
