@@ -128,13 +128,11 @@ export default function OrderListView() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const desired = String(table.page + 1);
-    const current = params.get('page') || '1';
-    if (current !== desired) {
-      params.set('page', desired);
+    if (!params.get('page')) {
+      params.set('page', '1');
       router.replace(`${location.pathname}?${params.toString()}`);
     }
-  }, [table.page, location.pathname, router]);
+  }, [location.pathname, location.search, router]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -308,9 +306,15 @@ export default function OrderListView() {
     },
     [handleFilters]
   );
-  const handleTablePageChange = useCallback((e: any, pageNo: number) => {
-    table.onChangePage(e, pageNo);
-  }, [table]);
+  const handleTablePageChange = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
+      const params = new URLSearchParams(location.search);
+      params.set('page', String(pageNo + 1));
+      router.replace(`${location.pathname}?${params.toString()}`);
+      table.onChangePage(e, pageNo);
+    },
+    [location.pathname, location.search, router, table]
+  );
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
