@@ -690,9 +690,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
                     </MenuItem>
                   ))}
                 </RHFSelect>
-                <RHFTextField 
-                  name="email" 
-                  label={t('email')} 
+                <RHFTextField
+                  name="email"
+                  label={t('email')}
                   onChange={(e) => {
                     setValue('email', e.target.value.toLowerCase());
                   }}
@@ -794,9 +794,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
                 <RHFTextField name="contact_person_country" label={t('contact_person_country')} /> */}
                 <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
-                <RHFTextField 
-                  name="contact_person_email" 
-                  label={t('contact_person_email')} 
+                <RHFTextField
+                  name="contact_person_email"
+                  label={t('contact_person_email')}
                   onChange={(e) => {
                     setValue('contact_person_email', e.target.value.toLowerCase());
                   }}
@@ -1056,166 +1056,169 @@ export default function UserNewEditForm({ currentUser }: Props) {
               </LoadingButton>
             </Stack>
           </Grid>
+          <Grid xs={12} md={4}>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>#</TableCell>
+                    <TableCell>Adres Type</TableCell>
+                    <TableCell>Adres Naam</TableCell>
+                    <TableCell>Adres</TableCell>
+                    <TableCell>Acties</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {addressList.map((address, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>
+                        {address?.is_delivery_address ? t('delivery_address') :
+                          address?.is_contact_person_address ? t('contact_person_address') : address?.is_invoice_address ? t('invoice_address') : ""}
+                      </TableCell>
+                      <TableCell>{address.address_name}</TableCell>
+                      <TableCell>
+                        {[
+                          address.street_name,
+                          address.house_number,
+                          address.house_suffix + ', ',
+                          address.zip_code + ', ',
+                          address.city + ', ',
+                          address.country
+                        ].filter(Boolean).join(' ')}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton type="button" onClick={() => handleOpenAddressForm(index)}>
+                          <Edit />
+                        </IconButton>
+                        <IconButton type="button" onClick={() => handleDeleteAddress(index)}>
+                          <Delete />
+                        </IconButton>
+                        {address.latitude && address.longitude && (
+                          <IconButton type="button" onClick={() => handleShowOnMap(address)} title="Show on map">
+                            <Map />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => handleAddAddress()}
+              sx={{ mt: 2 }}
+              disabled={!currentUser?.id}
+              type="button"
+            >
+              Adres Toevoegen
+            </Button>
+
+            <Dialog open={openAddressForm} onClose={handleCloseAddressForm}>
+              <DialogTitle>{editingIndex !== null ? 'Bewerk Adres' : 'Adres Toevoegen'}</DialogTitle>
+              <DialogContent>
+                <form onSubmit={handleSubmitAddressForm(onSubmitAddress)}>
+
+                  <TextField
+                    {...register("street_name")}
+                    label="Straatnaam"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="street-address"
+                  />
+                  <TextField
+                    {...register("house_number", { valueAsNumber: true })}
+                    label="Huisnummer"
+                    type="number"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="house-number"
+                  />
+                  <TextField
+                    {...register("house_suffix")}
+                    label="Huis Aachtervoegsel"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="address-line2"
+                  />
+                  <TextField
+                    {...register("city")}
+                    label="Stad"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="address-level2"
+                  />
+                  <TextField
+                    {...register("state")}
+                    label="Provincie"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="address-level1"
+                  />
+                  <TextField
+                    {...register("zip_code")}
+                    label="Postcode"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="postal-code"
+                    error={!!addressErrors.zip_code}
+                    helperText={addressErrors.zip_code?.message}
+                  />
+                  <TextField
+                    {...register("country")}
+                    label="Land"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="country"
+                  />
+                  <FormControl fullWidth sx={{ my: 1 }} error={!!addressErrors.addressType}>
+                    <InputLabel>Adres Type</InputLabel>
+                    <Controller
+                      name="addressType"
+                      control={controlAddressForm}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <Select {...field} label="Adres Type">
+                          <MenuItem value="">Geen</MenuItem>
+                          {ADDRESS_TYPES.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {addressErrors.addressType && (
+                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {addressErrors.addressType.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                  <TextField
+                    {...register("address_name")}
+                    label="Adres Naam"
+                    fullWidth
+                    sx={{ my: 1 }}
+                    autoComplete="address-name"
+                    error={!!addressErrors.address_name}
+                    helperText={addressErrors.address_name?.message}
+                  />
+
+                  <DialogActions sx={{ mt: 2, px: 0 }}>
+                    <Button onClick={handleCloseAddressForm}>Annuleren</Button>
+                    <Button type="submit" variant="contained">Opslaan</Button>
+                  </DialogActions>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+          </Grid>
         </Grid>
       </FormProvider>
-      <div>
-        <TableContainer component={Paper} sx={{ mt: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>#</TableCell>
-                <TableCell>Adres Type</TableCell>
-                <TableCell>Adres Naam</TableCell>
-                <TableCell>Adres</TableCell>
-                <TableCell>Acties</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {addressList.map((address, index) => (
-                <TableRow key={index}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>
-                    {address?.is_delivery_address ? t('delivery_address') :
-                      address?.is_contact_person_address ? t('contact_person_address') : address?.is_invoice_address ? t('invoice_address') : ""}
-                  </TableCell>
-                  <TableCell>{address.address_name}</TableCell>
-                  <TableCell>
-                    {[
-                      address.street_name,
-                      address.house_number,
-                      address.house_suffix,
-                      address.city,
-                      address.country
-                    ].filter(Boolean).join(' ')}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenAddressForm(index)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton onClick={() => handleDeleteAddress(index)}>
-                      <Delete />
-                    </IconButton>
-                    {address.latitude && address.longitude && (
-                      <IconButton onClick={() => handleShowOnMap(address)} title="Show on map">
-                        <Map />
-                      </IconButton>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleAddAddress()}
-          sx={{ mt: 2 }}
-          disabled={!currentUser?.id}
-        >
-          Adres Toevoegen
-        </Button>
-
-        <Dialog open={openAddressForm} onClose={handleCloseAddressForm}>
-          <DialogTitle>{editingIndex !== null ? 'Bewerk Adres' : 'Adres Toevoegen'}</DialogTitle>
-          <DialogContent>
-            <form onSubmit={handleSubmitAddressForm(onSubmitAddress)}>
-
-              <TextField
-                {...register("street_name")}
-                label="Straatnaam"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="street-address"
-              />
-              <TextField
-                {...register("house_number", { valueAsNumber: true })}
-                label="Huisnummer"
-                type="number"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="house-number"
-              />
-              <TextField
-                {...register("house_suffix")}
-                label="Huis Aachtervoegsel"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="address-line2"
-              />
-              <TextField
-                {...register("city")}
-                label="Stad"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="address-level2"
-              />
-              <TextField
-                {...register("state")}
-                label="Provincie"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="address-level1"
-              />
-              <TextField
-                {...register("zip_code")}
-                label="Postcode"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="postal-code"
-                error={!!addressErrors.zip_code}
-                helperText={addressErrors.zip_code?.message}
-              />
-              <TextField
-                {...register("country")}
-                label="Land"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="country"
-              />
-              <FormControl fullWidth sx={{ my: 1 }} error={!!addressErrors.addressType}>
-                <InputLabel>Adres Type</InputLabel>
-                <Controller
-                  name="addressType"
-                  control={controlAddressForm}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <Select {...field} label="Adres Type">
-                      <MenuItem value="">Geen</MenuItem>
-                      {ADDRESS_TYPES.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {addressErrors.addressType && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                    {addressErrors.addressType.message}
-                  </Typography>
-                )}
-              </FormControl>
-              <TextField
-                {...register("address_name")}
-                label="Adres Naam"
-                fullWidth
-                sx={{ my: 1 }}
-                autoComplete="address-name"
-                error={!!addressErrors.address_name}
-                helperText={addressErrors.address_name?.message}
-              />
-
-              <DialogActions sx={{ mt: 2, px: 0 }}>
-                <Button onClick={handleCloseAddressForm}>Annuleren</Button>
-                <Button type="submit" variant="contained">Opslaan</Button>
-              </DialogActions>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-      </div>
       <Stack sx={{ mt: 3 }}>
         <UserDetailsHistory currentUser={currentUser} />
       </Stack>
