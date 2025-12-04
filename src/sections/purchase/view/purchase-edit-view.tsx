@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'src/routes/hooks';
+import { useParams, useRouter } from 'src/routes/hooks';
 import { format } from 'date-fns';
 
 import Box from '@mui/material/Box';
@@ -47,6 +47,7 @@ type PurchaseHistory = {
 
 export default function PurchaseEditView() {
   const { id } = useParams();
+  const router = useRouter();
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const { t } = useTranslate();
@@ -493,7 +494,6 @@ export default function PurchaseEditView() {
     const hasInvalidItems = currentPurchase.items.some(item =>
       !item.product_purchase_price ||
       !item.product_quantity ||
-      Number(item.product_purchase_price) <= 0 ||
       item.product_quantity <= 0
     );
 
@@ -541,7 +541,6 @@ export default function PurchaseEditView() {
     const hasInvalidItems = currentPurchase.items.some(item =>
       !item.product_purchase_price ||
       !item.product_quantity ||
-      Number(item.product_purchase_price) <= 0 ||
       item.product_quantity <= 0
     );
 
@@ -632,7 +631,12 @@ export default function PurchaseEditView() {
           justifyContent="space-between"
           sx={{ mb: 3 }}
         >
-          <Typography variant="h4">{t('edit_purchase')}</Typography>
+          <Stack spacing={1} direction="row" alignItems="center">
+            <IconButton onClick={router.back}>
+              <Iconify icon="eva:arrow-ios-back-fill" />
+            </IconButton>
+            <Typography variant="h4">{t('edit_purchase')}</Typography>
+          </Stack>
 
           <Stack direction="row" spacing={2}>
             <LoadingButton
@@ -660,7 +664,6 @@ export default function PurchaseEditView() {
                   currentPurchase.items.some(item =>
                     !item.product_purchase_price ||
                     !item.product_quantity ||
-                    Number(item.product_purchase_price) <= 0 ||
                     item.product_quantity <= 0
                   )
                 }
@@ -673,7 +676,6 @@ export default function PurchaseEditView() {
                       currentPurchase.items.some(item =>
                         !item.product_purchase_price ||
                         !item.product_quantity ||
-                        Number(item.product_purchase_price) <= 0 ||
                         item.product_quantity <= 0
                       ) ?
                         (t('invalid_items_prevent_conversion') || 'Invalid items prevent conversion') :
@@ -698,7 +700,6 @@ export default function PurchaseEditView() {
                 currentPurchase.items.some(item =>
                   !item.product_purchase_price ||
                   !item.product_quantity ||
-                  Number(item.product_purchase_price) <= 0 ||
                   item.product_quantity <= 0
                 )
               }
@@ -711,7 +712,6 @@ export default function PurchaseEditView() {
                     currentPurchase.items.some(item =>
                       !item.product_purchase_price ||
                       !item.product_quantity ||
-                      Number(item.product_purchase_price) <= 0 ||
                       item.product_quantity <= 0
                     ) ?
                       (t('invalid_items_prevent_pdf_download') || 'Invalid items prevent PDF download') :
