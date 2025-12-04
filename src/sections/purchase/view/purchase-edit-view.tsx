@@ -368,7 +368,7 @@ export default function PurchaseEditView() {
 
   const handleUpdateQuantity = (itemId: string, value: string) => {
     const numValue = Number(value);
-    if (value === '' || isNaN(numValue) || numValue < 1) {
+    if (value === '' || isNaN(numValue)) {
       return;
     }
     const updatedItems = currentPurchase!.items.map((item) =>
@@ -866,6 +866,10 @@ export default function PurchaseEditView() {
                                 InputProps={{
                                   startAdornment: <Typography variant="caption">€</Typography>,
                                 }}
+                                inputProps={{
+                                  min: 0,
+                                  step: "0.01"
+                                }}
                               />
                             </TableCell>
                             <TableCell align="right">
@@ -875,9 +879,6 @@ export default function PurchaseEditView() {
                                 onBlur={(e) => handleUpdateQuantity(item.id, e.target.value)}
                                 size="small"
                                 sx={{ width: 80 }}
-                                InputProps={{
-                                  inputProps: { min: 1 }
-                                }}
                               />
                             </TableCell>
                             <TableCell align="right">
