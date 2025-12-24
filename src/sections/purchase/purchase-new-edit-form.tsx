@@ -412,6 +412,10 @@ export default function PurchaseEditView() {
                           sx={{ width: 100 }}
                         />
 
+                        <Typography variant="subtitle2" sx={{ minWidth: 100, textAlign: 'right' }}>
+                          €{(Number(String(item.product_purchase_price ?? '0').replace(',', '.')) * item.product_quantity).toFixed(2)}
+                        </Typography>
+
                         <IconButton color="error" onClick={() => handleRemoveProduct(item.id)}>
                           <Iconify icon="eva:trash-2-outline" />
                         </IconButton>
