@@ -9,4 +9,4 @@
 - npm run dev
 
 ## TYPE CHECK
-- yarn tsc
+- yarn tsc  //
