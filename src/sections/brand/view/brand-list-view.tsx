@@ -1,4 +1,5 @@
 import isEqual from 'lodash/isEqual';
+import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
@@ -59,6 +60,7 @@ export default function BrandListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IBrandItem[]>(brandList);
   const [filters, setFilters] = useState(defaultFilters);
+  const location = useLocation();
   const { t, onChangeLang } = useTranslate();
   const TABLE_HEAD = [
     { id: 'logo', label: t('logo'), width: 180 },
@@ -76,6 +78,25 @@ export default function BrandListView() {
   const canReset = !isEqual(defaultFilters, filters);
 
   const notFound = (!brandList?.length && canReset) || !brandList?.length;
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const pageParam = params.get('page');
+    const urlPage = pageParam ? Number(pageParam) : 1;
+    const newPageIdx = urlPage > 0 ? urlPage - 1 : 0;
+
+    if (table.page !== newPageIdx) {
+      table.setPage(newPageIdx);
+    }
+
+    const urlName = params.get('name') || '';
+
+    if (filters.name !== urlName) {
+      setFilters({
+        name: urlName,
+      });
+    }
+  }, [location.search]);
 
   useEffect(() => {
     getAll();
@@ -96,13 +117,28 @@ export default function BrandListView() {
 
   const handleFilters = useCallback(
     (name: string, value: IBrandTableFilterValue) => {
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.set(name, value);
+      if (name !== 'page') newSearchParams.set('page', '1');
+
       table.onResetPage();
+      router.push(`${location.pathname}?${newSearchParams.toString()}`);
       setFilters((prevState) => ({
         ...prevState,
         [name]: value,
       }));
     },
-    [table]
+    [location.pathname, location.search, router, table]
+  );
+
+  const handleTablePageChange = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
+      const params = new URLSearchParams(location.search);
+      params.set('page', String(pageNo + 1));
+      router.push(`${location.pathname}?${params.toString()}`);
+      table.onChangePage(e, pageNo);
+    },
+    [location.pathname, location.search, router, table]
   );
 
   const handleResetFilters = useCallback(() => {
@@ -260,7 +296,7 @@ export default function BrandListView() {
             count={count}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
+            onPageChange={handleTablePageChange}
             onRowsPerPageChange={table.onChangeRowsPerPage}
             dense={table.dense}
             onChangeDense={table.onChangeDense}

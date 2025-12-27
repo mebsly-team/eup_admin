@@ -1,4 +1,5 @@
 import isEqual from 'lodash/isEqual';
+import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
@@ -61,6 +62,7 @@ export default function CategoryListView() {
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<ICategoryItem[]>(categoryList);
   const [filters, setFilters] = useState(defaultFilters);
+  const location = useLocation();
   const { t, onChangeLang } = useTranslate();
 
   const TABLE_HEAD = [
@@ -84,6 +86,25 @@ export default function CategoryListView() {
   const notFound = (!categoryList?.length && canReset) || !categoryList?.length;
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const pageParam = params.get('page');
+    const urlPage = pageParam ? Number(pageParam) : 1;
+    const newPageIdx = urlPage > 0 ? urlPage - 1 : 0;
+
+    if (table.page !== newPageIdx) {
+      table.setPage(newPageIdx);
+    }
+
+    const urlName = params.get('name') || '';
+
+    if (filters.name !== urlName) {
+      setFilters({
+        name: urlName,
+      });
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
@@ -96,8 +117,7 @@ export default function CategoryListView() {
       : '';
     try {
       const { data } = await axiosInstance.get(
-        `/categories/?limit=${table.rowsPerPage}&offset=${
-          table.rowsPerPage * table.page
+        `/categories/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page
         }${searchFilter}${orderByParam}`
       );
       console.log('data', data);
@@ -131,13 +151,28 @@ export default function CategoryListView() {
 
   const handleFilters = useCallback(
     (name: string, value: ICategoryTableFilterValue) => {
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.set(name, value);
+      if (name !== 'page') newSearchParams.set('page', '1');
+
       table.onResetPage();
+      router.push(`${location.pathname}?${newSearchParams.toString()}`);
       setFilters((prevState) => ({
         ...prevState,
         [name]: value,
       }));
     },
-    [table]
+    [location.pathname, location.search, router, table]
+  );
+
+  const handleTablePageChange = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
+      const params = new URLSearchParams(location.search);
+      params.set('page', String(pageNo + 1));
+      router.push(`${location.pathname}?${params.toString()}`);
+      table.onChangePage(e, pageNo);
+    },
+    [location.pathname, location.search, router, table]
   );
 
   const handleResetFilters = useCallback(() => {
@@ -266,12 +301,12 @@ export default function CategoryListView() {
                   rowCount={categoryList?.length}
                   numSelected={table.selected?.length}
                   onSort={table.onSort}
-                  // onSelectAllRows={(checked) =>
-                  //   table.onSelectAllRows(
-                  //     checked,
-                  //     categoryList.map((row) => row.id)
-                  //   )
-                  // }
+                // onSelectAllRows={(checked) =>
+                //   table.onSelectAllRows(
+                //     checked,
+                //     categoryList.map((row) => row.id)
+                //   )
+                // }
                 />
 
                 <TableBody>
@@ -308,7 +343,7 @@ export default function CategoryListView() {
             count={count}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
+            onPageChange={handleTablePageChange}
             onRowsPerPageChange={table.onChangeRowsPerPage}
             dense={table.dense}
             onChangeDense={table.onChangeDense}

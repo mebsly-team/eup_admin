@@ -119,6 +119,33 @@ export default function ProductListView() {
   );
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const pageParam = params.get('page');
+    const urlPage = pageParam ? Number(pageParam) : 1;
+    const newPageIdx = urlPage > 0 ? urlPage - 1 : 0;
+
+    if (table.page !== newPageIdx) {
+      table.setPage(newPageIdx);
+    }
+
+    const urlVisibility = params.get('visibility') || 'visible';
+    const urlName = params.get('name') || '';
+    const urlCategory = params.get('category') || '';
+
+    if (
+      filters.visibility !== urlVisibility ||
+      filters.name !== urlName ||
+      filters.category !== urlCategory
+    ) {
+      setFilters({
+        visibility: urlVisibility,
+        name: urlName,
+        category: urlCategory,
+      });
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order, showBundles]);
 

@@ -140,22 +140,25 @@ export default function OrderListView() {
     const urlName = params.get('name') || '';
     const urlStartDateStr = params.get('start_date') || '';
     const urlEndDateStr = params.get('end_date') || '';
-    
+
     const urlStartDate = urlStartDateStr ? new Date(urlStartDateStr) : '';
     const urlEndDate = urlEndDateStr ? new Date(urlEndDateStr) : '';
-    
-    const urlPage = Number(params.get('page'));
-    if (!Number.isNaN(urlPage) && urlPage > 0 && table.page !== urlPage - 1) {
-      table.setPage(urlPage - 1);
+
+    const pageParam = params.get('page');
+    const urlPage = pageParam ? Number(pageParam) : 1;
+    const newPageIdx = urlPage > 0 ? urlPage - 1 : 0;
+
+    if (table.page !== newPageIdx) {
+      table.setPage(newPageIdx);
     }
-    
-    const currentStartDate = filters.startDate instanceof Date 
-      ? formatDate(filters.startDate) 
+
+    const currentStartDate = filters.startDate instanceof Date
+      ? formatDate(filters.startDate)
       : filters.startDate || '';
-    const currentEndDate = filters.endDate instanceof Date 
-      ? formatDate(filters.endDate) 
+    const currentEndDate = filters.endDate instanceof Date
+      ? formatDate(filters.endDate)
       : filters.endDate || '';
-    
+
     if (
       filters.status !== urlStatus ||
       filters.name !== urlName ||
@@ -184,11 +187,11 @@ export default function OrderListView() {
         ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
         : '';
       const searchFilter = filters.name ? `&search=${filters.name}` : '';
-      const startDateFilter = filters.startDate 
-        ? `&start_date=${filters.startDate instanceof Date ? formatDate(filters.startDate) : filters.startDate}` 
+      const startDateFilter = filters.startDate
+        ? `&start_date=${filters.startDate instanceof Date ? formatDate(filters.startDate) : filters.startDate}`
         : '';
-      const endDateFilter = filters.endDate 
-        ? `&end_date=${filters.endDate instanceof Date ? formatDate(filters.endDate) : filters.endDate}` 
+      const endDateFilter = filters.endDate
+        ? `&end_date=${filters.endDate instanceof Date ? formatDate(filters.endDate) : filters.endDate}`
         : '';
 
       const { data } = await axiosInstance.get(
@@ -214,7 +217,7 @@ export default function OrderListView() {
   const handleFilters = useCallback(
     (name: string, value: IOrderTableFilterValue) => {
       const newSearchParams = new URLSearchParams(location.search);
-      
+
       if (name === 'status') {
         if (value === 'all' || value === null || value === '') {
           newSearchParams.delete('status');
@@ -242,12 +245,12 @@ export default function OrderListView() {
           newSearchParams.set('end_date', dateValue);
         }
       }
-      
+
       if (name !== 'page') {
         newSearchParams.set('page', '1');
         table.onChangePage(null, 0);
       }
-      
+
       router.push(`${location.pathname}?${newSearchParams.toString()}`);
       setFilters((prevState) => ({
         ...prevState,
@@ -310,7 +313,7 @@ export default function OrderListView() {
     (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
       const params = new URLSearchParams(location.search);
       params.set('page', String(pageNo + 1));
-      router.replace(`${location.pathname}?${params.toString()}`);
+      router.push(`${location.pathname}?${params.toString()}`);
       table.onChangePage(e, pageNo);
     },
     [location.pathname, location.search, router, table]
