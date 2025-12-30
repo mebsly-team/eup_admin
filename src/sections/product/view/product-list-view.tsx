@@ -210,7 +210,12 @@ export default function ProductListView() {
   const handleDeleteRow = useCallback(
     async (id: string) => {
       const deleteRow = productList.filter((row) => row.id !== id);
-      const { data } = await axiosInstance.delete(`/products/${id}/`);
+      const { data } = await axiosInstance.patch(`/products/${id}/`, {
+        is_hidden: true,
+        is_visible_particular: false,
+        is_visible_B2B: false,
+        is_product_active: false,
+      });
       enqueueSnackbar(t('delete_success'));
       getAll();
       // setTableData(deleteRow);
@@ -223,7 +228,12 @@ export default function ProductListView() {
     const selectedIds = table.selected;
     const promises = selectedIds.map(async (id) => {
       try {
-        await axiosInstance.delete(`/products/${id}/`);
+        await axiosInstance.patch(`/products/${id}/`, {
+          is_hidden: true,
+          is_visible_particular: false,
+          is_visible_B2B: false,
+          is_product_active: false,
+        });
       } catch (error) {
         console.error(`Error deleting product with ID ${id}:`, error);
       }
