@@ -185,7 +185,9 @@ export default function ProductListView() {
       if (name === 'name' && value === '') {
         setSearchQuery('');
       }
-      table.onChangePage(null, 0);
+      if (name !== 'page') {
+        table.onChangePage(null, 0);
+      }
 
       // table.onResetPage();
       router.push(`${location.pathname}?${newSearchParams.toString()}`);
@@ -205,7 +207,7 @@ export default function ProductListView() {
       category: '',
     });
     router.push(`${location.pathname}`);
-  }, []);
+  }, [location.pathname, router]);
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -291,7 +293,7 @@ export default function ProductListView() {
   const handleTablePageChange = useCallback((e, pageNo) => {
     handleFilters('page', pageNo + 1);
     table.onChangePage(e, pageNo);
-  }, []);
+  }, [handleFilters, table]);
 
   const handleShowBundles = () => {
     setShowBundles(!showBundles);

@@ -249,6 +249,8 @@ export default function OrderListView() {
       if (name !== 'page') {
         newSearchParams.set('page', '1');
         table.onChangePage(null, 0);
+      } else {
+        newSearchParams.set('page', String(value));
       }
 
       router.push(`${location.pathname}?${newSearchParams.toString()}`);
@@ -311,12 +313,10 @@ export default function OrderListView() {
   );
   const handleTablePageChange = useCallback(
     (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
-      const params = new URLSearchParams(location.search);
-      params.set('page', String(pageNo + 1));
-      router.push(`${location.pathname}?${params.toString()}`);
+      handleFilters('page', pageNo + 1);
       table.onChangePage(e, pageNo);
     },
-    [location.pathname, location.search, router, table]
+    [handleFilters, table]
   );
   return (
     <>
