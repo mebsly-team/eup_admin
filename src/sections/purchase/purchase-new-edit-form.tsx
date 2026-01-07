@@ -154,15 +154,20 @@ export default function PurchaseEditView() {
     }));
   };
 
-  const handleUpdateQuantity = (itemId: string, quantity: number) => {
+  const handleUpdateQuantity = (itemId: string, value: string) => {
+    // Keep raw string value to allow intermediate states like '-' while typing
     const updatedItems = (currentPurchase?.items || []).map((item) =>
-      item.id === itemId ? { ...item, product_quantity: quantity } : item
+      item.id === itemId ? { ...item, product_quantity: value } : item
     );
     setCurrentPurchase((prev) => ({
       ...prev!,
       items: updatedItems,
     }) as any);
-    calculateTotals(updatedItems);
+    // Only recalculate if value is a valid number
+    const numValue = Number(value);
+    if (value !== '' && !isNaN(numValue)) {
+      calculateTotals(updatedItems);
+    }
   };
 
   const handleUpdatePrice = (itemId: string, price: string) => {
@@ -232,6 +237,11 @@ export default function PurchaseEditView() {
   const handleCreate = async () => {
     if (!selectedSupplier) {
       enqueueSnackbar(t('supplier_required'), { variant: 'error' });
+      return;
+    }
+
+    if (!currentPurchase?.purchase_invoice_date) {
+      enqueueSnackbar(t('invoice_date_required'), { variant: 'error' });
       return;
     }
 
@@ -352,6 +362,13 @@ export default function PurchaseEditView() {
                         purchase_invoice_date: newValue?.toISOString().split('T')[0] || '',
                       }));
                     }}
+                    slotProps={{
+                      textField: {
+                        required: true,
+                        error: !currentPurchase?.purchase_invoice_date,
+                        helperText: !currentPurchase?.purchase_invoice_date ? t('invoice_date_required') : '',
+                      },
+                    }}
                   />
 
                   <Stack direction="row" spacing={2} alignItems="flex-start">
@@ -386,18 +403,30 @@ export default function PurchaseEditView() {
                         </Box>
 
                         <TextField
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           label={t('quantity')}
                           value={item.product_quantity}
-                          onChange={(e) => handleUpdateQuantity(item.id, Number(e.target.value))}
+                          onChange={(e) => handleUpdateQuantity(item.id, e.target.value)}
+                          onBlur={(e) => {
+                            if (e.target.value === '' || isNaN(Number(e.target.value))) {
+                              handleUpdateQuantity(item.id, '1');
+                            }
+                          }}
                           sx={{ width: 100 }}
                         />
 
                         <TextField
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           label={t('price')}
                           value={item.product_purchase_price}
                           onChange={(e) => handleUpdatePrice(item.id, e.target.value)}
+                          onBlur={(e) => {
+                            if (e.target.value === '' || isNaN(Number(e.target.value.replace(',', '.')))) {
+                              handleUpdatePrice(item.id, '0');
+                            }
+                          }}
                           sx={{ width: 120 }}
                         />
 

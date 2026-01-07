@@ -339,6 +339,7 @@
   "offers_to_supplier": "Aanbiedingen aan leverancier",
   "product_added_to_purchase": "Product toegevoegd aan inkoop",
   "new_purchase": "Nieuwe Inkoop",
+  "invoice_date_required": "Factuurdatum is verplicht",
   "total_vat": "Totaal BTW",
   "purchase_invoice_date": "Inkoop Factuur Datum",
   "purchase_orders": "Inkooporders",
