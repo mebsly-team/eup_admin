@@ -660,12 +660,7 @@ export default function PurchaseEditView() {
                   currentPurchase.total_exc_btw === '0.00' ||
                   !currentPurchase.total_inc_btw ||
                   currentPurchase.total_inc_btw === '0.00' ||
-                  currentPurchase.items.length === 0 ||
-                  currentPurchase.items.some(item =>
-                    !item.product_purchase_price ||
-                    !item.product_quantity ||
-                    item.product_quantity <= 0
-                  )
+                  currentPurchase.items.length === 0
                 }
                 title={
                   !currentPurchase ? t('no_purchase_data') :
@@ -673,13 +668,7 @@ export default function PurchaseEditView() {
                       !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
                       currentPurchase.items.length === 0 ?
                       (t('calculation_errors_prevent_conversion') || 'Calculation errors prevent conversion') :
-                      currentPurchase.items.some(item =>
-                        !item.product_purchase_price ||
-                        !item.product_quantity ||
-                        item.product_quantity <= 0
-                      ) ?
-                        (t('invalid_items_prevent_conversion') || 'Invalid items prevent conversion') :
-                        t('convert_to_purchase')
+                      t('convert_to_purchase')
                 }
               >
                 {t('convert_to_purchase')}
@@ -696,12 +685,7 @@ export default function PurchaseEditView() {
                 currentPurchase.total_exc_btw === '0.00' ||
                 !currentPurchase.total_inc_btw ||
                 currentPurchase.total_inc_btw === '0.00' ||
-                currentPurchase.items.length === 0 ||
-                currentPurchase.items.some(item =>
-                  !item.product_purchase_price ||
-                  !item.product_quantity ||
-                  item.product_quantity <= 0
-                )
+                currentPurchase.items.length === 0
               }
               title={
                 !currentPurchase ? t('no_purchase_data') :
@@ -709,13 +693,7 @@ export default function PurchaseEditView() {
                     !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
                     currentPurchase.items.length === 0 ?
                     (t('calculation_errors_prevent_pdf_download') || 'Calculation errors prevent PDF download') :
-                    currentPurchase.items.some(item =>
-                      !item.product_purchase_price ||
-                      !item.product_quantity ||
-                      item.product_quantity <= 0
-                    ) ?
-                      (t('invalid_items_prevent_pdf_download') || 'Invalid items prevent PDF download') :
-                      t('download_pdf')
+                    t('download_pdf')
               }
             >
               {t('download_pdf')}
