@@ -300,6 +300,25 @@ export default function ProductListView() {
 
   };
 
+  const handleExport = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/export/products/', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
+      link.setAttribute('download', `products_export_${currentDateTime}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Export failed:', error);
+      enqueueSnackbar('Export failed', { variant: 'error' });
+    }
+  }, [enqueueSnackbar]);
+
   return (
     <>
       <Container maxWidth={false}>
@@ -311,14 +330,24 @@ export default function ProductListView() {
             { name: t('list') },
           ]}
           action={
-            <Button
-              component={RouterLink}
-              href={paths.dashboard.product.new}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              {t('new_product')}
-            </Button>
+            <Box sx={{ display: 'flex' }}>
+              <Button
+                component={RouterLink}
+                href={paths.dashboard.product.new}
+                variant="contained"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+              >
+                {t('new_product')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<Iconify icon="ph:export-bold" />}
+                onClick={handleExport}
+                sx={{ ml: 1 }}
+              >
+                {t('Export')}
+              </Button>
+            </Box>
           }
           sx={{
             mb: { xs: 3, md: 5 },
@@ -432,7 +461,7 @@ export default function ProductListView() {
             onChangeDense={table.onChangeDense}
           />
         </Card>
-      </Container>
+      </Container >
 
       <ConfirmDialog
         open={confirm.value}
@@ -453,53 +482,55 @@ export default function ProductListView() {
         }
       />
 
-      {isStockUpdateDialogOpen ? (
-        <Dialog
-          fullWidth
-          maxWidth="sm"
-          open={isStockUpdateDialogOpen}
-          onClose={() => setStockUpdateDialogOpen(false)}
-          transitionDuration={{
-            enter: theme.transitions.duration.shortest,
-            exit: 0,
-          }}
-          PaperProps={{
-            sx: {
-              mt: 15,
-              overflow: 'unset',
-            },
-          }}
-        >
-          <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
-            <Typography sx={{ mb: 2 }}>{selectedSingleRow?.title}</Typography>
+      {
+        isStockUpdateDialogOpen ? (
+          <Dialog
+            fullWidth
+            maxWidth="sm"
+            open={isStockUpdateDialogOpen}
+            onClose={() => setStockUpdateDialogOpen(false)}
+            transitionDuration={{
+              enter: theme.transitions.duration.shortest,
+              exit: 0,
+            }}
+            PaperProps={{
+              sx: {
+                mt: 15,
+                overflow: 'unset',
+              },
+            }}
+          >
+            <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
+              <Typography sx={{ mb: 2 }}>{selectedSingleRow?.title}</Typography>
 
-            <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-              {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
-            </Typography>
-            <TextField name="amount" label={t('amount')} sx={{ width: 100 }} type="number" />
-            <FormControl sx={{ minWidth: 300 }}>
-              <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
-              <Select labelId="demo-select-small-label" id="demo-select-small">
-                <MenuItem value="stock_update_choice_0">{t('stock_update_choice_0')}</MenuItem>
-                <MenuItem value="stock_update_choice_1">{t('stock_update_choice_1')}</MenuItem>
-                <MenuItem value="stock_update_choice_2">{t('stock_update_choice_2')}</MenuItem>
-                <MenuItem value="stock_update_choice_3">{t('stock_update_choice_3')}</MenuItem>
-                <MenuItem value="stock_update_choice_4">{t('stock_update_choice_4')}</MenuItem>
-                <MenuItem value="stock_update_choice_5">{t('stock_update_choice_5')}</MenuItem>
-                <MenuItem value="stock_update_choice_6">{t('stock_update_choice_6')}</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-          <DialogActions>
-            <Button onClick={() => setStockUpdateDialogOpen(false)} color="primary">
-              {t('cancel')}
-            </Button>
-            <Button onClick={updateStock} color="primary">
-              {t('save')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      ) : null}
+              <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+                {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
+              </Typography>
+              <TextField name="amount" label={t('amount')} sx={{ width: 100 }} type="number" />
+              <FormControl sx={{ minWidth: 300 }}>
+                <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
+                <Select labelId="demo-select-small-label" id="demo-select-small">
+                  <MenuItem value="stock_update_choice_0">{t('stock_update_choice_0')}</MenuItem>
+                  <MenuItem value="stock_update_choice_1">{t('stock_update_choice_1')}</MenuItem>
+                  <MenuItem value="stock_update_choice_2">{t('stock_update_choice_2')}</MenuItem>
+                  <MenuItem value="stock_update_choice_3">{t('stock_update_choice_3')}</MenuItem>
+                  <MenuItem value="stock_update_choice_4">{t('stock_update_choice_4')}</MenuItem>
+                  <MenuItem value="stock_update_choice_5">{t('stock_update_choice_5')}</MenuItem>
+                  <MenuItem value="stock_update_choice_6">{t('stock_update_choice_6')}</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <DialogActions>
+              <Button onClick={() => setStockUpdateDialogOpen(false)} color="primary">
+                {t('cancel')}
+              </Button>
+              <Button onClick={updateStock} color="primary">
+                {t('save')}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        ) : null
+      }
       <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
     </>
   );
