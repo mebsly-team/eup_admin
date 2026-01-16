@@ -21,6 +21,9 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { ICategoryItem } from 'src/types/category';
 
 // ----------------------------------------------------------------------
+import axiosInstance from 'src/utils/axios';
+
+// ----------------------------------------------------------------------
 
 type Props = {
   selected: boolean;
@@ -58,6 +61,23 @@ export default function CategoryTableRow({
   const randomColor = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(
     Math.random() * 256
   )},${Math.floor(Math.random() * 256)},0.08)`;
+
+  const handleExport = async () => {
+    try {
+      const response = await axiosInstance.get(`/export/products/?category_id=${row.id}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `products_category_${name}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Export failed', error);
+    }
+  };
 
   // <TableRow key={row.id} sx={{ marginLeft: '20px' }}>
 
@@ -113,6 +133,15 @@ export default function CategoryTableRow({
         >
           <Iconify icon="solar:pen-bold" />
           {t('view_edit')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleExport();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:export-bold" />
+          {t('export')}
         </MenuItem>
         <MenuItem
           onClick={() => {
