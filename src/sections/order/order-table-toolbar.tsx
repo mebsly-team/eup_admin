@@ -49,6 +49,13 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
     [onFilters]
   );
 
+  const handleFilterPaymentStatus = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onFilters('paymentStatus', event.target.value);
+    },
+    [onFilters]
+  );
+
   return (
     <>
       <Stack
@@ -97,6 +104,27 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
             },
           }}
         />
+
+        <TextField
+          select
+          label="Betaald Status"
+          value={filters.paymentStatus}
+          onChange={handleFilterPaymentStatus}
+          sx={{
+            minWidth: { md: 160 },
+            textTransform: 'capitalize',
+          }}
+        >
+          {[
+            { value: 'all', label: 'Alle' },
+            { value: 'paid', label: 'Betaald' },
+            { value: 'unpaid', label: 'Onbetaald' },
+          ].map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
 
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField

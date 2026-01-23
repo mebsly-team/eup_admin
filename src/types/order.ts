@@ -7,6 +7,7 @@ export type IOrderTableFilters = {
   status: string;
   startDate: any;
   endDate: any;
+  paymentStatus: string;
 };
 
 // ----------------------------------------------------------------------

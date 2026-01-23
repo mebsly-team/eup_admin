@@ -112,6 +112,7 @@ export default function OrderListView() {
         queryParams.get('end_date') !== 'undefined' &&
         queryParams.get('end_date')) ||
       '',
+    paymentStatus: queryParams.get('payment_status') || 'all',
   };
 
   const [filters, setFilters] = useState(defaultFilters);
@@ -140,6 +141,7 @@ export default function OrderListView() {
     const urlName = params.get('name') || '';
     const urlStartDateStr = params.get('start_date') || '';
     const urlEndDateStr = params.get('end_date') || '';
+    const urlPaymentStatus = params.get('payment_status') || 'all';
 
     const urlStartDate = urlStartDateStr ? new Date(urlStartDateStr) : '';
     const urlEndDate = urlEndDateStr ? new Date(urlEndDateStr) : '';
@@ -162,12 +164,14 @@ export default function OrderListView() {
     if (
       filters.status !== urlStatus ||
       filters.name !== urlName ||
+      filters.paymentStatus !== urlPaymentStatus ||
       currentStartDate !== urlStartDateStr ||
       currentEndDate !== urlEndDateStr
     ) {
       setFilters({
         status: urlStatus,
         name: urlName,
+        paymentStatus: urlPaymentStatus,
         startDate: urlStartDate || '',
         endDate: urlEndDate || '',
       });
@@ -193,10 +197,14 @@ export default function OrderListView() {
       const endDateFilter = filters.endDate
         ? `&end_date=${filters.endDate instanceof Date ? formatDate(filters.endDate) : filters.endDate}`
         : '';
+      const paymentStatusFilter =
+        filters.paymentStatus !== 'all'
+          ? `&is_paid=${filters.paymentStatus === 'paid'}`
+          : '';
 
       const { data } = await axiosInstance.get(
         `/orders/?all=true&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
-        }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}`
+        }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
       );
       console.log('OrderListView - orders fetched successfully:', data);
       setCount(data.count || 0);
@@ -212,7 +220,10 @@ export default function OrderListView() {
   };
 
   const canReset =
-    !!filters.name || filters.status !== 'all' || (!!filters.startDate && !!filters.endDate);
+    !!filters.name ||
+    filters.status !== 'all' ||
+    filters.paymentStatus !== 'all' ||
+    (!!filters.startDate && !!filters.endDate);
 
   const handleFilters = useCallback(
     (name: string, value: IOrderTableFilterValue) => {
@@ -244,6 +255,12 @@ export default function OrderListView() {
           const dateValue = value instanceof Date ? formatDate(value) : String(value);
           newSearchParams.set('end_date', dateValue);
         }
+      } else if (name === 'paymentStatus') {
+        if (value === 'all' || value === null || value === '') {
+          newSearchParams.delete('payment_status');
+        } else {
+          newSearchParams.set('payment_status', String(value));
+        }
       }
 
       if (name !== 'page') {
@@ -268,6 +285,7 @@ export default function OrderListView() {
       name: '',
       startDate: '',
       endDate: '',
+      paymentStatus: 'all',
     });
     router.push(`${location.pathname}?page=1`);
   }, [location.pathname, router]);
@@ -313,7 +331,7 @@ export default function OrderListView() {
   );
   const handleTablePageChange = useCallback(
     (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
-      handleFilters('page', pageNo + 1);
+      handleFilters('page', String(pageNo + 1));
       table.onChangePage(e, pageNo);
     },
     [handleFilters, table]
