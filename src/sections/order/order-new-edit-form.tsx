@@ -794,7 +794,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                     name="discount"
                                     size="small"
                                     type="number"
-                                    inputProps={{ min: 0, step: 0.01 }}
+                                    inputProps={{ step: 0.01 }}
                                     sx={{ width: '100px' }}
                                 />
                             </Box>
@@ -805,7 +805,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                     name="shipping"
                                     size="small"
                                     type="number"
-                                    inputProps={{ min: 0, step: 0.01 }}
+                                    inputProps={{ step: 0.01 }}
                                     sx={{ width: '100px' }}
                                 />
                             </Box>
