@@ -493,8 +493,7 @@ export default function PurchaseEditView() {
 
     const hasInvalidItems = currentPurchase.items.some(item =>
       !item.product_purchase_price ||
-      !item.product_quantity ||
-      item.product_quantity <= 0
+      !item.product_quantity
     );
 
     if (hasInvalidItems) {
@@ -540,8 +539,7 @@ export default function PurchaseEditView() {
 
     const hasInvalidItems = currentPurchase.items.some(item =>
       !item.product_purchase_price ||
-      !item.product_quantity ||
-      item.product_quantity <= 0
+      !item.product_quantity
     );
 
     if (hasInvalidItems) {
