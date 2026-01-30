@@ -48,7 +48,7 @@ jobs:
           host: "${{ secrets.PROD_CONTABO2_HOST }}"
           username: root
           key: "${{ secrets.PROD_CONTABO2_SSH_KEY }}"
-          script: >
+          script: |
             sudo apt update
 
             sudo apt install -y docker.io
