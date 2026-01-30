@@ -102,6 +102,6 @@ jobs:
 
             docker run -d --name eupadmin --restart always --network eupnetwork -e NODE_ENV=production -e VITE_HOST_API=${{ secrets.VITE_HOST_API }} -e VITE_IMAGE_FOLDER_PATH=${{ secrets.VITE_IMAGE_FOLDER_PATH }} gakeko2018/eupadmin:${{ env.IMAGE_TAG }}
 
-            docker run -d --name eupadmin-nginx -p 3001:80 --restart always --network eupnetwork gakeko2018/eupadmin-nginx:${{ env.IMAGE_TAG }}
+            docker run -d --name eupadmin-nginx -p 80:80 --restart always --network eupnetwork gakeko2018/eupadmin-nginx:${{ env.IMAGE_TAG }}
 
             docker system prune -a -f
