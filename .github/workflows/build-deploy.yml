@@ -1,9 +1,9 @@
-name: Deploy to EC2
+name: Deploy to Contabo
 
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   deploy:
@@ -20,35 +20,56 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: "${{ secrets.DOCKER_USERNAME }}"
+          password: "${{ secrets.DOCKER_PASSWORD }}"
 
-      - name: Build and push Docker image for dev
-        if: github.ref == 'refs/heads/dev'
+      - name: Build and push Docker image for main
+        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile.dev
+          file: ./Dockerfile.prod
           push: true
-          tags: gakeko2018/eupadmin:${{ env.IMAGE_TAG }}
+          tags: "gakeko2018/eupadmin:${{ env.IMAGE_TAG }}"
 
-      - name: Deploy to EC2 (Dev)
-        if: github.ref == 'refs/heads/dev'
+      - name: Deploy eup_admin (Contabo2-Prod)
+        if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST_DNS }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo yum update -y
-            sudo yum install -y docker
+          host: "${{ secrets.PROD_CONTABO2_HOST }}"
+          username: root
+          key: "${{ secrets.PROD_CONTABO2_SSH_KEY }}"
+          script: >
+            sudo apt update
+
+            sudo apt install -y docker.io
+
             sudo service docker start
 
-            sudo usermod -a -G docker ec2-user
+            sudo usermod -a -G docker root
 
-            sudo chkconfig docker on
+            sudo chmod 666 /var/run/docker.sock
 
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            sudo systemctl enable docker
+
+            if ! nslookup registry-1.docker.io 8.8.8.8 > /dev/null 2>&1; then
+              echo "DNS resolution test failed, checking and fixing DNS configuration..."
+              if [ -f /etc/netplan/50-cloud-init.yaml ]; then
+                CURRENT_IP=$(hostname -I | awk '{print $1}')
+                MAC=$(ip link show eth0 | grep -oP 'link/ether \K[^ ]+')
+                GATEWAY=$(ip route | grep default | awk '{print $3}')
+                PREFIX=$(ip -4 addr show eth0 | grep -oP 'inet \K[^/]+/[0-9]+' | cut -d'/' -f2 || echo '24')
+                printf 'network:\n  version: 2\n  ethernets:\n    eth0:\n      match:\n        macaddress: "%s"\n      addresses:\n      - "%s/%s"\n      nameservers:\n        addresses:\n        - 8.8.8.8\n        - 8.8.4.4\n        - 1.1.1.1\n      routes:\n      - to: default\n        via: "%s"\n' "${MAC}" "${CURRENT_IP}" "${PREFIX}" "${GATEWAY}" > /etc/netplan/50-cloud-init.yaml
+                netplan apply
+                systemctl restart systemd-resolved || true
+                sleep 2
+                echo "DNS configuration updated and applied"
+              fi
+            fi
+
+            echo ${{ secrets.DOCKER_USERNAME }}
+
+            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             docker stop eupadmin || true
 
@@ -58,10 +79,6 @@ jobs:
 
             docker pull gakeko2018/eupadmin:${{ env.IMAGE_TAG }}
 
-            docker run -d --name eupadmin -p 3001:3001 --restart always -e NODE_ENV=development -e VITE_HOST_API=${{ secrets.VITE_HOST_API }} -e VITE_IMAGE_FOLDER_PATH=${{ secrets.VITE_IMAGE_FOLDER_PATH }} gakeko2018/eupadmin:${{ env.IMAGE_TAG }}
+            docker run -d --name eupadmin -p 3001:3001 --restart always -e NODE_ENV=production -e VITE_HOST_API=${{ secrets.VITE_HOST_API }} -e VITE_IMAGE_FOLDER_PATH=${{ secrets.VITE_IMAGE_FOLDER_PATH }} gakeko2018/eupadmin:${{ env.IMAGE_TAG }}
 
-            docker container prune -f
-
-            docker image prune -f
-
-            docker network prune -f
+            docker system prune -a -f
