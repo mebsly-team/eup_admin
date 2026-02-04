@@ -89,6 +89,7 @@ interface IDeliveryDetails {
     height: number;
   };
   postal_code: string;
+  carrier?: string;
 }
 
 // ----------------------------------------------------------------------
@@ -112,6 +113,7 @@ const countryOptions = [
 const shipmentMethods = [
   { label: "DHL", value: "dhl" },
   { label: "Europower", value: "europower" },
+  { label: "DPD", value: "dpd" },
 ];
 
 export default function OrderDetailsInfo({
@@ -144,6 +146,7 @@ export default function OrderDetailsInfo({
   const [autoCalculateParcel, setAutoCalculateParcel] = useState(false);
 
   const [updatedDeliveryDetails, setUpdatedDeliveryDetails] = useState<IDeliveryDetails | undefined>(undefined);
+  const [editableTrackingNumber, setEditableTrackingNumber] = useState('');
   const deliveryDetails = currentOrder?.delivery_details;
   console.log("🚀 ~ deliveryDetails:", deliveryDetails)
 
@@ -252,7 +255,7 @@ export default function OrderDetailsInfo({
       date: new Date(),
       event: `Factuurdatum gewijzigd naar ${invoiceDate?.toLocaleDateString('nl-NL')} door ${user?.email}`,
     });
-    
+
     let formattedDate = '';
     if (invoiceDate) {
       const year = invoiceDate.getFullYear();
@@ -260,7 +263,7 @@ export default function OrderDetailsInfo({
       const day = String(invoiceDate.getDate()).padStart(2, '0');
       formattedDate = `${year}-${month}-${day}`;
     }
-    
+
     updateOrder(orderId, {
       invoice_date: formattedDate,
       history: newHistory,
@@ -394,8 +397,8 @@ export default function OrderDetailsInfo({
       });
 
       const updatedDeliveryDetails: IDeliveryDetails = {
-        shipment_id: `Europower${orderId}`,
-        tracking_number: `Europower${orderId}`,
+        shipment_id: editableTrackingNumber || `Europower${orderId}`,
+        tracking_number: editableTrackingNumber || `Europower${orderId}`,
         parcel_type: 'SMALL', // TODO
         weight: 0, // TODO
         dimensions: { length: 30, width: 30, height: 30 },  // TODO
@@ -409,6 +412,31 @@ export default function OrderDetailsInfo({
       });
 
       setUpdatedDeliveryDetails(updatedDeliveryDetails);
+      setIsDeliveryEdit(false);
+    } else if (selectedShipmentMethod === 'dpd') {
+      const newHistory = currentOrder.history;
+      newHistory.push({
+        date: new Date(),
+        event: `Shipment: DPD gemaakt door ${user?.email}`,
+      });
+
+      const updatedDeliveryDetails: IDeliveryDetails = {
+        shipment_id: `DPD${orderId}`,
+        tracking_number: editableTrackingNumber || `DPD${orderId}`,
+        parcel_type: 'SMALL',
+        weight: 0,
+        dimensions: { length: 30, width: 30, height: 30 },
+        postal_code: (shippingAddress.zip_code as string) || '',
+        carrier: 'DPD',
+      };
+
+      updateOrder(orderId, {
+        delivery_details: updatedDeliveryDetails,
+        history: newHistory,
+      });
+
+      setUpdatedDeliveryDetails(updatedDeliveryDetails);
+      setEditableTrackingNumber('');
       setIsDeliveryEdit(false);
     }
   };
@@ -619,10 +647,17 @@ export default function OrderDetailsInfo({
             Volgen No.
           </Box>
 
-          {updatedDeliveryDetails?.shipment_id && (selectedShipmentMethod === 'dhl' || currentOrder?.delivery_details?.carrier === 'dhl') ? (
+          {isDeliveryEdit ? (
+            <TextField
+              size="small"
+              value={editableTrackingNumber || updatedDeliveryDetails?.tracking_number || ''}
+              onChange={(e) => setEditableTrackingNumber(e.target.value)}
+              placeholder="Tracking nummer"
+              sx={{ width: 200 }}
+            />
+          ) : updatedDeliveryDetails?.shipment_id && (selectedShipmentMethod === 'dhl' || currentOrder?.delivery_details?.carrier === 'dhl') ? (
             <Link
               href={`https://my.dhlecommerce.nl/business/shipments/sent/${updatedDeliveryDetails?.shipment_id}`}
-              // href={`https://my.dhlecommerce.nl/home/tracktrace/${updatedDeliveryDetails?.tracking_number}/${updatedDeliveryDetails?.postal_code}`}
               target="_blank"
               rel="noopener"
               sx={{ ml: 0.5 }}
