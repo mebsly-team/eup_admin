@@ -41,7 +41,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
 
   // Sorting state
   const queryParams = new URLSearchParams(location.search);
-  const [sortBy, setSortBy] = useState(queryParams.get('sortBy') || 'title');
+  const [sortBy, setSortBy] = useState(queryParams.get('sortBy') || '');
   const [sortOrder, setSortOrder] = useState(queryParams.get('sortOrder') || 'asc');
 
   // Initialize editedCart when component mounts
@@ -63,8 +63,13 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   // Update URL parameters when sorting changes
   const updateSortParams = (newSortBy: string, newSortOrder: string) => {
     const params = new URLSearchParams(location.search);
-    params.set('sortBy', newSortBy);
-    params.set('sortOrder', newSortOrder);
+    if (newSortBy) {
+      params.set('sortBy', newSortBy);
+      params.set('sortOrder', newSortOrder);
+    } else {
+      params.delete('sortBy');
+      params.delete('sortOrder');
+    }
     router.replace(`${location.pathname}?${params.toString()}`);
   };
 
@@ -79,6 +84,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   // Sort items based on current sort settings
   const getSortedItems = (items: any[]) => {
     if (!items || items.length === 0) return items;
+
+    if (!sortBy) return items;
 
     return [...items].sort((a, b) => {
       let aValue: string | number;
@@ -654,6 +661,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
               label="Sorteer op"
               onChange={(e) => handleSortChange(e.target.value)}
             >
+              <MenuItem value="">Standaard</MenuItem>
               <MenuItem value="title">Titel</MenuItem>
               <MenuItem value="ean">EAN</MenuItem>
               <MenuItem value="location">Locatie</MenuItem>
