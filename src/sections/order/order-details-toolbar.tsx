@@ -3,6 +3,14 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import { useState } from 'react';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -50,6 +58,26 @@ export default function OrderDetailsToolbar({
   const { t, onChangeLang } = useTranslate();
   const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
+
+  const [openDownloadDialog, setOpenDownloadDialog] = useState(false);
+  const [selectedDocs, setSelectedDocs] = useState({
+    werkbon: false,
+    pakbon: false,
+    invoice: false,
+  });
+
+  const handleDownloadSelected = () => {
+    if (selectedDocs.werkbon) {
+      handleDownloadDocument({ doc: 'werkbon' });
+    }
+    if (selectedDocs.pakbon) {
+      handleDownloadDocument({ doc: 'pakbon' });
+    }
+    if (selectedDocs.invoice) {
+      handleDownloadDocument({ doc: 'invoice' });
+    }
+    setOpenDownloadDialog(false);
+  };
 
   const checkHistoryForStatusChange = (statusToCheck: string) => {
     if (!currentOrder?.history || !Array.isArray(currentOrder.history)) {
@@ -177,6 +205,16 @@ export default function OrderDetailsToolbar({
           alignItems="start"
           justifyContent="flex-end"
         >
+
+
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon="eva:cloud-download-fill" />}
+            onClick={() => setOpenDownloadDialog(true)}
+          >
+            Download
+          </Button>
 
           {extra_note === "offer" ? <Button
             color="inherit"
@@ -317,6 +355,49 @@ export default function OrderDetailsToolbar({
           </MenuItem>
         ))}
       </CustomPopover>
+
+      <Dialog open={openDownloadDialog} onClose={() => setOpenDownloadDialog(false)}>
+        <DialogTitle>Download PDFs</DialogTitle>
+        <DialogContent>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={selectedDocs.werkbon}
+                  onChange={(e) => setSelectedDocs({ ...selectedDocs, werkbon: e.target.checked })}
+                />
+              }
+              label="Werkbon PDF"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={selectedDocs.pakbon}
+                  onChange={(e) => setSelectedDocs({ ...selectedDocs, pakbon: e.target.checked })}
+                  disabled={!currentOrder?.delivery_details?.tracking_number}
+                />
+              }
+              label="Pakbon PDF"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={selectedDocs.invoice}
+                  onChange={(e) => setSelectedDocs({ ...selectedDocs, invoice: e.target.checked })}
+                  disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
+                />
+              }
+              label="Factuur PDF"
+            />
+          </FormGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDownloadDialog(false)}>Cancel</Button>
+          <Button onClick={handleDownloadSelected} variant="contained" autoFocus>
+            Download
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
