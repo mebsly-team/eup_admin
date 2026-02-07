@@ -271,10 +271,12 @@ export default function OrderListView() {
       }
 
       router.push(`${location.pathname}?${newSearchParams.toString()}`);
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+      if (name !== 'page') {
+        setFilters((prevState) => ({
+          ...prevState,
+          [name]: value,
+        }));
+      }
     },
     [location.pathname, location.search, router, table]
   );
