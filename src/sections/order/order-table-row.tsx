@@ -65,7 +65,8 @@ export default function OrderTableRow({
     user,
     source_admin,
     source_host,
-    is_sent_to_snelstart
+    is_sent_to_snelstart,
+    snelstart_order_number
   } = row;
   console.log("🚀 ~ row:", row)
   const { t, onChangeLang } = useTranslate();
@@ -174,6 +175,10 @@ export default function OrderTableRow({
             noWrap: true,
           }}
         />
+      </TableCell>
+
+      <TableCell sx={{ padding: 1, width: 110 }}>
+        {snelstart_order_number || '-'}
       </TableCell>
 
       <TableCell sx={{ width: 110, padding: 1 }}>

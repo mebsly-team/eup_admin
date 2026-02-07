@@ -68,6 +68,7 @@ const TABLE_HEAD = [
   { id: 'ordered_date', label: 'Datum', width: 80, padding: 1, hideOnMd: true },
   { id: 'totalQuantity', label: 'Items', width: 40, align: 'center', padding: 1, hideOnSm: true },
   { id: 'total', label: 'Prijs', width: 50, padding: 1, },
+  { id: 'snelstart_order_number', label: 'Snelstart', width: 110, padding: 1 },
   { id: 'status', label: 'Status', width: 110, padding: 1 },
   { id: '', width: 88, padding: 1 },
 ];

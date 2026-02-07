@@ -79,4 +79,5 @@ export type IOrderItem = {
   delivery: IOrderDelivery;
   items: IOrderProductItem[];
   createdAt: Date;
+  snelstart_order_number?: string;
 };
