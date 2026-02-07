@@ -1,25 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Link from '@mui/material/Link';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
-import Checkbox from '@mui/material/Checkbox';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 
 import axiosInstance from 'src/utils/axios';
 import { fCurrency, roundToTwoDecimals } from 'src/utils/format-number';
-
-import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -27,6 +22,8 @@ import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
 import { useRouter } from 'src/routes/hooks/use-router';
 import { useLocation } from 'react-router-dom';
+
+import OrderItemRow from './order-details-item-row';
 
 export default function OrderDetailsItems({ currentOrder, updateOrder }: { currentOrder: any; updateOrder: any }) {
   const { cart } = currentOrder;
@@ -39,7 +36,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   const [editedCart, setEditedCart] = useState(currentOrder.cart);
   console.log('editedCart', editedCart);
   const [ean, setEan] = useState(''); // New state for EAN
-  const [priceInputs, setPriceInputs] = useState<Record<string, string>>({}); // Local state for price inputs
   const isEditingRef = useRef(false);
   const editedCartRef = useRef(currentOrder.cart);
 
@@ -61,7 +57,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     if (cart && !isEditingRef.current) {
       editedCartRef.current = cart;
       setEditedCart(cart);
-      setPriceInputs({}); // Clear local price inputs when cart updates
     }
   }, [cart]);
 
@@ -121,11 +116,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     const newEditingState = !isEditing;
     setIsEditing(newEditingState);
     isEditingRef.current = newEditingState;
-
-    // Clear local price inputs when entering edit mode to ensure fresh state
-    if (newEditingState) {
-      setPriceInputs({});
-    }
   };
 
   // Fetch product details using EAN
@@ -194,70 +184,35 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     }
   };
 
-  const handleVariantChange = async (item: any, variantId: any) => {
-    try {
-      const response = await axiosInstance.get(`/products/${variantId}/?nocache=true`);
-      if (response.status === 200) {
-        const product = response.data;
-        if (product) {
-          const newItem = {
-            id: product.id,
-            product,
-            quantity: 1,
-            completed: false,
-            single_product_discounted_price_per_unit: product.price_per_unit,
-            single_product_discounted_price_per_unit_vat: product.price_per_unit_vat,
-          };
-          const updatedItems = editedCart.items.filter((i: any) => item.id !== i.id);
-          console.log('updatedItems', updatedItems)
-          setEditedCart({ ...editedCart, items: [...updatedItems, newItem] });
+  const handleItemChange = useCallback((id: any, key: string, value: any) => {
+    setEditedCart((prevEditedCart: any) => {
+      const updatedItems = prevEditedCart.items.map((item: any) => {
+        if (item.id === id) {
+          return { ...item, [key]: value };
         }
-      } else {
-        console.error('Failed to fetch product, status code:', response.status);
-      }
-    } catch (error) {
-      console.error('Error fetching product:', error);
-    }
-  };
-  const handleItemChange = (id: any, key: string, value: any) => {
-    const updatedItems = editedCart.items.map((item: any) => {
-      if (item.id === id) {
-        // If changing quantity, validate against free_stock
-        // if (key === 'quantity') {
-        //   const maxQuantity = item.product.free_stock || 1;
-        //   const validatedValue = Math.min(Math.max(1, value), maxQuantity);
-        //   return { ...item, [key]: validatedValue };
-        // }
-        return { ...item, [key]: value };
-      }
-      return item;
+        return item;
+      });
+      const newEditedCart = { ...prevEditedCart, items: updatedItems };
+      editedCartRef.current = newEditedCart;
+      return newEditedCart;
     });
-    const newEditedCart = { ...editedCart, items: updatedItems };
-    editedCartRef.current = newEditedCart;
-    setEditedCart(newEditedCart);
-  };
+  }, []);
 
-  const handleDeleteItem = (id: any) => {
-    const updatedItems = editedCart.items.filter((item: any) => item.id !== id);
-    setEditedCart({ ...editedCart, items: updatedItems });
-  };
+  const handleDeleteItem = useCallback((id: any) => {
+    setEditedCart((prevEditedCart: any) => {
+      const updatedItems = prevEditedCart.items.filter((item: any) => item.id !== id);
+      return { ...prevEditedCart, items: updatedItems };
+    });
+  }, []);
 
-  // Helper function to get current price exclusive BTW including input values
-  const getCurrentPriceExclVat = (item: any) => {
-    const inputKey = `${item.id}_price`;
-    if (priceInputs[inputKey] !== undefined) {
-      const inputValue = parseFloat(priceInputs[inputKey]) || 0;
-      return roundToTwoDecimals(inputValue);
-    }
-    return roundToTwoDecimals(Number(item.single_product_discounted_price_per_unit || 0));
-  };
-
-  // Helper function to get current price inclusive BTW from exclusive BTW
-  const getCurrentPriceInclVat = (item: any) => {
-    const priceExclVat = getCurrentPriceExclVat(item);
-    const vatRate = item.product.vat || 0;
-    return roundToTwoDecimals(priceExclVat * (1 + (vatRate / 100)));
-  };
+  const handleCheckboxChange = useCallback((id: any) => {
+    setEditedCart((prevEditedCart: any) => {
+      const updatedItems = prevEditedCart.items.map((item: any) =>
+        item.id === id ? { ...item, completed: !item.completed } : item
+      );
+      return { ...prevEditedCart, items: updatedItems };
+    });
+  }, []);
 
   const calculateVatTotals = () => {
     const vatTotals = {
@@ -270,8 +225,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     };
     editedCart?.items.forEach((item: any) => {
       const quantity = item.quantity;
-      const priceExclVat = getCurrentPriceExclVat(item);
-      const priceInclVat = getCurrentPriceInclVat(item);
+      const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
+      const priceInclVat = Number(item.single_product_discounted_price_per_unit_vat || 0);
       const vatRate = item.product.vat; // VAT percentage
       const vatAmount = roundToTwoDecimals(priceInclVat - priceExclVat);
 
@@ -324,14 +279,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     console.log('Total VAT:', totalVat);
     console.log('Subtotal incl VAT:', total);
     return currentOrder?.user?.is_vat_document_printed ? subtotalExclVat : total;
-  };
-
-  const getVatExclusiveAmount = (amount: number) => {
-    if (currentOrder?.user?.is_vat_document_printed) {
-      const vatRate = 0.21;
-      return amount / (1 + vatRate);
-    }
-    return amount;
   };
 
   const calculateSubtotalInclVat = () => {
@@ -424,8 +371,8 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     try {
       // Recalculate all cart item prices to ensure consistency
       const updatedCartItems = editedCart.items.map((item: any) => {
-        const priceExclVat = getCurrentPriceExclVat(item);
-        const priceInclVat = getCurrentPriceInclVat(item);
+        const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
+        const priceInclVat = Number(item.single_product_discounted_price_per_unit_vat || 0);
 
         return {
           ...item,
@@ -452,7 +399,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       });
 
       enqueueSnackbar('Bestelling succesvol bijgewerkt', { variant: 'success' });
-      setPriceInputs({}); // Clear local price inputs
       setIsEditing(false);
       isEditingRef.current = false;
     } catch (error) {
@@ -491,7 +437,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   const handleCancel = () => {
     // Reset changes and toggle edit mode
     setEditedCart(cart);
-    setPriceInputs({}); // Clear local price inputs
     setIsEditing(false);
     isEditingRef.current = false;
   };
@@ -522,12 +467,6 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     setEditedCart({ ...editedCart, [key]: formattedValue });
   };
 
-  const handleCheckboxChange = (id: any) => {
-    const updatedItems = editedCart.items.map((item: any) =>
-      item.id === id ? { ...item, completed: !item.completed } : item
-    );
-    setEditedCart({ ...editedCart, items: updatedItems });
-  };
   const renderTotal = (
     <Stack
       spacing={2}
@@ -741,153 +680,15 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
 
         <Scrollbar>
           {getSortedItems(editedCart?.items || []).map((item: any) => (
-            <Stack
+            <OrderItemRow
               key={item.id}
-              direction="row"
-              alignItems="center"
-              sx={{
-                py: 3,
-                borderBottom: (theme) => `dashed 2px ${theme.palette.background.neutral}`,
-              }}
-            >
-              <Checkbox
-                checked={item.completed || false}
-                onChange={() => handleCheckboxChange(item.id)}
-                disabled={!isEditing}
-              />
-              <Avatar
-                src={`${IMAGE_FOLDER_PATH}${item.product.images?.[0]}`}
-                variant="rounded"
-                sx={{ width: 48, height: 48, mr: 2 }}
-              />
-              <ListItemText
-                primary={
-                  <Link
-                    href={`/dashboard/product/${item.product.id}/edit?tab=0`}
-                    color="inherit"
-                    underline="hover"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    {item.product.title}
-                  </Link>
-                }
-                secondary={
-                  <>
-                    {item.product.ean ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
-                      EAN: {item.product.ean}
-                    </Box> : null}
-                    {/* {item.product.free_stock ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
-                      Vrije voorraad: {item.product.free_stock}
-                    </Box> : null} */}
-                    {item.product.price_per_piece ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
-                      Prijs per stuk (exc BTW): {fCurrency(item.product.price_per_piece)}
-                    </Box> : null}
-                    {item.product.price_per_piece_vat ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
-                      Prijs per stuk (incl BTW): {fCurrency(item.product.price_per_piece_vat)}
-                    </Box> : null}
-                    {item.product.price_per_piece_vat ? <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled', mt: 0.5 }}>
-                      ----
-                    </Box> : null}
-                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
-                      Prijs (exc BTW): {fCurrency(item.product.price_per_unit)}
-                    </Box>
-                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
-                      Prijs (incl BTW): {fCurrency(item.product.price_per_unit_vat)}
-                    </Box>
-                    ----
-                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
-                      Met korting (exc BTW): {fCurrency(item.single_product_discounted_price_per_unit)}
-                    </Box>
-                    <Box component="span" sx={{ typography: 'caption', display: 'block', color: 'text.disabled' }}>
-                      Met korting (incl BTW): {fCurrency(item.single_product_discounted_price_per_unit_vat)}
-                    </Box>
-
-                  </>
-                }
-                primaryTypographyProps={{ typography: 'body2' }}
-                secondaryTypographyProps={{ component: 'div', color: 'text.disabled', mt: 0.5 }}
-              />
-
-              {isEditing ? (
-                <>
-                  <Stack spacing={0.5} sx={{ width: 100, mr: 3 }}>
-                    <TextField
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleItemChange(item.id, 'quantity', parseInt(e.target.value))
-                      }
-                      inputProps={{
-                        min: 1,
-                        max: item.product.free_stock || 1
-                      }}
-
-                    />
-                    {<Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'left' }}>
-                      Vrije voorraad: {item.product.free_stock}
-                    </Box>}
-                  </Stack>
-                  <Stack spacing={0.5}>
-                    <TextField
-                      type="text"
-                      value={priceInputs[`${item.id}_price`] !== undefined
-                        ? priceInputs[`${item.id}_price`]
-                        : String(item.single_product_discounted_price_per_unit || '')}
-                      onChange={(e) => {
-                        const inputValue = e.target.value;
-                        // Allow typing decimal numbers
-                        if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
-                          // Update local input state immediately
-                          setPriceInputs(prev => ({
-                            ...prev,
-                            [`${item.id}_price`]: inputValue
-                          }));
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const inputValue = e.target.value;
-                        const priceExclVat = inputValue === '' ? 0 : parseFloat(inputValue) || 0;
-                        const vatRate = item.product.vat || 0;
-
-                        // Calculate price including VAT from excluding VAT
-                        const priceInclVat = priceExclVat * (1 + (vatRate / 100));
-
-                        handleItemChange(item.id, 'single_product_discounted_price_per_unit', priceExclVat);
-                        handleItemChange(item.id, 'single_product_discounted_price_per_unit_vat', priceInclVat);
-                        handleItemChange(item.id, 'product_item_total_price_vat', priceInclVat * item.quantity);
-                      }}
-                      sx={{ width: 100, textAlign: 'right' }}
-                      label="Prijs excl. BTW"
-                      inputProps={{
-                        inputMode: 'decimal',
-                        pattern: '[0-9]*[.,]?[0-9]*'
-                      }}
-                    />
-                    <Box sx={{ typography: 'caption', color: 'text.disabled', textAlign: 'right' }}>
-                      Totaal: {fCurrency(getCurrentPriceInclVat(item) * item.quantity)}
-                    </Box>
-                  </Stack>
-                  <IconButton onClick={() => handleDeleteItem(item.id)}>
-                    <Iconify icon="eva:trash-2-outline" />
-                  </IconButton>
-                </>
-              ) : (
-                <>
-                  <Stack spacing={0.5} sx={{ minWidth: 120 }}>
-                    <Box sx={{ typography: 'caption', textAlign: 'right' }}>
-                      (excl BTW) {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit)}
-                    </Box>
-                    {currentOrder?.user?.is_vat_document_printed ? null : <Box sx={{ typography: 'caption', textAlign: 'right' }}>
-                      (incl BTW) {item.quantity} x {fCurrency(item.single_product_discounted_price_per_unit_vat)}
-                    </Box>}
-                    <Box sx={{ typography: 'subtitle2', textAlign: 'right' }}>
-                      Totaal: {fCurrency((currentOrder?.user?.is_vat_document_printed ? item.single_product_discounted_price_per_unit : item.single_product_discounted_price_per_unit_vat) * item.quantity)}
-                    </Box>
-                  </Stack>
-                </>
-              )}
-            </Stack>
+              item={item}
+              isEditing={isEditing}
+              isVatDocumentPrinted={currentOrder?.user?.is_vat_document_printed}
+              onUpdate={handleItemChange}
+              onDelete={handleDeleteItem}
+              onCheckboxChange={handleCheckboxChange}
+            />
           ))}
         </Scrollbar>
         {isEditing && (

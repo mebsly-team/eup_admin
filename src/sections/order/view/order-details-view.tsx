@@ -148,14 +148,14 @@ export default function OrderDetailsView({ id }: Props) {
       if (response.status === 201) {
         console.log("🚀 ~ sendToSnelstart ~ response:", response)
         enqueueSnackbar(t('Order is succesvol verzonden naar Snelstart'), { variant: 'success' });
-        
+
         // Set invoice_date to current date when Snelstart order is created
         // const newHistory = currentOrder.history;
         // newHistory.push({
         //   date: new Date(),
         //   event: `Order verzonden naar Snelstart door ${user?.email}`,
         // });
-        
+
         // updateOrder(id, {
         //   is_sent_to_snelstart: true,
         //   invoice_date: new Date().toISOString().split('T')[0],
@@ -237,7 +237,7 @@ export default function OrderDetailsView({ id }: Props) {
       updateOrder(id, {
         status: newValue,
         history: newHistory,
-        extra_note: "",
+        // extra_note: "", // Removed to preserve extra_note on status change
       });
     },
     [currentOrder.history, id, t]
