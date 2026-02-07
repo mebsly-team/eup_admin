@@ -204,7 +204,7 @@ export default function OrderListView() {
           : '';
 
       const { data } = await axiosInstance.get(
-        `/orders/?all=true&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
+        `/orders/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
         }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
       );
       console.log('OrderListView - orders fetched successfully:', data);
