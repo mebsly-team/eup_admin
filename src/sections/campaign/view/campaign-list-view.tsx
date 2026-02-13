@@ -94,10 +94,17 @@ export default function CampaignListView() {
       `/campaigns/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
       }${searchFilter}${orderByParam}`
     );
-    console.log('data', data);
-    setCount(data.count || 0);
-    setCampaignList(data.results || []);
-    setTableData(data.results || []);
+    console.log('API Response Data:', data);
+
+    const results = data.results || (Array.isArray(data) ? data : []);
+    const totalCount = data.count || results.length;
+
+    console.log('Results:', results);
+    console.log('Total Count:', totalCount);
+
+    setCount(totalCount);
+    setCampaignList(results);
+    setTableData(results);
   };
 
   const handleFilters = useCallback(
