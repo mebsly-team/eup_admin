@@ -70,10 +70,10 @@ export default function CampaignListView() {
     { id: 'is_active', label: t('is_active'), width: 180 },
   ];
 
-  const dataInPage = campaignList.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
+  // const dataInPage = campaignList.slice(
+  //   table.page * table.rowsPerPage,
+  //   table.page * table.rowsPerPage + table.rowsPerPage
+  // );
 
   const denseHeight = table.dense ? 56 : 56 + 20;
 
@@ -91,13 +91,13 @@ export default function CampaignListView() {
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
     const { data } = await axiosInstance.get(
-      `/campaigns/?limit=${table.rowsPerPage}&offset=${
-        table.page * table.rowsPerPage
+      `/campaigns/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
       }${searchFilter}${orderByParam}`
     );
     console.log('data', data);
-    setCount(data.length || 0);
-    setCampaignList(data || []);
+    setCount(data.count || 0);
+    setCampaignList(data.results || []);
+    setTableData(data.results || []);
   };
 
   const handleFilters = useCallback(

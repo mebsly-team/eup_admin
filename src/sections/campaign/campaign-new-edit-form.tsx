@@ -64,90 +64,89 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
     start_date: currentCampaign?.start_date
       ? new Date(currentCampaign?.start_date).toISOString()
       : new Date().toISOString(),
-    end_date: currentCampaign?.end_date
       ? new Date(currentCampaign?.end_date).toISOString()
-      : add(new Date(), { days: 30 }).toISOString(),
+    : new Date('2099-12-31').toISOString(),
+};
+
+const methods = useForm({
+  resolver: yupResolver(NewCampaignSchema),
+  defaultValues,
+});
+
+const {
+  reset,
+  control,
+  setValue,
+  handleSubmit,
+  getValues,
+  formState: { isSubmitting, errors },
+  ...rest
+} = methods;
+
+console.log('getValues', getValues());
+const handleSelectImage = async (urlList) => {
+  setValue('images', urlList);
+  setImageGalleryOpen(false);
+};
+
+const onSubmit = handleSubmit(async (data) => {
+  const finalData = {
+    ...data,
+    start_date: new Date(data.start_date).toISOString(),
+    end_date: new Date(data.end_date).toISOString(),
   };
 
-  const methods = useForm({
-    resolver: yupResolver(NewCampaignSchema),
-    defaultValues,
-  });
+  try {
+    let response;
+    if (currentCampaign) {
+      response = await axiosInstance.put(`/campaigns/${currentCampaign.id}/`, finalData);
+    } else {
+      response = await axiosInstance.post(`/campaigns/`, finalData);
+    }
 
-  const {
-    reset,
-    control,
-    setValue,
-    handleSubmit,
-    getValues,
-    formState: { isSubmitting, errors },
-    ...rest
-  } = methods;
-
-  console.log('getValues', getValues());
-  const handleSelectImage = async (urlList) => {
-    setValue('images', urlList);
-    setImageGalleryOpen(false);
-  };
-
-  const onSubmit = handleSubmit(async (data) => {
-    const finalData = {
-      ...data,
-      start_date: new Date(data.start_date).toISOString(),
-      end_date: new Date(data.end_date).toISOString(),
-    };
-
-    try {
-      let response;
-      if (currentCampaign) {
-        response = await axiosInstance.put(`/campaigns/${currentCampaign.id}/`, finalData);
-      } else {
-        response = await axiosInstance.post(`/campaigns/`, finalData);
-      }
-
-      enqueueSnackbar(currentCampaign ? t('update_success') : t('create_success'));
-      reset();
-      router.push(paths.dashboard.campaign.root);
-    } catch (error) {
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        Object.entries(errorData).forEach(([fieldName, errors]) => {
-          errors.forEach((errorMsg) => {
-            enqueueSnackbar({
-              variant: 'error',
-              message: `${t(fieldName)}: ${errorMsg}`,
-            });
+    enqueueSnackbar(currentCampaign ? t('update_success') : t('create_success'));
+    reset();
+    router.push(paths.dashboard.campaign.root);
+  } catch (error) {
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      Object.entries(errorData).forEach(([fieldName, errors]) => {
+        errors.forEach((errorMsg) => {
+          enqueueSnackbar({
+            variant: 'error',
+            message: `${t(fieldName)}: ${errorMsg}`,
           });
         });
-      } else {
-        console.error('Error:', error.message);
-        enqueueSnackbar({ variant: 'error', message: t('error') });
-      }
+      });
+    } else {
+      console.error('Error:', error.message);
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     }
-  });
+  }
+});
 
-  return (
-    <FormProvider methods={methods} onSubmit={onSubmit}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={8}>
-          <Card sx={{ p: 3 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="name" label={t('name')} />
-              <RHFTextField name="description" label={t('description')} />
-              <RHFTextField
-                name="discount_percentage"
-                label={t('discount_percentage')}
-                type="number"
-              />
-              {/* <DatePicker
+return (
+  <FormProvider methods={methods} onSubmit={onSubmit}>
+    <Grid container spacing={3}>
+      <Grid xs={12} md={8}>
+        <Card sx={{ p: 3 }}>
+          <Box
+            rowGap={3}
+            columnGap={2}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              sm: 'repeat(2, 1fr)',
+            }}
+          >
+            <RHFTextField name="name" label={t('name')} />
+            <RHFTextField name="description" label={t('description')} />
+            <RHFTextField
+              name="discount_percentage"
+              label={t('discount_percentage')}
+              type="number"
+            />
+            {/* <DatePicker
                 label={t('start_date')}
                 value={getValues('start_date') ? new Date(getValues('start_date')) : null}
                 format="dd/MM/yyyy"
@@ -159,68 +158,68 @@ export default function CampaignNewEditForm({ currentCampaign }: Props) {
                 format="dd/MM/yyyy"
                 onChange={(newValue) => setValue('end_date', newValue.toISOString())}
               /> */}
-            </Box>
-            <Stack spacing={1.5}>
-              <Typography variant="subtitle2">{t('image')}</Typography>
-              <Image src={`${IMAGE_FOLDER_PATH}${getValues('images')?.[0]}`} />
-              <Button
-                data-testId="campaign-image-upload-button"
-                onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
-              {errors?.images && <Typography color="error">{errors?.images?.message}</Typography>}
-            </Stack>
+          </Box>
+          <Stack spacing={1.5}>
+            <Typography variant="subtitle2">{t('image')}</Typography>
+            <Image src={`${IMAGE_FOLDER_PATH}${getValues('images')?.[0]}`} />
+            <Button
+              data-testId="campaign-image-upload-button"
+              onClick={() => setImageGalleryOpen(true)}>{t('upload')}</Button>
+            {errors?.images && <Typography color="error">{errors?.images?.message}</Typography>}
+          </Stack>
 
-            <Card>
-              <CardHeader title={t('categories')} />
-              <Stack spacing={3} sx={{ p: 3 }}>
-                <Box
-                  columnGap={2}
-                  rowGap={3}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: 'repeat(1, 1fr)',
-                    md: 'repeat(2, 1fr)',
+          <Card>
+            <CardHeader title={t('categories')} />
+            <Stack spacing={3} sx={{ p: 3 }}>
+              <Box
+                columnGap={2}
+                rowGap={3}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  md: 'repeat(2, 1fr)',
+                }}
+              >
+                <CategorySelector
+                  defaultSelectedCategories={getValues('categories')}
+                  open={openDialogCategory}
+                  onClose={() => setOpenDialogCategory(false)}
+                  onSave={(ct) => {
+                    setValue('categories', ct);
+                    setOpenDialogCategory(false); // Close the dialog after saving
                   }}
-                >
-                  <CategorySelector
-                    defaultSelectedCategories={getValues('categories')}
-                    open={openDialogCategory}
-                    onClose={() => setOpenDialogCategory(false)}
-                    onSave={(ct) => {
-                      setValue('categories', ct);
-                      setOpenDialogCategory(false); // Close the dialog after saving
-                    }}
-                  />
-                  <div>
-                    <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
+                />
+                <div>
+                  <Typography variant="subtitle2">{t('selected_categories')}:</Typography>
 
-                    <ul>
-                      {getValues('categories')?.map((category, index) => (
-                        <li key={index}>
-                          {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                        </li>
-                      ))}
-                    </ul>
+                  <ul>
+                    {getValues('categories')?.map((category, index) => (
+                      <li key={index}>
+                        {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
+                      </li>
+                    ))}
+                  </ul>
 
-                  </div>
-                  <Typography typography="caption" sx={{ color: 'error.main' }}>
-                    {(errors.categories as any)?.message}
-                  </Typography>
-                </Box>
-                <Button onClick={() => setOpenDialogCategory(true)}>{t('select_category')}</Button>
-              </Stack>
-            </Card>
-
-            <Stack alignItems="flex-end" sx={{ mt: 3 }}>
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentCampaign ? t('create_campaign') : t('save_changes')}
-              </LoadingButton>
+                </div>
+                <Typography typography="caption" sx={{ color: 'error.main' }}>
+                  {(errors.categories as any)?.message}
+                </Typography>
+              </Box>
+              <Button onClick={() => setOpenDialogCategory(true)}>{t('select_category')}</Button>
             </Stack>
           </Card>
-          {isImageGalleryOpen ? (
-            <ImageGallery onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} />
-          ) : null}
-        </Grid>
+
+          <Stack alignItems="flex-end" sx={{ mt: 3 }}>
+            <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+              {!currentCampaign ? t('create_campaign') : t('save_changes')}
+            </LoadingButton>
+          </Stack>
+        </Card>
+        {isImageGalleryOpen ? (
+          <ImageGallery onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} />
+        ) : null}
       </Grid>
-    </FormProvider>
-  );
+    </Grid>
+  </FormProvider>
+);
 }

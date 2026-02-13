@@ -62,10 +62,10 @@ export default function CampaignTableRow({
 
   const popover = usePopover();
   const handleActiveSwitchChange = async (e: { target: { checked: any } }) => {
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
-      return; // Do nothing if not superuser
-    }
+    // const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    // if (!currentUser.is_superuser) {
+    //   return; // Do nothing if not superuser
+    // }
     try {
       const response = await axiosInstance.patch(`/campaigns/${id}/`, {
         is_active: e.target.checked,
