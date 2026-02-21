@@ -1281,7 +1281,7 @@ const Map = () => {
                   const fullWithBusiness = business ? `${full} - ${business}`.trim() : full;
 
                   // Build address string for fallback description matching
-                  const addrStr = `${(address.street_name || '').toLowerCase()} ${(address.house_number || '').toLowerCase()}, ${(address.city || '').toLowerCase()}`.replace(/\s+/g, ' ').trim();
+                  const addrStr = `${String(address.street_name || '').toLowerCase()} ${String(address.house_number || '').toLowerCase()}, ${String(address.city || '').toLowerCase()}`.replace(/\s+/g, ' ').trim();
 
                   // If user has no first/last name but has business name, match by business name
                   if (!first && !last && business) {
