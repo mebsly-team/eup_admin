@@ -86,6 +86,7 @@ interface CalendarEvent {
   color: string;
   allDay: boolean;
   eventType?: string;
+  userId?: string;
 }
 
 interface TimeChangeDialogState {
@@ -250,6 +251,7 @@ const Map = () => {
               color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
               allDay: !event.start.dateTime,
               eventType: event.eventType,
+              userId: event.extendedProperties?.private?.userId,
             };
           }) || [];
 
@@ -615,6 +617,11 @@ const Map = () => {
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         colorId: '1',
+        extendedProperties: {
+          private: {
+            userId: user.id,
+          },
+        },
       };
 
       console.log('Agenda-afspraak maken:', eventData);
@@ -637,6 +644,7 @@ const Map = () => {
         end: bezoekEind,
         color: CALENDAR_COLOR_OPTIONS[0],
         allDay: false,
+        userId: user.id,
       };
 
       // Update events state and force calendar refresh
@@ -1260,6 +1268,10 @@ const Map = () => {
                   .sort((a, b) => a.start - b.start);
 
                 const matchingEvents = windowEvents.filter((e) => {
+                  // Primary match: by user ID stored in event's extendedProperties
+                  if (e.userId && e.userId === user.id) return true;
+
+                  // Fallback: name/address matching for events created before ID tracking
                   const title = (e.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
                   const desc = (e.description || '').toLowerCase().replace(/\s+/g, ' ').trim();
                   const first = (user.first_name || '').toLowerCase().trim();
@@ -1274,7 +1286,6 @@ const Map = () => {
                   // If user has no first/last name but has business name, match by business name
                   if (!first && !last && business) {
                     if (title === business || title.includes(business)) return true;
-                    // Fallback: match by address in description
                     if (addrStr.length > 5 && desc.includes(addrStr)) return true;
                     return false;
                   }
@@ -1282,9 +1293,7 @@ const Map = () => {
                   // If user has first/last name, match by full name or both names in any order
                   if (first && last) {
                     if (title.includes(full) || title.includes(fullWithBusiness)) return true;
-                    // Match both names present in any order
                     if (title.includes(first) && title.includes(last)) return true;
-                    // Fallback: match by address in description
                     if (addrStr.length > 5 && desc.includes(addrStr)) return true;
                     return false;
                   }
