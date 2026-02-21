@@ -429,7 +429,7 @@ const Map = () => {
     console.log('Map container pointer-events:', getComputedStyle(map.getContainer()).pointerEvents);
 
     mapRef.current = map;
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const latParam = urlParams.get('lat');
     const lngParam = urlParams.get('lng');
@@ -440,7 +440,7 @@ const Map = () => {
         map.flyTo([lat, lng], 15);
       }
     }
-    
+
     debouncedFetch();
 
     // Debug: check if markers are interactive
@@ -859,7 +859,7 @@ const Map = () => {
       enqueueSnackbar('Afspraak succesvol verwijderd', { variant: 'success' });
     } catch (error: any) {
       console.error('Error deleting event:', error);
-      
+
       // Check if error is about event type restriction
       if (error?.result?.error?.errors?.some((e: any) => e.reason === 'eventTypeRestriction')) {
         enqueueSnackbar('Dit type afspraak kan niet worden verwijderd (bijv. verjaardag)', { variant: 'warning' });
@@ -1261,31 +1261,47 @@ const Map = () => {
 
                 const matchingEvents = windowEvents.filter((e) => {
                   const title = (e.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                  const desc = (e.description || '').toLowerCase().replace(/\s+/g, ' ').trim();
                   const first = (user.first_name || '').toLowerCase().trim();
                   const last = (user.last_name || '').toLowerCase().trim();
                   const business = (user.business_name || '').toLowerCase().trim();
                   const full = `${first} ${last}`.replace(/\s+/g, ' ').trim();
+                  const fullWithBusiness = business ? `${full} - ${business}`.trim() : full;
+
+                  // Build address string for fallback description matching
+                  const addrStr = `${(address.street_name || '').toLowerCase()} ${(address.house_number || '').toLowerCase()}, ${(address.city || '').toLowerCase()}`.replace(/\s+/g, ' ').trim();
 
                   // If user has no first/last name but has business name, match by business name
                   if (!first && !last && business) {
-                    return title === business || title.includes(business);
+                    if (title === business || title.includes(business)) return true;
+                    // Fallback: match by address in description
+                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
+                    return false;
                   }
 
-                  // If user has first/last name, match by full name (both first and last must be present and match)
+                  // If user has first/last name, match by full name or both names in any order
                   if (first && last) {
-                    return title.includes(full);
+                    if (title.includes(full) || title.includes(fullWithBusiness)) return true;
+                    // Match both names present in any order
+                    if (title.includes(first) && title.includes(last)) return true;
+                    // Fallback: match by address in description
+                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
+                    return false;
                   }
 
-                  // If only first name or only last name, match only if the title contains that single name
-                  // but be more strict - require the name to be a complete word
+                  // If only first name or only last name, match as a complete word
                   if (first && !last) {
                     const regex = new RegExp(`\\b${first}\\b`, 'i');
-                    return regex.test(title);
+                    if (regex.test(title)) return true;
+                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
+                    return false;
                   }
 
                   if (last && !first) {
                     const regex = new RegExp(`\\b${last}\\b`, 'i');
-                    return regex.test(title);
+                    if (regex.test(title)) return true;
+                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
+                    return false;
                   }
 
                   return false;
