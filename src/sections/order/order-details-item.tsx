@@ -235,26 +235,31 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
       const priceInclVat = Number(item.single_product_discounted_price_per_unit_vat || 0);
       const vatRate = item.product.vat; // VAT percentage
-      const vatAmount = roundToTwoDecimals(priceInclVat - priceExclVat);
+
+      // Calculate item totals first (unit price × quantity), then round
+      // This avoids accumulated rounding errors from rounding per-unit VAT then multiplying
+      const itemTotalExcl = roundToTwoDecimals(priceExclVat * quantity);
+      const itemTotalIncl = roundToTwoDecimals(priceInclVat * quantity);
+      const itemVatAmount = roundToTwoDecimals(itemTotalIncl - itemTotalExcl);
 
       // Use the explicit VAT rate from the product
       switch (vatRate) {
         case 0:
-          vatTotals.btw0 += roundToTwoDecimals(priceExclVat) * quantity;
+          vatTotals.btw0 += itemTotalExcl;
           vatTotals.vatAmount0 += 0;
           break;
         case 9:
-          vatTotals.btw9 += roundToTwoDecimals(priceExclVat) * quantity;
-          vatTotals.vatAmount9 += roundToTwoDecimals(vatAmount * quantity);
+          vatTotals.btw9 += itemTotalExcl;
+          vatTotals.vatAmount9 += itemVatAmount;
           break;
         case 21:
-          vatTotals.btw21 += roundToTwoDecimals(priceExclVat) * quantity;
-          vatTotals.vatAmount21 += roundToTwoDecimals(vatAmount * quantity);
+          vatTotals.btw21 += itemTotalExcl;
+          vatTotals.vatAmount21 += itemVatAmount;
           break;
         default:
           // Default to 21% if VAT rate is not recognized
-          vatTotals.btw21 += roundToTwoDecimals(priceExclVat) * quantity;
-          vatTotals.vatAmount21 += roundToTwoDecimals(vatAmount * quantity);
+          vatTotals.btw21 += itemTotalExcl;
+          vatTotals.vatAmount21 += itemVatAmount;
       }
     });
 
