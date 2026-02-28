@@ -246,6 +246,7 @@ export default function PurchaseEditView() {
           product_purchase_price: product.price_cost || '0',
           vat: vatRate,
           vat_rate: vatRate,
+          isNewItem: true,
         };
 
         console.log("🔍 New Item Created:", newItem);
@@ -345,8 +346,17 @@ export default function PurchaseEditView() {
       });
 
       setCurrentPurchase((prev) => {
+        const mergedItems = prev?.items?.map((prevItem) => {
+          const matchingCalculatedItem = items?.find(i => i.id === prevItem.id);
+          return {
+            ...prevItem,
+            ...matchingCalculatedItem
+          };
+        }) || [];
+
         const updated = {
           ...prev!,
+          items: mergedItems.length > 0 ? mergedItems : items,
           total_exc_btw: totals.totalExcBtw.toFixed(2),
           total_inc_btw: totalIncBtw.toFixed(2),
           total_vat: totals.totalVat.toFixed(2),
@@ -427,7 +437,7 @@ export default function PurchaseEditView() {
         total_exc_btw: currentPurchase?.total_exc_btw,
         total_inc_btw: currentPurchase?.total_inc_btw,
         total_vat: currentPurchase?.total_vat,
-        items: currentPurchase?.items.map(item => ({
+        items: currentPurchase?.items.map(({ isNewItem, ...item }: any) => ({
           id: item.id,
           product: item.product,
           product_quantity: item.product_quantity,
@@ -569,7 +579,7 @@ export default function PurchaseEditView() {
         total_exc_btw: currentPurchase?.total_exc_btw,
         total_inc_btw: currentPurchase?.total_inc_btw,
         total_vat: currentPurchase?.total_vat,
-        items: currentPurchase?.items.map(item => ({
+        items: currentPurchase?.items.map(({ isNewItem, ...item }: any) => ({
           id: item.id,
           product: item.product,
           product_quantity: item.product_quantity,
@@ -777,8 +787,15 @@ export default function PurchaseEditView() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {currentPurchase.items.map((item) => (
-                          <TableRow key={item.id}>
+                        {currentPurchase.items.map((item: any) => (
+                          <TableRow
+                            key={item.id}
+                            sx={{
+                              ...(item.isNewItem && {
+                                backgroundColor: 'warning.lighter',
+                              })
+                            }}
+                          >
                             <TableCell>
                               <Typography variant="subtitle2">{item.product_detail.title}</Typography>
                             </TableCell>

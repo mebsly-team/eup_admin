@@ -101,6 +101,7 @@ export default function PurchaseEditView() {
           product_purchase_price: product.price_cost || '0',
           vat: appliedVat,
           vat_rate: appliedVat,
+          isNewItem: true,
         };
 
         // Ensure items is initialized as an array
@@ -146,12 +147,24 @@ export default function PurchaseEditView() {
 
     const totalIncBtw = totals.totalExcBtw + totals.totalVat;
 
-    setCurrentPurchase((prev) => ({
-      ...prev!,
-      total_exc_btw: totals.totalExcBtw.toFixed(2),
-      total_inc_btw: totalIncBtw.toFixed(2),
-      total_vat: totals.totalVat.toFixed(2),
-    }));
+    setCurrentPurchase((prev) => {
+      // Create a mapped array to ensure we don't lose custom properties like isNewItem
+      const mergedItems = prev?.items?.map((prevItem) => {
+        const matchingCalculatedItem = items?.find(i => i.id === prevItem.id);
+        return {
+          ...prevItem,
+          ...matchingCalculatedItem
+        };
+      }) || [];
+
+      return {
+        ...prev!,
+        items: mergedItems.length > 0 ? mergedItems : items,
+        total_exc_btw: totals.totalExcBtw.toFixed(2),
+        total_inc_btw: totalIncBtw.toFixed(2),
+        total_vat: totals.totalVat.toFixed(2),
+      };
+    });
   };
 
   const handleUpdateQuantity = (itemId: string, value: string) => {
@@ -250,7 +263,7 @@ export default function PurchaseEditView() {
       const changes = {
         supplier: String(selectedSupplier?.id) !== String(currentPurchase?.supplier),
         purchase_invoice_date: currentPurchase?.purchase_invoice_date,
-        items: currentPurchase?.items?.map(item => ({
+        items: currentPurchase?.items?.map(({ isNewItem, ...item }: any) => ({
           quantity: item.product_quantity,
           price: item.product_purchase_price,
           vat_rate: item.vat_rate,
@@ -264,7 +277,7 @@ export default function PurchaseEditView() {
         total_exc_btw: currentPurchase?.total_exc_btw,
         total_inc_btw: currentPurchase?.total_inc_btw,
         total_vat: currentPurchase?.total_vat,
-        items: currentPurchase?.items?.map(item => ({
+        items: currentPurchase?.items?.map(({ isNewItem, ...item }: any) => ({
           product: item.product,
           product_quantity: item.product_quantity,
           product_purchase_price: item.product_purchase_price,
@@ -392,8 +405,18 @@ export default function PurchaseEditView() {
                     </Button>
                   </Stack>
 
-                  {currentPurchase?.items?.map((item) => (
-                    <Card key={item.id} sx={{ p: 2 }}>
+                  {currentPurchase?.items?.map((item: any) => (
+                    <Card
+                      key={item.id}
+                      sx={{
+                        p: 2,
+                        ...(item.isNewItem && {
+                          backgroundColor: 'warning.lighter',
+                          border: '1px solid',
+                          borderColor: 'warning.main',
+                        }),
+                      }}
+                    >
                       <Stack direction="row" alignItems="center" spacing={2}>
                         <Box sx={{ flexGrow: 1 }}>
                           <Typography variant="subtitle2">{item.product_detail.title}</Typography>
