@@ -142,6 +142,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
             product,
             quantity: 1,
             completed: false,
+            isNewItem: true,
             single_product_discounted_price_per_unit: Number((Number(product.price_per_unit) * discountFactor).toFixed(2)),
             single_product_discounted_price_per_unit_vat: Number((Number(product.price_per_unit_vat) * discountFactor).toFixed(2)),
           });
@@ -381,13 +382,15 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
     }
 
     try {
-      // Recalculate all cart item prices to ensure consistency
       const updatedCartItems = editedCart.items.map((item: any) => {
         const priceExclVat = Number(item.single_product_discounted_price_per_unit || 0);
         const priceInclVat = Number(item.single_product_discounted_price_per_unit_vat || 0);
 
+        // Strip out isNewItem before saving to avoid any potential schema issues on backend
+        const { isNewItem, ...safeItem } = item;
+
         return {
-          ...item,
+          ...safeItem,
           single_product_discounted_price_per_unit: priceExclVat,
           single_product_discounted_price_per_unit_vat: priceInclVat,
           product_item_total_price: (priceExclVat * item.quantity).toFixed(2),
@@ -701,6 +704,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
               onUpdate={handleItemChange}
               onDelete={handleDeleteItem}
               onCheckboxChange={handleCheckboxChange}
+              isNewItem={item.isNewItem}
             />
           ))}
         </Scrollbar>

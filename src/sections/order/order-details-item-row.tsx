@@ -24,6 +24,7 @@ type Props = {
   onUpdate: (id: string, key: string, value: any) => void;
   onDelete: (id: string) => void;
   onCheckboxChange: (id: string) => void;
+  isNewItem?: boolean;
 };
 
 function OrderItemRow({
@@ -33,6 +34,7 @@ function OrderItemRow({
   onUpdate,
   onDelete,
   onCheckboxChange,
+  isNewItem,
 }: Props) {
   const [priceInput, setPriceInput] = useState<string>('');
 
@@ -85,6 +87,11 @@ function OrderItemRow({
       sx={{
         py: 3,
         borderBottom: (theme) => `dashed 2px ${theme.palette.background.neutral}`,
+        ...(isNewItem && {
+          bgcolor: (theme) => theme.palette.warning.lighter,
+          borderRadius: 1,
+          px: 1,
+        }),
       }}
     >
       <Checkbox
