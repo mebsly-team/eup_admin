@@ -57,6 +57,7 @@ export default function ProductTableRow({
     ean,
     is_product_active,
     price_per_piece,
+    price_cost,
     overall_stock,
     free_stock,
     variants,
@@ -65,14 +66,18 @@ export default function ProductTableRow({
     is_visible_particular,
     is_visible_B2B,
     siblings_count,
-    vat
+    vat,
   } = row;
   const { enqueueSnackbar } = useSnackbar();
 
   const [isActive, setIsActive] = useState(is_visible_particular);
   const [isActiveB2B, setIsActiveB2B] = useState(is_visible_B2B);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl',"hatice.sahin@europowerbv.nl"];
+  const allowedEmails = [
+    'info@europowerbv.com',
+    'm.sahin@europowerbv.nl',
+    'hatice.sahin@europowerbv.nl',
+  ];
   const canToggle = allowedEmails.includes(currentUser?.email);
   const theme = useTheme();
   const styles = {
@@ -209,6 +214,7 @@ export default function ProductTableRow({
           </span>
         </TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
+        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_cost ?? '-'}</TableCell>
         <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
           {variants_count || '-'}
         </TableCell>
@@ -262,7 +268,7 @@ export default function ProductTableRow({
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
-      // sx={{ width: 140 }}
+        // sx={{ width: 140 }}
       >
         <MenuItem
           onClick={() => {

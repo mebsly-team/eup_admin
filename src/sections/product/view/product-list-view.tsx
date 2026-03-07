@@ -103,6 +103,7 @@ export default function ProductListView() {
     { id: 'image', label: t('image') },
     { id: 'title', label: t('title'), hideOnMd: true },
     { id: 'price_per_piece', label: t('price') },
+    { id: 'price_cost', label: t('price_cost') },
     { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
     { id: 'variants', label: t('number_of_variants2'), hideOnSm: true },
     { id: 'vat', label: t('vat') },
@@ -169,7 +170,10 @@ export default function ProductListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
     const { data } = await axiosInstance.get(
-      `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
+      `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${
+        table.rowsPerPage
+      }&offset=${
+        table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
     );
     setCount(data.count || 0);
@@ -290,14 +294,16 @@ export default function ProductListView() {
     setSelectedSingleRow(row);
     setStockUpdateDialogOpen(true);
   }, []);
-  const handleTablePageChange = useCallback((e, pageNo) => {
-    handleFilters('page', pageNo + 1);
-    table.onChangePage(e, pageNo);
-  }, [handleFilters, table]);
+  const handleTablePageChange = useCallback(
+    (e, pageNo) => {
+      handleFilters('page', pageNo + 1);
+      table.onChangePage(e, pageNo);
+    },
+    [handleFilters, table]
+  );
 
   const handleShowBundles = () => {
     setShowBundles(!showBundles);
-
   };
 
   const handleExport = useCallback(async () => {
@@ -373,11 +379,7 @@ export default function ProductListView() {
             sx={{ p: 2.5, pt: 0 }}
           />
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
-            <Switch
-              checked={showBundles}
-              onChange={handleShowBundles}
-            />
+            <Switch checked={showBundles} onChange={handleShowBundles} />
             <Typography onClick={handleShowBundles} style={{ cursor: 'pointer' }}>
               Bundels tonen
             </Typography>
@@ -461,7 +463,7 @@ export default function ProductListView() {
             onChangeDense={table.onChangeDense}
           />
         </Card>
-      </Container >
+      </Container>
 
       <ConfirmDialog
         open={confirm.value}
@@ -482,55 +484,53 @@ export default function ProductListView() {
         }
       />
 
-      {
-        isStockUpdateDialogOpen ? (
-          <Dialog
-            fullWidth
-            maxWidth="sm"
-            open={isStockUpdateDialogOpen}
-            onClose={() => setStockUpdateDialogOpen(false)}
-            transitionDuration={{
-              enter: theme.transitions.duration.shortest,
-              exit: 0,
-            }}
-            PaperProps={{
-              sx: {
-                mt: 15,
-                overflow: 'unset',
-              },
-            }}
-          >
-            <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
-              <Typography sx={{ mb: 2 }}>{selectedSingleRow?.title}</Typography>
+      {isStockUpdateDialogOpen ? (
+        <Dialog
+          fullWidth
+          maxWidth="sm"
+          open={isStockUpdateDialogOpen}
+          onClose={() => setStockUpdateDialogOpen(false)}
+          transitionDuration={{
+            enter: theme.transitions.duration.shortest,
+            exit: 0,
+          }}
+          PaperProps={{
+            sx: {
+              mt: 15,
+              overflow: 'unset',
+            },
+          }}
+        >
+          <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
+            <Typography sx={{ mb: 2 }}>{selectedSingleRow?.title}</Typography>
 
-              <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-                {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
-              </Typography>
-              <TextField name="amount" label={t('amount')} sx={{ width: 100 }} type="number" />
-              <FormControl sx={{ minWidth: 300 }}>
-                <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
-                <Select labelId="demo-select-small-label" id="demo-select-small">
-                  <MenuItem value="stock_update_choice_0">{t('stock_update_choice_0')}</MenuItem>
-                  <MenuItem value="stock_update_choice_1">{t('stock_update_choice_1')}</MenuItem>
-                  <MenuItem value="stock_update_choice_2">{t('stock_update_choice_2')}</MenuItem>
-                  <MenuItem value="stock_update_choice_3">{t('stock_update_choice_3')}</MenuItem>
-                  <MenuItem value="stock_update_choice_4">{t('stock_update_choice_4')}</MenuItem>
-                  <MenuItem value="stock_update_choice_5">{t('stock_update_choice_5')}</MenuItem>
-                  <MenuItem value="stock_update_choice_6">{t('stock_update_choice_6')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <DialogActions>
-              <Button onClick={() => setStockUpdateDialogOpen(false)} color="primary">
-                {t('cancel')}
-              </Button>
-              <Button onClick={updateStock} color="primary">
-                {t('save')}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        ) : null
-      }
+            <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+              {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
+            </Typography>
+            <TextField name="amount" label={t('amount')} sx={{ width: 100 }} type="number" />
+            <FormControl sx={{ minWidth: 300 }}>
+              <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
+              <Select labelId="demo-select-small-label" id="demo-select-small">
+                <MenuItem value="stock_update_choice_0">{t('stock_update_choice_0')}</MenuItem>
+                <MenuItem value="stock_update_choice_1">{t('stock_update_choice_1')}</MenuItem>
+                <MenuItem value="stock_update_choice_2">{t('stock_update_choice_2')}</MenuItem>
+                <MenuItem value="stock_update_choice_3">{t('stock_update_choice_3')}</MenuItem>
+                <MenuItem value="stock_update_choice_4">{t('stock_update_choice_4')}</MenuItem>
+                <MenuItem value="stock_update_choice_5">{t('stock_update_choice_5')}</MenuItem>
+                <MenuItem value="stock_update_choice_6">{t('stock_update_choice_6')}</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <DialogActions>
+            <Button onClick={() => setStockUpdateDialogOpen(false)} color="primary">
+              {t('cancel')}
+            </Button>
+            <Button onClick={updateStock} color="primary">
+              {t('save')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      ) : null}
       <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
     </>
   );
