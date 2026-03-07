@@ -6,6 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
+import Link from '@mui/material/Link';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -16,6 +17,8 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
@@ -212,6 +215,27 @@ export default function ProductTableRow({
               </a>
             )}
           </span>
+        </TableCell>
+        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
+          {row.supplier?.id ? (
+            <Link
+              component={RouterLink}
+              href={paths.dashboard.supplier.edit(String(row.supplier.id))}
+              sx={{
+                color: 'inherit',
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline',
+                  color: 'primary.main',
+                },
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {row.supplier?.name || '-'}
+            </Link>
+          ) : (
+            row.supplier?.name || '-'
+          )}
         </TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
         <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_cost ?? '-'}</TableCell>

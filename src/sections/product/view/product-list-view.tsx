@@ -102,6 +102,7 @@ export default function ProductListView() {
   const TABLE_HEAD = [
     { id: 'image', label: t('image') },
     { id: 'title', label: t('title'), hideOnMd: true },
+    { id: 'supplier', label: t('supplier'), hideOnMd: true },
     { id: 'price_per_piece', label: t('price') },
     { id: 'price_cost', label: t('price_cost') },
     { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
