@@ -64,12 +64,12 @@ export default function PurchaseEditView() {
 
   const getVatRate = useCallback((supplierCountry?: string, itemVat?: number) => {
     if (!supplierCountry) return 0;
-    return supplierCountry === 'NL' ? (Number(itemVat) || 0) : 0;
+    return supplierCountry === 'NL' ? Number(itemVat) || 0 : 0;
   }, []);
 
   const getCountryName = useCallback((code?: string) => {
     if (!code) return 'Unknown';
-    const country = countries.find(c => c.code === code);
+    const country = countries.find((c) => c.code === code);
     return country ? country.label : code;
   }, []);
 
@@ -95,38 +95,42 @@ export default function PurchaseEditView() {
       setLoading(true);
       const response = await axiosInstance.get(`/purchases/${id}/`);
 
-      console.log("🔍 Fetch Purchase API Response:", response.data);
-      console.log("🔍 Purchase Items:", response.data.items);
-      console.log("🔍 Purchase Totals:", {
+      console.log('🔍 Fetch Purchase API Response:', response.data);
+      console.log('🔍 Purchase Items:', response.data.items);
+      console.log('🔍 Purchase Totals:', {
         total_exc_btw: response.data.total_exc_btw,
         total_vat: response.data.total_vat,
-        total_inc_btw: response.data.total_inc_btw
+        total_inc_btw: response.data.total_inc_btw,
       });
 
       if (response.data.items && response.data.items.length > 0) {
-        console.log("🔍 First Item Details:", response.data.items[0]);
-        console.log("🔍 First Item product_purchase_price:", response.data.items[0].product_purchase_price);
-        console.log("🔍 First Item vat_rate:", response.data.items[0].vat_rate);
-        console.log("🔍 First Item product_detail:", response.data.items[0].product_detail);
+        console.log('🔍 First Item Details:', response.data.items[0]);
+        console.log(
+          '🔍 First Item product_purchase_price:',
+          response.data.items[0].product_purchase_price
+        );
+        console.log('🔍 First Item vat_rate:', response.data.items[0].vat_rate);
+        console.log('🔍 First Item product_detail:', response.data.items[0].product_detail);
       }
 
       const purchaseData = {
         ...response.data,
-        items: response.data.items?.map((item: any) => {
-          const appliedVat = getVatRate(
-            response.data.supplier_detail?.supplier_country,
-            item.vat ?? item.vat_rate ?? item.product_detail?.vat
-          );
-          return {
-            ...item,
-            vat: appliedVat,
-            vat_rate: appliedVat,
-          };
-        }) || []
+        items:
+          response.data.items?.map((item: any) => {
+            const appliedVat = getVatRate(
+              response.data.supplier_detail?.supplier_country,
+              item.vat ?? item.vat_rate ?? item.product_detail?.vat
+            );
+            return {
+              ...item,
+              vat: appliedVat,
+              vat_rate: appliedVat,
+            };
+          }) || [],
       };
 
-      console.log("🔍 Processed Purchase Data:", purchaseData);
-      console.log("🔍 Processed Items with VAT:", purchaseData.items);
+      console.log('🔍 Processed Purchase Data:', purchaseData);
+      console.log('🔍 Processed Items with VAT:', purchaseData.items);
 
       purchaseData.items.forEach((item: any, index: number) => {
         console.log(`🔍 Item ${index + 1} VAT Rate:`, item.vat_rate);
@@ -145,25 +149,33 @@ export default function PurchaseEditView() {
     }
   }, [id, enqueueSnackbar, t]);
 
-  const fetchPreviousPurchases = useCallback(async (supplierId: string) => {
-    try {
-      const response = await axiosInstance.get(`/purchases/?type=purchase&supplier=${supplierId}`);
-      setPreviousPurchases(response.data.results || []);
-    } catch (error) {
-      console.error('Error fetching previous purchases:', error);
-      enqueueSnackbar(t('failed_to_fetch_previous_purchases'), { variant: 'error' });
-    }
-  }, [enqueueSnackbar, t]);
+  const fetchPreviousPurchases = useCallback(
+    async (supplierId: string) => {
+      try {
+        const response = await axiosInstance.get(
+          `/purchases/?type=purchase&supplier=${supplierId}`
+        );
+        setPreviousPurchases(response.data.results || []);
+      } catch (error) {
+        console.error('Error fetching previous purchases:', error);
+        enqueueSnackbar(t('failed_to_fetch_previous_purchases'), { variant: 'error' });
+      }
+    },
+    [enqueueSnackbar, t]
+  );
 
-  const fetchPreviousOffers = useCallback(async (supplierId: string) => {
-    try {
-      const response = await axiosInstance.get(`/purchases/?type=offer&supplier=${supplierId}`);
-      setPreviousOffers(response.data.results || []);
-    } catch (error) {
-      console.error('Error fetching previous offers:', error);
-      enqueueSnackbar(t('failed_to_fetch_previous_offers'), { variant: 'error' });
-    }
-  }, [enqueueSnackbar, t]);
+  const fetchPreviousOffers = useCallback(
+    async (supplierId: string) => {
+      try {
+        const response = await axiosInstance.get(`/purchases/?type=offer&supplier=${supplierId}`);
+        setPreviousOffers(response.data.results || []);
+      } catch (error) {
+        console.error('Error fetching previous offers:', error);
+        enqueueSnackbar(t('failed_to_fetch_previous_offers'), { variant: 'error' });
+      }
+    },
+    [enqueueSnackbar, t]
+  );
 
   useEffect(() => {
     fetchPurchase();
@@ -179,7 +191,7 @@ export default function PurchaseEditView() {
   }, [selectedSupplier?.id, fetchPreviousPurchases, fetchPreviousOffers]);
 
   const handleSupplierChange = (event: any, newValue: ISupplierItem | null) => {
-    console.log("🚀 ~ handleSupplierChange ~ newValue:", newValue)
+    console.log('🚀 ~ handleSupplierChange ~ newValue:', newValue);
     setSelectedSupplier(newValue);
 
     if (newValue) {
@@ -191,7 +203,8 @@ export default function PurchaseEditView() {
         if (!prev) return prev;
 
         const updatedItems = prev.items.map((item) => {
-          const baseVat = (item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate;
+          const baseVat =
+            (item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate;
           const appliedVat = getVatRate(country, baseVat);
           return {
             ...item,
@@ -220,9 +233,9 @@ export default function PurchaseEditView() {
       const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
       if (response.data?.length > 0) {
         const product = response.data[0];
-        console.log("🔍 API Product Data:", product);
-        console.log("🔍 Product price_cost:", product.price_cost);
-        console.log("🔍 Product vat:", product.vat);
+        console.log('🔍 API Product Data:', product);
+        console.log('🔍 Product price_cost:', product.price_cost);
+        console.log('🔍 Product vat:', product.vat);
 
         const vatRate = getVatRate(selectedSupplier?.supplier_country, product.vat);
 
@@ -249,20 +262,20 @@ export default function PurchaseEditView() {
           isNewItem: true,
         };
 
-        console.log("🔍 New Item Created:", newItem);
-        console.log("🔍 New Item product_purchase_price:", newItem.product_purchase_price);
-        console.log("🔍 New Item vat_rate:", newItem.vat_rate);
+        console.log('🔍 New Item Created:', newItem);
+        console.log('🔍 New Item product_purchase_price:', newItem.product_purchase_price);
+        console.log('🔍 New Item vat_rate:', newItem.vat_rate);
 
         setCurrentPurchase((prev) => {
           const updated = {
             ...prev!,
-            items: [...prev!.items, newItem],
+            items: [newItem, ...prev!.items],
           };
-          console.log("🔍 Updated Purchase Items:", updated.items);
+          console.log('🔍 Updated Purchase Items:', updated.items);
           return updated;
         });
         setEanSearch('');
-        calculateTotals([...currentPurchase!.items, newItem]);
+        calculateTotals([newItem, ...currentPurchase!.items]);
         enqueueSnackbar(t('product_added_to_purchase'), { variant: 'success' });
       } else {
         enqueueSnackbar(t('product_not_found'), { variant: 'error' });
@@ -284,7 +297,9 @@ export default function PurchaseEditView() {
 
   useEffect(() => {
     if (currentPurchase?.items && currentPurchase.items.length > 0) {
-      const country = selectedSupplier?.supplier_country || (currentPurchase as any)?.supplier_detail?.supplier_country;
+      const country =
+        selectedSupplier?.supplier_country ||
+        (currentPurchase as any)?.supplier_detail?.supplier_country;
       calculateTotals(currentPurchase.items, country);
     }
   }, [currentPurchase?.items, selectedSupplier?.supplier_country]);
@@ -304,8 +319,13 @@ export default function PurchaseEditView() {
           console.log(`🔍 Quantity: ${item.product_quantity}`);
 
           const priceCost = Number(String(item.product_purchase_price ?? '0').replace(',', '.'));
-          const baseVat = Number((item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate ?? 0);
-          const vat = calculateItemTax(supplierCountryOverride ?? selectedSupplier?.supplier_country, baseVat);
+          const baseVat = Number(
+            (item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate ?? 0
+          );
+          const vat = calculateItemTax(
+            supplierCountryOverride ?? selectedSupplier?.supplier_country,
+            baseVat
+          );
           const quantity = item.product_quantity;
 
           if (isNaN(priceCost) || isNaN(vat) || !quantity) {
@@ -316,7 +336,9 @@ export default function PurchaseEditView() {
           const itemPrice = Number(priceCost) * quantity;
           const itemVat = itemPrice * (Number(vat) / 100);
 
-          console.log(`🔍 Item calculation: priceCost=${priceCost}, vat=${vat}, quantity=${quantity}`);
+          console.log(
+            `🔍 Item calculation: priceCost=${priceCost}, vat=${vat}, quantity=${quantity}`
+          );
           console.log(`🔍 Item price: ${itemPrice}, Item VAT: ${itemVat}`);
 
           if (isNaN(itemPrice) || isNaN(itemVat)) {
@@ -342,17 +364,18 @@ export default function PurchaseEditView() {
       console.log('🔍 Final totals:', {
         totalExcBtw: totals.totalExcBtw,
         totalVat: totals.totalVat,
-        totalIncBtw: totalIncBtw
+        totalIncBtw: totalIncBtw,
       });
 
       setCurrentPurchase((prev) => {
-        const mergedItems = prev?.items?.map((prevItem) => {
-          const matchingCalculatedItem = items?.find(i => i.id === prevItem.id);
-          return {
-            ...prevItem,
-            ...matchingCalculatedItem
-          };
-        }) || [];
+        const mergedItems =
+          prev?.items?.map((prevItem) => {
+            const matchingCalculatedItem = items?.find((i) => i.id === prevItem.id);
+            return {
+              ...prevItem,
+              ...matchingCalculatedItem,
+            };
+          }) || [];
 
         const updated = {
           ...prev!,
@@ -403,8 +426,6 @@ export default function PurchaseEditView() {
     calculateTotals(updatedItems);
   };
 
-
-
   const handleSave = async () => {
     if (!selectedSupplier) {
       enqueueSnackbar(t('supplier_required'), { variant: 'error' });
@@ -412,7 +433,11 @@ export default function PurchaseEditView() {
     }
 
     if (!selectedSupplier.supplier_country) {
-      enqueueSnackbar(t('supplier_country_required') || 'Supplier country is required. Please update the supplier information.', { variant: 'error' });
+      enqueueSnackbar(
+        t('supplier_country_required') ||
+          'Supplier country is required. Please update the supplier information.',
+        { variant: 'error' }
+      );
       return;
     }
 
@@ -421,7 +446,7 @@ export default function PurchaseEditView() {
       const changes = {
         supplier: String(selectedSupplier?.id) !== String(currentPurchase?.supplier),
         purchase_invoice_date: currentPurchase?.purchase_invoice_date,
-        items: currentPurchase?.items.map(item => ({
+        items: currentPurchase?.items.map((item) => ({
           id: item.id,
           quantity: item.product_quantity,
           price: item.product_purchase_price,
@@ -444,19 +469,19 @@ export default function PurchaseEditView() {
           product_purchase_price: item.product_purchase_price,
           vat_rate: (item as any).vat,
         })),
-        history: [...history, {
-          id: crypto.randomUUID(),
-          action: 'update',
-          changes,
-          created_at: new Date().toISOString(),
-          user: user?.email || 'Unknown',
-        }],
+        history: [
+          ...history,
+          {
+            id: crypto.randomUUID(),
+            action: 'update',
+            changes,
+            created_at: new Date().toISOString(),
+            user: user?.email || 'Unknown',
+          },
+        ],
       };
 
-      const response = await axiosInstance.put(
-        `/purchases/${id}/`,
-        cleanedPurchase,
-      );
+      const response = await axiosInstance.put(`/purchases/${id}/`, cleanedPurchase);
 
       // Update history with the new changes
       if (response.data.history) {
@@ -482,7 +507,6 @@ export default function PurchaseEditView() {
     }
   };
 
-
   const handleDownloadPdf = async () => {
     if (!currentPurchase) {
       enqueueSnackbar(t('no_purchase_data'), { variant: 'error' });
@@ -497,17 +521,24 @@ export default function PurchaseEditView() {
       currentPurchase.items.length === 0;
 
     if (hasCalculationErrors) {
-      enqueueSnackbar(t('calculation_errors_prevent_pdf_download') || 'Cannot download PDF: Calculation errors detected', { variant: 'error' });
+      enqueueSnackbar(
+        t('calculation_errors_prevent_pdf_download') ||
+          'Cannot download PDF: Calculation errors detected',
+        { variant: 'error' }
+      );
       return;
     }
 
-    const hasInvalidItems = currentPurchase.items.some(item =>
-      !item.product_purchase_price ||
-      !item.product_quantity
+    const hasInvalidItems = currentPurchase.items.some(
+      (item) => !item.product_purchase_price || !item.product_quantity
     );
 
     if (hasInvalidItems) {
-      enqueueSnackbar(t('invalid_items_prevent_pdf_download') || 'Cannot download PDF: Invalid item data detected', { variant: 'error' });
+      enqueueSnackbar(
+        t('invalid_items_prevent_pdf_download') ||
+          'Cannot download PDF: Invalid item data detected',
+        { variant: 'error' }
+      );
       return;
     }
 
@@ -522,7 +553,9 @@ export default function PurchaseEditView() {
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
-      enqueueSnackbar(t('pdf_downloaded_successfully') || 'PDF downloaded successfully', { variant: 'success' });
+      enqueueSnackbar(t('pdf_downloaded_successfully') || 'PDF downloaded successfully', {
+        variant: 'success',
+      });
     } catch (error) {
       console.error('Error downloading PDF:', error);
       enqueueSnackbar(t('failed_to_download_pdf'), { variant: 'error' });
@@ -531,7 +564,9 @@ export default function PurchaseEditView() {
 
   const handleConvertToPurchase = async () => {
     if (!currentPurchase || !selectedSupplier) {
-      enqueueSnackbar(t('purchase_data_required') || 'Purchase data is required', { variant: 'error' });
+      enqueueSnackbar(t('purchase_data_required') || 'Purchase data is required', {
+        variant: 'error',
+      });
       return;
     }
 
@@ -543,17 +578,22 @@ export default function PurchaseEditView() {
       currentPurchase.items.length === 0;
 
     if (hasCalculationErrors) {
-      enqueueSnackbar(t('calculation_errors_prevent_conversion') || 'Cannot convert: Calculation errors detected', { variant: 'error' });
+      enqueueSnackbar(
+        t('calculation_errors_prevent_conversion') || 'Cannot convert: Calculation errors detected',
+        { variant: 'error' }
+      );
       return;
     }
 
-    const hasInvalidItems = currentPurchase.items.some(item =>
-      !item.product_purchase_price ||
-      !item.product_quantity
+    const hasInvalidItems = currentPurchase.items.some(
+      (item) => !item.product_purchase_price || !item.product_quantity
     );
 
     if (hasInvalidItems) {
-      enqueueSnackbar(t('invalid_items_prevent_conversion') || 'Cannot convert: Invalid item data detected', { variant: 'error' });
+      enqueueSnackbar(
+        t('invalid_items_prevent_conversion') || 'Cannot convert: Invalid item data detected',
+        { variant: 'error' }
+      );
       return;
     }
 
@@ -563,7 +603,7 @@ export default function PurchaseEditView() {
         type: 'convert_to_purchase',
         supplier: selectedSupplier?.id,
         purchase_invoice_date: currentPurchase?.purchase_invoice_date,
-        items: currentPurchase?.items.map(item => ({
+        items: currentPurchase?.items.map((item) => ({
           id: item.id,
           quantity: item.product_quantity,
           price: item.product_purchase_price,
@@ -586,19 +626,19 @@ export default function PurchaseEditView() {
           product_purchase_price: item.product_purchase_price,
           vat_rate: (item as any).vat,
         })),
-        history: [...history, {
-          id: crypto.randomUUID(),
-          action: 'convert_to_purchase',
-          changes,
-          created_at: new Date().toISOString(),
-          user: user?.email || 'Unknown',
-        }],
+        history: [
+          ...history,
+          {
+            id: crypto.randomUUID(),
+            action: 'convert_to_purchase',
+            changes,
+            created_at: new Date().toISOString(),
+            user: user?.email || 'Unknown',
+          },
+        ],
       };
 
-      const response = await axiosInstance.put(
-        `/purchases/${id}/`,
-        cleanedPurchase,
-      );
+      const response = await axiosInstance.put(`/purchases/${id}/`, cleanedPurchase);
 
       if (response.data.history) {
         setHistory(response.data.history);
@@ -613,10 +653,15 @@ export default function PurchaseEditView() {
         setHistory([newHistoryEntry, ...history]);
       }
 
-      enqueueSnackbar(t('offer_converted_to_purchase_successfully') || 'Offer converted to purchase successfully', { variant: 'success' });
+      enqueueSnackbar(
+        t('offer_converted_to_purchase_successfully') || 'Offer converted to purchase successfully',
+        { variant: 'success' }
+      );
     } catch (error) {
       console.error('Error converting offer to purchase:', error);
-      enqueueSnackbar(t('failed_to_convert_offer') || 'Failed to convert offer to purchase', { variant: 'error' });
+      enqueueSnackbar(t('failed_to_convert_offer') || 'Failed to convert offer to purchase', {
+        variant: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -633,12 +678,7 @@ export default function PurchaseEditView() {
   return (
     <Container maxWidth={false}>
       <Stack spacing={3}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{ mb: 3 }}
-        >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
           <Stack spacing={1} direction="row" alignItems="center">
             <IconButton onClick={router.back}>
               <Iconify icon="eva:arrow-ios-back-fill" />
@@ -671,12 +711,16 @@ export default function PurchaseEditView() {
                   currentPurchase.items.length === 0
                 }
                 title={
-                  !currentPurchase ? t('no_purchase_data') :
-                    !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ||
-                      !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
-                      currentPurchase.items.length === 0 ?
-                      (t('calculation_errors_prevent_conversion') || 'Calculation errors prevent conversion') :
-                      t('convert_to_purchase')
+                  !currentPurchase
+                    ? t('no_purchase_data')
+                    : !currentPurchase.total_exc_btw ||
+                        currentPurchase.total_exc_btw === '0.00' ||
+                        !currentPurchase.total_inc_btw ||
+                        currentPurchase.total_inc_btw === '0.00' ||
+                        currentPurchase.items.length === 0
+                      ? t('calculation_errors_prevent_conversion') ||
+                        'Calculation errors prevent conversion'
+                      : t('convert_to_purchase')
                 }
               >
                 {t('convert_to_purchase')}
@@ -696,12 +740,16 @@ export default function PurchaseEditView() {
                 currentPurchase.items.length === 0
               }
               title={
-                !currentPurchase ? t('no_purchase_data') :
-                  !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ||
-                    !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ||
-                    currentPurchase.items.length === 0 ?
-                    (t('calculation_errors_prevent_pdf_download') || 'Calculation errors prevent PDF download') :
-                    t('download_pdf')
+                !currentPurchase
+                  ? t('no_purchase_data')
+                  : !currentPurchase.total_exc_btw ||
+                      currentPurchase.total_exc_btw === '0.00' ||
+                      !currentPurchase.total_inc_btw ||
+                      currentPurchase.total_inc_btw === '0.00' ||
+                      currentPurchase.items.length === 0
+                    ? t('calculation_errors_prevent_pdf_download') ||
+                      'Calculation errors prevent PDF download'
+                    : t('download_pdf')
               }
             >
               {t('download_pdf')}
@@ -735,14 +783,23 @@ export default function PurchaseEditView() {
                     )}
                   />
                   {selectedSupplier && !selectedSupplier.supplier_country && (
-                    <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 'bold', mt: 1 }}>
-                      ⚠️ {t('supplier_country_missing') || 'Warning: This supplier does not have a country set. Please update the supplier information.'}
+                    <Typography
+                      variant="body2"
+                      sx={{ color: 'error.main', fontWeight: 'bold', mt: 1 }}
+                    >
+                      ⚠️{' '}
+                      {t('supplier_country_missing') ||
+                        'Warning: This supplier does not have a country set. Please update the supplier information.'}
                     </Typography>
                   )}
 
                   <DatePicker
                     label={t('invoice_date')}
-                    value={currentPurchase.purchase_invoice_date ? new Date(currentPurchase.purchase_invoice_date) : null}
+                    value={
+                      currentPurchase.purchase_invoice_date
+                        ? new Date(currentPurchase.purchase_invoice_date)
+                        : null
+                    }
                     onChange={(newValue) => {
                       setCurrentPurchase((prev) => ({
                         ...prev!,
@@ -763,11 +820,7 @@ export default function PurchaseEditView() {
                         }
                       }}
                     />
-                    <Button
-                      variant="contained"
-                      onClick={handleAddProduct}
-                      disabled={!eanSearch}
-                    >
+                    <Button variant="contained" onClick={handleAddProduct} disabled={!eanSearch}>
                       {t('add_product')}
                     </Button>
                   </Stack>
@@ -793,15 +846,19 @@ export default function PurchaseEditView() {
                             sx={{
                               ...(item.isNewItem && {
                                 backgroundColor: 'warning.lighter',
-                              })
+                              }),
                             }}
                           >
                             <TableCell>
-                              <Typography variant="subtitle2">{item.product_detail.title}</Typography>
+                              <Typography variant="subtitle2">
+                                {item.product_detail.title}
+                              </Typography>
                             </TableCell>
                             <TableCell>
                               <Link
-                                href={paths.dashboard.product.edit(item.product_detail.id.toString())}
+                                href={paths.dashboard.product.edit(
+                                  item.product_detail.id.toString()
+                                )}
                                 target="_blank"
                                 rel="noreferrer"
                                 sx={{
@@ -812,27 +869,51 @@ export default function PurchaseEditView() {
                                 }}
                               >
                                 <Typography variant="body2">{item.product_detail.ean}</Typography>
-                                <Typography variant="caption">Leverancierscode: {(item.product_detail as any).supplier_article_code}</Typography>
-                                <Typography variant="caption" sx={{
-                                  color: (selectedSupplier?.supplier_country === 'NL') ? 'success.main' : 'warning.main',
-                                  fontWeight: 'bold',
-                                  display: 'block'
-                                }}>
+                                <Typography variant="caption">
+                                  Leverancierscode:{' '}
+                                  {(item.product_detail as any).supplier_article_code}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color:
+                                      selectedSupplier?.supplier_country === 'NL'
+                                        ? 'success.main'
+                                        : 'warning.main',
+                                    fontWeight: 'bold',
+                                    display: 'block',
+                                  }}
+                                >
                                   {calculateItemTax(
                                     selectedSupplier?.supplier_country,
-                                    Number((item as any).product_detail?.vat ?? (item as any).vat ?? (item as any).vat_rate ?? 0)
-                                  )}% ({getCountryName(selectedSupplier?.supplier_country)})
+                                    Number(
+                                      (item as any).product_detail?.vat ??
+                                        (item as any).vat ??
+                                        (item as any).vat_rate ??
+                                        0
+                                    )
+                                  )}
+                                  % ({getCountryName(selectedSupplier?.supplier_country)})
                                 </Typography>
                                 {!selectedSupplier?.supplier_country && (
-                                  <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold', display: 'block' }}>
-                                    ⚠️ {t('supplier_country_required') || 'Supplier country required'}
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      color: 'error.main',
+                                      fontWeight: 'bold',
+                                      display: 'block',
+                                    }}
+                                  >
+                                    ⚠️{' '}
+                                    {t('supplier_country_required') || 'Supplier country required'}
                                   </Typography>
                                 )}
                               </Link>
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="caption" display="block">
-                                {t('overall_stock')}: {(item.product_detail as any)?.overall_stock || 0}
+                                {t('overall_stock')}:{' '}
+                                {(item.product_detail as any)?.overall_stock || 0}
                               </Typography>
                               <Typography variant="caption" display="block">
                                 {t('free_stock')}: {(item.product_detail as any)?.free_stock || 0}
@@ -840,13 +921,16 @@ export default function PurchaseEditView() {
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="caption" display="block">
-                                {t('min_stock_value')}: {(item.product_detail as any)?.min_stock_value || 0}
+                                {t('min_stock_value')}:{' '}
+                                {(item.product_detail as any)?.min_stock_value || 0}
                               </Typography>
                               <Typography variant="caption" display="block">
-                                {t('min_order_amount')}: {(item.product_detail as any)?.min_order_amount || 0}
+                                {t('min_order_amount')}:{' '}
+                                {(item.product_detail as any)?.min_order_amount || 0}
                               </Typography>
                               <Typography variant="caption" display="block">
-                                {t('max_stock_at_rack')}: {(item.product_detail as any)?.max_stock_at_rack || 0}
+                                {t('max_stock_at_rack')}:{' '}
+                                {(item.product_detail as any)?.max_stock_at_rack || 0}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
@@ -861,7 +945,7 @@ export default function PurchaseEditView() {
                                 }}
                                 inputProps={{
                                   min: 0,
-                                  step: "0.01"
+                                  step: '0.01',
                                 }}
                               />
                             </TableCell>
@@ -876,7 +960,10 @@ export default function PurchaseEditView() {
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                €{(Number(item.product_purchase_price) * item.product_quantity).toFixed(2)}
+                                €
+                                {(
+                                  Number(item.product_purchase_price) * item.product_quantity
+                                ).toFixed(2)}
                               </Typography>
                             </TableCell>
                             <TableCell align="center">
@@ -909,7 +996,7 @@ export default function PurchaseEditView() {
                     total_vat: currentPurchase.total_vat,
                     total_inc_btw: currentPurchase.total_inc_btw,
                     items_length: currentPurchase.items.length,
-                    items: currentPurchase.items
+                    items: currentPurchase.items,
                   });
 
                   console.log('🔍 Purchase Summary - Individual Items:');
@@ -920,18 +1007,22 @@ export default function PurchaseEditView() {
                       vat_rate: item.vat_rate,
                       quantity: item.product_quantity,
                       item_total: Number(item.product_purchase_price) * item.product_quantity,
-                      item_vat: (Number(item.product_purchase_price) * item.product_quantity) * (Number(item.vat_rate) / 100)
+                      item_vat:
+                        Number(item.product_purchase_price) *
+                        item.product_quantity *
+                        (Number(item.vat_rate) / 100),
                     });
                   });
 
                   return null;
                 })()}
 
-                {(!currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00') && currentPurchase.items.length > 0 && (
-                  <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 'bold' }}>
-                    ⚠️ {t('calculation_error') || 'Calculation error: Check product data'}
-                  </Typography>
-                )}
+                {(!currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00') &&
+                  currentPurchase.items.length > 0 && (
+                    <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                      ⚠️ {t('calculation_error') || 'Calculation error: Check product data'}
+                    </Typography>
+                  )}
 
                 <Stack spacing={2}>
                   <Stack direction="row" justifyContent="space-between">
@@ -953,14 +1044,24 @@ export default function PurchaseEditView() {
                         >
                           <Typography variant="subtitle2">{selectedSupplier.name}</Typography>
                         </Link>
-                        <Typography variant="caption" sx={{
-                          color: (selectedSupplier.supplier_country === 'NL') ? 'success.main' : 'warning.main',
-                          fontWeight: 'bold'
-                        }}>
-                          {getCountryName(selectedSupplier.supplier_country)}{selectedSupplier.supplier_country === 'NL' ? '' : ' - VAT: 0%'}
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color:
+                              selectedSupplier.supplier_country === 'NL'
+                                ? 'success.main'
+                                : 'warning.main',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {getCountryName(selectedSupplier.supplier_country)}
+                          {selectedSupplier.supplier_country === 'NL' ? '' : ' - VAT: 0%'}
                         </Typography>
                         {!selectedSupplier.supplier_country && (
-                          <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'error.main', fontWeight: 'bold' }}
+                          >
                             ⚠️ {t('supplier_country_required') || 'Supplier country required'}
                           </Typography>
                         )}
@@ -974,7 +1075,9 @@ export default function PurchaseEditView() {
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {t('invoice_date')}
                     </Typography>
-                    <Typography variant="subtitle2">{currentPurchase.purchase_invoice_date}</Typography>
+                    <Typography variant="subtitle2">
+                      {currentPurchase.purchase_invoice_date}
+                    </Typography>
                   </Stack>
 
                   <Stack direction="row" justifyContent="space-between">
@@ -991,8 +1094,14 @@ export default function PurchaseEditView() {
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        color: !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ? 'error.main' : 'inherit',
-                        fontWeight: !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00' ? 'bold' : 'normal'
+                        color:
+                          !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00'
+                            ? 'error.main'
+                            : 'inherit',
+                        fontWeight:
+                          !currentPurchase.total_exc_btw || currentPurchase.total_exc_btw === '0.00'
+                            ? 'bold'
+                            : 'normal',
                       }}
                     >
                       €{currentPurchase.total_exc_btw || '0.00'}
@@ -1019,7 +1128,7 @@ export default function PurchaseEditView() {
                       BTW-bedrag (%9)
                     </Typography>
                     <Typography variant="subtitle2">
-                      €{((currentPurchase as any).total_vat_9 || '0.00')}
+                      €{(currentPurchase as any).total_vat_9 || '0.00'}
                     </Typography>
                   </Stack>
 
@@ -1028,7 +1137,7 @@ export default function PurchaseEditView() {
                       BTW-bedrag (%21)
                     </Typography>
                     <Typography variant="subtitle2">
-                      €{((currentPurchase as any).total_vat_21 || '0.00')}
+                      €{(currentPurchase as any).total_vat_21 || '0.00'}
                     </Typography>
                   </Stack>
 
@@ -1039,15 +1148,20 @@ export default function PurchaseEditView() {
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        color: !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ? 'error.main' : 'inherit',
-                        fontWeight: !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00' ? 'bold' : 'normal'
+                        color:
+                          !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00'
+                            ? 'error.main'
+                            : 'inherit',
+                        fontWeight:
+                          !currentPurchase.total_inc_btw || currentPurchase.total_inc_btw === '0.00'
+                            ? 'bold'
+                            : 'normal',
                       }}
                     >
                       €{currentPurchase.total_inc_btw || '0.00'}
                     </Typography>
                   </Stack>
                 </Stack>
-
               </Stack>
             </Card>
           </Grid>
@@ -1078,11 +1192,16 @@ export default function PurchaseEditView() {
                       <TableRow key={purchase.id}>
                         <TableCell>{purchase.id}</TableCell>
                         <TableCell>
-                          {purchase.purchase_invoice_date && format(new Date(purchase.purchase_invoice_date), 'dd MMM yyyy')}
+                          {purchase.purchase_invoice_date &&
+                            format(new Date(purchase.purchase_invoice_date), 'dd MMM yyyy')}
                         </TableCell>
                         <TableCell align="right">{purchase.items?.length || 0}</TableCell>
-                        <TableCell align="right">€{parseFloat(purchase.total_exc_btw).toFixed(2)}</TableCell>
-                        <TableCell align="right">€{parseFloat(purchase.total_inc_btw).toFixed(2)}</TableCell>
+                        <TableCell align="right">
+                          €{parseFloat(purchase.total_exc_btw).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="right">
+                          €{parseFloat(purchase.total_inc_btw).toFixed(2)}
+                        </TableCell>
                       </TableRow>
                     ))}
                     {previousPurchases.length === 0 && (
@@ -1118,11 +1237,16 @@ export default function PurchaseEditView() {
                       <TableRow key={offer.id}>
                         <TableCell>{offer.id}</TableCell>
                         <TableCell>
-                          {offer.purchase_invoice_date && format(new Date(offer.purchase_invoice_date), 'dd MMM yyyy')}
+                          {offer.purchase_invoice_date &&
+                            format(new Date(offer.purchase_invoice_date), 'dd MMM yyyy')}
                         </TableCell>
                         <TableCell align="right">{offer.items?.length || 0}</TableCell>
-                        <TableCell align="right">€{parseFloat(offer.total_exc_btw).toFixed(2)}</TableCell>
-                        <TableCell align="right">€{parseFloat(offer.total_inc_btw).toFixed(2)}</TableCell>
+                        <TableCell align="right">
+                          €{parseFloat(offer.total_exc_btw).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="right">
+                          €{parseFloat(offer.total_inc_btw).toFixed(2)}
+                        </TableCell>
                       </TableRow>
                     ))}
                     {previousOffers.length === 0 && (
