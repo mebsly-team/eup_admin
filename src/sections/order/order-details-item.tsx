@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -25,7 +24,13 @@ import { useLocation } from 'react-router-dom';
 
 import OrderItemRow from './order-details-item-row';
 
-export default function OrderDetailsItems({ currentOrder, updateOrder }: { currentOrder: any; updateOrder: any }) {
+export default function OrderDetailsItems({
+  currentOrder,
+  updateOrder,
+}: {
+  currentOrder: any;
+  updateOrder: any;
+}) {
   const { cart } = currentOrder;
   console.log('cart', cart);
   const { enqueueSnackbar } = useSnackbar();
@@ -87,36 +92,40 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
 
     if (!sortBy) return items;
 
-    return [...items].sort((a, b) => {
-      let aValue: string | number;
-      let bValue: string | number;
+    const sortItems = (list: any[]) =>
+      [...list].sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
 
-      switch (sortBy) {
-        case 'ean':
-          aValue = a.product?.ean || '';
-          bValue = b.product?.ean || '';
-          break;
-        case 'location':
-          aValue = a.location || '';
-          bValue = b.location || '';
-          break;
-        case 'title':
-        default:
-          aValue = a.product?.title || '';
-          bValue = b.product?.title || '';
-          break;
-      }
+        switch (sortBy) {
+          case 'ean':
+            aValue = a.product?.ean || '';
+            bValue = b.product?.ean || '';
+            break;
+          case 'location':
+            aValue = a.location || '';
+            bValue = b.location || '';
+            break;
+          case 'title':
+          default:
+            aValue = a.product?.title || '';
+            bValue = b.product?.title || '';
+            break;
+        }
 
-      // Convert to strings for comparison if needed
-      const aStr = String(aValue).toLowerCase();
-      const bStr = String(bValue).toLowerCase();
+        const aStr = String(aValue).toLowerCase();
+        const bStr = String(bValue).toLowerCase();
 
-      if (sortOrder === 'asc') {
-        return aStr.localeCompare(bStr);
-      } else {
+        if (sortOrder === 'asc') {
+          return aStr.localeCompare(bStr);
+        }
         return bStr.localeCompare(aStr);
-      }
-    });
+      });
+
+    const existingItems = items.filter((item) => !item.isNewItem);
+    const newItems = items.filter((item) => item.isNewItem);
+
+    return [...sortItems(existingItems), ...newItems];
   };
 
   const toggleEditMode = () => {
@@ -135,7 +144,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
         if (Array.isArray(products) && products.length > 0) {
           // Get klantpercentage (customer_percentage) from currentOrder.user or default to 10
           const klantpercentage = currentOrder?.user?.customer_percentage ?? 0;
-          const discountFactor = 1 - (Number(klantpercentage) / 100);
+          const discountFactor = 1 - Number(klantpercentage) / 100;
           // Helper to create new item from product
           const createNewItem = (product: any) => ({
             id: product.id,
@@ -143,8 +152,12 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
             quantity: 1,
             completed: false,
             isNewItem: true,
-            single_product_discounted_price_per_unit: Number((Number(product.price_per_unit) * discountFactor).toFixed(2)),
-            single_product_discounted_price_per_unit_vat: Number((Number(product.price_per_unit_vat) * discountFactor).toFixed(2)),
+            single_product_discounted_price_per_unit: Number(
+              (Number(product.price_per_unit) * discountFactor).toFixed(2)
+            ),
+            single_product_discounted_price_per_unit_vat: Number(
+              (Number(product.price_per_unit_vat) * discountFactor).toFixed(2)
+            ),
           });
           // Collect all products and their variants recursively
           const collectProductsAndVariants = (product: any): any[] => {
@@ -229,7 +242,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       btw21: 0,
       vatAmount0: 0,
       vatAmount9: 0,
-      vatAmount21: 0
+      vatAmount21: 0,
     };
     editedCart?.items.forEach((item: any) => {
       const quantity = item.quantity;
@@ -284,7 +297,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
 
   const calculateSubtotal = () => {
     const vatTotals = calculateVatTotals();
-    console.log("🚀 ~ calculateSubtotal ~ vatTotals:", vatTotals)
+    console.log('🚀 ~ calculateSubtotal ~ vatTotals:', vatTotals);
     const subtotalExclVat = vatTotals.btw0 + vatTotals.btw9 + vatTotals.btw21;
     const totalVat = vatTotals.vatAmount0 + vatTotals.vatAmount9 + vatTotals.vatAmount21;
     const total = roundToTwoDecimals(subtotalExclVat + totalVat);
@@ -302,7 +315,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
   };
 
   const calculateTotal = () => {
-    const subtotal = currentOrder?.user?.is_vat_document_printed ? calculateSubtotal() : calculateSubtotalInclVat();
+    const subtotal = currentOrder?.user?.is_vat_document_printed
+      ? calculateSubtotal()
+      : calculateSubtotalInclVat();
     const shippingFee = Number(editedCart?.shipping_fee) || 0;
     const transactionFee = Number(editedCart?.transaction_fee) || 0;
     const discount = Number(editedCart?.cart_discount) || 0;
@@ -488,43 +503,47 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       alignItems="flex-end"
       sx={{ my: 3, textAlign: 'right', typography: 'body2' }}
     >
-      {currentOrder?.user?.is_vat_document_printed ? null : (() => {
-        const vatTotals = calculateVatTotals();
-        return (
-          <>
-            <Stack direction="row" justifyContent="center" alignItems="center">
-              <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 0%</Box>
-              <Box sx={{ width: 160, typography: 'subtitle2' }}>
-                {fCurrency(vatTotals.vatAmount0) || "-"}
-              </Box>
-            </Stack>
-            <Stack direction="row" justifyContent="center" alignItems="center">
-              <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 9%</Box>
-              <Box sx={{ width: 160, typography: 'subtitle2' }}>
-                {fCurrency(vatTotals.vatAmount9) || "-"}
-              </Box>
-            </Stack>
-            <Stack direction="row" justifyContent="center" alignItems="center">
-              <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 21%</Box>
-              <Box sx={{ width: 160, typography: 'subtitle2' }}>
-                {fCurrency(vatTotals.vatAmount21) || "-"}
-              </Box>
-            </Stack>
-          </>
-        );
-      })()}
+      {currentOrder?.user?.is_vat_document_printed
+        ? null
+        : (() => {
+            const vatTotals = calculateVatTotals();
+            return (
+              <>
+                <Stack direction="row" justifyContent="center" alignItems="center">
+                  <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 0%</Box>
+                  <Box sx={{ width: 160, typography: 'subtitle2' }}>
+                    {fCurrency(vatTotals.vatAmount0) || '-'}
+                  </Box>
+                </Stack>
+                <Stack direction="row" justifyContent="center" alignItems="center">
+                  <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 9%</Box>
+                  <Box sx={{ width: 160, typography: 'subtitle2' }}>
+                    {fCurrency(vatTotals.vatAmount9) || '-'}
+                  </Box>
+                </Stack>
+                <Stack direction="row" justifyContent="center" alignItems="center">
+                  <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 21%</Box>
+                  <Box sx={{ width: 160, typography: 'subtitle2' }}>
+                    {fCurrency(vatTotals.vatAmount21) || '-'}
+                  </Box>
+                </Stack>
+              </>
+            );
+          })()}
       <Stack direction="row" justifyContent="center" alignItems="center">
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (excl BTW)</Box>
         <Box sx={{ width: 160, typography: 'subtitle2' }}>
           {fCurrency(calculateSubtotalExclVat()) || '-'}
         </Box>
       </Stack>
-      {currentOrder?.user?.is_vat_document_printed ? null : <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (incl BTW)</Box>
-        <Box sx={{ width: 160, typography: 'subtitle2' }}>
-          {fCurrency(calculateSubtotal()) || '-'}
-        </Box>
-      </Stack>}
+      {currentOrder?.user?.is_vat_document_printed ? null : (
+        <Stack direction="row" justifyContent="center" alignItems="center">
+          <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (incl BTW)</Box>
+          <Box sx={{ width: 160, typography: 'subtitle2' }}>
+            {fCurrency(calculateSubtotal()) || '-'}
+          </Box>
+        </Stack>
+      )}
 
       <Stack direction="row" justifyContent="center" alignItems="center">
         <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>
@@ -535,7 +554,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
             type="text"
             inputProps={{
               inputMode: 'decimal',
-              pattern: '[0-9]*[.,]?[0-9]*'
+              pattern: '[0-9]*[.,]?[0-9]*',
             }}
             value={editedCart?.shipping_fee ?? ''}
             onChange={(e) => handleFeeChange('shipping_fee', e.target.value)}
@@ -556,7 +575,7 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
             type="text"
             inputProps={{
               inputMode: 'decimal',
-              pattern: '[0-9]*[.,]?[0-9]*'
+              pattern: '[0-9]*[.,]?[0-9]*',
             }}
             value={editedCart?.transaction_fee ?? ''}
             onChange={(e) => handleFeeChange('transaction_fee', e.target.value)}
@@ -593,7 +612,9 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
         justifyContent="center"
         alignItems="center"
       >
-        <Box sx={{ width: 160, mr: '0.5rem' }}>Totaal ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})</Box>
+        <Box sx={{ width: 160, mr: '0.5rem' }}>
+          Totaal ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
+        </Box>
         <Box sx={{ width: 160 }}>{fCurrency(calculateTotal()) || '-'}</Box>
       </Stack>
       <Stack
@@ -602,7 +623,10 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
         justifyContent="center"
         alignItems="center"
       >
-        <Box sx={{ width: 160, mr: '0.5rem' }}>Klant totaal om te betalen: ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})</Box>
+        <Box sx={{ width: 160, mr: '0.5rem' }}>
+          Klant totaal om te betalen: (
+          {currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
+        </Box>
         <Box sx={{ width: 160 }}>{fCurrency(currentOrder?.total) || '-'}</Box>
       </Stack>
     </Stack>
@@ -622,25 +646,37 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
       <Stack sx={{ px: 3 }}>
         {/* Total Validation Error */}
         {(() => {
-          const subtotal = currentOrder?.user?.is_vat_document_printed ? calculateSubtotal() : calculateSubtotalInclVat();
-          const calculatedTotal = roundToTwoDecimals(subtotal + (Number(editedCart?.shipping_fee) || 0) + (Number(editedCart?.transaction_fee) || 0) - (Number(editedCart?.cart_discount) || 0));
+          const subtotal = currentOrder?.user?.is_vat_document_printed
+            ? calculateSubtotal()
+            : calculateSubtotalInclVat();
+          const calculatedTotal = roundToTwoDecimals(
+            subtotal +
+              (Number(editedCart?.shipping_fee) || 0) +
+              (Number(editedCart?.transaction_fee) || 0) -
+              (Number(editedCart?.cart_discount) || 0)
+          );
           const customerTotal = currentOrder?.total || 0;
-          const totalMismatch = Math.abs(calculatedTotal - customerTotal) > 0.01 && customerTotal > 0;
+          const totalMismatch =
+            Math.abs(calculatedTotal - customerTotal) > 0.01 && customerTotal > 0;
 
           // Fix floating point comparison by using tolerance instead of strict equality
-          const cartTotal = currentOrder?.user?.is_vat_document_printed ? (currentOrder?.cart?.cart_total_price || 0) : (currentOrder?.cart?.cart_total_price_vat || 0);
+          const cartTotal = currentOrder?.user?.is_vat_document_printed
+            ? currentOrder?.cart?.cart_total_price || 0
+            : currentOrder?.cart?.cart_total_price_vat || 0;
           const totalMismatch2 = Math.abs(subtotal - cartTotal) > 0.01;
 
           if (totalMismatch || totalMismatch2) {
             return (
-              <Box sx={{
-                p: 2,
-                backgroundColor: 'error.lighter',
-                border: '1px solid',
-                borderColor: 'error.main',
-                borderRadius: 1,
-                mb: 2
-              }}>
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: 'error.lighter',
+                  border: '1px solid',
+                  borderColor: 'error.main',
+                  borderRadius: 1,
+                  mb: 2,
+                }}
+              >
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Iconify icon="eva:alert-triangle-fill" sx={{ color: 'error.main' }} />
                   <Box>
@@ -648,11 +684,15 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
                       Totalen komen niet overeen! Bewerk en sla op om dit te herstellen.
                     </Box>
                     <Box sx={{ color: 'error.main', typography: 'body2' }}>
-                      Berekend totaal: {fCurrency(calculatedTotal)} ≠ Klant totaal om te betalen: {fCurrency(customerTotal)}
+                      Berekend totaal: {fCurrency(calculatedTotal)} ≠ Klant totaal om te betalen:{' '}
+                      {fCurrency(customerTotal)}
                     </Box>
-                    {totalMismatch2 && <Box sx={{ color: 'error.main', typography: 'body2' }}>
-                      Berekend subtotaal: {fCurrency(subtotal)} ≠ Cart subtotaal: {fCurrency(cartTotal)}
-                    </Box>}
+                    {totalMismatch2 && (
+                      <Box sx={{ color: 'error.main', typography: 'body2' }}>
+                        Berekend subtotaal: {fCurrency(subtotal)} ≠ Cart subtotaal:{' '}
+                        {fCurrency(cartTotal)}
+                      </Box>
+                    )}
                   </Box>
                 </Stack>
               </Box>
@@ -689,10 +729,20 @@ export default function OrderDetailsItems({ currentOrder, updateOrder }: { curre
           </Button>
         </Stack>
 
-        {currentOrder?.extra_note && <Box sx={{ typography: 'body2', mb: 2, p: 3, fontSize: '1.2rem', border: '2px solid', borderColor: 'green' }}>
-          Extra nota: {currentOrder?.extra_note}
-        </Box>}
-
+        {currentOrder?.extra_note && (
+          <Box
+            sx={{
+              typography: 'body2',
+              mb: 2,
+              p: 3,
+              fontSize: '1.2rem',
+              border: '2px solid',
+              borderColor: 'green',
+            }}
+          >
+            Extra nota: {currentOrder?.extra_note}
+          </Box>
+        )}
 
         <Scrollbar>
           {getSortedItems(editedCart?.items || []).map((item: any) => (

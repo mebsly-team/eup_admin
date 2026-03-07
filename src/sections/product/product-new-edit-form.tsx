@@ -61,7 +61,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { random } from 'lodash';
 
 // ----------------------------------------------------------------------
-const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"];
 
 type Props = {
   id: string;

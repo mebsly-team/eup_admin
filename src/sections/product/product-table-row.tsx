@@ -72,7 +72,7 @@ export default function ProductTableRow({
   const [isActive, setIsActive] = useState(is_visible_particular);
   const [isActiveB2B, setIsActiveB2B] = useState(is_visible_B2B);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl',"hatice.sahin@europowerbv.nl"];
   const canToggle = allowedEmails.includes(currentUser?.email);
   const theme = useTheme();
   const styles = {

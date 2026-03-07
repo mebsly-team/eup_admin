@@ -65,7 +65,7 @@ export default function UserTableRow({
   const { t, onChangeLang } = useTranslate();
   const [isActive, setIsActive] = useState(is_active);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl'];
+  const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"];
   const canToggle = allowedEmails.includes(currentUser?.email);
 
   const confirm = useBoolean();
