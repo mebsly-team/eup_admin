@@ -706,10 +706,10 @@ export default function ProductNewEditForm({ id }: Props) {
     watch('unit_in_pallet'),
   ]);
 
-  useEffect(() => {
-    setValue('meta_title', `${watch('title')} EAN:${watch('ean')}`);
-    setValue('meta_description', `${watch('title_long')} EAN:${watch('ean')}`);
-  }, [watch('title'), watch('title_long'), watch('ean')]);
+  // useEffect(() => {
+  //   setValue('meta_title', `${watch('title')} EAN:${watch('ean')}`);
+  //   setValue('meta_description', `${watch('title_long')} EAN:${watch('ean')}`);
+  // }, [watch('title'), watch('title_long'), watch('ean')]);
 
   useEffect(() => {
     setValue(
@@ -1333,7 +1333,7 @@ export default function ProductNewEditForm({ id }: Props) {
           <RHFTextField name="title" label={t('product_title')} labelColor="violet" />
           <RHFTextField name="title_long" label={t('product_title_long')} labelColor="violet" />
           <RHFTextField name="meta_title" label={t('meta_title')} labelColor="violet" />
-          {/* <RHFTextField name="meta_description" label={t('meta_description')} /> */}
+          <RHFTextField name="meta_description" label={t('meta_description')} /> 
           <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
           {/* <RHFTextField name="url" label={t('url')} /> */}
         </Stack>
