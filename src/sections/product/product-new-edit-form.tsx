@@ -2789,7 +2789,7 @@ export default function ProductNewEditForm({ id }: Props) {
     <Grid
       xs={12}
       sx={{
-        pointerEvents: (currentProduct?.is_variant || !['m.sahin@europowerbv.nl'].includes(user?.email)) ? 'none' : 'auto',
+        pointerEvents: (currentProduct?.is_variant || !['m.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"].includes(user?.email)) ? 'none' : 'auto',
       }}
     >
       <Card
