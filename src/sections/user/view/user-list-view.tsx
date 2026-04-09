@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -61,12 +61,25 @@ export default function UserListView() {
   });
   const settings = useSettingsContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const confirm = useBoolean();
   const [userList, setUserList] = useState<IUserItem[]>([]);
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IUserItem[]>(userList);
-  const [filters, setFilters] = useState(defaultFilters);
+
+  const initialSearch = searchParams.get('search') || '';
+  const [filters, setFilters] = useState(() => ({
+    ...defaultFilters,
+    name: initialSearch
+  }));
   const { t, onChangeLang } = useTranslate();
+
+  useEffect(() => {
+    const currentSearch = searchParams.get('search') || '';
+    if (filters.name !== currentSearch) {
+      setFilters(prev => ({ ...prev, name: currentSearch }));
+    }
+  }, [searchParams]);
 
   const TABLE_HEAD = [
     { id: 'relation_code', label: t('id') },
@@ -140,8 +153,18 @@ export default function UserListView() {
         ...prevState,
         [name]: value,
       }));
+
+      if (name === 'name') {
+        const params = new URLSearchParams(new URL(window.location.href).search);
+        if (value) {
+          params.set('search', String(value));
+        } else {
+          params.delete('search');
+        }
+        router.push(`${paths.dashboard.user.list}?${params.toString()}`);
+      }
     },
-    [table]
+    [table, router]
   );
 
   const handleResetFilters = useCallback(() => {
