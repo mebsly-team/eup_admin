@@ -406,7 +406,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     });
 
     const onSubmitOffer = handleSubmit(async (data: IOrderFormData) => {
-        await submitOrder(data, null, "offer");
+        await submitOrder(data, 'pending_offer', "offer");
     });
 
     const addItem = () => {
