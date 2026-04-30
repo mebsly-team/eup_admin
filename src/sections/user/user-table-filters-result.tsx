@@ -8,6 +8,8 @@ import Stack, { StackProps } from '@mui/material/Stack';
 
 import { useTranslate } from 'src/locales';
 
+import { MAP_USER_COLORS } from 'src/constants/colors';
+
 import Iconify from 'src/components/iconify';
 
 import { IUserTableFilters, IUserTableFilterValue } from 'src/types/user';
@@ -51,6 +53,24 @@ export default function UserTableFiltersResult({
     [filters.role, onFilters]
   );
 
+  const handleRemoveColor = useCallback(
+    (inputValue: string) => {
+      const newValue = filters.colors.filter((item) => item !== inputValue);
+
+      onFilters('colors', newValue);
+    },
+    [filters.colors, onFilters]
+  );
+
+  const handleRemoveSite = useCallback(
+    (inputValue: string) => {
+      const newValue = filters.site.filter((item) => item !== inputValue);
+
+      onFilters('site', newValue);
+    },
+    [filters.site, onFilters]
+  );
+
   return (
     <Stack spacing={1.5} {...other}>
       <Box sx={{ typography: 'body2' }}>
@@ -75,6 +95,44 @@ export default function UserTableFiltersResult({
                 label={t(item)}
                 size="small"
                 onDelete={() => handleRemoveRole(item)}
+              />
+            ))}
+          </Block>
+        )}
+
+        {!!filters.colors.length && (
+          <Block label={`${t('color')}:`}>
+            {filters.colors.map((item) => (
+              <Chip
+                key={item}
+                label={MAP_USER_COLORS.find((c) => c.value === item)?.labelNL || item}
+                size="small"
+                onDelete={() => handleRemoveColor(item)}
+                icon={
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: MAP_USER_COLORS.find((c) => c.value === item)?.color,
+                      ml: 1,
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
+                    }}
+                  />
+                }
+              />
+            ))}
+          </Block>
+        )}
+
+        {!!filters.site.length && (
+          <Block label="Site:">
+            {filters.site.map((item) => (
+              <Chip
+                key={item}
+                label={t(item)}
+                size="small"
+                onDelete={() => handleRemoveSite(item)}
               />
             ))}
           </Block>

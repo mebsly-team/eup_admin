@@ -8,6 +8,8 @@ export type IUserTableFilters = {
   name: string;
   role: string[];
   status: string;
+  site: string[];
+  colors: string[];
 };
 
 // ----------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
@@ -13,6 +13,8 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 import { useTranslate } from 'src/locales';
 
+import { MAP_USER_COLORS } from 'src/constants/colors';
+
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -24,7 +26,14 @@ type Props = {
   filters: IUserTableFilters;
   onFilters: (name: string, value: IUserTableFilterValue) => void;
   //
-  roleOptions: string[];
+  roleOptions: {
+    value: string;
+    label: string;
+  }[];
+  siteSourceOptions: {
+    value: string;
+    label: string;
+  }[];
 };
 
 export default function UserTableToolbar({
@@ -56,6 +65,16 @@ export default function UserTableToolbar({
     (event: SelectChangeEvent<string[]>) => {
       onFilters(
         'site',
+        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
+      );
+    },
+    [onFilters]
+  );
+
+  const handleFilterColors = useCallback(
+    (event: SelectChangeEvent<string[]>) => {
+      onFilters(
+        'colors',
         typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
       );
     },
@@ -108,6 +127,7 @@ export default function UserTableToolbar({
             ))}
           </Select>
         </FormControl>
+
         <FormControl
           sx={{
             flexShrink: 0,
@@ -136,6 +156,66 @@ export default function UserTableToolbar({
                   checked={filters?.role?.includes(option.value)}
                 />
                 {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl
+          sx={{
+            flexShrink: 0,
+            width: { xs: 1, md: 200 },
+          }}
+        >
+          <InputLabel>{t('color')}</InputLabel>
+
+          <Select
+            multiple
+            value={filters.colors}
+            onChange={handleFilterColors}
+            input={<OutlinedInput label={t('color')} />}
+            renderValue={(selected) => (
+              <Stack direction="row" spacing={0.5}>
+                {selected.map((value) => {
+                  const colorObj = MAP_USER_COLORS.find((c) => c.value === value);
+                  return (
+                    <Box
+                      key={value}
+                      sx={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        bgcolor: colorObj?.color,
+                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+            )}
+            MenuProps={{
+              PaperProps: {
+                sx: { maxHeight: 240 },
+              },
+            }}
+          >
+            {MAP_USER_COLORS.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                <Checkbox
+                  disableRipple
+                  size="small"
+                  checked={filters?.colors?.includes(option.value)}
+                />
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    bgcolor: option.color,
+                    mr: 1,
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                  }}
+                />
+                {option.labelNL}
               </MenuItem>
             ))}
           </Select>

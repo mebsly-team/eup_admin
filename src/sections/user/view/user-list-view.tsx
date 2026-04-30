@@ -48,6 +48,7 @@ const defaultFilters: IUserTableFilters = {
   name: '',
   role: [],
   site: [],
+  colors: [],
   status: 'all',
 };
 
@@ -55,31 +56,67 @@ const defaultFilters: IUserTableFilters = {
 
 export default function UserListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable({
-    defaultOrderBy: "relation_code",
-    defaultOrder: 'desc'
-  });
   const settings = useSettingsContext();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const pageParam = searchParams.get('page');
+  const rowsPerPageParam = searchParams.get('rowsPerPage');
+
+  const table = useTable({
+    defaultOrderBy: 'relation_code',
+    defaultOrder: 'desc',
+    defaultCurrentPage: pageParam ? parseInt(pageParam, 10) - 1 : 0,
+    defaultRowsPerPage: rowsPerPageParam ? parseInt(rowsPerPageParam, 10) : 25,
+  });
+
   const confirm = useBoolean();
   const [userList, setUserList] = useState<IUserItem[]>([]);
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IUserItem[]>(userList);
 
-  const initialSearch = searchParams.get('search') || '';
   const [filters, setFilters] = useState(() => ({
     ...defaultFilters,
-    name: initialSearch
+    name: searchParams.get('search') || '',
+    status: searchParams.get('status') || 'all',
+    role: searchParams.get('role')?.split(',').filter(Boolean) || [],
+    site: searchParams.get('site')?.split(',').filter(Boolean) || [],
+    colors: searchParams.get('colors')?.split(',').filter(Boolean) || [],
   }));
+
   const { t, onChangeLang } = useTranslate();
 
   useEffect(() => {
-    const currentSearch = searchParams.get('search') || '';
-    if (filters.name !== currentSearch) {
-      setFilters(prev => ({ ...prev, name: currentSearch }));
+    const params = new URLSearchParams(window.location.search);
+
+    if (table.page >= 0) params.set('page', String(table.page + 1));
+    else params.delete('page');
+
+    if (table.rowsPerPage !== 25) params.set('rowsPerPage', String(table.rowsPerPage));
+    else params.delete('rowsPerPage');
+
+    if (filters.name) params.set('search', filters.name);
+    else params.delete('search');
+
+    if (filters.status !== 'all') params.set('status', filters.status);
+    else params.delete('status');
+
+    if (filters.role.length) params.set('role', filters.role.join(','));
+    else params.delete('role');
+
+    if (filters.site.length) params.set('site', filters.site.join(','));
+    else params.delete('site');
+
+    if (filters.colors.length) params.set('colors', filters.colors.join(','));
+    else params.delete('colors');
+
+    const newSearch = params.toString();
+    const currentSearch = window.location.search.replace(/^\?/, '');
+
+    if (newSearch !== currentSearch) {
+      router.push(`${window.location.pathname}?${newSearch}`);
     }
-  }, [searchParams]);
+  }, [table.page, table.rowsPerPage, filters, router]);
 
   const TABLE_HEAD = [
     { id: 'relation_code', label: t('id') },
@@ -139,8 +176,10 @@ export default function UserListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const siteFilter = filters.site?.[0] ? (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`) : '';
+    const colorFilter = filters.colors.length ? `&customer_color=${filters.colors.join(',')}` : '';
+
     const { data } = await axiosInstance.get(
-      `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}`
+      `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}${colorFilter}`
     );
     setCount(data.count || 0);
     setUserList(data.results || []);
@@ -153,18 +192,8 @@ export default function UserListView() {
         ...prevState,
         [name]: value,
       }));
-
-      if (name === 'name') {
-        const params = new URLSearchParams(new URL(window.location.href).search);
-        if (value) {
-          params.set('search', String(value));
-        } else {
-          params.delete('search');
-        }
-        router.push(`${paths.dashboard.user.list}?${params.toString()}`);
-      }
     },
-    [table, router]
+    [table]
   );
 
   const handleResetFilters = useCallback(() => {

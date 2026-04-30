@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Switch } from '@mui/material';
+import { Switch, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -16,6 +16,8 @@ import axiosInstance from 'src/utils/axios';
 import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
+import Box from '@mui/material/Box';
+import { MAP_USER_COLORS } from 'src/constants/colors';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
@@ -54,6 +56,8 @@ export default function UserTableRow({
     contact_person_phone_number,
     contact_person_name,
     contact_person_email,
+    site_source,
+    customer_color,
   } = row;
   const { t, onChangeLang } = useTranslate();
   const [isActive, setIsActive] = useState(is_active);
@@ -85,7 +89,16 @@ export default function UserTableRow({
 
           <ListItemText
             primary={business_name || fullname}
-            secondary={type}
+            secondary={
+              <Stack direction="row" alignItems="center" spacing={1}>
+                {type}
+                <img
+                  style={{ height: 16, width: 16 }}
+                  src={`/assets/icons/home/${site_source === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`}
+                  alt="icon"
+                />
+              </Stack>
+            }
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{
               component: 'span',
@@ -99,6 +112,30 @@ export default function UserTableRow({
         </TableCell>
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <ListItemText primary={phone_number} primaryTypographyProps={{ typography: 'body2' }} />
+        </TableCell>
+        <TableCell>
+          {customer_color ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  backgroundColor: customer_color,
+                  border: '2px solid #fff',
+                  boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+                  flexShrink: 0
+                }}
+              />
+              <Box component="span" sx={{ typography: 'body2' }}>
+                {MAP_USER_COLORS.find((c) => c.color === customer_color)?.labelNL || customer_color}
+              </Box>
+            </Box>
+          ) : (
+            <Box component="span" sx={{ typography: 'body2', color: 'text.disabled' }}>
+              -
+            </Box>
+          )}
         </TableCell>
         <TableCell>
           <Switch name="is_active" checked={isActive} disabled={!canToggle} onChange={handleActiveSwitchChange} />

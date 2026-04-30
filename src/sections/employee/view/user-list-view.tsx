@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -39,6 +39,7 @@ import {
 import { IUserItem, IUserTableFilters, IUserTableFilterValue } from 'src/types/user';
 
 import UserTableRow from '../user-table-row';
+import UserTableToolbar from '../user-table-toolbar';
 import UserTableFiltersResult from '../user-table-filters-result';
 
 // ----------------------------------------------------------------------
@@ -46,6 +47,8 @@ import UserTableFiltersResult from '../user-table-filters-result';
 const defaultFilters: IUserTableFilters = {
   name: '',
   role: [],
+  site: [],
+  colors: [],
   status: 'all',
 };
 
@@ -53,20 +56,73 @@ const defaultFilters: IUserTableFilters = {
 
 export default function UserListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable();
   const settings = useSettingsContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageParam = searchParams.get('page');
+  const rowsPerPageParam = searchParams.get('rowsPerPage');
+
+  const table = useTable({
+    defaultOrderBy: 'relation_code',
+    defaultOrder: 'desc',
+    defaultCurrentPage: pageParam ? parseInt(pageParam, 10) - 1 : 0,
+    defaultRowsPerPage: rowsPerPageParam ? parseInt(rowsPerPageParam, 10) : 25,
+  });
+
   const confirm = useBoolean();
   const [userList, setUserList] = useState<IUserItem[]>([]);
   const [count, setCount] = useState(0);
   const [tableData, setTableData] = useState<IUserItem[]>(userList);
-  const [filters, setFilters] = useState(defaultFilters);
+
+  const [filters, setFilters] = useState(() => ({
+    ...defaultFilters,
+    name: searchParams.get('search') || '',
+    status: searchParams.get('status') || 'all',
+    role: searchParams.get('role')?.split(',').filter(Boolean) || [],
+    site: searchParams.get('site')?.split(',').filter(Boolean) || [],
+    colors: searchParams.get('colors')?.split(',').filter(Boolean) || [],
+  }));
+
   const { t, onChangeLang } = useTranslate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (table.page >= 0) params.set('page', String(table.page + 1));
+    else params.delete('page');
+
+    if (table.rowsPerPage !== 25) params.set('rowsPerPage', String(table.rowsPerPage));
+    else params.delete('rowsPerPage');
+
+    if (filters.name) params.set('search', filters.name);
+    else params.delete('search');
+
+    if (filters.status !== 'all') params.set('status', filters.status);
+    else params.delete('status');
+
+    if (filters.role.length) params.set('role', filters.role.join(','));
+    else params.delete('role');
+
+    if (filters.site.length) params.set('site', filters.site.join(','));
+    else params.delete('site');
+
+    if (filters.colors.length) params.set('colors', filters.colors.join(','));
+    else params.delete('colors');
+
+    const newSearch = params.toString();
+    const currentSearch = window.location.search.replace(/^\?/, '');
+
+    if (newSearch !== currentSearch) {
+      router.push(`${window.location.pathname}?${newSearch}`);
+    }
+  }, [table.page, table.rowsPerPage, filters, router]);
 
   const TABLE_HEAD = [
     { id: 'name', label: t('name_type') },
     { id: 'email', label: t('email'), width: 180 },
     { id: 'phone_number', label: t('phone_number'), width: 180 },
+    { id: 'customer_color', label: t('customer_color'), width: 150 },
     { id: 'is_active', label: `${t('active')}?`, width: 100 },
     { id: '', width: 88 },
   ];
@@ -102,8 +158,11 @@ export default function UserListView() {
       : '';
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = `&type=admin`;
+    const siteFilter = filters.site?.[0] ? (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`) : '';
+    const colorFilter = filters.colors.length ? `&customer_color=${filters.colors.join(',')}` : '';
+
     const { data } = await axiosInstance.get(
-      `/users/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}`
+      `/users/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}${colorFilter}`
     );
     setCount(data.count || 0);
     setUserList(data.results || []);
@@ -212,11 +271,16 @@ export default function UserListView() {
             ))}
           </Tabs>
 
-          {/* <UserTableToolbar
+          <UserTableToolbar
             filters={filters}
             onFilters={handleFilters}
-            roleOptions={USER_TYPES}
-          /> */}
+            roleOptions={[]}
+            siteSourceOptions={[
+              { value: 'all', label: t('all') },
+              { value: 'kooptop.com', label: t('Kooptop') },
+              { value: 'europowerbv.com', label: t('EuropowerBV') },
+            ]}
+          />
 
           {canReset && (
             <UserTableFiltersResult
