@@ -176,7 +176,7 @@ export default function UserListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = filters.role[0] ? `&type=${filters.role[0]}` : '';
     const siteFilter = filters.site?.[0] ? (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`) : '';
-    const colorFilter = filters.colors.length ? `&customer_color=${filters.colors.join(',')}` : '';
+    const colorFilter = filters.colors.length ? `&customer_color=${filters.colors.map(c => encodeURIComponent(c)).join(',')}` : '';
 
     const { data } = await axiosInstance.get(
       `/users/?is_staff=false&limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}${colorFilter}`

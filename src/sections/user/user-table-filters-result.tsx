@@ -105,7 +105,7 @@ export default function UserTableFiltersResult({
             {filters.colors.map((item) => (
               <Chip
                 key={item}
-                label={MAP_USER_COLORS.find((c) => c.value === item)?.labelNL || item}
+                label={MAP_USER_COLORS.find((c) => c.color === item)?.labelNL || item}
                 size="small"
                 onDelete={() => handleRemoveColor(item)}
                 icon={
@@ -114,7 +114,7 @@ export default function UserTableFiltersResult({
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      bgcolor: MAP_USER_COLORS.find((c) => c.value === item)?.color,
+                      bgcolor: MAP_USER_COLORS.find((c) => c.color === item)?.color || item,
                       ml: 1,
                       border: (theme) => `1px solid ${theme.palette.divider}`,
                     }}

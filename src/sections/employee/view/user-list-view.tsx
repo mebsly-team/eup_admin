@@ -159,7 +159,7 @@ export default function UserListView() {
     const searchFilter = filters.name ? `&search=${filters.name}` : '';
     const typeFilter = `&type=admin`;
     const siteFilter = filters.site?.[0] ? (filters.site[0] === "all" ? "" : `&site_source=${filters.site[0]}`) : '';
-    const colorFilter = filters.colors.length ? `&customer_color=${filters.colors.join(',')}` : '';
+    const colorFilter = filters.colors.length ? `&customer_color=${filters.colors.map(c => encodeURIComponent(c)).join(',')}` : '';
 
     const { data } = await axiosInstance.get(
       `/users/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page}${typeFilter}${searchFilter}${statusFilter}${orderByParam}${siteFilter}${colorFilter}`

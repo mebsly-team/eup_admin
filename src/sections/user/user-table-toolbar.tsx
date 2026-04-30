@@ -176,7 +176,7 @@ export default function UserTableToolbar({
             renderValue={(selected) => (
               <Stack direction="row" spacing={0.5}>
                 {selected.map((value) => {
-                  const colorObj = MAP_USER_COLORS.find((c) => c.value === value);
+                  const colorObj = MAP_USER_COLORS.find((c) => c.color === value);
                   return (
                     <Box
                       key={value}
@@ -199,11 +199,11 @@ export default function UserTableToolbar({
             }}
           >
             {MAP_USER_COLORS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
+              <MenuItem key={option.value} value={option.color}>
                 <Checkbox
                   disableRipple
                   size="small"
-                  checked={filters?.colors?.includes(option.value)}
+                  checked={filters?.colors?.includes(option.color)}
                 />
                 <Box
                   sx={{
