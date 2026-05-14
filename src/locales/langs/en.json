@@ -79,6 +79,8 @@
   "important_information": "Important Information",
   "images": "Images",
   "invoice": "invoice",
+  "invoice_email": "Invoice Email",
+  "invoice_cc_email": "Invoice CC Email",
   "is_brief_box": "Is Brief Box",
   "is_featured": "Is Featured",
   "is_listed_on_2dehands": "Is Listed on 2dehands",

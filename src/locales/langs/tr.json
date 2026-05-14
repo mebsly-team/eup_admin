@@ -77,6 +77,8 @@
   "important_information": "Önemli Bilgiler",
   "images": "Resimler",
   "invoice": "Fatura",
+  "invoice_email": "Fatura E-postası",
+  "invoice_cc_email": "Fatura CC E-postası",
   "is_brief_box": "Kısa Kutu mu",
   "is_featured": "Öne Çıkan mı",
   "is_listed_on_2dehands": "2dehands'te Listelenmiş mi",

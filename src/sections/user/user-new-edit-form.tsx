@@ -532,6 +532,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
         if (data.days_no_delivery !== currentUser.days_no_delivery) {
           changes.push(`Geen levering dagen gewijzigd van "${currentUser.days_no_delivery}" naar "${data.days_no_delivery}" door ${user?.email}`);
         }
+        if (data.invoice_email !== currentUser.invoice_email) {
+          changes.push(`Factuur e-mail gewijzigd van "${currentUser.invoice_email}" naar "${data.invoice_email}" door ${user?.email}`);
+        }
+        if (data.invoice_cc_email !== currentUser.invoice_cc_email) {
+          changes.push(`Factuur CC e-mail gewijzigd van "${currentUser.invoice_cc_email}" naar "${data.invoice_cc_email}" door ${user?.email}`);
+        }
 
         // Social media changes
         if (data.facebook !== currentUser.facebook) {
@@ -854,6 +860,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
                 <RHFTextField name="invoice_address" label={t('invoice_address')} />
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
+                <RHFTextField name="invoice_email" label={t('invoice_email')} />
+                <RHFTextField name="invoice_cc_email" label={t('invoice_cc_email')} />
                 {/* <RHFTextField name="discount_group" label={t('discount_group')} /> */}
                 <RHFTextField name="inform_via" label={t('inform_via')} />
                 <RHFTextField name="classification" label={t('classification')} />

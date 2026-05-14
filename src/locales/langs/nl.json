@@ -173,6 +173,8 @@
   "b2b_active": "B2B actief",
   "active_products": "Actieve Lijst",
   "invoice_language": "Factuur Taal",
+  "invoice_email": "Factuur E-mail",
+  "invoice_cc_email": "Factuur CC E-mail",
   "is_brief_box": "Is Brievenbus",
   "credit_limit": "Krediet limiet",
   "is_featured": "Is Uitgelicht",
