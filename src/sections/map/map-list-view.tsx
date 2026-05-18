@@ -54,6 +54,7 @@ interface Address {
 
 interface User {
   id: string;
+  email?: string;
   first_name: string;
   last_name: string;
   business_name?: string;
@@ -1464,14 +1465,33 @@ const Map = () => {
                         </Box>
                       )}
 
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => handleAddToCalendar(user, address)}
-                        sx={{ mt: 1 }}
-                      >
-                        Plan bezoek (30m)
-                      </Button>
+                      <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleAddToCalendar(user, address)}
+                          fullWidth
+                        >
+                          Plan bezoek
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          onClick={() => window.open(`https://europowerbv.com?klant=${encodeURIComponent(user.email || '')}`, '_blank')}
+                          fullWidth
+                          startIcon={<Iconify icon="solar:user-bold" width={16} />}
+                          sx={{
+                            borderColor: 'primary.main',
+                            '&:hover': {
+                              backgroundColor: 'primary.lighter',
+                              borderColor: 'primary.dark',
+                            }
+                          }}
+                        >
+                          Selecteer Klant
+                        </Button>
+                      </Stack>
                     </Popup>
                   </Marker>
                 );
