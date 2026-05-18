@@ -1478,8 +1478,7 @@ const Map = () => {
                           variant="outlined"
                           color="primary"
                           size="small"
-                          onClick={() => window.open(`https://europowerbv.com?klant=${encodeURIComponent(user.email || '')}`, '_blank')}
-                          fullWidth
+                     fullWidth
                           startIcon={<Iconify icon="solar:user-bold" width={16} />}
                           sx={{
                             borderColor: 'primary.main',
@@ -1488,8 +1487,9 @@ const Map = () => {
                               borderColor: 'primary.dark',
                             }
                           }}
+                          onClick={() => window.open(`https://europowerbv.com?klant=${encodeURIComponent(user.email || '')}`, '_blank')}
                         >
-                          Selecteer Klant
+                          Klant
                         </Button>
                       </Stack>
                     </Popup>
