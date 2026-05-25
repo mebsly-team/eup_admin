@@ -80,7 +80,12 @@ export default function PurchaseTableRow({
                         },
                     }}
                 >
-                    {purchase.supplier_detail.name}
+                    <ListItemText
+                        primary={purchase.supplier_detail.name}
+                        secondary={purchase.supplier_detail.supplier_code}
+                        primaryTypographyProps={{ typography: 'body2' }}
+                        secondaryTypographyProps={{ component: 'span', color: 'text.disabled', typography: 'caption' }}
+                    />
                 </RouterLink>
             </TableCell>
 

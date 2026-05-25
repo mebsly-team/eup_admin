@@ -166,8 +166,13 @@ export default function PurchaseListView() {
   }
 
   const filteredData = tableData.filter((purchase) => {
-    if (filters.name && !purchase.supplier_detail.name.toLowerCase().includes(filters.name.toLowerCase())) {
-      return false;
+    if (filters.name) {
+      const searchTerm = filters.name.toLowerCase();
+      const nameMatch = purchase.supplier_detail.name.toLowerCase().includes(searchTerm);
+      const codeMatch = purchase.supplier_detail.supplier_code?.toLowerCase().includes(searchTerm);
+      if (!nameMatch && !codeMatch) {
+        return false;
+      }
     }
     if (filters.startDate && new Date(purchase.purchase_invoice_date) < filters.startDate) {
       return false;
