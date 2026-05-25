@@ -45,6 +45,7 @@ const TABLE_HEAD = [
   { id: 'id', label: 'ID' },
   { id: 'supplier_name', label: 'Supplier' },
   { id: 'purchase_invoice_date', label: 'Invoice Date' },
+  { id: 'purchase_invoice_number', label: 'Invoice No.' },
   { id: 'number_of_items', label: 'Items', align: 'center' },
   { id: 'total_exc_btw', label: 'Total (excl. BTW)', align: 'right' },
   { id: 'total_inc_btw', label: 'Total (incl. BTW)', align: 'right' },
@@ -263,7 +264,7 @@ export default function PurchaseListView() {
                     />
                     {expandedRow === row.id && (
                       <TableRow>
-                        <TableCell colSpan={9} sx={{ p: 0 }}>
+                        <TableCell colSpan={10} sx={{ p: 0 }}>
                           {renderPurchaseItems(row.items)}
                         </TableCell>
                       </TableRow>

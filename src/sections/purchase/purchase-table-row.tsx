@@ -93,6 +93,8 @@ export default function PurchaseTableRow({
                 {purchase.purchase_invoice_date && format(new Date(purchase.purchase_invoice_date), 'dd MMM yyyy')}
             </TableCell>
 
+            <TableCell>{purchase.purchase_invoice_number || '-'}</TableCell>
+
             <TableCell align="center">{purchase.items?.length || 0}</TableCell>
 
             <TableCell align="right">€{parseFloat(purchase.total_exc_btw).toFixed(2)}</TableCell>

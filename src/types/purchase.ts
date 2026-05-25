@@ -7,6 +7,7 @@ export type IPurchaseItem = {
     id: string;
     type?: 'purchase' | 'offer';
     purchase_invoice_date: string;
+    purchase_invoice_number?: string;
     created_at: string;
     updated_at: string;
     supplier: number;

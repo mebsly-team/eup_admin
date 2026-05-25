@@ -824,6 +824,7 @@
   "import_offer_from_offer": "Importeer offerte van offerte",
   "import_purchase_from_purchase": "Importeer aankoop van aankoop",
   "invoice_date": "Factuurdatum",
+  "invoice_number": "Factuurnummer",
   "search_product_by_ean": "Product zoeken op EAN",
   "add_product": "Product toevoegen",
   "purchase_summary": "Aankoop overzicht",

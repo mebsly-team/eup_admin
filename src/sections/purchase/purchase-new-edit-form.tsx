@@ -274,6 +274,7 @@ export default function PurchaseEditView() {
         type: 'purchase',
         supplier: selectedSupplier?.id,
         purchase_invoice_date: currentPurchase?.purchase_invoice_date,
+        purchase_invoice_number: currentPurchase?.purchase_invoice_number || '',
         total_exc_btw: currentPurchase?.total_exc_btw,
         total_inc_btw: currentPurchase?.total_inc_btw,
         total_vat: currentPurchase?.total_vat,
@@ -381,6 +382,18 @@ export default function PurchaseEditView() {
                         error: !currentPurchase?.purchase_invoice_date,
                         helperText: !currentPurchase?.purchase_invoice_date ? t('invoice_date_required') : '',
                       },
+                    }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label={t('invoice_number')}
+                    value={currentPurchase?.purchase_invoice_number || ''}
+                    onChange={(e) => {
+                      setCurrentPurchase((prev) => ({
+                        ...prev!,
+                        purchase_invoice_number: e.target.value,
+                      }));
                     }}
                   />
 
