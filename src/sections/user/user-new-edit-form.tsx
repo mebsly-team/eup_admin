@@ -66,6 +66,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const [addressList, setAddressList] = useState(currentUser?.addresses || []);
   console.log("🚀 ~ UserNewEditForm ~ addressList:", addressList)
 
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
+
   type UserType = 'special' | 'wholesaler' | 'supermarket' | 'particular';
 
   const AddressSchema = Yup.object().shape({
@@ -298,8 +300,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
   useEffect(() => {
     if (currentUser) {
       reset(defaultValues);
+      const isStandard = ['Bakkerij', 'Slagerij', 'Kantor', ''].includes(currentUser.branch || '');
+      setIsOtherSelected(!isStandard);
     } else {
       reset({});
+      setIsOtherSelected(false);
     }
   }, [currentUser, reset, defaultValues]);
 
@@ -818,7 +823,56 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   name="contact_person_nationality"
                   label={t('contact_person_nationality')}
                 />
-                <RHFTextField name="branch" label={t('branch')} />
+                <Controller
+                  name="branch"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => {
+                    const selectValue = isOtherSelected ? 'other' : (field.value || '');
+
+                    return (
+                      <Stack spacing={2} sx={{ width: 1 }}>
+                        <FormControl fullWidth error={!!error}>
+                          <InputLabel id="branch-select-label">{t('branch')}</InputLabel>
+                          <Select
+                            labelId="branch-select-label"
+                            label={t('branch')}
+                            value={selectValue}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'other') {
+                                setIsOtherSelected(true);
+                                field.onChange('');
+                              } else {
+                                setIsOtherSelected(false);
+                                field.onChange(val);
+                              }
+                            }}
+                          >
+                            <MenuItem value="">{t('none')}</MenuItem>
+                            <Divider sx={{ borderStyle: 'dashed' }} />
+                            <MenuItem value="Bakkerij">Bakkerij</MenuItem>
+                            <MenuItem value="Slagerij">Slagerij</MenuItem>
+                            <MenuItem value="Kantor">Kantor</MenuItem>
+                            <MenuItem value="other">{t('other') || 'Anders...'}</MenuItem>
+                          </Select>
+                        </FormControl>
+
+                        {isOtherSelected && (
+                          <TextField
+                            fullWidth
+                            label={`${t('branch')} (${t('other') || 'Anders'})`}
+                            value={field.value || ''}
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                            }}
+                            error={!!error}
+                            helperText={error?.message}
+                          />
+                        )}
+                      </Stack>
+                    );
+                  }}
+                />
                 <RHFTextField name="iban" label={t('iban')} />
                 <RHFTextField name="bic" label={t('bic')} />
                 <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
