@@ -79,6 +79,23 @@ export default function CategoryTableRow({
     }
   };
 
+  const handleExportKort = async () => {
+    try {
+      const response = await axiosInstance.get(`/export/products/kort/?category_id=${row.id}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `products_category_kort_${name}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Export Kort failed', error);
+    }
+  };
+
   // <TableRow key={row.id} sx={{ marginLeft: '20px' }}>
 
   return (
@@ -142,6 +159,15 @@ export default function CategoryTableRow({
         >
           <Iconify icon="solar:export-bold" />
           {t('export')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleExportKort();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:export-bold" />
+          Export Kort
         </MenuItem>
         <MenuItem
           onClick={() => {

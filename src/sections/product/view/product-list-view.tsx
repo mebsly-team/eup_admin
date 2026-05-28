@@ -1,7 +1,7 @@
 import 'yet-another-react-lightbox/styles.css';
 import { useLocation } from 'react-router-dom';
 import Lightbox from 'yet-another-react-lightbox';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -12,6 +12,9 @@ import TableBody from '@mui/material/TableBody';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Menu from '@mui/material/Menu';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
   Box,
   Dialog,
@@ -89,6 +92,10 @@ export default function ProductListView() {
   const [lightBoxSlides, setLightBoxSlides] = useState();
   const [showBundles, setShowBundles] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>(filters.name);
+
+  // Export dropdown state
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  const exportMenuOpen = Boolean(exportMenuAnchor);
 
   const handleLightBoxSlides = useCallback((images) => {
     if (images.length) {
@@ -326,6 +333,26 @@ export default function ProductListView() {
     }
   }, [enqueueSnackbar]);
 
+  const handleExportKort = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/export/products/kort/', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
+      link.setAttribute('download', `products_kort_${currentDateTime}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Export Kort failed:', error);
+      enqueueSnackbar('Export Kort failed', { variant: 'error' });
+    }
+    setExportMenuAnchor(null);
+  }, [enqueueSnackbar]);
+
   return (
     <>
       <Container maxWidth={false}>
@@ -346,14 +373,39 @@ export default function ProductListView() {
               >
                 {t('new_product')}
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<Iconify icon="ph:export-bold" />}
-                onClick={handleExport}
-                sx={{ ml: 1 }}
+              <ButtonGroup variant="contained" sx={{ ml: 1 }}>
+                <Button
+                  startIcon={<Iconify icon="ph:export-bold" />}
+                  onClick={handleExport}
+                >
+                  {t('Export')}
+                </Button>
+                <Button
+                  size="small"
+                  onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+                >
+                  <ArrowDropDownIcon />
+                </Button>
+              </ButtonGroup>
+              <Menu
+                anchorEl={exportMenuAnchor}
+                open={exportMenuOpen}
+                onClose={() => setExportMenuAnchor(null)}
               >
-                {t('Export')}
-              </Button>
+                <MenuItem
+                  onClick={() => {
+                    handleExport();
+                    setExportMenuAnchor(null);
+                  }}
+                >
+                  <Iconify icon="ph:export-bold" sx={{ mr: 1 }} />
+                  {t('Export')}
+                </MenuItem>
+                <MenuItem onClick={handleExportKort}>
+                  <Iconify icon="ph:export-bold" sx={{ mr: 1 }} />
+                  Export Kort
+                </MenuItem>
+              </Menu>
             </Box>
           }
           sx={{
@@ -536,3 +588,4 @@ export default function ProductListView() {
     </>
   );
 }
+
