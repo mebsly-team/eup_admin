@@ -177,6 +177,7 @@ const Map = () => {
   );
   const [selectedColors, setSelectedColors] = useState<string[]>(["#33CC33"]);
   const [isAllColorsSelected, setIsAllColorsSelected] = useState(false);
+  const [colorCounts, setColorCounts] = useState<Record<string, number>>({});
   const [filters, setFilters] = useState({
     is_delivery_address: true
   });
@@ -286,6 +287,19 @@ const Map = () => {
 
     initAndFetch();
   }, [enqueueSnackbar]);
+
+  // Fetch color counts on mount
+  useEffect(() => {
+    const fetchColorCounts = async () => {
+      try {
+        const response = await axiosInstance.get('/get-color-counts/');
+        setColorCounts(response.data);
+      } catch (error) {
+        console.error('Error fetching color counts:', error);
+      }
+    };
+    fetchColorCounts();
+  }, []);
 
   const fetchAddresses = useCallback(async () => {
     setIsLoading(true);
@@ -1192,6 +1206,12 @@ const Map = () => {
                     }}
                   >
                     {color.label}
+                    {color.value === 'all'
+                      ? ` (${Object.values(colorCounts).reduce((sum, c) => sum + c, 0)})`
+                      : colorCounts[color.color] !== undefined
+                        ? ` (${colorCounts[color.color]})`
+                        : ' (0)'
+                    }
                   </ToggleButton>
                 ))}
               </ToggleButtonGroup>
