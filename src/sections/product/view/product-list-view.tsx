@@ -373,20 +373,14 @@ export default function ProductListView() {
               >
                 {t('new_product')}
               </Button>
-              <ButtonGroup variant="contained" sx={{ ml: 1 }}>
-                <Button
-                  startIcon={<Iconify icon="ph:export-bold" />}
-                  onClick={handleExport}
-                >
-                  {t('Export')}
-                </Button>
-                <Button
-                  size="small"
-                  onClick={(e) => setExportMenuAnchor(e.currentTarget)}
-                >
-                  <ArrowDropDownIcon />
-                </Button>
-              </ButtonGroup>
+              <Button
+                variant="contained"
+                startIcon={<Iconify icon="ph:export-bold" />}
+                onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+                sx={{ ml: 1 }}
+              >
+                {t('Export')}
+              </Button>
               <Menu
                 anchorEl={exportMenuAnchor}
                 open={exportMenuOpen}
