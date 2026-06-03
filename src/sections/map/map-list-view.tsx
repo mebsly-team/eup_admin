@@ -88,6 +88,7 @@ interface CalendarEvent {
   allDay: boolean;
   eventType?: string;
   userId?: string;
+  location?: string;
 }
 
 interface TimeChangeDialogState {
@@ -254,6 +255,7 @@ const Map = () => {
               allDay: !event.start.dateTime,
               eventType: event.eventType,
               userId: event.extendedProperties?.private?.userId,
+              location: event.location || '',
             };
           }) || [];
 
@@ -1289,50 +1291,64 @@ const Map = () => {
                   .sort((a, b) => a.start - b.start);
 
                 const matchingEvents = windowEvents.filter((e) => {
-                  // Primary match: by user ID stored in event's extendedProperties
-                  if (e.userId && e.userId === user.id) return true;
-
-                  // Fallback: name/address matching for events created before ID tracking
                   const title = (e.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
                   const desc = (e.description || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                  const loc = (e.location || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
                   const first = (user.first_name || '').toLowerCase().trim();
                   const last = (user.last_name || '').toLowerCase().trim();
                   const business = (user.business_name || '').toLowerCase().trim();
                   const full = `${first} ${last}`.replace(/\s+/g, ' ').trim();
                   const fullWithBusiness = business ? `${full} - ${business}`.trim() : full;
 
-                  // Build address string for fallback description matching
-                  const addrStr = `${String(address.street_name || '').toLowerCase()} ${String(address.house_number || '').toLowerCase()}, ${String(address.city || '').toLowerCase()}`.replace(/\s+/g, ' ').trim();
+                  // Build address strings for description/location matching
+                  const street = String(address.street_name || '').toLowerCase().trim();
+                  const house = String(address.house_number || '').toLowerCase().trim();
+                  const city = String(address.city || '').toLowerCase().trim();
 
+                  const hasAddressMatch = (street.length > 2 && (desc.includes(street) || loc.includes(street))) && 
+                                          (city.length > 2 && (desc.includes(city) || loc.includes(city)));
+                  const addrStr = `${street} ${house}, ${city}`.replace(/\s+/g, ' ').trim();
+                  const hasStrictAddressMatch = addrStr.length > 5 && (desc.includes(addrStr) || loc.includes(addrStr));
+                  const isAddressInDesc = hasStrictAddressMatch || hasAddressMatch;
+
+                  // Primary match: by user ID stored in event's extendedProperties
+                  if (e.userId && e.userId === user.id) {
+                     // If user has multiple valid addresses, we must match the address to pick the right pin
+                     if (validAddresses.length > 1) {
+                        return isAddressInDesc;
+                     }
+                     return true;
+                  }
+
+                  let nameMatch = false;
                   // If user has no first/last name but has business name, match by business name
                   if (!first && !last && business) {
-                    if (title === business || title.includes(business)) return true;
-                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
-                    return false;
+                    if (title === business || title.includes(business)) nameMatch = true;
                   }
-
                   // If user has first/last name, match by full name or both names in any order
-                  if (first && last) {
-                    if (title.includes(full) || title.includes(fullWithBusiness)) return true;
-                    if (title.includes(first) && title.includes(last)) return true;
-                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
-                    return false;
+                  else if (first && last) {
+                    if (title.includes(full) || title.includes(fullWithBusiness)) nameMatch = true;
+                    else if (title.includes(first) && title.includes(last)) nameMatch = true;
                   }
-
                   // If only first name or only last name, match as a complete word
-                  if (first && !last) {
-                    const regex = new RegExp(`\\b${first}\\b`, 'i');
-                    if (regex.test(title)) return true;
-                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
-                    return false;
+                  else if (first && !last) {
+                    if (new RegExp(`\\b${first}\\b`, 'i').test(title)) nameMatch = true;
+                  }
+                  else if (last && !first) {
+                    if (new RegExp(`\\b${last}\\b`, 'i').test(title)) nameMatch = true;
                   }
 
-                  if (last && !first) {
-                    const regex = new RegExp(`\\b${last}\\b`, 'i');
-                    if (regex.test(title)) return true;
-                    if (addrStr.length > 5 && desc.includes(addrStr)) return true;
-                    return false;
+                  if (nameMatch) {
+                    // To avoid two pins appearing for users with similar names, we strongly prefer an address match.
+                    // If the address matches, it's definitely this location.
+                    if (isAddressInDesc) return true;
+                    // If no address match, it might be a manual event. But returning true here causes
+                    // the bug where both similar-named users get the pin. So we return false.
                   }
+
+                  // If we didn't match by user ID or name, but the exact address is in the description
+                  if (hasStrictAddressMatch) return true;
 
                   return false;
                 });
