@@ -99,6 +99,7 @@ type Props = {
   delivery: IOrderDelivery;
   payment: IOrderPayment;
   shippingAddress: IOrderShippingAddress;
+  invoiceAddress?: IOrderShippingAddress;
   updateOrder: any;
 };
 
@@ -121,6 +122,7 @@ export default function OrderDetailsInfo({
   delivery,
   payment,
   shippingAddress,
+  invoiceAddress,
   updateOrder,
   orderId,
   currentOrder,
@@ -128,8 +130,10 @@ export default function OrderDetailsInfo({
   console.log("🚀 ~ customer:", customer)
   const { user } = useAuthContext();
   const [updatedShippingAddress, setUpdatedShippingAddress] = useState(shippingAddress);
+  const [updatedInvoiceAddress, setUpdatedInvoiceAddress] = useState(invoiceAddress || {});
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
+  const [isInvoiceAddressEdit, setIsInvoiceAddressEdit] = useState(false);
   const [isInvoiceDateEdit, setIsInvoiceDateEdit] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
   const [totalWeight, setTotalWeight] = useState('');
@@ -237,6 +241,10 @@ export default function OrderDetailsInfo({
     setUpdatedShippingAddress(shippingAddress);
     setIsAddressEdit(!isAddressEdit);
   };
+  const handleInvoiceAddressEditClick = (e) => {
+    setUpdatedInvoiceAddress(invoiceAddress || {});
+    setIsInvoiceAddressEdit(!isInvoiceAddressEdit);
+  };
   // Function to handle delivery update
   const handleDeliveryEditClick = () => {
     // if (!shipmentMethods?.length) handleGetShipmentMethods();
@@ -283,6 +291,19 @@ export default function OrderDetailsInfo({
       history: newHistory,
     });
     setIsAddressEdit(false);
+  };
+
+  const handleInvoiceAddressUpdate = (e) => {
+    const newHistory = currentOrder.history;
+    newHistory.push({
+      date: new Date(),
+      event: `Factuuradres gewijzigd: ${JSON.stringify(updatedInvoiceAddress)}, door ${user?.email}`,
+    });
+    updateOrder(orderId, {
+      invoice_address: { ...invoiceAddress, ...updatedInvoiceAddress },
+      history: newHistory,
+    });
+    setIsInvoiceAddressEdit(false);
   };
 
   // const handleSendToSendCloud = async () => {
@@ -859,6 +880,168 @@ export default function OrderDetailsInfo({
     </>
   );
 
+  const renderInvoice = invoiceAddress ? (
+    <>
+      <CardHeader
+        title="Factuuradres"
+        action={
+          <IconButton onClick={handleInvoiceAddressEditClick}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+        }
+      />
+      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        {isInvoiceAddressEdit ? (
+          <Stack spacing={1.5}>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Voornaam:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.first_name || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, first_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Achternaam:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.last_name || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, last_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Bedrijfsnaam:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.business_name || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, business_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Straat:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.street_name || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, street_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Huisnummer:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.house_number || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, house_number: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Toevoeging:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.house_suffix || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, house_suffix: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Postcode:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.zip_code || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, zip_code: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Plaats:
+              </Box>
+              <TextField
+                value={updatedInvoiceAddress.city || ''}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, city: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Land:
+              </Box>
+              <TextField
+                select
+                value={updatedInvoiceAddress.country || 'NL'}
+                onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, country: e.target.value })}
+                sx={{ width: "auto" }}
+              >
+                {countryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <TextField
+              label="Telefoonnummer"
+              value={updatedInvoiceAddress.phone_number || ''}
+              onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, phone_number: e.target.value })}
+              fullWidth
+            />
+            <Stack direction="row" spacing={1}>
+              <Button onClick={handleInvoiceAddressUpdate} variant="contained">
+                Opslaan
+              </Button>
+              <Button variant="outlined" onClick={() => setIsInvoiceAddressEdit(false)}>
+                Annuleren
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          <>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Naam:
+              </Box>
+              {invoiceAddress.first_name || ''} {invoiceAddress.last_name || ''}
+            </Stack>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Bedrijfsnaam:
+              </Box>
+              {invoiceAddress.business_name || ''}
+            </Stack>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Adres
+              </Box>
+              {invoiceAddress.street_name || ''} {invoiceAddress.house_number || ''}{' '}
+              {invoiceAddress.house_suffix || ''}
+              <br />
+              {`${invoiceAddress.zip_code || ''} ${invoiceAddress.city || ''}`}
+              <br />
+              {invoiceAddress.country || ''}
+            </Stack>
+            <Stack direction="row">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Telefoonnummer
+              </Box>
+              {invoiceAddress.phone_number}
+            </Stack>
+          </>
+        )}
+      </Stack>
+    </>
+  ) : null;
+
   const renderPayment = (
     <>
       <CardHeader
@@ -948,6 +1131,10 @@ export default function OrderDetailsInfo({
       <Divider sx={{ borderStyle: 'dashed' }} />
 
       {renderShipping}
+
+      <Divider sx={{ borderStyle: 'dashed' }} />
+
+      {renderInvoice}
 
       <Divider sx={{ borderStyle: 'dashed' }} />
 

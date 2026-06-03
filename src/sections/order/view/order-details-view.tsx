@@ -290,6 +290,7 @@ export default function OrderDetailsView({ id }: Props) {
             delivery={currentOrder.delivered_date || {}}
             payment={currentOrder.payment_reference}
             shippingAddress={currentOrder.shipping_address || {}}
+            invoiceAddress={currentOrder.invoice_address || {}}
             updateOrder={updateOrder}
             orderId={id}
           />
