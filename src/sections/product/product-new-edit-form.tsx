@@ -2822,14 +2822,14 @@ export default function ProductNewEditForm({ id }: Props) {
               label={t('overall_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
-              labelColor="violet"
+              // labelColor="violet"
             />
             <RHFTextField
               name="free_stock"
               label={t('free_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
-              labelColor="violet"
+              // labelColor="violet"
             />
             {/* <RHFTextField
               name="ordered_in_progress_stock"
@@ -2897,7 +2897,7 @@ export default function ProductNewEditForm({ id }: Props) {
               label={t('sell_count')}
               type="number"
               onBlur={handleEmptyNumbers}
-              labelColor="violet"
+              // labelColor="violet"
             />
           </Box>
         </Stack>
