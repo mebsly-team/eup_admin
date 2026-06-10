@@ -20,6 +20,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
 import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker';
 import { Map as LeafletMap, Icon, divIcon } from 'leaflet';
 import { useSnackbar } from 'src/components/snackbar';
@@ -182,6 +186,7 @@ const Map = () => {
   const [filters, setFilters] = useState({
     is_delivery_address: true
   });
+  const [noOrderSince, setNoOrderSince] = useState<string>("");
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [currentAccuracy, setCurrentAccuracy] = useState<number | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -315,7 +320,8 @@ const Map = () => {
           sw_lng: -180,
           is_delivery_address: filters.is_delivery_address,
           ...(selectedUserTypes[0] !== "all" && { user_types: selectedUserTypes.join(',') }),
-          ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') })
+          ...(!isAllColorsSelected && { customer_colors: selectedColors.join(',') }),
+          ...(noOrderSince !== "" && { no_order_since_days: noOrderSince })
         },
       });
       const uniqueUsers = response.data.reduce((acc: User[], user: User) => {
@@ -358,7 +364,7 @@ const Map = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected]);
+  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, noOrderSince]);
 
   const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
     if (newUserTypes.includes("all")) {
@@ -484,7 +490,7 @@ const Map = () => {
 
   useEffect(() => {
     debouncedFetch();
-  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, debouncedFetch]);
+  }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, noOrderSince, debouncedFetch]);
 
 
   // Cleanup timeout on unmount
@@ -582,26 +588,34 @@ const Map = () => {
         end: new Date(e.end).toLocaleString('nl-NL')
       })));
 
-      // Find the first available 30-minute slot
-      let slotFound = false;
       const bezoekDuur = 30 * 60 * 1000; // 30 minuten in milliseconden
 
-      // Check each existing event to find gaps
-      for (let i = 0; i <= dayEvents.length; i++) {
-        const slotStart = i === 0 ? visitDate : new Date(dayEvents[i - 1].end);
-        const slotEnd = new Date(slotStart.getTime() + bezoekDuur);
-
-        // Als dit de laatste iteratie is of er is een gat voor het volgende event
-        if (i === dayEvents.length || slotEnd.getTime() <= new Date(dayEvents[i].start).getTime()) {
-          visitDate.setTime(slotStart.getTime());
-          slotFound = true;
-          break;
+      let slotStart = visitDate;
+      if (dayEvents.length > 0) {
+        const maxEndTime = Math.max(...dayEvents.map(e => new Date(e.end).getTime()));
+        slotStart = new Date(maxEndTime);
+        if (slotStart.getTime() < visitDate.getTime()) {
+          slotStart = visitDate;
         }
       }
 
-      if (!slotFound) {
-        throw new Error('Geen beschikbare tijdslot gevonden voor deze dag');
+      const slotEnd = new Date(slotStart.getTime() + bezoekDuur);
+
+      const startHour = slotStart.getHours();
+      const endHour = slotEnd.getHours();
+      const endMinutes = slotEnd.getMinutes();
+
+      if (
+        startHour >= 20 || 
+        startHour < 6 || 
+        endHour > 20 || 
+        (endHour === 20 && endMinutes > 0)
+      ) {
+        enqueueSnackbar('Tussen 20:00 en 06:00 worden er geen afspraken gepland', { variant: 'warning' });
+        return;
       }
+
+      visitDate.setTime(slotStart.getTime());
 
       const bezoekStart = visitDate.getTime();
       const bezoekEind = bezoekStart + bezoekDuur;
@@ -1144,6 +1158,26 @@ const Map = () => {
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel id="no-order-since-label" sx={{ fontSize: '0.8rem' }}>Geen bestelling sinds</InputLabel>
+              <Select
+                labelId="no-order-since-label"
+                id="no-order-since"
+                value={noOrderSince}
+                label="Geen bestelling sinds"
+                onChange={(e) => setNoOrderSince(e.target.value)}
+                sx={{ fontSize: '0.8rem', height: '32px' }}
+              >
+                <MenuItem value=""><em>Geen filter</em></MenuItem>
+                <MenuItem value="7">7 dagen</MenuItem>
+                <MenuItem value="14">14 dagen</MenuItem>
+                <MenuItem value="21">21 dagen</MenuItem>
+                <MenuItem value="30">30 dagen</MenuItem>
+                <MenuItem value="45">45 dagen</MenuItem>
+                <MenuItem value="60">60 dagen</MenuItem>
+              </Select>
+            </FormControl>
+
             <Box>
               {/* <Typography variant="caption" sx={{ mb: 0.5, display: 'block' }}>
                 Gebruikerstype
