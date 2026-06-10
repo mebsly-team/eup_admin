@@ -706,18 +706,20 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField
                   name="email"
                   label={t('email')}
+                  labelColor="purple"
                   onChange={(e) => {
                     setValue('email', e.target.value.toLowerCase());
                   }}
                 />
-                <RHFTextField name="first_name" label={t('name')} />
-                <RHFTextField name="last_name" label={t('lastname')} />
+                <RHFTextField name="first_name" label={t('name')} labelColor="purple" />
+                <RHFTextField name="last_name" label={t('lastname')} labelColor="purple" />
                 {/* {currentUser ? null : (
                   <RHFTextField name="password" label={t('password')} type="password" />
                 )} */}
                 <RHFSelect
                   name="gender"
                   label={t('gender')}
+                  labelColor="purple"
                   onChange={(e) => {
                     setValue('gender', e.target.value);
                   }}
@@ -734,8 +736,8 @@ export default function UserNewEditForm({ currentUser }: Props) {
                     Ander
                   </MenuItem>
                 </RHFSelect>
-                <RHFTextField name="phone_number" label={t('phone')} />
-                <RHFTextField name="mobile_number" label={t('mobile')} />
+                <RHFTextField name="phone_number" label={t('phone')} labelColor="purple" />
+                <RHFTextField name="mobile_number" label={t('mobile')} labelColor="purple" />
                 <Controller
                   name="birthdate"
                   control={control}
@@ -761,7 +763,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   name="inform_when_new_products"
                   labelPlacement="start"
                   label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
                       {t('inform_when_new_products')}
                     </Typography>
                   }
@@ -771,7 +773,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   name="is_subscribed_newsletters"
                   labelPlacement="start"
                   label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
                       {t('is_subscribed_newsletters')}
                     </Typography>
                   }
@@ -781,7 +783,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   name="is_access_granted_social_media"
                   labelPlacement="start"
                   label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
                       {t('is_access_granted_social_media')}
                     </Typography>
                   }
@@ -800,16 +802,17 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   sm: 'repeat(2, 1fr)',
                 }}
               >
-                <RHFTextField name="business_name" label={t('business_name')} />
+                <RHFTextField name="business_name" label={t('business_name')} labelColor="purple" />
                 {/* <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
                 <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
                 <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
                 <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
                 <RHFTextField name="contact_person_country" label={t('contact_person_country')} /> */}
-                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} />
+                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} labelColor="purple" />
                 <RHFTextField
                   name="contact_person_email"
                   label={t('contact_person_email')}
+                  labelColor="purple"
                   onChange={(e) => {
                     setValue('contact_person_email', e.target.value.toLowerCase());
                   }}
@@ -832,7 +835,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                     return (
                       <Stack spacing={2} sx={{ width: 1 }}>
                         <FormControl fullWidth error={!!error}>
-                          <InputLabel id="branch-select-label">{t('branch')}</InputLabel>
+                          <InputLabel id="branch-select-label" sx={{ color: 'purple !important' }}>{t('branch')}</InputLabel>
                           <Select
                             labelId="branch-select-label"
                             label={t('branch')}
@@ -861,6 +864,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                           <TextField
                             fullWidth
                             label={`${t('branch')} (${t('other') || 'Anders'})`}
+                            InputLabelProps={{ sx: { color: 'purple !important' } }}
                             value={field.value || ''}
                             onChange={(e) => {
                               field.onChange(e.target.value);
@@ -877,7 +881,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="bic" label={t('bic')} />
                 <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
                 <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
-                <RHFTextField name="vat" label={t('vat')} />
+                <RHFTextField name="vat" label={t('vat')} labelColor="yellow" />
                 <RHFSwitch
                   name="is_vat_document_printed"
                   labelPlacement="start"
@@ -893,7 +897,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   }
                   sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
                 />
-                <RHFTextField name="kvk" label={t('kvk')} />
+                <RHFTextField name="kvk" label={t('kvk')} labelColor="yellow" />
                 <RHFSelect name="payment_method" label={t('payment_method')}>
                   <MenuItem value="">{t('none')}</MenuItem>
                   <Divider sx={{ borderStyle: 'dashed' }} />
@@ -907,10 +911,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField
                   name="customer_percentage"
                   label={t('customer_percentage')}
+                  labelColor="yellow"
                   type="number"
                 />
                 <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
-                <RHFTextField name="payment_termin" label={t('payment_termin')} />
+                <RHFTextField name="payment_termin" label={t('payment_termin')} labelColor="yellow" />
                 <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
                 <RHFTextField name="invoice_address" label={t('invoice_address')} />
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
@@ -918,11 +923,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="invoice_cc_email" label={t('invoice_cc_email')} />
                 {/* <RHFTextField name="discount_group" label={t('discount_group')} /> */}
                 <RHFTextField name="inform_via" label={t('inform_via')} />
-                <RHFTextField name="classification" label={t('classification')} />
+                <RHFTextField name="classification" label={t('classification')} labelColor="yellow" />
 
                 <RHFSelect
                   name="customer_color"
                   label={t('customer_color')}
+                  labelColor="yellow"
                   SelectProps={{
                     renderValue: (value) => {
                       if (!value) return '';
@@ -982,7 +988,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   ))}
                 </RHFSelect>
 
-                <RHFTextField name="relation_type" label={t('relation_type')} />
+                <RHFTextField name="relation_type" label={t('relation_type')} labelColor="yellow" />
                 <RHFTextField name="relation_via" label={t('relation_via')} />
                 <RHFTextField name="days_closed" label={t('days_closed')} />
                 <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
@@ -1032,7 +1038,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   name="inform_when_new_products"
                   labelPlacement="start"
                   label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
                       {t('inform_when_new_products')}
                     </Typography>
                   }
