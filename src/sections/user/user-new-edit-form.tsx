@@ -881,7 +881,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="bic" label={t('bic')} />
                 <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
                 <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
-                <RHFTextField name="vat" label={t('vat')} labelColor="yellow" />
+                <RHFTextField name="vat" label={t('vat')} labelColor="orange" />
                 <RHFSwitch
                   name="is_vat_document_printed"
                   labelPlacement="start"
@@ -897,7 +897,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   }
                   sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
                 />
-                <RHFTextField name="kvk" label={t('kvk')} labelColor="yellow" />
+                <RHFTextField name="kvk" label={t('kvk')} labelColor="orange" />
                 <RHFSelect name="payment_method" label={t('payment_method')}>
                   <MenuItem value="">{t('none')}</MenuItem>
                   <Divider sx={{ borderStyle: 'dashed' }} />
@@ -911,11 +911,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField
                   name="customer_percentage"
                   label={t('customer_percentage')}
-                  labelColor="yellow"
+                  labelColor="orange"
                   type="number"
                 />
                 <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
-                <RHFTextField name="payment_termin" label={t('payment_termin')} labelColor="yellow" />
+                <RHFTextField name="payment_termin" label={t('payment_termin')} labelColor="orange" />
                 <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
                 <RHFTextField name="invoice_address" label={t('invoice_address')} />
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
@@ -923,12 +923,12 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 <RHFTextField name="invoice_cc_email" label={t('invoice_cc_email')} />
                 {/* <RHFTextField name="discount_group" label={t('discount_group')} /> */}
                 <RHFTextField name="inform_via" label={t('inform_via')} />
-                <RHFTextField name="classification" label={t('classification')} labelColor="yellow" />
+                <RHFTextField name="classification" label={t('classification')} labelColor="orange" />
 
                 <RHFSelect
                   name="customer_color"
                   label={t('customer_color')}
-                  labelColor="yellow"
+                  labelColor="orange"
                   SelectProps={{
                     renderValue: (value) => {
                       if (!value) return '';
@@ -988,7 +988,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   ))}
                 </RHFSelect>
 
-                <RHFTextField name="relation_type" label={t('relation_type')} labelColor="yellow" />
+                <RHFTextField name="relation_type" label={t('relation_type')} labelColor="orange" />
                 <RHFTextField name="relation_via" label={t('relation_via')} />
                 <RHFTextField name="days_closed" label={t('days_closed')} />
                 <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
