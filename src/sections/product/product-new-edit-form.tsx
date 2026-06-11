@@ -457,6 +457,8 @@ export default function ProductNewEditForm({ id }: Props) {
       meta_title: currentProduct?.meta_title || '',
       meta_description: currentProduct?.meta_description || '',
       meta_keywords: currentProduct?.meta_keywords || '',
+      description: currentProduct?.description || '',
+      description_long: currentProduct?.description_long || '',
       url: currentProduct?.url || '',
       is_visible_particular: currentProduct?.is_visible_particular,
       is_visible_B2B: currentProduct?.is_visible_B2B,
@@ -926,6 +928,8 @@ export default function ProductNewEditForm({ id }: Props) {
           meta_title: (oldValue, newValue) => `Meta titel gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           meta_description: (oldValue, newValue) => `Meta beschrijving gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           meta_keywords: (oldValue, newValue) => `Meta keywords gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          description: (oldValue, newValue) => `Beschrijving gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
+          description_long: (oldValue, newValue) => `Lange beschrijving gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           url: (oldValue, newValue) => `URL gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           is_visible_particular: (oldValue, newValue) => `Zichtbaar voor particulier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           is_visible_B2B: (oldValue, newValue) => `Zichtbaar voor B2B gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
@@ -940,7 +944,7 @@ export default function ProductNewEditForm({ id }: Props) {
           'extra_location_stock', 'max_order_allowed_per_unit', 'delivery_time', 'important_information', 'extra_etiket_nl', 'extra_etiket_fr', 'languages_on_item_package', 'sell_count', 'is_only_for_logged_in_user', 'is_used', 'is_regular', 'is_featured', 'is_only_for_export', 'is_listed_on_marktplaats',
           'is_listed_on_2dehands', 'has_electronic_barcode', 'alternative_product_ean_1', 'alternative_product_ean_2', 'alternative_product_ean_3', 'size_x_value', 'size_y_value', 'pallet_x_value', 'pallet_y_value', 'pallet_z_value', 'pallet_max_weight_value', 'liter', 'liter_unit', 'is_clearance', 'is_party_sale',
           'sell_from_supplier', 'ean_to_follow_stock', 'is_follow_stock_with_ean', 'is_taken_from_another_package', 'is_taken_from_another_package_ean', 'size_z_value', 'size_unit', 'weight', 'weight_unit', 'volume_unit', 'volume', 'pallet_full_total_number', 'pallet_layer_total_number', 'is_brief_box', 'meta_title',
-          'meta_description', 'meta_keywords', 'url', 'is_visible_particular', 'is_visible_B2B', 'inhoud_number', 'inhoud_unit', 'inhoud_price'
+          'meta_description', 'meta_keywords', 'url', 'is_visible_particular', 'is_visible_B2B', 'inhoud_number', 'inhoud_unit', 'inhoud_price', 'description', 'description_long'
         ];
         fields.forEach((key) => {
           if (!customMessages[key]) return;
@@ -1546,6 +1550,18 @@ export default function ProductNewEditForm({ id }: Props) {
     const updatedImageList = imageList?.filter((item) => item !== image);
     setValue('images', updatedImageList);
   };
+
+  const renderDescription = (
+    <Grid xs={12}>
+      <Card>
+        <CardHeader title={t('description') || 'Description'} sx={{ mb: 2 }} />
+        <Stack spacing={3} sx={{ p: 3 }}>
+          <RHFTextField name="description" label={t('description') || 'Description'} multiline rows={3} />
+          <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
+        </Stack>
+      </Card>
+    </Grid>
+  );
 
   const handleDragEnd = (result) => {
     if (!result.destination) return; // dropped outside the list
@@ -2927,6 +2943,7 @@ export default function ProductNewEditForm({ id }: Props) {
             {renderExtra}
             {renderCategories}
             {renderImages}
+            {renderDescription}
             {renderActions}
 
             {currentProduct?.id && (
