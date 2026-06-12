@@ -521,7 +521,11 @@ export default function OrderDetailsInfo({
             {customer.email}
           </Link>
 
-          <Box sx={{ color: 'text.secondary' }}>{customer.relation_code}</Box>
+          <Box sx={{ color: 'text.secondary' }}>
+            {typeof customer.relation_code === 'object' && customer.relation_code !== null 
+              ? customer.relation_code.code || JSON.stringify(customer.relation_code) 
+              : customer.relation_code}
+          </Box>
           <Box>
             Betalingstermijn:
             <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
@@ -604,7 +608,10 @@ export default function OrderDetailsInfo({
               ))}
             </TextField>
           ) : (
-            shipmentMethods.find(method => method.value === selectedShipmentMethod)?.label || currentOrder?.delivery_details?.carrier
+            shipmentMethods.find(method => method.value === selectedShipmentMethod)?.label || 
+            (typeof currentOrder?.delivery_details?.carrier === 'object' && currentOrder?.delivery_details?.carrier !== null 
+              ? currentOrder.delivery_details.carrier.code || currentOrder.delivery_details.carrier.name || JSON.stringify(currentOrder.delivery_details.carrier)
+              : currentOrder?.delivery_details?.carrier)
           )}
         </Stack>
 
@@ -683,9 +690,9 @@ export default function OrderDetailsInfo({
               rel="noopener"
               sx={{ ml: 0.5 }}
             >
-              {updatedDeliveryDetails?.tracking_number}
+              {typeof updatedDeliveryDetails?.tracking_number === 'object' && updatedDeliveryDetails?.tracking_number !== null ? (updatedDeliveryDetails.tracking_number as any).code || JSON.stringify(updatedDeliveryDetails.tracking_number) : updatedDeliveryDetails?.tracking_number}
             </Link>
-          ) : updatedDeliveryDetails?.tracking_number}
+          ) : (typeof updatedDeliveryDetails?.tracking_number === 'object' && updatedDeliveryDetails?.tracking_number !== null ? (updatedDeliveryDetails.tracking_number as any).code || JSON.stringify(updatedDeliveryDetails.tracking_number) : updatedDeliveryDetails?.tracking_number)}
         </Stack>
         {isDeliveryEdit ? (
           <>
@@ -845,27 +852,26 @@ export default function OrderDetailsInfo({
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Naam:
               </Box>
-              {shippingAddress.first_name || ''}
+              {typeof shippingAddress.first_name === 'object' && shippingAddress.first_name !== null ? JSON.stringify(shippingAddress.first_name) : (shippingAddress.first_name || '')}
               {' '}
-              {shippingAddress.last_name || ''}
+              {typeof shippingAddress.last_name === 'object' && shippingAddress.last_name !== null ? JSON.stringify(shippingAddress.last_name) : (shippingAddress.last_name || '')}
             </Stack>
             <Stack direction="row">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Bedrijfsnaam:
               </Box>
-              {shippingAddress.business_name || ''}
+              {typeof shippingAddress.business_name === 'object' && shippingAddress.business_name !== null ? JSON.stringify(shippingAddress.business_name) : (shippingAddress.business_name || '')}
             </Stack>
             <Stack direction="row">
-
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Adres
               </Box>
-              {shippingAddress.street_name || ''} {shippingAddress.house_number || ''}{' '}
-              {shippingAddress.house_suffix || ''}
+              {typeof shippingAddress.street_name === 'object' && shippingAddress.street_name !== null ? JSON.stringify(shippingAddress.street_name) : (shippingAddress.street_name || '')} {typeof shippingAddress.house_number === 'object' && shippingAddress.house_number !== null ? JSON.stringify(shippingAddress.house_number) : (shippingAddress.house_number || '')}{' '}
+              {typeof shippingAddress.house_suffix === 'object' && shippingAddress.house_suffix !== null ? JSON.stringify(shippingAddress.house_suffix) : (shippingAddress.house_suffix || '')}
               <br />
-              {`${shippingAddress.zip_code || ''} ${shippingAddress.city || ''}`}
+              {`${typeof shippingAddress.zip_code === 'object' && shippingAddress.zip_code !== null ? JSON.stringify(shippingAddress.zip_code) : (shippingAddress.zip_code || '')} ${typeof shippingAddress.city === 'object' && shippingAddress.city !== null ? JSON.stringify(shippingAddress.city) : (shippingAddress.city || '')}`}
               <br />
-              {shippingAddress.country || ''}
+              {typeof shippingAddress.country === 'object' && shippingAddress.country !== null ? (shippingAddress.country as any).code || JSON.stringify(shippingAddress.country) : (shippingAddress.country || '')}
             </Stack>
 
             <Stack direction="row">
@@ -1011,24 +1017,24 @@ export default function OrderDetailsInfo({
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Naam:
               </Box>
-              {invoiceAddress.first_name || ''} {invoiceAddress.last_name || ''}
+              {typeof invoiceAddress.first_name === 'object' && invoiceAddress.first_name !== null ? JSON.stringify(invoiceAddress.first_name) : (invoiceAddress.first_name || '')} {typeof invoiceAddress.last_name === 'object' && invoiceAddress.last_name !== null ? JSON.stringify(invoiceAddress.last_name) : (invoiceAddress.last_name || '')}
             </Stack>
             <Stack direction="row">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Bedrijfsnaam:
               </Box>
-              {invoiceAddress.business_name || ''}
+              {typeof invoiceAddress.business_name === 'object' && invoiceAddress.business_name !== null ? JSON.stringify(invoiceAddress.business_name) : (invoiceAddress.business_name || '')}
             </Stack>
             <Stack direction="row">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Adres
               </Box>
-              {invoiceAddress.street_name || ''} {invoiceAddress.house_number || ''}{' '}
-              {invoiceAddress.house_suffix || ''}
+              {typeof invoiceAddress.street_name === 'object' && invoiceAddress.street_name !== null ? JSON.stringify(invoiceAddress.street_name) : (invoiceAddress.street_name || '')} {typeof invoiceAddress.house_number === 'object' && invoiceAddress.house_number !== null ? JSON.stringify(invoiceAddress.house_number) : (invoiceAddress.house_number || '')}{' '}
+              {typeof invoiceAddress.house_suffix === 'object' && invoiceAddress.house_suffix !== null ? JSON.stringify(invoiceAddress.house_suffix) : (invoiceAddress.house_suffix || '')}
               <br />
-              {`${invoiceAddress.zip_code || ''} ${invoiceAddress.city || ''}`}
+              {`${typeof invoiceAddress.zip_code === 'object' && invoiceAddress.zip_code !== null ? JSON.stringify(invoiceAddress.zip_code) : (invoiceAddress.zip_code || '')} ${typeof invoiceAddress.city === 'object' && invoiceAddress.city !== null ? JSON.stringify(invoiceAddress.city) : (invoiceAddress.city || '')}`}
               <br />
-              {invoiceAddress.country || ''}
+              {typeof invoiceAddress.country === 'object' && invoiceAddress.country !== null ? (invoiceAddress.country as any).code || JSON.stringify(invoiceAddress.country) : (invoiceAddress.country || '')}
             </Stack>
             <Stack direction="row">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
@@ -1057,13 +1063,13 @@ export default function OrderDetailsInfo({
           Betalingsverwijzing
         </Box>
         <Link
-          href={`https://my.mollie.com/dashboard/${'org_1065131'}/payments/${payment}`}
+          href={`https://my.mollie.com/dashboard/${'org_1065131'}/payments/${typeof payment === 'object' && payment !== null ? payment.code || payment.id || '' : payment}`}
           variant="body2"
           target="_blank"
           rel="noopener"
           sx={{ cursor: 'pointer' }}
         >
-          {payment}
+          {typeof payment === 'object' && payment !== null ? payment.code || payment.id || JSON.stringify(payment) : payment}
         </Link>
         {/* <Iconify icon="logos:mastercard" width={24} sx={{ ml: 0.5 }} /> */}
       </Stack>
