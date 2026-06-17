@@ -140,9 +140,9 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         notes: Yup.string(),
         eanSearch: Yup.string(),
         source_host: Yup.string().required('Source host is required'),
-        discount: Yup.number().min(0),
-        shipping: Yup.number().min(0),
-        taxes: Yup.number().min(0),
+        discount: Yup.number(),
+        shipping: Yup.number(),
+        taxes: Yup.number(),
         total: Yup.number(),
     });
 
@@ -372,6 +372,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                     "items": cartItems,
                     "cart_total_price": roundToTwoDecimals(subtotal),
                     "cart_total_price_vat": data.customer?.is_vat_document_printed ? roundToTwoDecimals(subtotal) : subtotalWithVat,
+                    "shipping_fee": data.shipping || 0,
                 },
                 "shipping_address": data.shipping_address,
                 "invoice_address": data.shipping_address,

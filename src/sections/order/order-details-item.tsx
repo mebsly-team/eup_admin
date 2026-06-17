@@ -472,15 +472,22 @@ export default function OrderDetailsItems({
   };
 
   const handleFeeChange = (key: string, value: any) => {
-    // Only allow numbers and decimal points
-    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+    // Allow numbers, decimal points, and minus sign
+    let sanitizedValue = value.replace(/[^0-9.-]/g, '');
+
+    // Ensure minus sign only appears at the start
+    const isNegative = sanitizedValue.startsWith('-');
+    sanitizedValue = sanitizedValue.replace(/-/g, '');
+    if (isNegative) {
+      sanitizedValue = '-' + sanitizedValue;
+    }
 
     // Prevent multiple decimal points
     const decimalCount = (sanitizedValue.match(/\./g) || []).length;
     if (decimalCount > 1) return;
 
-    // Allow empty string or valid number
-    if (sanitizedValue === '' || !isNaN(parseFloat(sanitizedValue))) {
+    // Allow empty string, just a minus sign, or valid number
+    if (sanitizedValue === '' || sanitizedValue === '-' || !isNaN(parseFloat(sanitizedValue))) {
       setEditedCart({ ...editedCart, [key]: sanitizedValue });
     }
   };
@@ -554,7 +561,7 @@ export default function OrderDetailsItems({
             type="text"
             inputProps={{
               inputMode: 'decimal',
-              pattern: '[0-9]*[.,]?[0-9]*',
+              pattern: '[-0-9]*[.,]?[0-9]*',
             }}
             value={editedCart?.shipping_fee ?? ''}
             onChange={(e) => handleFeeChange('shipping_fee', e.target.value)}
@@ -575,7 +582,7 @@ export default function OrderDetailsItems({
             type="text"
             inputProps={{
               inputMode: 'decimal',
-              pattern: '[0-9]*[.,]?[0-9]*',
+              pattern: '[-0-9]*[.,]?[0-9]*',
             }}
             value={editedCart?.transaction_fee ?? ''}
             onChange={(e) => handleFeeChange('transaction_fee', e.target.value)}
