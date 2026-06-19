@@ -37,7 +37,7 @@ type Props = {
   onPaymentChangeStatus: (newValue: string) => void;
   handleDownloadDocument: (value: { doc: string }) => void;
   sendToSnelstart: (value: { id: string }) => void;
-  handleSendInvoice: (value: { id: string }) => void;
+  handleSendInvoice: (value: { id: string, email?: string }) => void;
   handleSendOffer: (value: { id: string }) => void;
 };
 
@@ -55,9 +55,16 @@ export default function OrderDetailsToolbar({
 }: Props) {
   const popoverStatus = usePopover();
   const popover = usePopover();
+  const popoverSendInvoice = usePopover();
   const { t, onChangeLang } = useTranslate();
   const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
+
+  const invoiceEmails = [
+    { label: 'Email', value: currentOrder?.user?.email },
+    { label: 'Invoice Email', value: currentOrder?.user?.invoice_email },
+    { label: 'Invoice CC Email', value: currentOrder?.user?.invoice_cc_email }
+  ].filter(e => e.value);
 
   const [openDownloadDialog, setOpenDownloadDialog] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState({
@@ -284,8 +291,9 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="eva:email-fill" />}
-            onClick={() => handleSendInvoice({ id })}
-            disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
+            endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+            onClick={popoverSendInvoice.onOpen}
+            disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0}
             sx={{
               backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -352,6 +360,30 @@ export default function OrderDetailsToolbar({
             }}
           >
             {option.label}
+          </MenuItem>
+        ))}
+      </CustomPopover>
+      <CustomPopover
+        open={popoverSendInvoice.open}
+        onClose={popoverSendInvoice.onClose}
+        arrow="top-right"
+        sx={{ width: 240 }}
+      >
+        {invoiceEmails.map((email) => (
+          <MenuItem
+            key={email.value}
+            onClick={() => {
+              popoverSendInvoice.onClose();
+              handleSendInvoice({ id, email: email.value });
+            }}
+            sx={{ py: 1 }}
+          >
+            <Stack spacing={0.5}>
+              <Typography variant="body2">{email.label}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {email.value}
+              </Typography>
+            </Stack>
           </MenuItem>
         ))}
       </CustomPopover>

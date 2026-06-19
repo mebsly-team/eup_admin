@@ -16,6 +16,8 @@ import IconButton from '@mui/material/IconButton';
 import Autocomplete from '@mui/material/Autocomplete';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import axios from 'axios';
@@ -134,6 +136,12 @@ export default function OrderDetailsInfo({
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
   const [isAddressEdit, setIsAddressEdit] = useState(false);
   const [isInvoiceAddressEdit, setIsInvoiceAddressEdit] = useState(false);
+  
+  const [shippingAddressSource, setShippingAddressSource] = useState<'order' | 'user' | 'other'>('order');
+  const [selectedShippingUserAddressId, setSelectedShippingUserAddressId] = useState<string>('');
+  const [invoiceAddressSource, setInvoiceAddressSource] = useState<'order' | 'user' | 'other'>('order');
+  const [selectedInvoiceUserAddressId, setSelectedInvoiceUserAddressId] = useState<string>('');
+
   const [isInvoiceDateEdit, setIsInvoiceDateEdit] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
   const [totalWeight, setTotalWeight] = useState('');
@@ -239,10 +247,12 @@ export default function OrderDetailsInfo({
   // Function to handle address update
   const handleAddressEditClick = (e) => {
     setUpdatedShippingAddress(shippingAddress);
+    setShippingAddressSource('order');
     setIsAddressEdit(!isAddressEdit);
   };
   const handleInvoiceAddressEditClick = (e) => {
     setUpdatedInvoiceAddress(invoiceAddress || {});
+    setInvoiceAddressSource('order');
     setIsInvoiceAddressEdit(!isInvoiceAddressEdit);
   };
   // Function to handle delivery update
@@ -279,28 +289,46 @@ export default function OrderDetailsInfo({
     setIsInvoiceDateEdit(false);
   };
   const handleAddressUpdate = (e) => {
+    let addressToSave: any = {};
+    if (shippingAddressSource === 'order') {
+      addressToSave = shippingAddress;
+    } else if (shippingAddressSource === 'user') {
+      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === selectedShippingUserAddressId) || {};
+    } else {
+      addressToSave = updatedShippingAddress;
+    }
+
     const newHistory = currentOrder.history;
     newHistory.push({
       date: new Date(),
-      event: `Adres gewijzigd: ${JSON.stringify(updatedShippingAddress)}, door ${user?.email}`,
+      event: `Adres gewijzigd: ${JSON.stringify(addressToSave)}, door ${user?.email}`,
     });
     console.log("🚀 ~ handleAddressUpdate ~ shipping_address before update:", { ...shippingAddress })
-    console.log("🚀 ~ handleAddressUpdate ~ shipping_address after update:", { ...shippingAddress, ...updatedShippingAddress })
+    console.log("🚀 ~ handleAddressUpdate ~ shipping_address after update:", { ...shippingAddress, ...addressToSave })
     updateOrder(orderId, {
-      shipping_address: { ...shippingAddress, ...updatedShippingAddress },
+      shipping_address: { ...shippingAddress, ...addressToSave },
       history: newHistory,
     });
     setIsAddressEdit(false);
   };
 
   const handleInvoiceAddressUpdate = (e) => {
+    let addressToSave: any = {};
+    if (invoiceAddressSource === 'order') {
+      addressToSave = invoiceAddress;
+    } else if (invoiceAddressSource === 'user') {
+      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === selectedInvoiceUserAddressId) || {};
+    } else {
+      addressToSave = updatedInvoiceAddress;
+    }
+
     const newHistory = currentOrder.history;
     newHistory.push({
       date: new Date(),
-      event: `Factuuradres gewijzigd: ${JSON.stringify(updatedInvoiceAddress)}, door ${user?.email}`,
+      event: `Factuuradres gewijzigd: ${JSON.stringify(addressToSave)}, door ${user?.email}`,
     });
     updateOrder(orderId, {
-      invoice_address: { ...invoiceAddress, ...updatedInvoiceAddress },
+      invoice_address: { ...invoiceAddress, ...addressToSave },
       history: newHistory,
     });
     setIsInvoiceAddressEdit(false);
@@ -746,7 +774,47 @@ export default function OrderDetailsInfo({
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         {isAddressEdit ? (
           <Stack spacing={1.5}>
-            <Stack direction="row" alignItems="center">
+            <RadioGroup
+              row
+              value={shippingAddressSource}
+              onChange={(e) => {
+                const val = e.target.value as 'order' | 'user' | 'other';
+                setShippingAddressSource(val);
+                if (val === 'other') {
+                  setUpdatedShippingAddress({
+                    first_name: '', last_name: '', business_name: '', street_name: '', house_number: '', house_suffix: '', zip_code: '', city: '', country: 'NL', phone_number: ''
+                  });
+                  setSelectedCountry('NL');
+                } else if (val === 'order') {
+                  setUpdatedShippingAddress(shippingAddress);
+                  setSelectedCountry(shippingAddress?.country || 'NL');
+                }
+              }}
+            >
+              <FormControlLabel value="order" control={<Radio />} label="Order adresi" />
+              <FormControlLabel value="user" control={<Radio />} label="User adresleri" />
+              <FormControlLabel value="other" control={<Radio />} label="Diğer" />
+            </RadioGroup>
+
+            {shippingAddressSource === 'user' && (
+              <TextField
+                select
+                fullWidth
+                label="Selecteer adres"
+                value={selectedShippingUserAddressId}
+                onChange={(e) => setSelectedShippingUserAddressId(e.target.value)}
+              >
+                {((customer as any)?.addresses || []).map((addr: any) => (
+                  <MenuItem key={addr.id} value={addr.id}>
+                    {`${addr.street_name || ''} ${addr.house_number || ''}, ${addr.zip_code || ''} ${addr.city || ''}`}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
+            {shippingAddressSource === 'other' && (
+              <Stack spacing={1.5}>
+                <Stack direction="row" alignItems="center">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Voornaam:
               </Box>
@@ -837,6 +905,8 @@ export default function OrderDetailsInfo({
               }
               fullWidth
             />
+            </Stack>
+            )}
             <Stack direction="row" spacing={1}>
               <Button onClick={handleAddressUpdate} variant="contained">
                 Opslaan
@@ -899,7 +969,45 @@ export default function OrderDetailsInfo({
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         {isInvoiceAddressEdit ? (
           <Stack spacing={1.5}>
-            <Stack direction="row" alignItems="center">
+            <RadioGroup
+              row
+              value={invoiceAddressSource}
+              onChange={(e) => {
+                const val = e.target.value as 'order' | 'user' | 'other';
+                setInvoiceAddressSource(val);
+                if (val === 'other') {
+                  setUpdatedInvoiceAddress({
+                    first_name: '', last_name: '', business_name: '', street_name: '', house_number: '', house_suffix: '', zip_code: '', city: '', country: 'NL', phone_number: ''
+                  });
+                } else if (val === 'order') {
+                  setUpdatedInvoiceAddress(invoiceAddress || {});
+                }
+              }}
+            >
+              <FormControlLabel value="order" control={<Radio />} label="Order adresi" />
+              <FormControlLabel value="user" control={<Radio />} label="User adresleri" />
+              <FormControlLabel value="other" control={<Radio />} label="Diğer" />
+            </RadioGroup>
+
+            {invoiceAddressSource === 'user' && (
+              <TextField
+                select
+                fullWidth
+                label="Selecteer adres"
+                value={selectedInvoiceUserAddressId}
+                onChange={(e) => setSelectedInvoiceUserAddressId(e.target.value)}
+              >
+                {((customer as any)?.addresses || []).map((addr: any) => (
+                  <MenuItem key={addr.id} value={addr.id}>
+                    {`${addr.street_name || ''} ${addr.house_number || ''}, ${addr.zip_code || ''} ${addr.city || ''}`}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
+            {invoiceAddressSource === 'other' && (
+              <Stack spacing={1.5}>
+                <Stack direction="row" alignItems="center">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Voornaam:
               </Box>
@@ -1002,6 +1110,8 @@ export default function OrderDetailsInfo({
               onChange={(e) => setUpdatedInvoiceAddress({ ...updatedInvoiceAddress, phone_number: e.target.value })}
               fullWidth
             />
+            </Stack>
+            )}
             <Stack direction="row" spacing={1}>
               <Button onClick={handleInvoiceAddressUpdate} variant="contained">
                 Opslaan

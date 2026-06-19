@@ -203,9 +203,9 @@ export default function OrderDetailsView({ id }: Props) {
       enqueueSnackbar(t('Niet gelukt om offer naar klant te verzenden.'), { variant: 'error' });
     }
   };
-  const handleSendInvoice = async ({ id }: { id: string }) => {
+  const handleSendInvoice = async ({ id, email }: { id: string, email?: string }) => {
     try {
-      const response = await axiosInstance.post(`/send_invoice_to_customer/${id}/`);
+      const response = await axiosInstance.post(`/send_invoice_to_customer/${id}/`, email ? { email } : {});
       if (response.status === 200 || response.status === 201) {
         console.log("🚀 ~ handleSendInvoice ~ response:", response)
         enqueueSnackbar(t('Invoice is succesvol verzonden naar klant'), { variant: 'success' });
