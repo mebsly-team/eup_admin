@@ -378,7 +378,7 @@ export default function PurchaseEditView() {
                     onChange={(newValue) => {
                       setCurrentPurchase((prev) => ({
                         ...prev!,
-                        purchase_invoice_date: newValue?.toISOString().split('T')[0] || '',
+                        purchase_invoice_date: newValue ? format(new Date(newValue), 'yyyy-MM-dd') : '',
                       }));
                     }}
                     slotProps={{
@@ -638,7 +638,7 @@ export default function PurchaseEditView() {
                                 ...(prev as any),
                                 ...offer,
                                 items: mappedItems,
-                                purchase_invoice_date: new Date().toISOString().split('T')[0],
+                                purchase_invoice_date: format(new Date(), 'yyyy-MM-dd'),
                               }) as any);
                               calculateTotals(mappedItems);
                               enqueueSnackbar(t('offer_imported_successfully'), { variant: 'success' });

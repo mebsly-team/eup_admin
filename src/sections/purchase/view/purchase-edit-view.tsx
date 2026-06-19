@@ -805,7 +805,7 @@ export default function PurchaseEditView() {
                     onChange={(newValue) => {
                       setCurrentPurchase((prev) => ({
                         ...prev!,
-                        purchase_invoice_date: newValue?.toISOString().split('T')[0] || '',
+                        purchase_invoice_date: newValue ? format(new Date(newValue), 'yyyy-MM-dd') : '',
                       }));
                     }}
                   />

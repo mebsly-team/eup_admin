@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'src/routes/hooks';
+import { format } from 'date-fns';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -281,7 +282,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
 
     try {
       setSaving(true);
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
       const changes = {
         supplier: String(supplierId) !== String(currentPurchase?.supplier),
         purchase_invoice_date: currentPurchase?.purchase_invoice_date || today,
@@ -488,7 +489,7 @@ export function PurchaseOfferView({ id: supplierId }: { id: string }) {
                     onChange={(newValue) => {
                       setCurrentPurchase((prev) => ({
                         ...prev!,
-                        purchase_invoice_date: newValue?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+                        purchase_invoice_date: newValue ? format(new Date(newValue), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
                       }));
                     }}
                   />
