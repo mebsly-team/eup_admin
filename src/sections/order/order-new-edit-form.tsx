@@ -12,6 +12,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import TextField from '@mui/material/TextField';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -48,6 +52,7 @@ interface IOrderFormCustomer {
     relation_code?: string;
     customer_percentage?: number;
     is_vat_document_printed?: boolean;
+    addresses?: any[];
 }
 
 interface IOrderFormData {
@@ -57,6 +62,15 @@ interface IOrderFormData {
     payment_method: string;
     items: IOrderFormItem[];
     shipping_address: {
+        street_name: string;
+        house_number: string;
+        house_suffix: string;
+        zip_code: string;
+        city: string;
+        country: string;
+        phone_number: string;
+    };
+    invoice_address: {
         street_name: string;
         house_number: string;
         house_suffix: string;
@@ -117,6 +131,12 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     const [loading, setLoading] = useState(false);
     const [customerSearchTerm, setCustomerSearchTerm] = useState('');
 
+    const [shippingAddressSource, setShippingAddressSource] = useState<'user' | 'other'>('other');
+    const [selectedShippingUserAddressId, setSelectedShippingUserAddressId] = useState<string>('');
+    const [invoiceAddressSource, setInvoiceAddressSource] = useState<'same_as_shipping' | 'user' | 'other'>('same_as_shipping');
+    const [selectedInvoiceUserAddressId, setSelectedInvoiceUserAddressId] = useState<string>('');
+    const [prevCustomerId, setPrevCustomerId] = useState<string | null>(null);
+
     const NewOrderSchema = Yup.object().shape({
         customer: Yup.mixed().nullable(),
         status: Yup.string(),
@@ -129,6 +149,15 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             vat_rate: Yup.number().required('VAT rate is required'),
         })),
         shipping_address: Yup.object().shape({
+            street_name: Yup.string(),
+            house_number: Yup.string(),
+            house_suffix: Yup.string(),
+            zip_code: Yup.string(),
+            city: Yup.string(),
+            country: Yup.string(),
+            phone_number: Yup.string(),
+        }),
+        invoice_address: Yup.object().shape({
             street_name: Yup.string(),
             house_number: Yup.string(),
             house_suffix: Yup.string(),
@@ -161,6 +190,15 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             country: 'NL',
             phone_number: '',
         },
+        invoice_address: {
+            street_name: '',
+            house_number: '',
+            house_suffix: '',
+            zip_code: '',
+            city: '',
+            country: 'NL',
+            phone_number: '',
+        },
         notes: '',
         eanSearch: '',
         source_host: 'europowerbv.com',
@@ -184,6 +222,34 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
     } = methods;
 
     const watchedItems = watch('items') || [];
+    const customer = watch('customer');
+
+    useEffect(() => {
+        if (customer?.id !== prevCustomerId) {
+            setPrevCustomerId(customer?.id || null);
+            if (customer && customer.addresses && customer.addresses.length > 0) {
+                setShippingAddressSource('user');
+                setSelectedShippingUserAddressId(customer.addresses[0].id);
+                populateAddress('shipping', customer.addresses[0]);
+                
+                setInvoiceAddressSource('same_as_shipping');
+            } else {
+                setShippingAddressSource('other');
+                setInvoiceAddressSource('same_as_shipping');
+            }
+        }
+    }, [customer?.id, prevCustomerId, customer]);
+
+    const populateAddress = (type: 'shipping' | 'invoice', address: any) => {
+        const prefix = type === 'shipping' ? 'shipping_address' : 'invoice_address';
+        setValue(`${prefix}.street_name` as any, address.street_name || '');
+        setValue(`${prefix}.house_number` as any, address.house_number || '');
+        setValue(`${prefix}.house_suffix` as any, address.house_suffix || '');
+        setValue(`${prefix}.zip_code` as any, address.zip_code || '');
+        setValue(`${prefix}.city` as any, address.city || '');
+        setValue(`${prefix}.country` as any, address.country || 'NL');
+        setValue(`${prefix}.phone_number` as any, address.phone_number || '');
+    };
 
     useEffect(() => {
         // No initial loading of products
@@ -375,7 +441,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                     "shipping_fee": data.shipping || 0,
                 },
                 "shipping_address": data.shipping_address,
-                "invoice_address": data.shipping_address,
+                "invoice_address": invoiceAddressSource === 'same_as_shipping' ? data.shipping_address : data.invoice_address,
                 "delivery_details": {
                     "shipping_method": data.shipping_method,
                     "payment_method": data.payment_method
@@ -744,30 +810,147 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                 </Grid>
 
                 <Grid xs={12} md={4}>
-                    {/* <Card sx={{ p: 3 }}>
+                    <Card sx={{ p: 3 }}>
                         <Typography variant="h6" sx={{ mb: 3 }}>
-                            Shipping Address
+                            Verzending
                         </Typography>
 
-                        <Stack spacing={3}>
-                            <RHFTextField name="shipping_address.street_name" label="Street Name" />
+                        {customer && customer.addresses && customer.addresses.length > 0 && (
+                            <RadioGroup
+                                row
+                                value={shippingAddressSource}
+                                onChange={(e) => {
+                                    const val = e.target.value as 'user' | 'other';
+                                    setShippingAddressSource(val);
+                                    if (val === 'user') {
+                                        const addr = customer.addresses?.find(a => a.id === selectedShippingUserAddressId);
+                                        if (addr) populateAddress('shipping', addr);
+                                    } else {
+                                        populateAddress('shipping', {});
+                                    }
+                                }}
+                            >
+                                <FormControlLabel value="user" control={<Radio />} label="Klant adres" />
+                                <FormControlLabel value="other" control={<Radio />} label="Anders" />
+                            </RadioGroup>
+                        )}
+
+                        {shippingAddressSource === 'user' && customer && customer.addresses && customer.addresses.length > 0 && (
+                            <TextField
+                                select
+                                fullWidth
+                                label="Selecteer Adres"
+                                value={selectedShippingUserAddressId}
+                                onChange={(e) => {
+                                    const addrId = e.target.value;
+                                    setSelectedShippingUserAddressId(addrId);
+                                    const addr = customer.addresses?.find((a: any) => a.id === addrId);
+                                    if (addr) populateAddress('shipping', addr);
+                                }}
+                                sx={{ mb: 3, mt: 2 }}
+                            >
+                                {customer.addresses.map((addr: any) => (
+                                    <MenuItem key={addr.id} value={addr.id}>
+                                        {addr.street_name} {addr.house_number}{addr.house_suffix ? `-${addr.house_suffix}` : ''}, {addr.zip_code} {addr.city}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        )}
+
+                        <Stack spacing={3} sx={{ mt: shippingAddressSource === 'user' ? 0 : 2 }}>
+                            <RHFTextField name="shipping_address.street_name" label="Straatnaam" />
                             <Box sx={{ display: 'flex', gap: 2 }}>
-                                <RHFTextField name="shipping_address.house_number" label="House Number" />
-                                <RHFTextField name="shipping_address.house_suffix" label="Suffix" />
+                                <RHFTextField name="shipping_address.house_number" label="Huisnummer" />
+                                <RHFTextField name="shipping_address.house_suffix" label="Toev" />
                             </Box>
                             <Box sx={{ display: 'flex', gap: 2 }}>
-                                <RHFTextField name="shipping_address.zip_code" label="Zip Code" />
-                                <RHFTextField name="shipping_address.city" label="City" />
+                                <RHFTextField name="shipping_address.zip_code" label="Postcode" />
+                                <RHFTextField name="shipping_address.city" label="Plaats" />
                             </Box>
-                            <RHFSelect name="shipping_address.country" label="Country">
+                            <RHFSelect name="shipping_address.country" label="Land">
                                 <MenuItem value="NL">Netherlands</MenuItem>
                                 <MenuItem value="BE">Belgium</MenuItem>
                                 <MenuItem value="DE">Germany</MenuItem>
                                 <MenuItem value="FR">France</MenuItem>
                             </RHFSelect>
-                            <RHFTextField name="shipping_address.phone_number" label="Phone Number" />
+                            <RHFTextField name="shipping_address.phone_number" label="Telefoonnummer" />
                         </Stack>
-                    </Card> */}
+                    </Card>
+
+                    <Card sx={{ p: 3, mt: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 3 }}>
+                            Factuuradres
+                        </Typography>
+
+                        <RadioGroup
+                            row
+                            value={invoiceAddressSource}
+                            onChange={(e) => {
+                                const val = e.target.value as 'same_as_shipping' | 'user' | 'other';
+                                setInvoiceAddressSource(val);
+                                if (val === 'user') {
+                                    const addr = customer?.addresses?.find(a => a.id === selectedInvoiceUserAddressId) || customer?.addresses?.[0];
+                                    if (addr) {
+                                        setSelectedInvoiceUserAddressId(addr.id);
+                                        populateAddress('invoice', addr);
+                                    }
+                                } else if (val === 'other') {
+                                    populateAddress('invoice', {});
+                                }
+                            }}
+                        >
+                            <FormControlLabel value="same_as_shipping" control={<Radio />} label="Zelfde als verzendadres" />
+                            {customer && customer.addresses && customer.addresses.length > 0 && (
+                                <FormControlLabel value="user" control={<Radio />} label="Klant adres" />
+                            )}
+                            <FormControlLabel value="other" control={<Radio />} label="Anders" />
+                        </RadioGroup>
+
+                        {invoiceAddressSource !== 'same_as_shipping' && (
+                            <>
+                                {invoiceAddressSource === 'user' && customer && customer.addresses && customer.addresses.length > 0 && (
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        label="Selecteer Adres"
+                                        value={selectedInvoiceUserAddressId}
+                                        onChange={(e) => {
+                                            const addrId = e.target.value;
+                                            setSelectedInvoiceUserAddressId(addrId);
+                                            const addr = customer.addresses?.find((a: any) => a.id === addrId);
+                                            if (addr) populateAddress('invoice', addr);
+                                        }}
+                                        sx={{ mb: 3, mt: 2 }}
+                                    >
+                                        {customer.addresses.map((addr: any) => (
+                                            <MenuItem key={addr.id} value={addr.id}>
+                                                {addr.street_name} {addr.house_number}{addr.house_suffix ? `-${addr.house_suffix}` : ''}, {addr.zip_code} {addr.city}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                )}
+
+                                <Stack spacing={3} sx={{ mt: invoiceAddressSource === 'user' ? 0 : 2 }}>
+                                    <RHFTextField name="invoice_address.street_name" label="Straatnaam" />
+                                    <Box sx={{ display: 'flex', gap: 2 }}>
+                                        <RHFTextField name="invoice_address.house_number" label="Huisnummer" />
+                                        <RHFTextField name="invoice_address.house_suffix" label="Toev" />
+                                    </Box>
+                                    <Box sx={{ display: 'flex', gap: 2 }}>
+                                        <RHFTextField name="invoice_address.zip_code" label="Postcode" />
+                                        <RHFTextField name="invoice_address.city" label="Plaats" />
+                                    </Box>
+                                    <RHFSelect name="invoice_address.country" label="Land">
+                                        <MenuItem value="NL">Netherlands</MenuItem>
+                                        <MenuItem value="BE">Belgium</MenuItem>
+                                        <MenuItem value="DE">Germany</MenuItem>
+                                        <MenuItem value="FR">France</MenuItem>
+                                    </RHFSelect>
+                                    <RHFTextField name="invoice_address.phone_number" label="Telefoonnummer" />
+                                </Stack>
+                            </>
+                        )}
+                    </Card>
 
                     <Card sx={{ p: 3, mt: 3 }}>
                         <Typography variant="h6" sx={{ mb: 3 }}>
