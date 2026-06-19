@@ -262,7 +262,12 @@ export default function OrderDetailsInfo({
     setIsAddressEdit(!isAddressEdit);
   };
   const handleInvoiceAddressEditClick = (e) => {
-    setUpdatedInvoiceAddress(invoiceAddress || {});
+    setUpdatedInvoiceAddress({
+      ...(invoiceAddress || {}),
+      first_name: invoiceAddress?.first_name || shippingAddress?.first_name || '',
+      last_name: invoiceAddress?.last_name || shippingAddress?.last_name || '',
+      business_name: invoiceAddress?.business_name || shippingAddress?.business_name || '',
+    });
     setInvoiceAddressSource('order');
     setIsInvoiceAddressEdit(!isInvoiceAddressEdit);
   };
@@ -975,7 +980,12 @@ export default function OrderDetailsInfo({
                     first_name: '', last_name: '', business_name: '', street_name: '', house_number: '', house_suffix: '', zip_code: '', city: '', country: 'NL', phone_number: ''
                   });
                 } else if (val === 'order') {
-                  setUpdatedInvoiceAddress(invoiceAddress || {});
+                  setUpdatedInvoiceAddress({
+                    ...(invoiceAddress || {}),
+                    first_name: invoiceAddress?.first_name || shippingAddress?.first_name || '',
+                    last_name: invoiceAddress?.last_name || shippingAddress?.last_name || '',
+                    business_name: invoiceAddress?.business_name || shippingAddress?.business_name || '',
+                  });
                 }
               }}
             >
@@ -1108,13 +1118,13 @@ export default function OrderDetailsInfo({
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Naam:
               </Box>
-              {typeof invoiceAddress.first_name === 'object' && invoiceAddress.first_name !== null ? JSON.stringify(invoiceAddress.first_name) : (invoiceAddress.first_name || '')} {typeof invoiceAddress.last_name === 'object' && invoiceAddress.last_name !== null ? JSON.stringify(invoiceAddress.last_name) : (invoiceAddress.last_name || '')}
+              {typeof invoiceAddress.first_name === 'object' && invoiceAddress.first_name !== null ? JSON.stringify(invoiceAddress.first_name) : (invoiceAddress.first_name || shippingAddress?.first_name || '')} {typeof invoiceAddress.last_name === 'object' && invoiceAddress.last_name !== null ? JSON.stringify(invoiceAddress.last_name) : (invoiceAddress.last_name || shippingAddress?.last_name || '')}
             </Stack>
             <Stack direction="row">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
                 Bedrijfsnaam:
               </Box>
-              {typeof invoiceAddress.business_name === 'object' && invoiceAddress.business_name !== null ? JSON.stringify(invoiceAddress.business_name) : (invoiceAddress.business_name || '')}
+              {typeof invoiceAddress.business_name === 'object' && invoiceAddress.business_name !== null ? JSON.stringify(invoiceAddress.business_name) : (invoiceAddress.business_name || shippingAddress?.business_name || '')}
             </Stack>
             <Stack direction="row">
               <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
