@@ -117,7 +117,18 @@ const shipmentMethods = [
   { label: "DHL", value: "dhl" },
   { label: "Europower", value: "europower" },
   { label: "DPD", value: "dpd" },
-];
+const formatAddress = (addr: any) => {
+  if (!addr) return '';
+  const street = addr.street_name || '';
+  const house = addr.house_number || '';
+  const suffix = addr.house_suffix ? ` ${addr.house_suffix}` : '';
+  const zip = addr.zip_code || '';
+  const city = addr.city || '';
+  const country = typeof addr.country === 'object' ? addr.country?.code || '' : addr.country || '';
+  const business = addr.business_name ? `${addr.business_name}, ` : '';
+  const name = addr.first_name || addr.last_name ? `${addr.first_name || ''} ${addr.last_name || ''}, ` : '';
+  return `${name}${business}${street} ${house}${suffix}, ${zip} ${city}, ${country}`.trim().replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/ ,/g, ',');
+};
 
 export default function OrderDetailsInfo({
   customer,
@@ -137,10 +148,8 @@ export default function OrderDetailsInfo({
   const [isAddressEdit, setIsAddressEdit] = useState(false);
   const [isInvoiceAddressEdit, setIsInvoiceAddressEdit] = useState(false);
   
-  const [shippingAddressSource, setShippingAddressSource] = useState<'order' | 'user' | 'other'>('order');
-  const [selectedShippingUserAddressId, setSelectedShippingUserAddressId] = useState<string>('');
-  const [invoiceAddressSource, setInvoiceAddressSource] = useState<'order' | 'user' | 'other'>('order');
-  const [selectedInvoiceUserAddressId, setSelectedInvoiceUserAddressId] = useState<string>('');
+  const [shippingAddressSource, setShippingAddressSource] = useState<string>('order');
+  const [invoiceAddressSource, setInvoiceAddressSource] = useState<string>('order');
 
   const [isInvoiceDateEdit, setIsInvoiceDateEdit] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
@@ -292,10 +301,10 @@ export default function OrderDetailsInfo({
     let addressToSave: any = {};
     if (shippingAddressSource === 'order') {
       addressToSave = shippingAddress;
-    } else if (shippingAddressSource === 'user') {
-      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === selectedShippingUserAddressId) || {};
-    } else {
+    } else if (shippingAddressSource === 'other') {
       addressToSave = updatedShippingAddress;
+    } else {
+      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === shippingAddressSource) || {};
     }
 
     const newHistory = currentOrder.history;
@@ -316,10 +325,10 @@ export default function OrderDetailsInfo({
     let addressToSave: any = {};
     if (invoiceAddressSource === 'order') {
       addressToSave = invoiceAddress;
-    } else if (invoiceAddressSource === 'user') {
-      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === selectedInvoiceUserAddressId) || {};
-    } else {
+    } else if (invoiceAddressSource === 'other') {
       addressToSave = updatedInvoiceAddress;
+    } else {
+      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === invoiceAddressSource) || {};
     }
 
     const newHistory = currentOrder.history;
@@ -775,10 +784,9 @@ export default function OrderDetailsInfo({
         {isAddressEdit ? (
           <Stack spacing={1.5}>
             <RadioGroup
-              row
               value={shippingAddressSource}
               onChange={(e) => {
-                const val = e.target.value as 'order' | 'user' | 'other';
+                const val = e.target.value;
                 setShippingAddressSource(val);
                 if (val === 'other') {
                   setUpdatedShippingAddress({
@@ -791,26 +799,12 @@ export default function OrderDetailsInfo({
                 }
               }}
             >
-              <FormControlLabel value="order" control={<Radio />} label="Order adresi" />
-              <FormControlLabel value="user" control={<Radio />} label="User adresleri" />
-              <FormControlLabel value="other" control={<Radio />} label="Diğer" />
+              <FormControlLabel value="order" control={<Radio />} label={`Huidig adres: ${formatAddress(shippingAddress)}`} />
+              {((customer as any)?.addresses || []).map((addr: any) => (
+                <FormControlLabel key={addr.id} value={addr.id} control={<Radio />} label={formatAddress(addr)} />
+              ))}
+              <FormControlLabel value="other" control={<Radio />} label="Anders" />
             </RadioGroup>
-
-            {shippingAddressSource === 'user' && (
-              <TextField
-                select
-                fullWidth
-                label="Selecteer adres"
-                value={selectedShippingUserAddressId}
-                onChange={(e) => setSelectedShippingUserAddressId(e.target.value)}
-              >
-                {((customer as any)?.addresses || []).map((addr: any) => (
-                  <MenuItem key={addr.id} value={addr.id}>
-                    {`${addr.street_name || ''} ${addr.house_number || ''}, ${addr.zip_code || ''} ${addr.city || ''}`}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
 
             {shippingAddressSource === 'other' && (
               <Stack spacing={1.5}>
@@ -970,10 +964,9 @@ export default function OrderDetailsInfo({
         {isInvoiceAddressEdit ? (
           <Stack spacing={1.5}>
             <RadioGroup
-              row
               value={invoiceAddressSource}
               onChange={(e) => {
-                const val = e.target.value as 'order' | 'user' | 'other';
+                const val = e.target.value;
                 setInvoiceAddressSource(val);
                 if (val === 'other') {
                   setUpdatedInvoiceAddress({
@@ -984,26 +977,12 @@ export default function OrderDetailsInfo({
                 }
               }}
             >
-              <FormControlLabel value="order" control={<Radio />} label="Order adresi" />
-              <FormControlLabel value="user" control={<Radio />} label="User adresleri" />
-              <FormControlLabel value="other" control={<Radio />} label="Diğer" />
+              <FormControlLabel value="order" control={<Radio />} label={`Huidig adres: ${formatAddress(invoiceAddress)}`} />
+              {((customer as any)?.addresses || []).map((addr: any) => (
+                <FormControlLabel key={addr.id} value={addr.id} control={<Radio />} label={formatAddress(addr)} />
+              ))}
+              <FormControlLabel value="other" control={<Radio />} label="Anders" />
             </RadioGroup>
-
-            {invoiceAddressSource === 'user' && (
-              <TextField
-                select
-                fullWidth
-                label="Selecteer adres"
-                value={selectedInvoiceUserAddressId}
-                onChange={(e) => setSelectedInvoiceUserAddressId(e.target.value)}
-              >
-                {((customer as any)?.addresses || []).map((addr: any) => (
-                  <MenuItem key={addr.id} value={addr.id}>
-                    {`${addr.street_name || ''} ${addr.house_number || ''}, ${addr.zip_code || ''} ${addr.city || ''}`}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
 
             {invoiceAddressSource === 'other' && (
               <Stack spacing={1.5}>
