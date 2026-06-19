@@ -117,6 +117,8 @@ const shipmentMethods = [
   { label: "DHL", value: "dhl" },
   { label: "Europower", value: "europower" },
   { label: "DPD", value: "dpd" },
+];
+
 const formatAddress = (addr: any) => {
   if (!addr) return '';
   const street = addr.street_name || '';
