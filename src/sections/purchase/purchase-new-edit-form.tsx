@@ -106,12 +106,17 @@ export default function PurchaseEditView() {
 
         // Ensure items is initialized as an array
         const currentItems = currentPurchase?.items || [];
+        const nonYellow = currentItems.filter((i) => !i.isNewItem);
+        const yellow = currentItems.filter((i) => i.isNewItem);
+        
+        const newItemsArray = [newItem, ...yellow, ...nonYellow];
+
         setCurrentPurchase((prev) => ({
           ...prev!,
-          items: [...currentItems, newItem],
+          items: newItemsArray,
         }) as any);
         setEanSearch('');
-        calculateTotals([...currentItems, newItem]);
+        calculateTotals(newItemsArray);
       } else {
         enqueueSnackbar(t('product_not_found'), { variant: 'error' });
       }
