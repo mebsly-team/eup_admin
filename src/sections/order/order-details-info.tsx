@@ -319,10 +319,13 @@ export default function OrderDetailsInfo({
       date: new Date(),
       event: `Adres gewijzigd: ${JSON.stringify(addressToSave)}, door ${user?.email}`,
     });
+    const baseAddr = Array.isArray(shippingAddress) ? (shippingAddress[0] || {}) : (shippingAddress || {});
+    const finalAddress = { ...baseAddr, ...addressToSave };
+
     console.log("🚀 ~ handleAddressUpdate ~ shipping_address before update:", { ...shippingAddress })
-    console.log("🚀 ~ handleAddressUpdate ~ shipping_address after update:", { ...shippingAddress, ...addressToSave })
+    console.log("🚀 ~ handleAddressUpdate ~ shipping_address after update:", finalAddress)
     updateOrder(orderId, {
-      shipping_address: { ...shippingAddress, ...addressToSave },
+      shipping_address: Array.isArray(shippingAddress) ? [finalAddress] : finalAddress,
       history: newHistory,
     });
     setIsAddressEdit(false);
@@ -343,8 +346,11 @@ export default function OrderDetailsInfo({
       date: new Date(),
       event: `Factuuradres gewijzigd: ${JSON.stringify(addressToSave)}, door ${user?.email}`,
     });
+    const baseAddr = Array.isArray(invoiceAddress) ? (invoiceAddress[0] || {}) : (invoiceAddress || {});
+    const finalAddress = { ...baseAddr, ...addressToSave };
+
     updateOrder(orderId, {
-      invoice_address: { ...invoiceAddress, ...addressToSave },
+      invoice_address: Array.isArray(invoiceAddress) ? [finalAddress] : finalAddress,
       history: newHistory,
     });
     setIsInvoiceAddressEdit(false);
