@@ -289,6 +289,31 @@ export default function OrderDetailsInfo({
     setIsDeliveryEdit(!isDeliveryEdit);
   };
 
+  const handleUploadShippingLabel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axiosInstance.post(`/upload_shipping_label/${orderId}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.status === 200) {
+        const updatedDetails = {
+          ...currentOrder.delivery_details,
+          shipping_label_url: response.data.url
+        };
+        updateOrder(orderId, { delivery_details: updatedDetails });
+      }
+    } catch (error) {
+      console.error('Error uploading shipping label:', error);
+    }
+  };
+
   // Function to handle invoice date edit
   const handleInvoiceDateEditClick = () => {
     setIsInvoiceDateEdit(!isInvoiceDateEdit);
@@ -637,13 +662,34 @@ export default function OrderDetailsInfo({
       <CardHeader
         title="Levering"
         action={
-          <IconButton onClick={handleDeliveryEditClick}>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
+          <Stack direction="row" spacing={1}>
+            <IconButton component="label">
+              <Iconify icon="solar:upload-bold" />
+              <input type="file" hidden onChange={handleUploadShippingLabel} accept="application/pdf" />
+            </IconButton>
+            <IconButton onClick={handleDeliveryEditClick}>
+              <Iconify icon="solar:pen-bold" />
+            </IconButton>
+          </Stack>
         }
       />
 
-      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+      {currentOrder?.delivery_details?.shipping_label_url ? (
+        <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+          <Box sx={{ color: 'text.secondary' }}>
+            <Link 
+              href={currentOrder.delivery_details.shipping_label_url.startsWith('http') ? currentOrder.delivery_details.shipping_label_url : `${HOST_API}${currentOrder.delivery_details.shipping_label_url}`} 
+              target="_blank" 
+              rel="noopener"
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <Iconify icon="solar:download-bold" />
+              Download Shipping Label
+            </Link>
+          </Box>
+        </Stack>
+      ) : (
+        <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         {/* Carrier Select Box */}
         <Box sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
           Totaalgewicht: {currentOrder?.cart?.cart_total_weight?.toFixed(2)} kg
@@ -792,6 +838,7 @@ export default function OrderDetailsInfo({
           </>
         ) : null}
       </Stack>
+      )}
     </>
   );
 
