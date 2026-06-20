@@ -144,6 +144,18 @@ export default function OrderDetailsInfo({
 }: Props) {
   console.log("🚀 ~ customer:", customer)
   const { user } = useAuthContext();
+  const [userAddresses, setUserAddresses] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (customer?.id) {
+      axiosInstance.get(`/users/${customer.id}/?nocache=true`)
+        .then((res) => {
+          setUserAddresses(res.data?.addresses || []);
+        })
+        .catch((error) => console.error('Error fetching user addresses:', error));
+    }
+  }, [customer?.id]);
+
   const [updatedShippingAddress, setUpdatedShippingAddress] = useState(shippingAddress);
   const [updatedInvoiceAddress, setUpdatedInvoiceAddress] = useState(invoiceAddress || {});
   const [isDeliveryEdit, setIsDeliveryEdit] = useState(false);
@@ -311,7 +323,7 @@ export default function OrderDetailsInfo({
     } else if (shippingAddressSource === 'other') {
       addressToSave = updatedShippingAddress;
     } else {
-      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === shippingAddressSource) || {};
+      addressToSave = userAddresses.find((a: any) => a.id === shippingAddressSource) || {};
     }
 
     const newHistory = currentOrder.history;
@@ -338,7 +350,7 @@ export default function OrderDetailsInfo({
     } else if (invoiceAddressSource === 'other') {
       addressToSave = updatedInvoiceAddress;
     } else {
-      addressToSave = (customer as any)?.addresses?.find((a: any) => a.id === invoiceAddressSource) || {};
+      addressToSave = userAddresses.find((a: any) => a.id === invoiceAddressSource) || {};
     }
 
     const newHistory = currentOrder.history;
@@ -813,7 +825,7 @@ export default function OrderDetailsInfo({
               }}
             >
               <FormControlLabel value="order" control={<Radio />} label={`Huidig adres: ${formatAddress(shippingAddress)}`} />
-              {((customer as any)?.addresses || []).map((addr: any) => (
+              {userAddresses.map((addr: any) => (
                 <FormControlLabel key={addr.id} value={addr.id} control={<Radio />} label={formatAddress(addr)} />
               ))}
               <FormControlLabel value="other" control={<Radio />} label="Anders" />
@@ -996,7 +1008,7 @@ export default function OrderDetailsInfo({
               }}
             >
               <FormControlLabel value="order" control={<Radio />} label={`Huidig adres: ${formatAddress(invoiceAddress)}`} />
-              {((customer as any)?.addresses || []).map((addr: any) => (
+              {userAddresses.map((addr: any) => (
                 <FormControlLabel key={addr.id} value={addr.id} control={<Radio />} label={formatAddress(addr)} />
               ))}
               <FormControlLabel value="other" control={<Radio />} label="Anders" />
