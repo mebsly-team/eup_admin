@@ -157,7 +157,7 @@ export default function OrderDetailsToolbar({
           <Stack spacing={0.5}>
             <Stack spacing={1} direction="row" alignItems="center">
               <Typography variant="h4"> Order {id} </Typography>
-              <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`} alt="icon" />
+              <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : source_host === "bol.com" ? "bol.ico" : "kooptop.png"}`} alt="icon" />
               {extra_note === "offer" ? <Label variant="soft" color="info" onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>{t("offer")}</Label> :
                 <Label variant="soft" color={is_paid ? 'success' : 'error'} onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>
                   {t(is_paid ? 'paid' : 'unpaid')}

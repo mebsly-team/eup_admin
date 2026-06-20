@@ -117,7 +117,7 @@ export default function OrderTableRow({
             },
           }}
         >
-          {id} {" "} <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : "kooptop.png"}`} alt="icon" />
+          {id} {" "} <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : source_host === "bol.com" ? "bol.ico" : "kooptop.png"}`} alt="icon" />
         </Box>
       </TableCell>
 

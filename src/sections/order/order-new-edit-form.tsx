@@ -609,6 +609,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                             <RHFSelect name="source_host" label={t('source_host')}>
                                 <MenuItem value="europowerbv.com">europowerbv.com</MenuItem>
                                 <MenuItem value="kooptop.com">kooptop.com</MenuItem>
+                                <MenuItem value="bol.com">bol.com</MenuItem>
                             </RHFSelect>
 
                             {/* <RHFSelect name="status" label="Status">
