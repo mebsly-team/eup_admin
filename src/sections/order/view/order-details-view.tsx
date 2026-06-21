@@ -272,6 +272,7 @@ export default function OrderDetailsView({ id }: Props) {
         sendToSnelstart={sendToSnelstart}
         handleSendInvoice={handleSendInvoice}
         handleSendOffer={handleSendOffer}
+        updateOrder={updateOrder}
       />
 
       <Grid container spacing={3}>

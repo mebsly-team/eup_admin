@@ -13,6 +13,8 @@ import FormGroup from '@mui/material/FormGroup';
 import { useState } from 'react';
 
 import { fDateTime } from 'src/utils/format-time';
+import axiosInstance from 'src/utils/axios';
+import { HOST_API } from 'src/config-global';
 
 import { useTranslate } from 'src/locales';
 
@@ -39,6 +41,7 @@ type Props = {
   sendToSnelstart: (value: { id: string }) => void;
   handleSendInvoice: (value: { id: string, email?: string }) => void;
   handleSendOffer: (value: { id: string }) => void;
+  updateOrder: (id: string, data: any) => Promise<any>;
 };
 
 export default function OrderDetailsToolbar({
@@ -51,7 +54,8 @@ export default function OrderDetailsToolbar({
   handleSendInvoice,
   paymentStatusOptions,
   onPaymentChangeStatus,
-  handleSendOffer
+  handleSendOffer,
+  updateOrder
 }: Props) {
   const popoverStatus = usePopover();
   const popover = usePopover();
@@ -84,6 +88,31 @@ export default function OrderDetailsToolbar({
       handleDownloadDocument({ doc: 'invoice' });
     }
     setOpenDownloadDialog(false);
+  };
+
+  const handleUploadBolPakbon = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axiosInstance.post(`/upload_bol_pakbon/${id}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.status === 200) {
+        const updatedDetails = {
+          ...currentOrder.delivery_details,
+          bol_pakbon_url: response.data.url
+        };
+        updateOrder(id, { delivery_details: updatedDetails });
+      }
+    } catch (error) {
+      console.error('Error uploading bol pakbon:', error);
+    }
   };
 
   const checkHistoryForStatusChange = (statusToCheck: string) => {
@@ -254,24 +283,57 @@ export default function OrderDetailsToolbar({
           >
             {t('werkbon')}
           </Button>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={() => {
-              handleDownloadDocument({ doc: 'pakbon' });
-              onChangeStatus('packing');
-            }}
-            disabled={!currentOrder?.delivery_details?.tracking_number}
-            sx={{
-              backgroundColor: isPackingCompleted ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: isPackingCompleted ? 'lightgreen' : undefined,
-              }
-            }}
-          >
-            {t('packing')}
-          </Button>
+          
+          {source_host === 'bol.com' && currentOrder?.delivery_details?.bol_pakbon_url ? (
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<Iconify icon="solar:download-bold" />}
+              onClick={() => window.open(
+                currentOrder.delivery_details.bol_pakbon_url.startsWith('http') 
+                  ? currentOrder.delivery_details.bol_pakbon_url 
+                  : `${HOST_API}${currentOrder.delivery_details.bol_pakbon_url}`, 
+                '_blank'
+              )}
+              sx={{
+                backgroundColor: 'lightgreen',
+              }}
+            >
+              Download Bol Pakbon
+            </Button>
+          ) : (
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+              onClick={() => {
+                handleDownloadDocument({ doc: 'pakbon' });
+                onChangeStatus('packing');
+              }}
+              disabled={!currentOrder?.delivery_details?.tracking_number}
+              sx={{
+                backgroundColor: isPackingCompleted ? 'lightgreen' : 'transparent',
+                '&:hover': {
+                  backgroundColor: isPackingCompleted ? 'lightgreen' : undefined,
+                }
+              }}
+            >
+              {t('packing')}
+            </Button>
+          )}
+
+          {source_host === 'bol.com' && !currentOrder?.delivery_details?.bol_pakbon_url && (
+            <Button
+              component="label"
+              color="inherit"
+              variant="outlined"
+              startIcon={<Iconify icon="solar:upload-bold" />}
+            >
+              Upload Bol Pakbon
+              <input type="file" hidden onChange={handleUploadBolPakbon} accept="application/pdf" />
+            </Button>
+          )}
+
           <Button
             color="inherit"
             variant="outlined"
