@@ -348,7 +348,7 @@ export default function OrderDetailsInfo({
     } else if (shippingAddressSource === 'other') {
       addressToSave = updatedShippingAddress;
     } else {
-      addressToSave = userAddresses.find((a: any) => a.id === shippingAddressSource) || {};
+      addressToSave = userAddresses.find((a: any) => String(a.id) === String(shippingAddressSource)) || {};
     }
 
     const newHistory = currentOrder.history;
@@ -375,7 +375,7 @@ export default function OrderDetailsInfo({
     } else if (invoiceAddressSource === 'other') {
       addressToSave = updatedInvoiceAddress;
     } else {
-      addressToSave = userAddresses.find((a: any) => a.id === invoiceAddressSource) || {};
+      addressToSave = userAddresses.find((a: any) => String(a.id) === String(invoiceAddressSource)) || {};
     }
 
     const newHistory = currentOrder.history;
