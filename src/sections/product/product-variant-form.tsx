@@ -63,7 +63,7 @@ const styles = {
     },
   },
 };
-const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
+const unitOrder = ['piece', 'rol', 'set', 'zak', 'fles', 'pot', 'package', 'box', 'pallet_layer', 'pallet_full'];
 
 export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
   const router = useRouter();
@@ -589,9 +589,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
               value={selectedUnitValues}
               onChange={(e) => setSelectedUnitValues(e.target.value)}
             >
-              <MenuItem value="piece">{t('piece')}</MenuItem>
               <MenuItem value="package">{t('package')}</MenuItem>
-              <MenuItem value="rol">{t('rol')}</MenuItem>
               <MenuItem value="box">{t('box')}</MenuItem>
               <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
               <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>

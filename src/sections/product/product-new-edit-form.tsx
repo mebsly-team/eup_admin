@@ -1224,10 +1224,13 @@ export default function ProductNewEditForm({ id }: Props) {
             {isUnitEdit ? (
               <RHFSelect name="unit" label={t('unit')} labelColor="violet">
                 <MenuItem value="piece">{t('piece')}</MenuItem>
-                <MenuItem value="package">{t('package')}</MenuItem>
                 <MenuItem value="rol">{t('rol')}</MenuItem>
+                <MenuItem value="set">{t('set')}</MenuItem>
+                <MenuItem value="zak">{t('zak')}</MenuItem>
+                <MenuItem value="fles">{t('fles')}</MenuItem>
+                <MenuItem value="pot">{t('pot')}</MenuItem>
+                <MenuItem value="package">{t('package')}</MenuItem>
                 <MenuItem value="box">{t('box')}</MenuItem>
-
                 <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
                 <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
               </RHFSelect>
