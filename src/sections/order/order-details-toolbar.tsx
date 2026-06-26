@@ -339,7 +339,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => handleDownloadDocument({ doc: 'invoice' })}
-            disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
+            disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number)}
             sx={{
               backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -355,7 +355,7 @@ export default function OrderDetailsToolbar({
             startIcon={<Iconify icon="eva:email-fill" />}
             endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
             onClick={popoverSendInvoice.onOpen}
-            disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0}
+            disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0)}
             sx={{
               backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -370,7 +370,7 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
             onClick={() => sendToSnelstart({ id })}
-            disabled={!currentOrder?.delivery_details?.tracking_number}
+            disabled={source_host !== 'bol.com' && !currentOrder?.delivery_details?.tracking_number}
             sx={{
               backgroundColor: is_sent_to_snelstart ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -478,7 +478,7 @@ export default function OrderDetailsToolbar({
                 <Checkbox
                   checked={selectedDocs.invoice}
                   onChange={(e) => setSelectedDocs({ ...selectedDocs, invoice: e.target.checked })}
-                  disabled={!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number}
+                  disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number)}
                 />
               }
               label="Factuur PDF"
