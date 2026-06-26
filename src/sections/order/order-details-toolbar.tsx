@@ -290,9 +290,9 @@ export default function OrderDetailsToolbar({
               variant="outlined"
               startIcon={<Iconify icon="solar:download-bold" />}
               onClick={() => window.open(
-                currentOrder.delivery_details.bol_pakbon_url.startsWith('http') 
+                (currentOrder.delivery_details.bol_pakbon_url.startsWith('http') 
                   ? currentOrder.delivery_details.bol_pakbon_url 
-                  : `${HOST_API}${currentOrder.delivery_details.bol_pakbon_url}`, 
+                  : `${HOST_API}${currentOrder.delivery_details.bol_pakbon_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com'), 
                 '_blank'
               )}
               sx={{

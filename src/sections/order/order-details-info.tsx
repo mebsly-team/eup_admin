@@ -678,7 +678,7 @@ export default function OrderDetailsInfo({
         <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
           <Box sx={{ color: 'text.secondary' }}>
             <Link 
-              href={currentOrder.delivery_details.shipping_label_url.startsWith('http') ? currentOrder.delivery_details.shipping_label_url : `${HOST_API}${currentOrder.delivery_details.shipping_label_url}`} 
+              href={(currentOrder.delivery_details.shipping_label_url.startsWith('http') ? currentOrder.delivery_details.shipping_label_url : `${HOST_API}${currentOrder.delivery_details.shipping_label_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com')} 
               target="_blank" 
               rel="noopener"
               sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
