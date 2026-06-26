@@ -2932,7 +2932,7 @@ export default function ProductNewEditForm({ id }: Props) {
     );
   return (
     <FormProvider methods={methods} onSubmit={handleFormSubmit}>
-      {!currentProduct?.is_variant ? renderTabs : null}
+      {!(currentProduct?.is_variant || ['package', 'box', 'pallet_layer', 'pallet_full'].includes(currentProduct?.unit)) ? renderTabs : null}
 
       {activeTab === 0 ? (
         <Grid container spacing={1}>
