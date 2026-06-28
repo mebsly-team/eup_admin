@@ -1621,7 +1621,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
           title={t('description_seo')} 
           sx={{ mb: 2 }} 
           action={
-            <IconButton onClick={generateSeoData} disabled={isGeneratingSeo}>
+            <IconButton sx={{ color: 'purple' }} onClick={generateSeoData} disabled={isGeneratingSeo}>
               <Iconify icon={isGeneratingSeo ? "eos-icons:loading" : "mdi:magic"} />
             </IconButton>
           }
@@ -1629,7 +1629,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
         <Stack spacing={3} sx={{ p: 3 }}>
           <RHFTextField name="description" label={t('description') || 'Description'} multiline rows={3} />
           <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
-          <RHFTextField name="meta_title" label={t('meta_title')} labelColor="violet" />
+          <RHFTextField name="meta_title" label={t('meta_title')} />
           <RHFTextField name="meta_description" label={t('meta_description')} /> 
           <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
         </Stack>
