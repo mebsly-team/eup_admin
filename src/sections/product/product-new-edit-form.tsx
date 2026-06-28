@@ -120,6 +120,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
   const [pendingChanges, setPendingChanges] = useState([]);
   const canToggle = allowedEmails.includes(user?.email);
+  const [isGeneratingSeo, setIsGeneratingSeo] = useState(false);
 
   useEffect(() => {
     if (tab) {
@@ -1553,10 +1554,78 @@ export default function ProductNewEditForm({ id }: Props) {
     setValue('images', updatedImageList);
   };
 
+  const generateSeoData = async () => {
+    try {
+      setIsGeneratingSeo(true);
+      const title = getValues('title') || '';
+      const article_code = getValues('article_code') || '';
+      const parent_title = parentProduct?.title || '';
+      const description = getValues('description') || '';
+      const description_long = getValues('description_long') || '';
+      const meta_title = getValues('meta_title') || '';
+      const meta_description = getValues('meta_description') || '';
+      const meta_keywords = getValues('meta_keywords') || '';
+
+      const prompt = `You are an expert SEO assistant for an e-commerce website.
+The product details:
+Title: ${title}
+Article Code: ${article_code}
+Parent Product Title: ${parent_title}
+
+Please fill in ONLY the empty fields among these with SEO-optimized Dutch content. Do NOT change fields that already have content.
+Empty fields to fill:
+${!description ? '- description' : ''}
+${!description_long ? '- description_long' : ''}
+${!meta_title ? '- meta_title' : ''}
+${!meta_description ? '- meta_description' : ''}
+${!meta_keywords ? '- meta_keywords' : ''}
+
+Return strictly a JSON object with the generated keys and their string values.`;
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: '~openai/gpt-latest',
+          response_format: { type: "json_object" },
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content;
+      if (content) {
+        const parsed = JSON.parse(content);
+        if (!description && parsed.description) setValue('description', parsed.description);
+        if (!description_long && parsed.description_long) setValue('description_long', parsed.description_long);
+        if (!meta_title && parsed.meta_title) setValue('meta_title', parsed.meta_title);
+        if (!meta_description && parsed.meta_description) setValue('meta_description', parsed.meta_description);
+        if (!meta_keywords && parsed.meta_keywords) setValue('meta_keywords', parsed.meta_keywords);
+        enqueueSnackbar(t('seo_generated_successfully') || 'SEO data generated');
+      }
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar(t('seo_generation_failed') || 'SEO generation failed', { variant: 'error' });
+    } finally {
+      setIsGeneratingSeo(false);
+    }
+  };
+
   const renderDescription = (
     <Grid xs={12}>
       <Card>
-        <CardHeader title={t('description_seo')} sx={{ mb: 2 }} />
+        <CardHeader 
+          title={t('description_seo')} 
+          sx={{ mb: 2 }} 
+          action={
+            <IconButton onClick={generateSeoData} disabled={isGeneratingSeo}>
+              <Iconify icon={isGeneratingSeo ? "eos-icons:loading" : "mdi:magic"} />
+            </IconButton>
+          }
+        />
         <Stack spacing={3} sx={{ p: 3 }}>
           <RHFTextField name="description" label={t('description') || 'Description'} multiline rows={3} />
           <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
