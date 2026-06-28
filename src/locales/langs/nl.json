@@ -108,6 +108,7 @@
     "title": "Nederlands"
   },
   "description": "Beschrijving",
+  "description_seo": "Beschrijving/SEO",
   "description_is_required": "Beschrijving is verplicht",
   "description_long": "Lange beschrijving",
   "details": "Details",
@@ -395,6 +396,7 @@
   "send_email": "E-mail verzenden",
   "settings": "Instellingen",
   "seo_meta_data": "SEO / Meta Data",
+  "titles": "Titels",
   "share": "Delen",
   "shop": "Winkel",
   "shopping_cart": "Winkelwagen",

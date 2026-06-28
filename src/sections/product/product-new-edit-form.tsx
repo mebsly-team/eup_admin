@@ -1337,13 +1337,10 @@ export default function ProductNewEditForm({ id }: Props) {
   const renderMeta = (
     <Grid xs={12}>
       <Card>
-        <CardHeader title={t('seo_meta_data')} />
+        <CardHeader title={t('titles')} />
         <Stack spacing={2} sx={{ p: 3 }}>
           <RHFTextField name="title" label={t('product_title')} labelColor="violet" />
           <RHFTextField name="title_long" label={t('product_title_long')} labelColor="violet" />
-          <RHFTextField name="meta_title" label={t('meta_title')} labelColor="violet" />
-          <RHFTextField name="meta_description" label={t('meta_description')} /> 
-          <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
           {/* <RHFTextField name="url" label={t('url')} /> */}
         </Stack>
       </Card>
@@ -1559,10 +1556,13 @@ export default function ProductNewEditForm({ id }: Props) {
   const renderDescription = (
     <Grid xs={12}>
       <Card>
-        <CardHeader title={t('description') || 'Description'} sx={{ mb: 2 }} />
+        <CardHeader title={t('description_seo')} sx={{ mb: 2 }} />
         <Stack spacing={3} sx={{ p: 3 }}>
           <RHFTextField name="description" label={t('description') || 'Description'} multiline rows={3} />
           <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
+          <RHFTextField name="meta_title" label={t('meta_title')} labelColor="violet" />
+          <RHFTextField name="meta_description" label={t('meta_description')} /> 
+          <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
         </Stack>
       </Card>
     </Grid>
