@@ -113,6 +113,7 @@ export interface IProductItem {
   is_product_active: boolean;
   is_party_sale: boolean;
   is_clearance: boolean;
+  sell_first: boolean;
   sell_from_supplier: boolean;
   vat: number;
   stock_alert: boolean;

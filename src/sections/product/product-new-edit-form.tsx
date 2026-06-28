@@ -439,6 +439,7 @@ export default function ProductNewEditForm({ id }: Props) {
       liter: currentProduct?.liter || 0,
       liter_unit: currentProduct?.liter_unit || '',
       is_clearance: currentProduct?.is_clearance || false,
+      sell_first: currentProduct?.sell_first || false,
       is_party_sale: currentProduct?.is_party_sale || false,
       sell_from_supplier: currentProduct?.sell_from_supplier || false,
       ean_to_follow_stock: currentProduct?.ean_to_follow_stock || '',
@@ -910,6 +911,7 @@ export default function ProductNewEditForm({ id }: Props) {
           liter: (oldValue, newValue) => `Liter gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           liter_unit: (oldValue, newValue) => `Liter eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           is_clearance: (oldValue, newValue) => `Opruiming gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          sell_first: (oldValue, newValue) => `Sell First gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           is_party_sale: (oldValue, newValue) => `Partijverkoop gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           sell_from_supplier: (oldValue, newValue) => `Verkoop van leverancier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           ean_to_follow_stock: (oldValue, newValue) => `EAN voor voorraad volgen gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
@@ -942,7 +944,7 @@ export default function ProductNewEditForm({ id }: Props) {
           'brand', 'quantity_per_unit', 'vat', 'unit', 'color', 'size', 'variants', 'parent_product', 'min_price_to_sell', 'hs_code', 'chip', 'supplier_article_code', 'categories', 'images', 'variant_discount', 'expiry_date', 'unit_in_pallet', 'comm_channel_after_out_of_stock',
           'ordered_in_progress_stock', 'number_in_order', 'number_in_offer', 'number_in_pakbon', 'number_in_confirmation', 'number_in_werkbon', 'number_in_other', 'order_unit_amount', 'min_order_amount', 'min_stock_value', 'max_stock_at_rack', 'stock_at_supplier', 'location_stock',
           'extra_location_stock', 'max_order_allowed_per_unit', 'delivery_time', 'important_information', 'extra_etiket_nl', 'extra_etiket_fr', 'languages_on_item_package', 'sell_count', 'is_only_for_logged_in_user', 'is_used', 'is_regular', 'is_featured', 'is_only_for_export', 'is_listed_on_marktplaats',
-          'is_listed_on_2dehands', 'has_electronic_barcode', 'alternative_product_ean_1', 'alternative_product_ean_2', 'alternative_product_ean_3', 'size_x_value', 'size_y_value', 'pallet_x_value', 'pallet_y_value', 'pallet_z_value', 'pallet_max_weight_value', 'liter', 'liter_unit', 'is_clearance', 'is_party_sale',
+          'is_listed_on_2dehands', 'has_electronic_barcode', 'alternative_product_ean_1', 'alternative_product_ean_2', 'alternative_product_ean_3', 'size_x_value', 'size_y_value', 'pallet_x_value', 'pallet_y_value', 'pallet_z_value', 'pallet_max_weight_value', 'liter', 'liter_unit', 'is_clearance', 'sell_first', 'is_party_sale',
           'sell_from_supplier', 'ean_to_follow_stock', 'is_follow_stock_with_ean', 'is_taken_from_another_package', 'is_taken_from_another_package_ean', 'size_z_value', 'size_unit', 'weight', 'weight_unit', 'volume_unit', 'volume', 'pallet_full_total_number', 'pallet_layer_total_number', 'is_brief_box', 'meta_title',
           'meta_description', 'meta_keywords', 'url', 'is_visible_particular', 'is_visible_B2B', 'inhoud_number', 'inhoud_unit', 'inhoud_price', 'description', 'description_long'
         ];
@@ -2201,6 +2203,16 @@ export default function ProductNewEditForm({ id }: Props) {
               label={
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                   {t('is_clearance')}
+                </Typography>
+              }
+              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+            />
+            <RHFSwitch
+              name="sell_first"
+              labelPlacement="start"
+              label={
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  Sell First
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
