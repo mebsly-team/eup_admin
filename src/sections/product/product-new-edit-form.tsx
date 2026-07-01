@@ -1232,10 +1232,14 @@ export default function ProductNewEditForm({ id }: Props) {
                 <MenuItem value="zak">{t('zak')}</MenuItem>
                 <MenuItem value="fles">{t('fles')}</MenuItem>
                 <MenuItem value="pot">{t('pot')}</MenuItem>
-                <MenuItem value="package">{t('package')}</MenuItem>
-                <MenuItem value="box">{t('box')}</MenuItem>
-                <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-                <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+                {(parentProduct?.id) && (
+                  <>
+                    <MenuItem value="package">{t('package')}</MenuItem>
+                    <MenuItem value="box">{t('box')}</MenuItem>
+                    <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
+                    <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
+                  </>
+                )}
               </RHFSelect>
             ) : getValues('unit') ? (
               <Box>
@@ -1617,9 +1621,9 @@ Return strictly a JSON object with the generated keys and their string values.`;
   const renderDescription = (
     <Grid xs={12}>
       <Card>
-        <CardHeader 
-          title={t('description_seo')} 
-          sx={{ mb: 2 }} 
+        <CardHeader
+          title={t('description_seo')}
+          sx={{ mb: 2 }}
           action={
             <IconButton sx={{ color: 'purple' }} onClick={generateSeoData} disabled={isGeneratingSeo}>
               <Iconify icon={isGeneratingSeo ? "eos-icons:loading" : "mdi:magic"} />
@@ -1630,7 +1634,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
           <RHFTextField name="description" label={t('description') || 'Description'} multiline rows={3} />
           <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
           <RHFTextField name="meta_title" label={t('meta_title')} />
-          <RHFTextField name="meta_description" label={t('meta_description')} /> 
+          <RHFTextField name="meta_description" label={t('meta_description')} />
           <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
         </Stack>
       </Card>
@@ -2922,14 +2926,14 @@ Return strictly a JSON object with the generated keys and their string values.`;
               label={t('overall_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
-              // labelColor="violet"
+            // labelColor="violet"
             />
             <RHFTextField
               name="free_stock"
               label={t('free_stock')}
               type="number"
               onBlur={handleEmptyNumbers}
-              // labelColor="violet"
+            // labelColor="violet"
             />
             {/* <RHFTextField
               name="ordered_in_progress_stock"
@@ -2997,7 +3001,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
               label={t('sell_count')}
               type="number"
               onBlur={handleEmptyNumbers}
-              // labelColor="violet"
+            // labelColor="violet"
             />
           </Box>
         </Stack>
