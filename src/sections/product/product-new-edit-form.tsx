@@ -912,7 +912,7 @@ export default function ProductNewEditForm({ id }: Props) {
           liter: (oldValue, newValue) => `Liter gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           liter_unit: (oldValue, newValue) => `Liter eenheid gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           is_clearance: (oldValue, newValue) => `Opruiming gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
-          sell_first: (oldValue, newValue) => `Sell First gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
+          sell_first: (oldValue, newValue) => `Verkoop eerst gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           is_party_sale: (oldValue, newValue) => `Partijverkoop gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           sell_from_supplier: (oldValue, newValue) => `Verkoop van leverancier gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           ean_to_follow_stock: (oldValue, newValue) => `EAN voor voorraad volgen gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
@@ -2285,7 +2285,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
               labelPlacement="start"
               label={
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  Sell First
+                  {t('sell_first')}
                 </Typography>
               }
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}

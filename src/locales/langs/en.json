@@ -329,5 +329,6 @@
   "weight_unit": "Weight Unit",
   "wholesaler": "wholesaler",
   "work_in_progress_stock": "Work in Progress Stock",
-  "yellow": "yellow"
+  "yellow": "yellow",
+  "sell_first": "Sell First"
 }

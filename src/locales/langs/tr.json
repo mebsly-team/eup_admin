@@ -320,5 +320,6 @@
   "weight_unit": "Ağırlık Birimi",
   "wholesaler": "Toptancı",
   "work_in_progress_stock": "Devam Eden Stok",
-  "yellow": "sarı"
+  "yellow": "sarı",
+  "sell_first": "Önce Sat"
 }
