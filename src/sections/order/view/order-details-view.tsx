@@ -103,7 +103,20 @@ export default function OrderDetailsView({ id }: Props) {
     try {
       const response = await axiosInstance.get(`/orders/${orderId}/?all=true`);
       if (response.status === 200) {
-        const { data } = response;
+        let { data } = response;
+        
+        if (!data.is_paid) {
+          try {
+            const checkResp = await axiosInstance.get(`/orders/${orderId}/check_snelstart_payment/`);
+            if (checkResp.status === 200 && checkResp.data.is_paid) {
+              data.is_paid = true;
+              enqueueSnackbar(t('Order payment status updated from Snelstart'), { variant: 'success' });
+            }
+          } catch (checkError) {
+            console.error('Error checking Snelstart payment:', checkError);
+          }
+        }
+        
         setCurrentOrder(data || {});
       } else {
         console.error('Failed to fetch order, status code:', response.status);
