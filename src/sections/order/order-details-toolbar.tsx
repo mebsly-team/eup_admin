@@ -21,6 +21,7 @@ import { useTranslate } from 'src/locales';
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -61,6 +62,7 @@ export default function OrderDetailsToolbar({
   const popover = usePopover();
   const popoverSendInvoice = usePopover();
   const { t, onChangeLang } = useTranslate();
+  const { user } = useAuthContext();
   const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
 
@@ -104,11 +106,16 @@ export default function OrderDetailsToolbar({
         },
       });
       if (response.status === 200) {
+        const history = currentOrder.history || [];
+        history.push({
+          date: new Date(),
+          event: `Bol pakbon geüpload door ${user?.email || 'gebruiker'}`,
+        });
         const updatedDetails = {
           ...currentOrder.delivery_details,
           bol_pakbon_url: response.data.url
         };
-        updateOrder(id, { delivery_details: updatedDetails });
+        updateOrder(id, { delivery_details: updatedDetails, history });
       }
     } catch (error) {
       console.error('Error uploading bol pakbon:', error);
@@ -289,12 +296,21 @@ export default function OrderDetailsToolbar({
               color="inherit"
               variant="outlined"
               startIcon={<Iconify icon="solar:download-bold" />}
-              onClick={() => window.open(
-                (currentOrder.delivery_details.bol_pakbon_url.startsWith('http') 
-                  ? currentOrder.delivery_details.bol_pakbon_url 
-                  : `${HOST_API}${currentOrder.delivery_details.bol_pakbon_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com'), 
-                '_blank'
-              )}
+              onClick={() => {
+                const history = currentOrder.history || [];
+                history.push({
+                  date: new Date(),
+                  event: `Bol pakbon gedownload door ${user?.email || 'gebruiker'}`,
+                });
+                updateOrder(id, { history });
+
+                window.open(
+                  (currentOrder.delivery_details.bol_pakbon_url.startsWith('http') 
+                    ? currentOrder.delivery_details.bol_pakbon_url 
+                    : `${HOST_API}${currentOrder.delivery_details.bol_pakbon_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com'), 
+                  '_blank'
+                );
+              }}
               sx={{
                 backgroundColor: 'lightgreen',
               }}

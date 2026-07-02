@@ -303,11 +303,17 @@ export default function OrderDetailsInfo({
         },
       });
       if (response.status === 200) {
+        const history = currentOrder.history || [];
+        history.push({
+          date: new Date(),
+          event: `Shipping label geüpload door ${user?.email || 'gebruiker'}`,
+        });
+
         const updatedDetails = {
           ...currentOrder.delivery_details,
           shipping_label_url: response.data.url
         };
-        updateOrder(orderId, { delivery_details: updatedDetails });
+        updateOrder(orderId, { delivery_details: updatedDetails, history });
       }
     } catch (error) {
       console.error('Error uploading shipping label:', error);
@@ -678,10 +684,21 @@ export default function OrderDetailsInfo({
         <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
           <Box sx={{ color: 'text.secondary' }}>
             <Link 
-              href={(currentOrder.delivery_details.shipping_label_url.startsWith('http') ? currentOrder.delivery_details.shipping_label_url : `${HOST_API}${currentOrder.delivery_details.shipping_label_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com')} 
-              target="_blank" 
-              rel="noopener"
-              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              component="button"
+              onClick={() => {
+                const history = currentOrder.history || [];
+                history.push({
+                  date: new Date(),
+                  event: `Shipping label gedownload door ${user?.email || 'gebruiker'}`,
+                });
+                updateOrder(orderId, { history });
+
+                window.open(
+                  (currentOrder.delivery_details.shipping_label_url.startsWith('http') ? currentOrder.delivery_details.shipping_label_url : `${HOST_API}${currentOrder.delivery_details.shipping_label_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com'),
+                  '_blank'
+                );
+              }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
             >
               <Iconify icon="solar:download-bold" />
               Download Shipping Label
