@@ -224,7 +224,7 @@ export default function OrderListView() {
   const handleSyncPayments = async () => {
     setIsSyncing(true);
     try {
-      const response = await axiosInstance.get('/orders/sync_snelstart_payments/');
+      const response = await axiosInstance.get('/orders/sync-snelstart-payments/');
       enqueueSnackbar(response.data.message || 'Payments synced successfully', { variant: 'success' });
       getAll(); // Refresh the list
     } catch (error) {

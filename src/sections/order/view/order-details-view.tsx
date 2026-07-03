@@ -107,8 +107,8 @@ export default function OrderDetailsView({ id }: Props) {
         
         if (!data.is_paid) {
           try {
-            const checkResp = await axiosInstance.get(`/orders/${orderId}/check_snelstart_payment/`);
-            if (checkResp.status === 200 && checkResp.data.is_paid) {
+            const checkResp = await axiosInstance.get(`/orders/${orderId}/check-snelstart-payment/`);
+            if (checkResp.data && checkResp.data.is_paid) {
               data.is_paid = true;
               enqueueSnackbar(t('Order payment status updated from Snelstart'), { variant: 'success' });
             }
