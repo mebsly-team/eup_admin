@@ -915,7 +915,16 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   type="number"
                 />
                 <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
-                <RHFTextField name="payment_termin" label={t('payment_termin')} labelColor="orange" />
+                <RHFSelect name="payment_termin" label={t('payment_termin')} labelColor="orange">
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <MenuItem value="1 week">1 week</MenuItem>
+                  <MenuItem value="2 weeks">2 weeks</MenuItem>
+                  <MenuItem value="3 weeks">3 weeks</MenuItem>
+                  <MenuItem value="4 weeks">4 weeks</MenuItem>
+                  <MenuItem value="6 weeks">6 weeks</MenuItem>
+                  <MenuItem value="8 weeks">8 weeks</MenuItem>
+                </RHFSelect>
                 <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
                 <RHFTextField name="invoice_address" label={t('invoice_address')} />
                 <RHFTextField name="invoice_language" label={t('invoice_language')} />
@@ -1004,16 +1013,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   }
                   sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
                 />
-                <RHFSwitch
-                  name="is_payment_termin_active"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('is_payment_termin_active')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
+
                 <RHFSwitch
                   name="is_eligible_to_work_with"
                   labelPlacement="start"

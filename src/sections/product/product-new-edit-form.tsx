@@ -315,6 +315,7 @@ export default function ProductNewEditForm({ id }: Props) {
     // pallet_layer_total_number: Yup.number().required(t('required')),
 
     inhoud_number: Yup.number().required(t('required')),
+    meta_keywords: Yup.string().max(250, t('Max. 250 karakters')),
   });
 
   const defaultValues = useMemo(
@@ -1636,7 +1637,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
           <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
           <RHFTextField name="meta_title" label={t('meta_title')} />
           <RHFTextField name="meta_description" label={t('meta_description')} />
-          <RHFTextField name="meta_keywords" label={t('meta_keywords')} />
+          <RHFTextField name="meta_keywords" label={t('meta_keywords')} inputProps={{ maxLength: 250 }} />
         </Stack>
       </Card>
     </Grid>
