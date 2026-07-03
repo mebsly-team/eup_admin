@@ -1594,6 +1594,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
         },
         body: JSON.stringify({
           model: '~openai/gpt-latest',
+          max_tokens: 1000,
           response_format: { type: "json_object" },
           messages: [{ role: 'user', content: prompt }]
         })
