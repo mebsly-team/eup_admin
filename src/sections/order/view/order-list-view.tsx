@@ -126,6 +126,7 @@ export default function OrderListView() {
   );
 
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
+  const [isSyncing, setIsSyncing] = useState(false);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -217,6 +218,20 @@ export default function OrderListView() {
       setCount(0);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSyncPayments = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await axiosInstance.get('/orders/sync_snelstart_payments/');
+      enqueueSnackbar(response.data.message || 'Payments synced successfully', { variant: 'success' });
+      getAll(); // Refresh the list
+    } catch (error) {
+      console.error('Error syncing payments:', error);
+      enqueueSnackbar('Failed to sync payments', { variant: 'error' });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -356,14 +371,25 @@ export default function OrderListView() {
             { name: t('list') },
           ]}
           action={
-            <Button
-              component={Link}
-              href={paths.dashboard.order.new}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              {t('new_order')}
-            </Button>
+            <Box display="flex" gap={2}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleSyncPayments}
+                startIcon={isSyncing ? <Iconify icon="eos-icons:loading" /> : <Iconify icon="mingcute:refresh-2-fill" />}
+                disabled={isSyncing}
+              >
+                Sync Snelstart Payments
+              </Button>
+              <Button
+                component={Link}
+                href={paths.dashboard.order.new}
+                variant="contained"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+              >
+                {t('new_order')}
+              </Button>
+            </Box>
           }
           sx={{
             mb: { xs: 3, md: 5 },
