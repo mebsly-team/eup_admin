@@ -66,11 +66,15 @@ export default function OrderDetailsToolbar({
   const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
 
-  const invoiceEmails = [
+  const rawInvoiceEmails = [
     { label: 'Email', value: currentOrder?.user?.email },
     { label: 'Invoice Email', value: currentOrder?.user?.invoice_email },
     { label: 'Invoice CC Email', value: currentOrder?.user?.invoice_cc_email }
   ].filter(e => e.value);
+
+  const invoiceEmails = rawInvoiceEmails.filter((item, index, self) =>
+    index === self.findIndex((t) => t.value === item.value)
+  );
 
   const [openDownloadDialog, setOpenDownloadDialog] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState({
@@ -369,8 +373,14 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="eva:email-fill" />}
-            endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-            onClick={popoverSendInvoice.onOpen}
+            endIcon={invoiceEmails.length > 1 ? <Iconify icon="eva:arrow-ios-downward-fill" /> : undefined}
+            onClick={(event) => {
+              if (invoiceEmails.length === 1) {
+                handleSendInvoice({ id, email: invoiceEmails[0].value });
+              } else {
+                popoverSendInvoice.onOpen(event);
+              }
+            }}
             disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0)}
             sx={{
               backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',

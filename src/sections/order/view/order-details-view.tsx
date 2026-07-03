@@ -162,6 +162,9 @@ export default function OrderDetailsView({ id }: Props) {
         console.log("🚀 ~ sendToSnelstart ~ response:", response)
         enqueueSnackbar(t('Order is succesvol verzonden naar Snelstart'), { variant: 'success' });
 
+        // Update local state to reflect changes immediately
+        getOrder(id);
+
         // Set invoice_date to current date when Snelstart order is created
         // const newHistory = currentOrder.history;
         // newHistory.push({
