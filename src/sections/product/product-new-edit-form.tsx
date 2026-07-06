@@ -24,7 +24,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Link, alpha, MenuItem, IconButton, ListItemIcon, FormControlLabel, Switch } from '@mui/material';
+import { Link, alpha, MenuItem, IconButton, ListItemIcon, FormControlLabel, Switch, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, List, ListItem, ListItemText } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -108,6 +108,37 @@ export default function ProductNewEditForm({ id }: Props) {
 
   const { enqueueSnackbar } = useSnackbar();
   const [activeTab, setActiveTab] = useState(tab || 0);
+
+  const [openGooglePricesDialog, setOpenGooglePricesDialog] = useState(false);
+  const [googlePrices, setGooglePrices] = useState<number[]>([]);
+  const [isFetchingPrices, setIsFetchingPrices] = useState(false);
+
+  const fetchGooglePrices = async () => {
+    const ean = currentProduct?.ean;
+    if (!ean) {
+      enqueueSnackbar('No EAN available for this product', { variant: 'error' });
+      return;
+    }
+    setOpenGooglePricesDialog(true);
+    setIsFetchingPrices(true);
+    setGooglePrices([]);
+    try {
+      const response = await axiosInstance.get(`/api/products/google-prices/?q=${ean}`);
+      if (response.data.prices && response.data.prices.length > 0) {
+        setGooglePrices(response.data.prices);
+      } else {
+        setGooglePrices([]);
+        enqueueSnackbar('No prices found or blocked by Google', { variant: 'warning' });
+      }
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar('Error fetching prices from Google', { variant: 'error' });
+      setGooglePrices([]);
+    } finally {
+      setIsFetchingPrices(false);
+    }
+  };
+
   const [openDialogCategory, setOpenDialogCategory] = useState(false);
   const [isBrandEdit, setBrandEdit] = useState(false);
   const [isUnitEdit, setUnitEdit] = useState(false);
@@ -2039,14 +2070,51 @@ Return strictly a JSON object with the generated keys and their string values.`;
                 ),
               }}
             />
-            <RHFSelect name="vat" label={t('vat')} labelColor="violet">
-              <MenuItem value="">--</MenuItem>
-              <Divider sx={{ borderStyle: 'dashed' }} />
-              <MenuItem value={0}>0</MenuItem>
-              <MenuItem value={9}>9</MenuItem>
-              <MenuItem value={21}>21</MenuItem>
-            </RHFSelect>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <RHFSelect name="vat" label={t('vat')} labelColor="violet">
+                <MenuItem value="">--</MenuItem>
+                <Divider sx={{ borderStyle: 'dashed' }} />
+                <MenuItem value={0}>0</MenuItem>
+                <MenuItem value={9}>9</MenuItem>
+                <MenuItem value={21}>21</MenuItem>
+              </RHFSelect>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={fetchGooglePrices}
+                sx={{ alignSelf: 'flex-start', ml: 1 }}
+              >
+                Andere prijzen
+              </Link>
+            </Box>
           </Box>
+
+          {/* Dialog for Google Prices */}
+          <Dialog open={openGooglePricesDialog} onClose={() => setOpenGooglePricesDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>Internet Prijzen</DialogTitle>
+            <DialogContent dividers>
+              {isFetchingPrices ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : googlePrices.length > 0 ? (
+                <List>
+                  {googlePrices.map((price, index) => (
+                    <ListItem key={index} divider>
+                      <ListItemText primary={`€ ${price.toFixed(2).replace('.', ',')}`} />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Typography variant="body2" sx={{ p: 2 }}>
+                  Geen prijzen gevonden of Google heeft de aanvraag geblokkeerd.
+                </Typography>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenGooglePricesDialog(false)}>Sluiten</Button>
+            </DialogActions>
+          </Dialog>
 
           <Box
             columnGap={2}
