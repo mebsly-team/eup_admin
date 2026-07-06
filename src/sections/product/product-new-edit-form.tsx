@@ -2080,15 +2080,20 @@ Return strictly a JSON object with the generated keys and their string values.`;
                 <MenuItem value={9}>9</MenuItem>
                 <MenuItem value={21}>21</MenuItem>
               </RHFSelect>
+            </Box>
               <Link
                 component="button"
+                type="button"
                 variant="body2"
-                onClick={fetchGooglePrices}
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault();
+                  fetchGooglePrices();
+                }}
                 sx={{ alignSelf: 'flex-start', ml: 1 }}
               >
                 Andere prijzen
               </Link>
-            </Box>
+
           </Box>
 
           {/* Dialog for Google Prices */}
