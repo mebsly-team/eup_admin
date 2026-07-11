@@ -98,8 +98,20 @@ export default function ProductNewEditForm({ id }: Props) {
     
     for (let i = currentProduct.history.length - 1; i >= 0; i--) {
       const entry = currentProduct.history[i];
-      if (entry?.event && (entry.event.includes('Totale voorraad gewijzigd') || entry.event.includes('Vrije voorraad gewijzigd'))) {
-        return entry.date;
+      if (entry?.event) {
+        let eventStr = '';
+        if (typeof entry.event === 'string') {
+          eventStr = entry.event;
+        } else if (Array.isArray(entry.event)) {
+          // If it's an array of objects/strings, stringify or join it safely
+          eventStr = entry.event.map(e => typeof e === 'string' ? e : JSON.stringify(e)).join(', ');
+        } else if (typeof entry.event === 'object') {
+          eventStr = JSON.stringify(entry.event);
+        }
+        
+        if (eventStr.includes('Totale voorraad gewijzigd') || eventStr.includes('Vrije voorraad gewijzigd')) {
+          return entry.date;
+        }
       }
     }
     return null;
