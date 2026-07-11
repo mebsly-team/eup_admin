@@ -103,6 +103,8 @@ type Props = {
   shippingAddress: IOrderShippingAddress;
   invoiceAddress?: IOrderShippingAddress;
   updateOrder: any;
+  orderId: string;
+  currentOrder: any;
 };
 
 const countryOptions = [
@@ -167,6 +169,10 @@ export default function OrderDetailsInfo({
 
   const [isInvoiceDateEdit, setIsInvoiceDateEdit] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
+  
+  const [isNotesEdit, setIsNotesEdit] = useState(false);
+  const [notes, setNotes] = useState(currentOrder?.notes || '');
+
   const [totalWeight, setTotalWeight] = useState('');
   const [options, setOptions] = useState([]);
 
@@ -347,6 +353,25 @@ export default function OrderDetailsInfo({
     });
     setIsInvoiceDateEdit(false);
   };
+
+  const handleNotesEditClick = () => {
+    setIsNotesEdit(!isNotesEdit);
+  };
+
+  const handleNotesUpdate = () => {
+    const newHistory = currentOrder.history || [];
+    newHistory.push({
+      date: new Date(),
+      event: `Notities gewijzigd door ${user?.email}`,
+    });
+
+    updateOrder(orderId, {
+      notes: notes,
+      history: newHistory,
+    });
+    setIsNotesEdit(false);
+  };
+
   const handleAddressUpdate = (e) => {
     let addressToSave: any = {};
     if (shippingAddressSource === 'order') {
@@ -1308,6 +1333,48 @@ export default function OrderDetailsInfo({
     </>
   );
 
+  const renderNotes = (
+    <>
+      <CardHeader
+        title="Notities"
+        action={
+          <IconButton onClick={handleNotesEditClick}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+        }
+      />
+      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        {isNotesEdit ? (
+          <Stack spacing={1.5}>
+            <TextField
+              multiline
+              rows={4}
+              fullWidth
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Voeg hier notities toe..."
+            />
+            <Stack direction="row" spacing={1}>
+              <Button onClick={handleNotesUpdate} variant="contained">
+                Opslaan
+              </Button>
+              <Button variant="outlined" onClick={() => {
+                setNotes(currentOrder?.notes || '');
+                setIsNotesEdit(false);
+              }}>
+                Annuleren
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+            {currentOrder?.notes || 'Geen notities'}
+          </Typography>
+        )}
+      </Stack>
+    </>
+  );
+
   return (
     <Card>
 
@@ -1332,6 +1399,10 @@ export default function OrderDetailsInfo({
       <Divider sx={{ borderStyle: 'dashed' }} />
 
       {renderPayment}
+
+      <Divider sx={{ borderStyle: 'dashed' }} />
+
+      {renderNotes}
 
     </Card>
   );

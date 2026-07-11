@@ -636,7 +636,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                 ))}
                             </RHFSelect> */}
 
-                            {/* <RHFTextField name="notes" label="Notes" multiline rows={3} /> */}
+                            <RHFTextField name="notes" label="Notities" multiline rows={3} />
                         </Stack>
                     </Card>
 

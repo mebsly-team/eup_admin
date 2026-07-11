@@ -359,7 +359,11 @@ export default function OrderDetailsToolbar({
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
             onClick={() => handleDownloadDocument({ doc: 'invoice' })}
-            disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number)}
+            disabled={
+              source_host === 'bol.com'
+                ? !snelstart_order_number
+                : !currentOrder?.delivery_details?.tracking_number || !snelstart_order_number
+            }
             sx={{
               backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -381,7 +385,11 @@ export default function OrderDetailsToolbar({
                 popoverSendInvoice.onOpen(event);
               }
             }}
-            disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0)}
+            disabled={
+              source_host === 'bol.com'
+                ? !snelstart_order_number || invoiceEmails.length === 0
+                : !currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0
+            }
             sx={{
               backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
               '&:hover': {
@@ -504,7 +512,11 @@ export default function OrderDetailsToolbar({
                 <Checkbox
                   checked={selectedDocs.invoice}
                   onChange={(e) => setSelectedDocs({ ...selectedDocs, invoice: e.target.checked })}
-                  disabled={source_host !== 'bol.com' && (!currentOrder?.delivery_details?.tracking_number || !snelstart_order_number)}
+                  disabled={
+                    source_host === 'bol.com'
+                      ? !snelstart_order_number
+                      : !currentOrder?.delivery_details?.tracking_number || !snelstart_order_number
+                  }
                 />
               }
               label="Factuur PDF"
