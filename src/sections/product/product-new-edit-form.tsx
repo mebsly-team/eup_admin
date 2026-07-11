@@ -147,7 +147,7 @@ export default function ProductNewEditForm({ id }: Props) {
     setIsFetchingPrices(true);
     setGooglePrices([]);
     try {
-      const response = await axiosInstance.get(`/api/products/google-prices/?q=${ean}`);
+      const response = await axiosInstance.get(`/google-prices/?q=${ean}`);
       if (response.data.results && response.data.results.length > 0) {
         setGooglePrices(response.data.results);
       } else {
