@@ -134,7 +134,7 @@ export default function ProductNewEditForm({ id }: Props) {
   const [activeTab, setActiveTab] = useState(tab || 0);
 
   const [openGooglePricesDialog, setOpenGooglePricesDialog] = useState(false);
-  const [googlePrices, setGooglePrices] = useState<number[]>([]);
+  const [googlePrices, setGooglePrices] = useState<any[]>([]);
   const [isFetchingPrices, setIsFetchingPrices] = useState(false);
 
   const fetchGooglePrices = async () => {
@@ -148,8 +148,8 @@ export default function ProductNewEditForm({ id }: Props) {
     setGooglePrices([]);
     try {
       const response = await axiosInstance.get(`/api/products/google-prices/?q=${ean}`);
-      if (response.data.prices && response.data.prices.length > 0) {
-        setGooglePrices(response.data.prices);
+      if (response.data.results && response.data.results.length > 0) {
+        setGooglePrices(response.data.results);
       } else {
         setGooglePrices([]);
         enqueueSnackbar('No prices found or blocked by Google', { variant: 'warning' });
@@ -2131,15 +2131,18 @@ Return strictly a JSON object with the generated keys and their string values.`;
                 </Box>
               ) : googlePrices.length > 0 ? (
                 <List>
-                  {googlePrices.map((price, index) => (
-                    <ListItem key={index} divider>
-                      <ListItemText primary={`€ ${price.toFixed(2).replace('.', ',')}`} />
+                  {googlePrices.map((item, index) => (
+                    <ListItem key={index} divider component={item.link ? 'a' : 'div'} href={item.link} target="_blank" sx={{ textDecoration: 'none', color: 'inherit' }}>
+                      <ListItemText 
+                        primary={`€ ${item.price.toFixed(2).replace('.', ',')} - ${item.source}`} 
+                        secondary={item.title} 
+                      />
                     </ListItem>
                   ))}
                 </List>
               ) : (
                 <Typography variant="body2" sx={{ p: 2 }}>
-                  Geen prijzen gevonden of Google heeft de aanvraag geblokkeerd.
+                  Geen prijzen gevonden.
                 </Typography>
               )}
             </DialogContent>
