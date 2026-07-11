@@ -93,6 +93,18 @@ export default function ProductNewEditForm({ id }: Props) {
   const [openLightBox, setOpenLightBox] = useState(false);
   const [lightBoxSlides, setLightBoxSlides] = useState();
 
+  const lastPhysicalCheckDate = useMemo(() => {
+    if (!currentProduct?.history || !Array.isArray(currentProduct.history)) return null;
+    
+    for (let i = currentProduct.history.length - 1; i >= 0; i--) {
+      const entry = currentProduct.history[i];
+      if (entry?.event && (entry.event.includes('Totale voorraad gewijzigd') || entry.event.includes('Vrije voorraad gewijzigd'))) {
+        return entry.date;
+      }
+    }
+    return null;
+  }, [currentProduct?.history]);
+
   const handleLightBoxSlides = useCallback((images) => {
     if (images.length) {
       setOpenLightBox(true);
@@ -1611,12 +1623,13 @@ Article Code: ${article_code}
 Parent Product Title: ${parent_title}
 
 Please fill in ONLY the empty fields among these with SEO-optimized Dutch content. Do NOT change fields that already have content.
+IMPORTANT: The values for meta_title, meta_description, and meta_keywords MUST NOT exceed 250 characters each.
 Empty fields to fill:
 ${!description ? '- description' : ''}
 ${!description_long ? '- description_long' : ''}
-${!meta_title ? '- meta_title' : ''}
-${!meta_description ? '- meta_description' : ''}
-${!meta_keywords ? '- meta_keywords' : ''}
+${!meta_title ? '- meta_title (max 250 characters)' : ''}
+${!meta_description ? '- meta_description (max 250 characters)' : ''}
+${!meta_keywords ? '- meta_keywords (max 250 characters)' : ''}
 
 Return strictly a JSON object with the generated keys and their string values.`;
 
@@ -1640,9 +1653,9 @@ Return strictly a JSON object with the generated keys and their string values.`;
         const parsed = JSON.parse(content);
         if (!description && parsed.description) setValue('description', parsed.description);
         if (!description_long && parsed.description_long) setValue('description_long', parsed.description_long);
-        if (!meta_title && parsed.meta_title) setValue('meta_title', parsed.meta_title);
-        if (!meta_description && parsed.meta_description) setValue('meta_description', parsed.meta_description);
-        if (!meta_keywords && parsed.meta_keywords) setValue('meta_keywords', parsed.meta_keywords);
+        if (!meta_title && parsed.meta_title) setValue('meta_title', parsed.meta_title.substring(0, 250));
+        if (!meta_description && parsed.meta_description) setValue('meta_description', parsed.meta_description.substring(0, 250));
+        if (!meta_keywords && parsed.meta_keywords) setValue('meta_keywords', parsed.meta_keywords.substring(0, 250));
         enqueueSnackbar(t('seo_generated_successfully') || 'SEO data generated');
       }
     } catch (error) {
@@ -2988,6 +3001,11 @@ Return strictly a JSON object with the generated keys and their string values.`;
           {t('get_stock_from_snelstart')}
         </Typography> */}
         <CardHeader title={t('stock')} />
+        {lastPhysicalCheckDate && (
+          <Typography variant="body2" sx={{ px: 3, color: 'text.secondary', fontStyle: 'italic' }}>
+            Last physical check date: {format(new Date(lastPhysicalCheckDate), 'dd-MM-yyyy HH:mm')}
+          </Typography>
+        )}
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
             columnGap={2}
