@@ -138,16 +138,21 @@ export default function ProductNewEditForm({ id }: Props) {
   const [isFetchingPrices, setIsFetchingPrices] = useState(false);
 
   const fetchGooglePrices = async () => {
-    const ean = currentProduct?.ean;
-    if (!ean) {
-      enqueueSnackbar('No EAN available for this product', { variant: 'error' });
+    const ean = getValues('ean') || currentProduct?.ean || '';
+    const title = getValues('title') || currentProduct?.title || '';
+    
+    const searchQuery = `${title} ${ean}`.trim();
+    
+    if (!searchQuery) {
+      enqueueSnackbar('No Title or EAN available for this product', { variant: 'error' });
       return;
     }
+    
     setOpenGooglePricesDialog(true);
     setIsFetchingPrices(true);
     setGooglePrices([]);
     try {
-      const response = await axiosInstance.get(`/google-prices/?q=${ean}`);
+      const response = await axiosInstance.get(`/google-prices/?q=${encodeURIComponent(searchQuery)}`);
       if (response.data.results && response.data.results.length > 0) {
         setGooglePrices(response.data.results);
       } else {
