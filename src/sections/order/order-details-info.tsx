@@ -191,6 +191,8 @@ export default function OrderDetailsInfo({
   const deliveryDetails = currentOrder?.delivery_details;
   console.log("🚀 ~ deliveryDetails:", deliveryDetails)
 
+  const source_host = currentOrder?.user?.site_source || currentOrder?.source_host || currentOrder?.site_source;
+
   useEffect(() => {
     if (deliveryDetails?.tracking_number) setUpdatedDeliveryDetails(deliveryDetails);
   }, [deliveryDetails]);
@@ -323,6 +325,26 @@ export default function OrderDetailsInfo({
       }
     } catch (error) {
       console.error('Error uploading shipping label:', error);
+    }
+  };
+
+  const handleCompleteScan = async () => {
+    try {
+      const response = await axiosInstance.post(`/dhl_service_point_scan/${orderId}/`);
+      if (response.status === 200) {
+        alert('Scan succesvol uitgevoerd.');
+        const history = currentOrder.history || [];
+        history.push({
+          date: new Date(),
+          event: `DHL Service Point Scan succesvol uitgevoerd door ${user?.email || 'gebruiker'}`,
+        });
+        updateOrder(orderId, { history });
+      } else {
+        alert('Fout bij het scannen.');
+      }
+    } catch (error) {
+      console.error('Error calling scan api:', error);
+      alert('Fout bij het uitvoeren van de scan.');
     }
   };
 
@@ -701,6 +723,11 @@ export default function OrderDetailsInfo({
             <IconButton onClick={handleDeliveryEditClick}>
               <Iconify icon="solar:pen-bold" />
             </IconButton>
+            {source_host === 'bol.com' && (
+              <Button size="small" variant="contained" onClick={handleCompleteScan}>
+                Complete Scan
+              </Button>
+            )}
           </Stack>
         }
       />
