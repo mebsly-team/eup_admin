@@ -27,6 +27,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { RouterLink } from 'src/routes/components';
 import axiosInstance from 'src/utils/axios';
 
+import { useDebounce } from 'src/hooks/use-debounce';
 import Scrollbar from 'src/components/scrollbar';
 import { TableHeadCustom, TablePaginationCustom, useTable, TableNoData, TableEmptyRows, emptyRows } from 'src/components/table';
 import Iconify from 'src/components/iconify';
@@ -80,6 +81,7 @@ export default function PurchaseListView() {
   const [tableData, setTableData] = useState<IPurchaseItem[]>([]);
   const [count, setCount] = useState(0);
   const [filters, setFilters] = useState(defaultFilters);
+  const debouncedSearchTerm = useDebounce(filters.name, 500);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -88,7 +90,21 @@ export default function PurchaseListView() {
       setLoading(true);
       const limit = table.rowsPerPage;
       const offset = table.page * table.rowsPerPage;
-      const purchasesResponse = await axiosInstance.get(`/purchases/?type=purchase&limit=${limit}&offset=${offset}`);
+      let url = `/purchases/?type=purchase&limit=${limit}&offset=${offset}`;
+
+      if (debouncedSearchTerm) {
+        url += `&search=${encodeURIComponent(debouncedSearchTerm)}`;
+      }
+
+      if (filters.startDate) {
+        url += `&purchase_invoice_date_after=${format(new Date(filters.startDate), 'yyyy-MM-dd')}`;
+      }
+
+      if (filters.endDate) {
+        url += `&purchase_invoice_date_before=${format(new Date(filters.endDate), 'yyyy-MM-dd')}`;
+      }
+
+      const purchasesResponse = await axiosInstance.get(url);
       setTableData(purchasesResponse.data.results || []);
       setCount(purchasesResponse.data.count || 0);
     } catch (error) {
@@ -97,7 +113,7 @@ export default function PurchaseListView() {
     } finally {
       setLoading(false);
     }
-  }, [user?.token, enqueueSnackbar, table.page, table.rowsPerPage]);
+  }, [user?.token, enqueueSnackbar, table.page, table.rowsPerPage, debouncedSearchTerm, filters.startDate, filters.endDate]);
 
 
   useEffect(() => {
@@ -106,9 +122,10 @@ export default function PurchaseListView() {
 
   const handleFilters = useCallback(
     (name: string, value: any) => {
+      table.onResetPage();
       setFilters((prevState) => ({ ...prevState, [name]: value }));
     },
-    []
+    [table.onResetPage]
   );
 
   const handleResetFilters = useCallback(() => {
@@ -166,23 +183,7 @@ export default function PurchaseListView() {
     return <LoadingScreen />;
   }
 
-  const filteredData = tableData.filter((purchase) => {
-    if (filters.name) {
-      const searchTerm = filters.name.toLowerCase();
-      const nameMatch = purchase.supplier_detail.name.toLowerCase().includes(searchTerm);
-      const codeMatch = purchase.supplier_detail.supplier_code?.toLowerCase().includes(searchTerm);
-      if (!nameMatch && !codeMatch) {
-        return false;
-      }
-    }
-    if (filters.startDate && new Date(purchase.purchase_invoice_date) < filters.startDate) {
-      return false;
-    }
-    if (filters.endDate && new Date(purchase.purchase_invoice_date) > filters.endDate) {
-      return false;
-    }
-    return true;
-  });
+  const filteredData = tableData;
 
   const denseHeight = table.dense ? 52 : 72;
   const canReset = !!(filters.name || !!filters.status.length || filters.startDate || filters.endDate);
