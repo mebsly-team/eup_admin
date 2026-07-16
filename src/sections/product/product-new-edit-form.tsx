@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import * as Yup from 'yup';
 import { format } from 'date-fns';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
 import 'yet-another-react-lightbox/styles.css';
 import Lightbox from 'yet-another-react-lightbox';
@@ -491,9 +491,7 @@ export default function ProductNewEditForm({ id }: Props) {
       is_listed_on_marktplaats: currentProduct?.is_listed_on_marktplaats || false,
       is_listed_on_2dehands: currentProduct?.is_listed_on_2dehands || false,
       has_electronic_barcode: currentProduct?.has_electronic_barcode || false,
-      alternative_product_ean_1: currentProduct?.alternative_product_ean_1 || '',
-      alternative_product_ean_2: currentProduct?.alternative_product_ean_2 || '',
-      alternative_product_ean_3: currentProduct?.alternative_product_ean_3 || '',
+      alternative_eans: currentProduct?.alternative_eans || [],
       size_x_value: currentProduct?.size_x_value || 0,
       size_y_value: currentProduct?.size_y_value || 0,
       pallet_x_value: 120,
@@ -547,8 +545,15 @@ export default function ProductNewEditForm({ id }: Props) {
     handleSubmit,
     getValues,
     formState: { isSubmitting, isDirty, errors, ...rest2 },
+    control,
     ...rest
   } = methods;
+  
+  const { fields: eanFields, append: appendEan, remove: removeEan } = useFieldArray({
+    control,
+    name: 'alternative_eans'
+  });
+
   const values = watch();
   console.log('🚀 ~ ProductNewEditForm ~ errors:', errors);
 
@@ -963,9 +968,6 @@ export default function ProductNewEditForm({ id }: Props) {
           is_listed_on_marktplaats: (oldValue, newValue) => `Marktplaats status gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           is_listed_on_2dehands: (oldValue, newValue) => `2dehands status gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           has_electronic_barcode: (oldValue, newValue) => `Elektronische barcode gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
-          alternative_product_ean_1: (oldValue, newValue) => `Alternatief EAN 1 gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
-          alternative_product_ean_2: (oldValue, newValue) => `Alternatief EAN 2 gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
-          alternative_product_ean_3: (oldValue, newValue) => `Alternatief EAN 3 gewijzigd van "${oldValue}" naar "${newValue}" door ${user?.email}`,
           size_x_value: (oldValue, newValue) => `Maat X gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           size_y_value: (oldValue, newValue) => `Maat Y gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
           pallet_x_value: (oldValue, newValue) => `Pallet X gewijzigd van ${oldValue} naar ${newValue} door ${user?.email}`,
@@ -1008,7 +1010,7 @@ export default function ProductNewEditForm({ id }: Props) {
           'brand', 'quantity_per_unit', 'vat', 'unit', 'color', 'size', 'variants', 'parent_product', 'min_price_to_sell', 'hs_code', 'chip', 'supplier_article_code', 'categories', 'images', 'variant_discount', 'expiry_date', 'unit_in_pallet', 'comm_channel_after_out_of_stock',
           'ordered_in_progress_stock', 'number_in_order', 'number_in_offer', 'number_in_pakbon', 'number_in_confirmation', 'number_in_werkbon', 'number_in_other', 'order_unit_amount', 'min_order_amount', 'min_stock_value', 'max_stock_at_rack', 'stock_at_supplier', 'location_stock',
           'extra_location_stock', 'max_order_allowed_per_unit', 'delivery_time', 'important_information', 'extra_etiket_nl', 'extra_etiket_fr', 'languages_on_item_package', 'sell_count', 'is_only_for_logged_in_user', 'is_used', 'is_regular', 'is_featured', 'is_only_for_export', 'is_listed_on_marktplaats',
-          'is_listed_on_2dehands', 'has_electronic_barcode', 'alternative_product_ean_1', 'alternative_product_ean_2', 'alternative_product_ean_3', 'size_x_value', 'size_y_value', 'pallet_x_value', 'pallet_y_value', 'pallet_z_value', 'pallet_max_weight_value', 'liter', 'liter_unit', 'is_clearance', 'sell_first', 'is_party_sale',
+          'is_listed_on_2dehands', 'has_electronic_barcode', 'alternative_eans', 'size_x_value', 'size_y_value', 'pallet_x_value', 'pallet_y_value', 'pallet_z_value', 'pallet_max_weight_value', 'liter', 'liter_unit', 'is_clearance', 'sell_first', 'is_party_sale',
           'sell_from_supplier', 'ean_to_follow_stock', 'is_follow_stock_with_ean', 'is_taken_from_another_package', 'is_taken_from_another_package_ean', 'size_z_value', 'size_unit', 'weight', 'weight_unit', 'volume_unit', 'volume', 'pallet_full_total_number', 'pallet_layer_total_number', 'is_brief_box', 'meta_title',
           'meta_description', 'meta_keywords', 'url', 'is_visible_particular', 'is_visible_B2B', 'inhoud_number', 'inhoud_unit', 'inhoud_price', 'description', 'description_long'
         ];
@@ -2296,9 +2298,19 @@ Return strictly a JSON object with the generated keys and their string values.`;
               type="number"
               onBlur={handleEmptyNumbers}
             />
-            <RHFTextField name="alternative_product_ean_1" label={t('alternative_product_ean_1')} />
-            <RHFTextField name="alternative_product_ean_2" label={t('alternative_product_ean_2')} />
-            <RHFTextField name="alternative_product_ean_3" label={t('alternative_product_ean_3')} />
+            <Box sx={{ mt: 2, mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Alternatieve EANs</Typography>
+              {eanFields.map((field, index) => (
+                <Stack key={field.id} direction="row" spacing={2} sx={{ mb: 1 }}>
+                  <RHFTextField name={`alternative_eans.${index}.ean`} label="EAN" />
+                  <RHFTextField name={`alternative_eans.${index}.brand`} label="Brand" />
+                  <Button color="error" onClick={() => removeEan(index)}>Verwijderen</Button>
+                </Stack>
+              ))}
+              <Button size="small" variant="outlined" onClick={() => appendEan({ ean: '', brand: '' })}>
+                + EAN Toevoegen
+              </Button>
+            </Box>
 
             <RHFSwitch
               name="has_electronic_barcode"
