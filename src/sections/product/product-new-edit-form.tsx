@@ -1659,7 +1659,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'openrouter/free',
+          model: 'deepseek/deepseek-v4-flash',
           max_tokens: 1000,
           response_format: { type: "json_object" },
           messages: [{ role: 'user', content: prompt }]
