@@ -2451,7 +2451,7 @@ Return strictly a JSON object with the generated keys and their string values.`;
               limitTags={2}
               value={getValues('languages_on_item_package') || []}
               onChange={(event, newValue) => setValue('languages_on_item_package', newValue)}
-              options={countries?.map((option) => option.code) || []}
+              options={countries?.map((option) => option.code).filter((code) => ['GB', 'NL', 'TR', 'DE', 'FR', 'ES', 'IT', 'PL'].includes(code)) || []}
               getOptionLabel={(option) => option}
             />
             {(!getValues('languages_on_item_package')?.includes('NL') ||
