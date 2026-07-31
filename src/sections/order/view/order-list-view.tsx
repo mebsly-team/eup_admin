@@ -60,7 +60,7 @@ export const ORDER_STATUS_OPTIONS = [
   { value: 'confirmed', label: 'Bevestigd' },
   { value: 'other', label: 'Anders' },
 ];
-const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, ...ORDER_STATUS_OPTIONS];
+const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, { value: 'uninvoiced', label: 'Faturasız (Uninvoiced)' }, ...ORDER_STATUS_OPTIONS];
 
 const TABLE_HEAD = [
   { id: 'id', label: 'Bestel', width: 40, padding: 0 },
@@ -188,7 +188,8 @@ export default function OrderListView() {
     try {
       console.log('OrderListView - fetching orders...');
       setIsLoading(true);
-      const statusFilter = filters.status !== 'all' ? `&status=${filters.status}` : '';
+      const statusFilter = filters.status !== 'all' && filters.status !== 'uninvoiced' ? `&status=${filters.status}` : '';
+      const uninvoicedFilter = filters.status === 'uninvoiced' ? `&uninvoiced=true` : '';
       const orderByParam = table.orderBy
         ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
         : '';
@@ -206,7 +207,7 @@ export default function OrderListView() {
 
       const { data } = await axiosInstance.get(
         `/orders/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
-        }${searchFilter}${statusFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
+        }${searchFilter}${statusFilter}${uninvoicedFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
       );
       console.log('OrderListView - orders fetched successfully:', data);
       setCount(data.count || 0);
@@ -232,6 +233,24 @@ export default function OrderListView() {
       enqueueSnackbar('Failed to sync payments', { variant: 'error' });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleMergeInvoices = async () => {
+    if (table.selected.length === 0) return;
+    try {
+      setIsLoading(true);
+      await axiosInstance.post('/invoices/merge_invoices/', {
+        order_ids: table.selected
+      });
+      enqueueSnackbar('Invoices merged successfully!', { variant: 'success' });
+      table.onSelectAllRows(false, []);
+      getAll();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.error || 'Failed to merge invoices', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -490,11 +509,16 @@ export default function OrderListView() {
                 )
               }
               action={
-                <Tooltip title={t('delete')}>
-                  <IconButton color="primary" onClick={confirm.onTrue}>
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Tooltip>
+                <Box display="flex" gap={1} alignItems="center">
+                  <Button variant="contained" color="secondary" onClick={handleMergeInvoices} size="small">
+                    Merge Invoices
+                  </Button>
+                  <Tooltip title={t('delete')}>
+                    <IconButton color="primary" onClick={confirm.onTrue}>
+                      <Iconify icon="solar:trash-bin-trash-bold" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               }
             />
 

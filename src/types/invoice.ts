@@ -1,4 +1,4 @@
-import { IAddressItem } from './address';
+import { IOrderItem } from './order';
 
 // ----------------------------------------------------------------------
 
@@ -14,29 +14,13 @@ export type IInvoiceTableFilters = {
 
 // ----------------------------------------------------------------------
 
-export type IInvoiceItem = {
-  id: string;
-  title: string;
-  price: number;
-  total: number;
-  service: string;
-  quantity: number;
-  description: string;
-};
-
 export type IInvoice = {
   id: string;
-  sent: number;
-  dueDate: Date;
-  taxes: number;
+  created_at: string;
+  total_amount: string;
   status: string;
-  subTotal: number;
-  createDate: Date;
-  discount: number;
-  shipping: number;
-  totalAmount: number;
-  invoiceNumber: string;
-  items: IInvoiceItem[];
-  invoiceTo: IAddressItem;
-  invoiceFrom: IAddressItem;
+  snelstart_invoice_number: string;
+  is_sent_to_snelstart: boolean;
+  user: any;
+  orders?: IOrderItem[];
 };
