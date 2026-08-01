@@ -26,9 +26,10 @@ type Props = {
   onRemoveOrder?: (orderId: string) => void;
   onAddOrderClick?: () => void;
   onUpdateDate?: (newDate: string) => void;
+  onGetSnelstartId?: () => void;
 };
 
-export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate }: Props) {
+export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate, onGetSnelstartId }: Props) {
   const { invoice_number, created_at, snelstart_invoice_id, orders, invoice_date } = invoice;
 
   return (
@@ -48,7 +49,14 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
 
         <Stack spacing={1} alignItems={{ xs: 'flex-start', sm: 'flex-end' }}>
           <Typography variant="body2">Created: {fDateTime(created_at)}</Typography>
-          <Typography variant="body2">Snelstart ID: {snelstart_invoice_id || 'Not synced'}</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            {onGetSnelstartId && (
+              <IconButton size="small" color="primary" onClick={onGetSnelstartId} title="Generate Snelstart ID">
+                <Iconify icon="eva:refresh-fill" />
+              </IconButton>
+            )}
+            <Typography variant="body2">Snelstart ID: {snelstart_invoice_id || 'Not synced'}</Typography>
+          </Stack>
           {onUpdateDate && (
             <TextField
               size="small"

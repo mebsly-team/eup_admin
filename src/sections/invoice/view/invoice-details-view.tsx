@@ -95,6 +95,19 @@ export default function InvoiceDetailsView({ id }: Props) {
     }
   };
 
+  const handleGenerateSnelstartId = async () => {
+    try {
+      setLoading(true);
+      await axiosInstance.post(`/invoices/${id}/generate_snelstart_number/`);
+      enqueueSnackbar('Snelstart ID generated successfully', { variant: 'success' });
+      fetchInvoice();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error?.response?.data?.error || 'Failed to generate Snelstart ID', { variant: 'error' });
+      setLoading(false);
+    }
+  };
+
   const handleUpdateDate = async (newDate: string) => {
     try {
       setLoading(true);
@@ -184,6 +197,7 @@ export default function InvoiceDetailsView({ id }: Props) {
         onRemoveOrder={handleRemoveOrder}
         onAddOrderClick={() => setAddOrderOpen(true)}
         onUpdateDate={handleUpdateDate}
+        onGetSnelstartId={handleGenerateSnelstartId}
       />
 
       <Dialog open={addOrderOpen} onClose={() => setAddOrderOpen(false)}>
