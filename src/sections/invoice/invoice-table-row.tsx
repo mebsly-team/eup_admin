@@ -20,7 +20,7 @@ export default function InvoiceTableRow({
   row,
   onViewRow,
 }: Props) {
-  const { id, created_at, snelstart_invoice_number, orders, total_amount, is_sent_to_snelstart } = row;
+  const { id, created_at, snelstart_invoice_number, orders, total_amount, is_sent_to_snelstart, user } = row;
 
   return (
     <TableRow hover>
@@ -33,7 +33,7 @@ export default function InvoiceTableRow({
           onClick={onViewRow}
           sx={{ color: 'text.primary', cursor: 'pointer', fontWeight: 'bold' }}
         >
-          {snelstart_invoice_number || id}
+          {user?.email ? `${user.email} - ${snelstart_invoice_number || id}` : (snelstart_invoice_number || id)}
         </Link>
       </TableCell>
 
@@ -52,7 +52,14 @@ export default function InvoiceTableRow({
 
       <TableCell>{fCurrency(total_amount)}</TableCell>
 
-      <TableCell>{orders?.length || 0}</TableCell>
+      <TableCell>
+        <ListItemText
+          primary={`${orders?.length || 0} order(s)`}
+          secondary={orders?.map(o => o.snelstart_order_number || o.id).join(', ')}
+          primaryTypographyProps={{ typography: 'body2' }}
+          secondaryTypographyProps={{ typography: 'caption', color: 'text.secondary' }}
+        />
+      </TableCell>
 
       <TableCell>
         <Label

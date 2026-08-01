@@ -84,11 +84,11 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
             <TableBody>
               {orders?.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell>{order.orderNumber}</TableCell>
-                  <TableCell>{order.customer?.name}</TableCell>
-                  <TableCell>{fDate(order.createdAt)}</TableCell>
-                  <TableCell align="right">{order.totalQuantity}</TableCell>
-                  <TableCell align="right">{fCurrency(order.totalAmount)}</TableCell>
+                  <TableCell>{order.snelstart_order_number || order.id}</TableCell>
+                  <TableCell>{order.user?.business_name || order.user?.email || order.user?.first_name || 'Unknown'}</TableCell>
+                  <TableCell>{fDate(order.ordered_date)}</TableCell>
+                  <TableCell align="right">{order.cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0}</TableCell>
+                  <TableCell align="right">{fCurrency(order.total)}</TableCell>
                   <TableCell align="right">
                     {onRemoveOrder && (
                       <Tooltip title="Remove order from invoice">
