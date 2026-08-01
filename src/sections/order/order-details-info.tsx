@@ -1402,6 +1402,44 @@ export default function OrderDetailsInfo({
     </>
   );
 
+  const renderReminders = (
+    <>
+      <CardHeader title="Herinneringen (Reminders)" />
+      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        <Stack direction="row" alignItems="center">
+          <Box component="span" sx={{ color: 'text.secondary', width: 150, flexShrink: 0 }}>
+            Eerste herinnering:
+          </Box>
+          {currentOrder?.date_1st_reminder ? new Date(currentOrder.date_1st_reminder).toLocaleString('nl-NL') : '-'}
+        </Stack>
+        <Stack direction="row" alignItems="center">
+          <Box component="span" sx={{ color: 'text.secondary', width: 150, flexShrink: 0 }}>
+            Tweede herinnering:
+          </Box>
+          {currentOrder?.date_2nd_reminder ? new Date(currentOrder.date_2nd_reminder).toLocaleString('nl-NL') : '-'}
+        </Stack>
+        <Stack direction="row" alignItems="center">
+          <Box component="span" sx={{ color: 'text.secondary', width: 150, flexShrink: 0 }}>
+            Derde herinnering:
+          </Box>
+          {currentOrder?.date_3rd_reminder ? new Date(currentOrder.date_3rd_reminder).toLocaleString('nl-NL') : '-'}
+        </Stack>
+        <Stack direction="row" alignItems="center">
+          <Box component="span" sx={{ color: 'text.secondary', width: 150, flexShrink: 0 }}>
+            Eerste aanmaning:
+          </Box>
+          {currentOrder?.date_1st_aanmaning ? new Date(currentOrder.date_1st_aanmaning).toLocaleString('nl-NL') : '-'}
+        </Stack>
+        <Stack direction="row" alignItems="center">
+          <Box component="span" sx={{ color: 'text.secondary', width: 150, flexShrink: 0 }}>
+            Tweede aanmaning:
+          </Box>
+          {currentOrder?.date_laatste_aanmaning ? new Date(currentOrder.date_laatste_aanmaning).toLocaleString('nl-NL') : '-'}
+        </Stack>
+      </Stack>
+    </>
+  );
+
   return (
     <Card>
 
@@ -1430,6 +1468,10 @@ export default function OrderDetailsInfo({
       <Divider sx={{ borderStyle: 'dashed' }} />
 
       {renderNotes}
+
+      <Divider sx={{ borderStyle: 'dashed' }} />
+
+      {renderReminders}
 
     </Card>
   );
