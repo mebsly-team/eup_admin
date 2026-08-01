@@ -13,7 +13,11 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
 import Iconify from 'src/components/iconify';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { fDate, fDateTime } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
@@ -31,6 +35,8 @@ type Props = {
 
 export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate, onGetSnelstartId }: Props) {
   const { invoice_number, created_at, snelstart_invoice_id, orders, invoice_date } = invoice;
+
+  const sortedOrders = orders ? [...orders].sort((a, b) => Number(b.id) - Number(a.id)) : [];
 
   return (
     <Card sx={{ pt: 5, px: 5, pb: 5 }}>
@@ -103,9 +109,19 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
             </TableHead>
 
             <TableBody>
-              {orders?.map((order) => (
+              {sortedOrders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell>{order.snelstart_order_number || order.id}</TableCell>
+                  <TableCell>
+                    <Link
+                      component={RouterLink}
+                      href={paths.dashboard.order.details(order.id)}
+                      color="inherit"
+                      variant="subtitle2"
+                      sx={{ cursor: 'pointer' }}
+                    >
+                      {order.snelstart_order_number || order.id}
+                    </Link>
+                  </TableCell>
                   <TableCell>{order.user?.business_name || order.user?.email || order.user?.first_name || 'Unknown'}</TableCell>
                   <TableCell>{fDate(order.ordered_date)}</TableCell>
                   <TableCell align="right">{order.cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0}</TableCell>
