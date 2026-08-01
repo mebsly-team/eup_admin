@@ -21,6 +21,7 @@ export type IInvoice = {
   status: string;
   snelstart_invoice_number: string;
   is_sent_to_snelstart: boolean;
+  invoice_date?: string;
   user: any;
   orders?: IOrderItem[];
 };

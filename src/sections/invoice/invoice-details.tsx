@@ -12,6 +12,7 @@ import TableContainer from '@mui/material/TableContainer';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import TextField from '@mui/material/TextField';
 import Iconify from 'src/components/iconify';
 
 import { fDate, fDateTime } from 'src/utils/format-time';
@@ -24,10 +25,11 @@ type Props = {
   invoice: IInvoice;
   onRemoveOrder?: (orderId: string) => void;
   onAddOrderClick?: () => void;
+  onUpdateDate?: (newDate: string) => void;
 };
 
-export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick }: Props) {
-  const { invoice_number, created_at, snelstart_invoice_id, orders } = invoice;
+export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate }: Props) {
+  const { invoice_number, created_at, snelstart_invoice_id, orders, invoice_date } = invoice;
 
   return (
     <Card sx={{ pt: 5, px: 5, pb: 5 }}>
@@ -47,6 +49,17 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
         <Stack spacing={1} alignItems={{ xs: 'flex-start', sm: 'flex-end' }}>
           <Typography variant="body2">Created: {fDateTime(created_at)}</Typography>
           <Typography variant="body2">Snelstart ID: {snelstart_invoice_id || 'Not synced'}</Typography>
+          {onUpdateDate && (
+            <TextField
+              size="small"
+              type="date"
+              label="Factuur Date"
+              InputLabelProps={{ shrink: true }}
+              value={invoice_date || ''}
+              onChange={(e) => onUpdateDate(e.target.value)}
+              sx={{ width: 200, mt: 1 }}
+            />
+          )}
         </Stack>
       </Box>
 

@@ -1442,10 +1442,12 @@ export default function OrderDetailsInfo({
 
   return (
     <Card>
-
-      {renderInvoiceDate}
-
-      <Divider sx={{ borderStyle: 'dashed' }} />
+      {currentOrder?.source_host !== "bol.com" && (
+        <>
+          {renderInvoiceDate}
+          <Divider sx={{ borderStyle: 'dashed' }} />
+        </>
+      )}
 
       {renderCustomer}
 

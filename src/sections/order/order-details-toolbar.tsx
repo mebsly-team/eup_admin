@@ -212,32 +212,34 @@ export default function OrderDetailsToolbar({
                 {t(status)}
               </Button>
             </Stack>
-            <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || ""}
-              <IconButton
-                color="primary"
-                onClick={async () => {
-                  try {
-                    const response = await fetch(`https://be.kooptop.com/api/orders/${id}/generate_snelstart_number/`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-                        'Content-Type': 'application/json'
-                      }
-                    });
+            {source_host !== "bol.com" && (
+              <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || ""}
+                <IconButton
+                  color="primary"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(`https://be.kooptop.com/api/orders/${id}/generate_snelstart_number/`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                          'Content-Type': 'application/json'
+                        }
+                      });
 
-                    if (response.ok) {
-                      window.location.reload();
-                    } else {
-                      console.error('Failed to generate snelstart number');
+                      if (response.ok) {
+                        window.location.reload();
+                      } else {
+                        console.error('Failed to generate snelstart number');
+                      }
+                    } catch (error) {
+                      console.error('Error generating snelstart number:', error);
                     }
-                  } catch (error) {
-                    console.error('Error generating snelstart number:', error);
-                  }
-                }}
-              >
-                <Iconify icon="eva:refresh-fill" />
-              </IconButton>
-            </Typography>
+                  }}
+                >
+                  <Iconify icon="eva:refresh-fill" />
+                </IconButton>
+              </Typography>
+            )}
             {/* TODO: add a link to the snelstart order */}
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
               {fDateTime(ordered_date)}

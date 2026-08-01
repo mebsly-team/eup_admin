@@ -7,6 +7,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Dialog from '@mui/material/Dialog';
 import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 
@@ -94,6 +95,37 @@ export default function InvoiceDetailsView({ id }: Props) {
     }
   };
 
+  const handleUpdateDate = async (newDate: string) => {
+    try {
+      setLoading(true);
+      await axiosInstance.patch(`/invoices/${id}/`, { invoice_date: newDate });
+      enqueueSnackbar('Invoice date updated', { variant: 'success' });
+      fetchInvoice();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar('Failed to update invoice date', { variant: 'error' });
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadPreview = async () => {
+    try {
+      const response = await axiosInstance.get(`/consolidated_invoice/${id}/`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice_preview_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download invoice:', error);
+      enqueueSnackbar('Failed to download preview', { variant: 'error' });
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -116,25 +148,42 @@ export default function InvoiceDetailsView({ id }: Props) {
           { name: currentInvoice.snelstart_invoice_number || currentInvoice.id },
         ]}
         action={
-          <Button
-            variant="contained"
-            color={currentInvoice.is_sent_to_snelstart ? 'success' : 'primary'}
-            onClick={handleSendToSnelstart}
-            disabled={currentInvoice.is_sent_to_snelstart || sending}
-            startIcon={
-              <Iconify icon={currentInvoice.is_sent_to_snelstart ? 'eva:checkmark-circle-2-fill' : 'eva:cloud-upload-fill'} />
-            }
-          >
-            {currentInvoice.is_sent_to_snelstart ? t('sent_to_snelstart') : t('send_to_snelstart')}
-          </Button>
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={handleDownloadPreview}
+              startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+            >
+              Download Preview
+            </Button>
+            <Button
+              variant="contained"
+              color={currentInvoice.is_sent_to_snelstart ? 'success' : 'primary'}
+              onClick={handleSendToSnelstart}
+              disabled={currentInvoice.is_sent_to_snelstart || sending}
+              startIcon={
+                <Iconify icon={currentInvoice.is_sent_to_snelstart ? 'eva:checkmark-circle-2-fill' : 'eva:cloud-upload-fill'} />
+              }
+            >
+              {currentInvoice.is_sent_to_snelstart ? t('sent_to_snelstart') : t('send_to_snelstart')}
+            </Button>
+          </Box>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />
+
+      {currentInvoice.is_sent_to_snelstart && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          SNELSTARTA GÖNDERİLDİ
+        </Alert>
+      )}
 
       <InvoiceDetails 
         invoice={currentInvoice} 
         onRemoveOrder={handleRemoveOrder}
         onAddOrderClick={() => setAddOrderOpen(true)}
+        onUpdateDate={handleUpdateDate}
       />
 
       <Dialog open={addOrderOpen} onClose={() => setAddOrderOpen(false)}>
