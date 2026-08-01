@@ -38,7 +38,7 @@ type Props = {
   }[];
   onChangeStatus: (newValue: string) => void;
   onPaymentChangeStatus: (newValue: string) => void;
-  handleDownloadDocument: (value: { doc: string }) => void;
+  handleDownloadDocument: (value: { doc?: string; customUrl?: string }) => void;
   sendToSnelstart: (value: { id: string }) => void;
   handleSendInvoice: (value: { id: string, email?: string }) => void;
   handleSendOffer: (value: { id: string }) => void;
@@ -351,6 +351,26 @@ export default function OrderDetailsToolbar({
             >
               Upload Bol Pakbon
               <input type="file" hidden onChange={handleUploadBolPakbon} accept="application/pdf" />
+            </Button>
+          )}
+
+          {currentOrder?.invoice && (
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
+              onClick={() => handleDownloadDocument({ 
+                doc: 'invoice', 
+                customUrl: `/consolidated_invoice/${currentOrder.invoice}/` 
+              })}
+              sx={{
+                backgroundColor: 'lightgreen',
+                '&:hover': {
+                  backgroundColor: 'lightgreen',
+                }
+              }}
+            >
+              Download Factuur
             </Button>
           )}
 

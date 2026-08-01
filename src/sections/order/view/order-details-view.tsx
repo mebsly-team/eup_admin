@@ -60,9 +60,10 @@ export default function OrderDetailsView({ id }: Props) {
   }, [id]);
 
   // Function to handle invoice download
-  const handleDownloadDocument = async ({ doc = 'invoice' }) => {
+  const handleDownloadDocument = async ({ doc = 'invoice', customUrl }: { doc?: string; customUrl?: string } = {}) => {
     try {
-      const initialResponse = await axiosInstance.get(`/${doc}/${id}/?all=true`, {
+      const targetUrl = customUrl || `/${doc}/${id}/?all=true`;
+      const initialResponse = await axiosInstance.get(targetUrl, {
         responseType: 'blob',
         validateStatus: (status) => status < 400 || status === 301,
       });

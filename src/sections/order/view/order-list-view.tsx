@@ -13,6 +13,11 @@ import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 import Link from '@mui/material/Link';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Dialog from '@mui/material/Dialog';
+import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 
 import { paths } from 'src/routes/paths';
@@ -236,6 +241,9 @@ export default function OrderListView() {
     }
   };
 
+  const [addToInvoiceOpen, setAddToInvoiceOpen] = useState(false);
+  const [invoiceIdInput, setInvoiceIdInput] = useState('');
+
   const handleMergeInvoices = async () => {
     if (table.selected.length === 0) return;
     try {
@@ -249,6 +257,25 @@ export default function OrderListView() {
     } catch (error: any) {
       console.error(error);
       enqueueSnackbar(error.response?.data?.error || 'Failed to merge invoices', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddOrdersToInvoice = async () => {
+    if (!invoiceIdInput || table.selected.length === 0) return;
+    try {
+      setIsLoading(true);
+      await axiosInstance.post(`/invoices/${invoiceIdInput}/add_orders/`, {
+        order_ids: table.selected
+      });
+      enqueueSnackbar('Orders added to invoice successfully!', { variant: 'success' });
+      setAddToInvoiceOpen(false);
+      table.onSelectAllRows(false, []);
+      getAll();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.error || 'Failed to add orders to invoice', { variant: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -513,6 +540,9 @@ export default function OrderListView() {
                   <Button variant="contained" color="secondary" onClick={handleMergeInvoices} size="small">
                     Merge Invoices
                   </Button>
+                  <Button variant="contained" color="info" onClick={() => setAddToInvoiceOpen(true)} size="small">
+                    Add to Invoice
+                  </Button>
                   <Tooltip title={t('delete')}>
                     <IconButton color="primary" onClick={confirm.onTrue}>
                       <Iconify icon="solar:trash-bin-trash-bold" />
@@ -596,6 +626,30 @@ export default function OrderListView() {
           </Button>
         }
       />
+
+      <Dialog open={addToInvoiceOpen} onClose={() => setAddToInvoiceOpen(false)}>
+        <DialogTitle>Add to Existing Invoice</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <TextField
+              autoFocus
+              fullWidth
+              label="Invoice ID"
+              value={invoiceIdInput}
+              onChange={(e) => setInvoiceIdInput(e.target.value)}
+              helperText="Enter the ID of the invoice you want to add the selected orders to."
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddToInvoiceOpen(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleAddOrdersToInvoice} variant="contained" color="primary">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

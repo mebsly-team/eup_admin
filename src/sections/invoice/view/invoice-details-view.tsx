@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Dialog from '@mui/material/Dialog';
+import TextField from '@mui/material/TextField';
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 
@@ -28,18 +33,21 @@ export default function InvoiceDetailsView({ id }: Props) {
   const [currentInvoice, setCurrentInvoice] = useState<IInvoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [addOrderOpen, setAddOrderOpen] = useState(false);
+  const [orderIdInput, setOrderIdInput] = useState('');
+
+  const fetchInvoice = async () => {
+    try {
+      const { data } = await axiosInstance.get(`/invoices/${id}/`);
+      setCurrentInvoice(data);
+    } catch (error) {
+      console.error('Failed to fetch invoice:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInvoice = async () => {
-      try {
-        const { data } = await axiosInstance.get(`/invoices/${id}/`);
-        setCurrentInvoice(data);
-      } catch (error) {
-        console.error('Failed to fetch invoice:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchInvoice();
   }, [id]);
 
@@ -54,6 +62,35 @@ export default function InvoiceDetailsView({ id }: Props) {
       enqueueSnackbar(error?.message || 'Error sending to Snelstart', { variant: 'error' });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleAddOrder = async () => {
+    if (!orderIdInput) return;
+    try {
+      setLoading(true);
+      await axiosInstance.post(`/invoices/${id}/add_orders/`, { order_ids: [orderIdInput] });
+      enqueueSnackbar('Order added successfully', { variant: 'success' });
+      setAddOrderOpen(false);
+      setOrderIdInput('');
+      fetchInvoice();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error?.response?.data?.error || 'Failed to add order', { variant: 'error' });
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveOrder = async (orderId: string) => {
+    try {
+      setLoading(true);
+      await axiosInstance.post(`/invoices/${id}/remove_orders/`, { order_ids: [orderId] });
+      enqueueSnackbar('Order removed successfully', { variant: 'success' });
+      fetchInvoice();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error?.response?.data?.error || 'Failed to remove order', { variant: 'error' });
+      setLoading(false);
     }
   };
 
@@ -94,7 +131,35 @@ export default function InvoiceDetailsView({ id }: Props) {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <InvoiceDetails invoice={currentInvoice} />
+      <InvoiceDetails 
+        invoice={currentInvoice} 
+        onRemoveOrder={handleRemoveOrder}
+        onAddOrderClick={() => setAddOrderOpen(true)}
+      />
+
+      <Dialog open={addOrderOpen} onClose={() => setAddOrderOpen(false)}>
+        <DialogTitle>Add Order to Invoice</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <TextField
+              autoFocus
+              fullWidth
+              label="Order ID"
+              value={orderIdInput}
+              onChange={(e) => setOrderIdInput(e.target.value)}
+              helperText="Enter the ID of the order you want to add to this invoice."
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddOrderOpen(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleAddOrder} variant="contained" color="primary">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

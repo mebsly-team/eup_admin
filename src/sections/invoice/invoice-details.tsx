@@ -9,6 +9,10 @@ import TableCell from '@mui/material/TableCell';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Iconify from 'src/components/iconify';
 
 import { fDate, fDateTime } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
@@ -18,9 +22,11 @@ import { IInvoice } from 'src/types/invoice';
 
 type Props = {
   invoice: IInvoice;
+  onRemoveOrder?: (orderId: string) => void;
+  onAddOrderClick?: () => void;
 };
 
-export default function InvoiceDetails({ invoice }: Props) {
+export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick }: Props) {
   const { invoice_number, created_at, snelstart_invoice_id, orders } = invoice;
 
   return (
@@ -46,7 +52,20 @@ export default function InvoiceDetails({ invoice }: Props) {
 
       <Divider sx={{ mt: 5, mb: 5, borderStyle: 'dashed' }} />
 
-      <Typography variant="h6" sx={{ mb: 3 }}>Linked Orders ({orders?.length || 0})</Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Typography variant="h6">Linked Orders ({orders?.length || 0})</Typography>
+        {onAddOrderClick && (
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={onAddOrderClick}
+          >
+            Add Order
+          </Button>
+        )}
+      </Stack>
 
       <TableContainer sx={{ overflow: 'unset' }}>
         <Scrollbar>
@@ -58,6 +77,7 @@ export default function InvoiceDetails({ invoice }: Props) {
                 <TableCell>Date</TableCell>
                 <TableCell align="right">Items</TableCell>
                 <TableCell align="right">Total</TableCell>
+                <TableCell align="right">Action</TableCell>
               </TableRow>
             </TableHead>
 
@@ -69,6 +89,15 @@ export default function InvoiceDetails({ invoice }: Props) {
                   <TableCell>{fDate(order.createdAt)}</TableCell>
                   <TableCell align="right">{order.totalQuantity}</TableCell>
                   <TableCell align="right">{fCurrency(order.totalAmount)}</TableCell>
+                  <TableCell align="right">
+                    {onRemoveOrder && (
+                      <Tooltip title="Remove order from invoice">
+                        <IconButton color="error" onClick={() => onRemoveOrder(order.id)}>
+                          <Iconify icon="solar:trash-bin-trash-bold" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
 
