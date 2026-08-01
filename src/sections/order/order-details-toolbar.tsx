@@ -354,7 +354,9 @@ export default function OrderDetailsToolbar({
             </Button>
           )}
 
-          <Button
+          {source_host !== 'bol.com' && (
+            <>
+              <Button
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
@@ -414,6 +416,8 @@ export default function OrderDetailsToolbar({
           >
             {t('sendToSnelstart')}
           </Button>
+            </>
+          )}
 
           {/* <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
             {t('edit')}
