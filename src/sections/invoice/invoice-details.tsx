@@ -119,7 +119,7 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
                       variant="subtitle2"
                       sx={{ cursor: 'pointer' }}
                     >
-                      {order.snelstart_order_number || order.id}
+                      {order.id}
                     </Link>
                   </TableCell>
                   <TableCell>{order.user?.business_name || order.user?.email || order.user?.first_name || 'Unknown'}</TableCell>
