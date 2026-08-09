@@ -34,7 +34,7 @@ type Props = {
 };
 
 export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate, onGetSnelstartId }: Props) {
-  const { invoice_number, created_at, snelstart_invoice_id, orders, invoice_date } = invoice;
+  const { invoice_number, created_at, snelstart_invoice_number, orders, invoice_date } = invoice;
 
   const sortedOrders = orders ? [...orders].sort((a, b) => Number(b.id) - Number(a.id)) : [];
 
@@ -61,7 +61,7 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
                 <Iconify icon="eva:refresh-fill" />
               </IconButton>
             )}
-            <Typography variant="body2">Snelstart ID: {snelstart_invoice_id || 'Not synced'}</Typography>
+            <Typography variant="body2">Snelstart ID: {snelstart_invoice_number || 'Not synced'}</Typography>
           </Stack>
           {onUpdateDate && (
             <TextField
