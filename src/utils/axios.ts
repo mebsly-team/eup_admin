@@ -72,4 +72,7 @@ export const endpoints = {
     details: '/api/product/details',
     search: '/api/product/search',
   },
+  dashboard: {
+    metrics: '/api/dashboard/metrics/',
+  },
 };

@@ -1,23 +1,26 @@
 import { useTheme } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 import { useAuthContext } from 'src/auth/hooks';
 import {
-  _ecommerceBestSalesman,
   _ecommerceSalesOverview,
   _ecommerceLatestProducts,
 } from 'src/_mock';
 
 import { useSettingsContext } from 'src/components/settings';
 
+import { useGetDashboardMetrics } from 'src/api/dashboard';
+
 import EcommerceYearlySales from '../ecommerce-yearly-sales';
-import EcommerceBestSalesman from '../ecommerce-best-salesman';
-import EcommerceSaleByGender from '../ecommerce-sale-by-gender';
+import EcommercePaidByCustomer from '../ecommerce-paid-by-customer';
 import EcommerceSalesOverview from '../ecommerce-sales-overview';
 import EcommerceWidgetSummary from '../ecommerce-widget-summary';
 import EcommerceLatestProducts from '../ecommerce-latest-products';
 import EcommerceCurrentBalance from '../ecommerce-current-balance';
+import EcommerceUnpaidCustomers from '../ecommerce-unpaid-customers';
 
 // ----------------------------------------------------------------------
 
@@ -28,14 +31,26 @@ export default function OverviewEcommerceView() {
 
   const settings = useSettingsContext();
 
+  const { metrics, metricsLoading } = useGetDashboardMetrics();
+
+  if (metricsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const { total_omzet = 0, paid_by_customer = [], unpaid_customers = [] } = metrics || {};
+
   return (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
       <Grid container spacing={3}>
         <Grid xs={12} md={4}>
           <EcommerceWidgetSummary
-            title="Product Sold"
-            percent={2.6}
-            total={765}
+            title="Total Omzet"
+            percent={0}
+            total={total_omzet}
             chart={{
               series: [22, 8, 35, 50, 82, 84, 77, 12, 87, 43],
             }}
@@ -67,14 +82,10 @@ export default function OverviewEcommerceView() {
         </Grid>
 
         <Grid xs={12} md={6} lg={4}>
-          <EcommerceSaleByGender
-            title="Sale By Gender"
-            total={2324}
+          <EcommercePaidByCustomer
+            title="Paid by Customer"
             chart={{
-              series: [
-                { label: 'Mens', value: 44 },
-                { label: 'Womens', value: 75 },
-              ],
+              series: paid_by_customer,
             }}
           />
         </Grid>
@@ -143,15 +154,14 @@ export default function OverviewEcommerceView() {
         </Grid>
 
         <Grid xs={12} md={6} lg={8}>
-          <EcommerceBestSalesman
-            title="Best Salesman"
-            tableData={_ecommerceBestSalesman}
+          <EcommerceUnpaidCustomers
+            title="Unpaid Customers"
+            tableData={unpaid_customers}
             tableLabels={[
-              { id: 'name', label: 'Seller' },
-              { id: 'category', label: 'Product' },
-              { id: 'country', label: 'Country', align: 'center' },
-              { id: 'totalAmount', label: 'Total', align: 'right' },
-              { id: 'rank', label: 'Rank', align: 'right' },
+              { id: 'name', label: 'Customer' },
+              { id: 'email', label: 'Email' },
+              { id: 'phone', label: 'Phone' },
+              { id: 'totalAmount', label: 'Total Unpaid', align: 'right' },
             ]}
           />
         </Grid>
