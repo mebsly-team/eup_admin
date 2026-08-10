@@ -35,7 +35,7 @@ export default function OverviewEcommerceView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
-  const { metrics, metricsLoading } = useGetDashboardMetrics();
+  const { metrics, metricsLoading, metricsError } = useGetDashboardMetrics();
 
   if (!isAuthenticated) {
     return (
@@ -76,6 +76,19 @@ export default function OverviewEcommerceView() {
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
         <CircularProgress />
       </Box>
+    );
+  }
+
+  if (metricsError) {
+    return (
+      <Container sx={{ mt: 5 }}>
+        <Card sx={{ p: 3 }}>
+          <Typography color="error" variant="h6">Failed to load dashboard data</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            {typeof metricsError === 'string' ? metricsError : JSON.stringify(metricsError)}
+          </Typography>
+        </Card>
+      </Container>
     );
   }
 
