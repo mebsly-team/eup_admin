@@ -1,5 +1,5 @@
 import { ApexOptions } from 'apexcharts';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import MenuItem from '@mui/material/MenuItem';
@@ -35,7 +35,16 @@ export default function EcommerceYearlySales({ title, subheader, chart, ...other
 
   const popover = usePopover();
 
-  const [seriesData, setSeriesData] = useState('2019');
+  const [seriesData, setSeriesData] = useState('');
+
+  useEffect(() => {
+    if (series && series.length > 0) {
+      // Find current year if it exists, otherwise default to the last available year
+      const currentYear = new Date().getFullYear().toString();
+      const hasCurrentYear = series.some((s) => s.year === currentYear);
+      setSeriesData(hasCurrentYear ? currentYear : series[series.length - 1].year);
+    }
+  }, [series]);
 
   const chartOptions = useChart({
     colors,
