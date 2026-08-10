@@ -52,21 +52,21 @@ export function useNavData() {
     () => [
       // OVERVIEW
       // ----------------------------------------------------------------------
-      // {
-      //   subheader: t('overview'),
-      //   items: [
-      //     {
-      //       title: t('app'),
-      //       path: paths.dashboard.root,
-      //       icon: ICONS.dashboard,
-      //     },
-      //     // {
-      //     //   title: t('analytics'),
-      //     //   path: paths.dashboard.general.analytics,
-      //     //   icon: ICONS.analytics,
-      //     // },
-      //   ],
-      // },
+      {
+        subheader: t('overview'),
+        items: [
+          {
+            title: t('app'),
+            path: paths.dashboard.root,
+            icon: ICONS.dashboard,
+          },
+          // {
+          //   title: t('analytics'),
+          //   path: paths.dashboard.general.analytics,
+          //   icon: ICONS.analytics,
+          // },
+        ],
+      },
 
       // MANAGEMENT
       // ----------------------------------------------------------------------
