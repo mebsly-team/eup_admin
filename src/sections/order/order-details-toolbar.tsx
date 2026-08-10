@@ -365,7 +365,7 @@ export default function OrderDetailsToolbar({
               startIcon={<Iconify icon="solar:document-add-bold" />}
               onClick={() => handleAddToLatestInvoice({ id })}
             >
-              Add to an open invoice
+              Toegevoegd aan de factuur
             </Button>
           )}
 

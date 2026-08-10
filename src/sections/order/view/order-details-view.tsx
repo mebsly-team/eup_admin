@@ -249,6 +249,18 @@ export default function OrderDetailsView({ id }: Props) {
       const response = await axiosInstance.post(`/orders/${id}/add_to_latest_invoice/`);
       if (response.status === 200) {
         enqueueSnackbar(t('Toegevoegd aan de nieuwste factuur'), { variant: 'success' });
+        
+        const newHistory = (currentOrder as any).history || [];
+        newHistory.push({
+          date: new Date(),
+          event: `Toegevoegd aan de nieuwste factuur door ${user?.email}`,
+        });
+        
+        await updateOrder(id, {
+          status: 'confirmed',
+          history: newHistory,
+        });
+        
         getOrder(id);
       } else {
         enqueueSnackbar(t('Niet gelukt om aan de factuur toe te voegen'), { variant: 'error' });
