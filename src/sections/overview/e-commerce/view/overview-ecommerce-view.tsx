@@ -53,7 +53,7 @@ export default function OverviewEcommerceView() {
           <Stack spacing={3}>
             <TextField 
               type="password"
-              label="Password" 
+              label="Wachtwoord" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => {
@@ -69,7 +69,7 @@ export default function OverviewEcommerceView() {
                 if (password === '2026') setIsAuthenticated(true);
               }}
             >
-              Access Dashboard
+              Toegang tot Dashboard
             </Button>
           </Stack>
         </Card>
@@ -89,7 +89,7 @@ export default function OverviewEcommerceView() {
     return (
       <Container sx={{ mt: 5 }}>
         <Card sx={{ p: 3 }}>
-          <Typography color="error" variant="h6">Failed to load dashboard data</Typography>
+          <Typography color="error" variant="h6">Fout bij laden van dashboardgegevens</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
             {typeof metricsError === 'string' ? metricsError : JSON.stringify(metricsError)}
           </Typography>
@@ -112,17 +112,17 @@ export default function OverviewEcommerceView() {
 
   const salesOverviewData = [
     {
-      label: 'Total Profit',
+      label: 'Totale Winst',
       totalAmount: sales_overview.total_profit || 0,
       value: sales_overview.total_profit_percent || 0,
     },
     {
-      label: 'Total Income',
+      label: 'Totale Inkomsten',
       totalAmount: sales_overview.total_income || 0,
       value: sales_overview.total_income_percent || 0,
     },
     {
-      label: 'Total Expenses',
+      label: 'Totale Uitgaven',
       totalAmount: sales_overview.total_expenses || 0,
       value: sales_overview.total_expenses_percent || 0,
     }
@@ -152,7 +152,7 @@ export default function OverviewEcommerceView() {
         >
           {datePicker.startDate && datePicker.endDate
             ? `${fDate(datePicker.startDate)} - ${fDate(datePicker.endDate)}`
-            : 'Select Date Range'}
+            : 'Selecteer Datumreeks'}
         </Button>
       </Stack>
 
@@ -170,7 +170,7 @@ export default function OverviewEcommerceView() {
       <Grid container spacing={3}>
         <Grid xs={12} md={4}>
           <EcommerceWidgetSummary
-            title="Total Omzet"
+            title="Totale Omzet"
             percent={0}
             total={total_omzet}
             chart={{
@@ -181,7 +181,7 @@ export default function OverviewEcommerceView() {
 
         <Grid xs={12} md={4}>
           <EcommerceWidgetSummary
-            title="Total Balance"
+            title="Totaal Saldo"
             percent={0}
             total={total_balance}
             chart={{
@@ -193,7 +193,7 @@ export default function OverviewEcommerceView() {
 
         <Grid xs={12} md={4}>
           <EcommerceWidgetSummary
-            title="Sales Profit"
+            title="Verkoopwinst"
             percent={0}
             total={sales_profit}
             chart={{
@@ -205,7 +205,7 @@ export default function OverviewEcommerceView() {
 
         <Grid xs={12} md={6} lg={4}>
           <EcommercePaidByCustomer
-            title="Paid by Customer"
+            title="Betaald per Klant"
             chart={{
               series: paid_by_customer,
             }}
@@ -214,7 +214,7 @@ export default function OverviewEcommerceView() {
 
         <Grid xs={12} md={6} lg={8}>
           <EcommerceYearlySales
-            title="Yearly Sales"
+            title="Jaarlijkse Verkoop"
             subheader=""
             chart={{
               categories: [
@@ -237,12 +237,12 @@ export default function OverviewEcommerceView() {
         </Grid>
 
         <Grid xs={12} md={6} lg={8}>
-          <EcommerceSalesOverview title="Sales Overview" data={salesOverviewData} />
+          <EcommerceSalesOverview title="Verkoopoverzicht" data={salesOverviewData} />
         </Grid>
 
         <Grid xs={12} md={6} lg={4}>
           <EcommerceCurrentBalance
-            title="Current Balance"
+            title="Huidig Saldo"
             currentBalance={current_balance.order_total || 0}
             sentAmount={current_balance.refunded || 0}
           />
@@ -250,19 +250,19 @@ export default function OverviewEcommerceView() {
 
         <Grid xs={12} md={6} lg={8}>
           <EcommerceUnpaidCustomers
-            title="Unpaid Customers"
+            title="Onbetaalde Klanten"
             tableData={unpaid_customers}
             tableLabels={[
-              { id: 'name', label: 'Customer' },
-              { id: 'email', label: 'Email' },
-              { id: 'phone', label: 'Phone' },
-              { id: 'totalAmount', label: 'Total Unpaid', align: 'right' },
+              { id: 'name', label: 'Klant' },
+              { id: 'email', label: 'E-mail' },
+              { id: 'phone', label: 'Telefoon' },
+              { id: 'totalAmount', label: 'Totaal Onbetaald', align: 'right' },
             ]}
           />
         </Grid>
 
         <Grid xs={12} md={6} lg={4}>
-          <EcommerceLatestProducts title="Latest Products" list={latestProductsFormatted} />
+          <EcommerceLatestProducts title="Nieuwste Producten" list={latestProductsFormatted} />
         </Grid>
       </Grid>
     </Container>

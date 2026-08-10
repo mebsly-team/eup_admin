@@ -9,8 +9,12 @@ export function useGetDashboardMetrics(startDate?: Date | null, endDate?: Date |
   let URL = endpoints.dashboard.metrics;
   
   const params = new URLSearchParams();
-  if (startDate) params.append('start_date', startDate.toISOString());
-  if (endDate) params.append('end_date', endDate.toISOString());
+  if (startDate && !isNaN(new Date(startDate).getTime())) {
+    params.append('start_date', new Date(startDate).toISOString());
+  }
+  if (endDate && !isNaN(new Date(endDate).getTime())) {
+    params.append('end_date', new Date(endDate).toISOString());
+  }
   
   const queryString = params.toString();
   if (queryString) {
