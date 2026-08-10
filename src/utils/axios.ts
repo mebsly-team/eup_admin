@@ -73,6 +73,6 @@ export const endpoints = {
     search: '/api/product/search',
   },
   dashboard: {
-    metrics: '/api/dashboard/metrics/',
+    metrics: '/dashboard/metrics/',
   },
 };
