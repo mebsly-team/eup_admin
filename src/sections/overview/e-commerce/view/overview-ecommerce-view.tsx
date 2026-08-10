@@ -12,10 +12,11 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
 import { useAuthContext } from 'src/auth/hooks';
-
 import { useSettingsContext } from 'src/components/settings';
-
 import { useGetDashboardMetrics } from 'src/api/dashboard';
+import Iconify from 'src/components/iconify';
+import CustomDateRangePicker, { useDateRangePicker } from 'src/components/custom-date-range-picker';
+import { fDate } from 'src/utils/format-time';
 
 import EcommerceYearlySales from '../ecommerce-yearly-sales';
 import EcommercePaidByCustomer from '../ecommerce-paid-by-customer';
@@ -35,7 +36,12 @@ export default function OverviewEcommerceView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
-  const { metrics, metricsLoading, metricsError } = useGetDashboardMetrics();
+  const datePicker = useDateRangePicker(new Date('2021-01-01'), new Date());
+
+  const { metrics, metricsLoading, metricsError } = useGetDashboardMetrics(
+    datePicker.startDate,
+    datePicker.endDate
+  );
 
   if (!isAuthenticated) {
     return (
@@ -133,6 +139,34 @@ export default function OverviewEcommerceView() {
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
+      <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ mb: { xs: 3, md: 5 } }}>
+        <Typography variant="h4">
+          E-Commerce Dashboard
+        </Typography>
+        
+        <Button 
+          variant="contained" 
+          color="primary"
+          startIcon={<Iconify icon="eva:calendar-outline" />}
+          onClick={datePicker.onOpen}
+        >
+          {datePicker.startDate && datePicker.endDate
+            ? `${fDate(datePicker.startDate)} - ${fDate(datePicker.endDate)}`
+            : 'Select Date Range'}
+        </Button>
+      </Stack>
+
+      <CustomDateRangePicker
+        variant="calendar"
+        open={datePicker.open}
+        startDate={datePicker.startDate}
+        endDate={datePicker.endDate}
+        onChangeStartDate={datePicker.onChangeStartDate}
+        onChangeEndDate={datePicker.onChangeEndDate}
+        onClose={datePicker.onClose}
+        error={datePicker.error}
+      />
+
       <Grid container spacing={3}>
         <Grid xs={12} md={4}>
           <EcommerceWidgetSummary
