@@ -42,6 +42,7 @@ type Props = {
   sendToSnelstart: (value: { id: string }) => void;
   handleSendInvoice: (value: { id: string, email?: string }) => void;
   handleSendOffer: (value: { id: string }) => void;
+  handleAddToLatestInvoice: (value: { id: string }) => void;
   updateOrder: (id: string, data: any) => Promise<any>;
 };
 
@@ -56,6 +57,7 @@ export default function OrderDetailsToolbar({
   paymentStatusOptions,
   onPaymentChangeStatus,
   handleSendOffer,
+  handleAddToLatestInvoice,
   updateOrder
 }: Props) {
   const popoverStatus = usePopover();
@@ -353,6 +355,17 @@ export default function OrderDetailsToolbar({
             >
               Upload Bol Pakbon
               <input type="file" hidden onChange={handleUploadBolPakbon} accept="application/pdf" />
+            </Button>
+          )}
+
+          {source_host === 'bol.com' && !currentOrder?.invoice && (
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<Iconify icon="solar:document-add-bold" />}
+              onClick={() => handleAddToLatestInvoice({ id })}
+            >
+              Add to an open invoice
             </Button>
           )}
 

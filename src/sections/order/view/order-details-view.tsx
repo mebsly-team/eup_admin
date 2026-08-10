@@ -244,6 +244,21 @@ export default function OrderDetailsView({ id }: Props) {
     }
   };
 
+  const handleAddToLatestInvoice = async ({ id }: { id: string }) => {
+    try {
+      const response = await axiosInstance.post(`/orders/${id}/add_to_latest_invoice/`);
+      if (response.status === 200) {
+        enqueueSnackbar(t('Toegevoegd aan de nieuwste factuur'), { variant: 'success' });
+        getOrder(id);
+      } else {
+        enqueueSnackbar(t('Niet gelukt om aan de factuur toe te voegen'), { variant: 'error' });
+      }
+    } catch (error: any) {
+      console.error('Error adding to latest invoice:', error);
+      enqueueSnackbar(error?.response?.data?.error || t('Niet gelukt om aan de factuur toe te voegen'), { variant: 'error' });
+    }
+  };
+
   const handleChangeStatus = useCallback(
     (newValue: string) => {
       const newHistory = currentOrder.history;
@@ -289,6 +304,7 @@ export default function OrderDetailsView({ id }: Props) {
         sendToSnelstart={sendToSnelstart}
         handleSendInvoice={handleSendInvoice}
         handleSendOffer={handleSendOffer}
+        handleAddToLatestInvoice={handleAddToLatestInvoice}
         updateOrder={updateOrder}
       />
 
