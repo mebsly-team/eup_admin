@@ -50,44 +50,11 @@ export function useNavData() {
 
   const data = useMemo(
     () => [
-      // OVERVIEW
+      // MANAGEMENT
       // ----------------------------------------------------------------------
       {
         subheader: t('overview'),
         items: [
-          {
-            title: t('app'),
-            path: paths.dashboard.root,
-            icon: ICONS.dashboard,
-          },
-          // {
-          //   title: t('analytics'),
-          //   path: paths.dashboard.general.analytics,
-          //   icon: ICONS.analytics,
-          // },
-        ],
-      },
-
-      // MANAGEMENT
-      // ----------------------------------------------------------------------
-      {
-        // subheader: t('management'),
-        items: [
-          // PRODUCT
-          {
-            title: t('product'),
-            path: paths.dashboard.product.root,
-            icon: ICONS.product,
-            children: [
-              { title: t('list'), path: paths.dashboard.product.root },
-              // {
-              //   title: t('details'),
-              //   path: paths.dashboard.product.demo.details,
-              // },
-              { title: t('create'), path: paths.dashboard.product.new },
-              // { title: t('edit'), path: paths.dashboard.product.demo.edit },
-            ],
-          },
           // ORDER
           {
             title: t('order'),
@@ -99,6 +66,22 @@ export function useNavData() {
               { title: t('carts'), path: paths.dashboard.order.carts },
               // { title: t('details'), path: paths.dashboard.order.demo.details },
             ],
+          },
+          // PRODUCT
+          {
+            title: t('product'),
+            path: paths.dashboard.product.root,
+            icon: ICONS.product,
+            children: [
+              { title: t('list'), path: paths.dashboard.product.root },
+              { title: t('create'), path: paths.dashboard.product.new },
+            ],
+          },
+          // METRICS
+          {
+            title: 'Metrics',
+            path: paths.dashboard.root,
+            icon: ICONS.dashboard,
           },
           // Campaign
           {
