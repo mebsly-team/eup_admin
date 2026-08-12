@@ -77,6 +77,7 @@ export const paths = {
   dashboard: {
     root: ROOTS.DASHBOARD,
     // root: `${ROOTS.DASHBOARD}/product`,
+    metrics: `${ROOTS.DASHBOARD}/metrics`,
     blank: `${ROOTS.DASHBOARD}/blank`,
     kanban: `${ROOTS.DASHBOARD}/kanban`,
     calendar: `${ROOTS.DASHBOARD}/calendar`,

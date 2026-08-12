@@ -80,7 +80,7 @@ export function useNavData() {
           // METRICS
           {
             title: 'Metrics',
-            path: paths.dashboard.root,
+            path: paths.dashboard.metrics,
             icon: ICONS.dashboard,
           },
           // Campaign

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 
 import { AuthGuard } from 'src/auth/guard';
 import DashboardLayout from 'src/layouts/dashboard';
@@ -118,7 +118,8 @@ export const dashboardRoutes = [
     path: 'dashboard',
     element: <DashboardWrapper />,
     children: [
-      { element: <OverviewEcommercePage />, index: true },
+      { element: <Navigate to="/dashboard/order" replace />, index: true },
+      { path: 'metrics', element: <OverviewEcommercePage /> },
       // { element: <ProductListPage />, index: true },
       { path: 'analytics', element: <OverviewAnalyticsPage /> },
       {
