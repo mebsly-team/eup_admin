@@ -139,6 +139,19 @@ export default function InvoiceDetailsView({ id }: Props) {
     }
   };
 
+  const handleUpdatePaymentStatus = async (isPaid: boolean) => {
+    try {
+      setLoading(true);
+      await axiosInstance.patch(`/invoices/${id}/`, { is_paid: isPaid });
+      enqueueSnackbar('Payment status updated', { variant: 'success' });
+      fetchInvoice();
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar('Failed to update payment status', { variant: 'error' });
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -198,6 +211,7 @@ export default function InvoiceDetailsView({ id }: Props) {
         onAddOrderClick={() => setAddOrderOpen(true)}
         onUpdateDate={handleUpdateDate}
         onGetSnelstartId={handleGenerateSnelstartId}
+        onUpdatePaymentStatus={handleUpdatePaymentStatus}
       />
 
       <Dialog open={addOrderOpen} onClose={() => setAddOrderOpen(false)}>

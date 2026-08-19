@@ -32,9 +32,10 @@ type Props = {
   onAddOrderClick?: () => void;
   onUpdateDate?: (newDate: string) => void;
   onGetSnelstartId?: () => void;
+  onUpdatePaymentStatus?: (isPaid: boolean) => void;
 };
 
-export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate, onGetSnelstartId }: Props) {
+export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick, onUpdateDate, onGetSnelstartId, onUpdatePaymentStatus }: Props) {
   const { invoice_number, created_at, snelstart_invoice_number, orders, invoice_date } = invoice;
 
   const sortedOrders = orders ? [...orders].sort((a, b) => Number(b.id) - Number(a.id)) : [];
@@ -66,12 +67,26 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
           </Stack>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <Typography variant="body2">Payment Status:</Typography>
-            <Label
-              variant="soft"
-              color={invoice.is_paid ? 'success' : 'error'}
-            >
-              {invoice.is_paid ? 'Paid' : 'Unpaid'}
-            </Label>
+            {onUpdatePaymentStatus ? (
+              <TextField
+                select
+                size="small"
+                value={invoice.is_paid ? 'paid' : 'unpaid'}
+                onChange={(e) => onUpdatePaymentStatus(e.target.value === 'paid')}
+                SelectProps={{ native: true }}
+                sx={{ ml: 1, minWidth: 100 }}
+              >
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid</option>
+              </TextField>
+            ) : (
+              <Label
+                variant="soft"
+                color={invoice.is_paid ? 'success' : 'error'}
+              >
+                {invoice.is_paid ? 'Paid' : 'Unpaid'}
+              </Label>
+            )}
           </Stack>
           {onUpdateDate && (
             <TextField

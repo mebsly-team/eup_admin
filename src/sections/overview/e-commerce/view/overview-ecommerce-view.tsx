@@ -36,7 +36,8 @@ export default function OverviewEcommerceView() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
-  const datePicker = useDateRangePicker(new Date('2021-01-01'), new Date());
+  const currentYear = new Date().getFullYear();
+  const datePicker = useDateRangePicker(new Date(`${currentYear}-01-01`), new Date());
 
   const { metrics, metricsLoading, metricsError } = useGetDashboardMetrics(
     datePicker.startDate,
