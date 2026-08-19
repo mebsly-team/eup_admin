@@ -15,6 +15,7 @@ import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import Iconify from 'src/components/iconify';
+import Label from 'src/components/label';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
@@ -62,6 +63,15 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
               </IconButton>
             )}
             <Typography variant="body2">Snelstart ID: {snelstart_invoice_number || 'Not synced'}</Typography>
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Typography variant="body2">Payment Status:</Typography>
+            <Label
+              variant="soft"
+              color={invoice.is_paid ? 'success' : 'error'}
+            >
+              {invoice.is_paid ? 'Paid' : 'Unpaid'}
+            </Label>
           </Stack>
           {onUpdateDate && (
             <TextField

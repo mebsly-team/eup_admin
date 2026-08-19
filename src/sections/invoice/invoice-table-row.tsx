@@ -20,7 +20,7 @@ export default function InvoiceTableRow({
   row,
   onViewRow,
 }: Props) {
-  const { id, created_at, snelstart_invoice_number, orders, total_amount, is_sent_to_snelstart, user } = row;
+  const { id, created_at, snelstart_invoice_number, orders, total_amount, is_sent_to_snelstart, user, is_paid } = row;
 
   return (
     <TableRow hover>
@@ -59,6 +59,15 @@ export default function InvoiceTableRow({
           primaryTypographyProps={{ typography: 'body2' }}
           secondaryTypographyProps={{ typography: 'caption', color: 'text.secondary' }}
         />
+      </TableCell>
+
+      <TableCell>
+        <Label
+          variant="soft"
+          color={is_paid ? 'success' : 'error'}
+        >
+          {is_paid ? 'Paid' : 'Unpaid'}
+        </Label>
       </TableCell>
 
       <TableCell>
