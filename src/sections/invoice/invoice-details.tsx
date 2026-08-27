@@ -106,7 +106,7 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Typography variant="h6">Linked Orders ({orders?.length || 0})</Typography>
-        {onAddOrderClick && (
+        {onAddOrderClick && !invoice.is_paid && (
           <Button
             size="small"
             variant="contained"
@@ -152,7 +152,7 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
                   <TableCell align="right">{order.cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0}</TableCell>
                   <TableCell align="right">{fCurrency(order.total)}</TableCell>
                   <TableCell align="right">
-                    {onRemoveOrder && (
+                    {onRemoveOrder && !invoice.is_paid && (
                       <Tooltip title="Remove order from invoice">
                         <IconButton color="error" onClick={() => onRemoveOrder(order.id)}>
                           <Iconify icon="solar:trash-bin-trash-bold" />
