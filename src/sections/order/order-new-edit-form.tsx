@@ -430,7 +430,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
             const orderData = {
                 "user_id": data.customer.id,
                 "status": status || "pending_order",
-                "extra_note": extra_note,
+                "extra_note": data.notes || extra_note,
                 "source_host": data.source_host,
                 "sub_total": subtotal,
                 "total": total,

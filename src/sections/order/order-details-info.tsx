@@ -173,6 +173,9 @@ export default function OrderDetailsInfo({
   const [isNotesEdit, setIsNotesEdit] = useState(false);
   const [notes, setNotes] = useState(currentOrder?.notes || '');
 
+  const [isExtraNoteEdit, setIsExtraNoteEdit] = useState(false);
+  const [extraNote, setExtraNote] = useState(currentOrder?.extra_note || '');
+
   const [totalWeight, setTotalWeight] = useState('');
   const [options, setOptions] = useState([]);
 
@@ -392,6 +395,24 @@ export default function OrderDetailsInfo({
       history: newHistory,
     });
     setIsNotesEdit(false);
+  };
+
+  const handleExtraNoteEditClick = () => {
+    setIsExtraNoteEdit(!isExtraNoteEdit);
+  };
+
+  const handleExtraNoteUpdate = () => {
+    const newHistory = currentOrder.history || [];
+    newHistory.push({
+      date: new Date(),
+      event: `Extra notities gewijzigd door ${user?.email}`,
+    });
+
+    updateOrder(orderId, {
+      extra_note: extraNote,
+      history: newHistory,
+    });
+    setIsExtraNoteEdit(false);
   };
 
   const handleAddressUpdate = (e) => {
@@ -1402,6 +1423,48 @@ export default function OrderDetailsInfo({
     </>
   );
 
+  const renderExtraNote = (
+    <>
+      <CardHeader
+        title="Extra Notities"
+        action={
+          <IconButton onClick={handleExtraNoteEditClick}>
+            <Iconify icon="solar:pen-bold" />
+          </IconButton>
+        }
+      />
+      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
+        {isExtraNoteEdit ? (
+          <Stack spacing={1.5}>
+            <TextField
+              multiline
+              rows={4}
+              fullWidth
+              value={extraNote}
+              onChange={(e) => setExtraNote(e.target.value)}
+              placeholder="Voeg hier extra notities toe..."
+            />
+            <Stack direction="row" spacing={1}>
+              <Button onClick={handleExtraNoteUpdate} variant="contained">
+                Opslaan
+              </Button>
+              <Button variant="outlined" onClick={() => {
+                setExtraNote(currentOrder?.extra_note || '');
+                setIsExtraNoteEdit(false);
+              }}>
+                Annuleren
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+            {currentOrder?.extra_note || 'Geen extra notities'}
+          </Typography>
+        )}
+      </Stack>
+    </>
+  );
+
   const renderReminders = (
     <>
       <CardHeader title="Herinneringen (Reminders)" />
@@ -1470,6 +1533,10 @@ export default function OrderDetailsInfo({
       <Divider sx={{ borderStyle: 'dashed' }} />
 
       {renderNotes}
+
+      <Divider sx={{ borderStyle: 'dashed' }} />
+
+      {renderExtraNote}
 
       <Divider sx={{ borderStyle: 'dashed' }} />
 
