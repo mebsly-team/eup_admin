@@ -103,6 +103,9 @@ export default function OverviewEcommerceView() {
     total_omzet = 0, 
     total_balance = 0,
     sales_profit = 0,
+    total_purchase = 0,
+    top_supplier = null,
+    purchases_by_supplier = [],
     paid_by_customer = [], 
     unpaid_customers = [],
     yearly_sales = [],
@@ -204,6 +207,30 @@ export default function OverviewEcommerceView() {
           />
         </Grid>
 
+        <Grid xs={12} md={6}>
+          <EcommerceWidgetSummary
+            title="Totale Inkoop"
+            percent={0}
+            total={total_purchase}
+            chart={{
+              colors: [theme.palette.error.light, theme.palette.error.main],
+              series: [20, 41, 63, 33, 28, 35, 50, 46, 11, 26],
+            }}
+          />
+        </Grid>
+
+        <Grid xs={12} md={6}>
+          <EcommerceWidgetSummary
+            title={top_supplier ? `Top Lev.: ${top_supplier.name}` : "Top Leverancier"}
+            percent={0}
+            total={top_supplier ? top_supplier.total : 0}
+            chart={{
+              colors: [theme.palette.success.light, theme.palette.success.main],
+              series: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            }}
+          />
+        </Grid>
+
         <Grid xs={12} md={6} lg={4}>
           <EcommercePaidByCustomer
             title="Betaald per Klant"
@@ -239,6 +266,15 @@ export default function OverviewEcommerceView() {
 
         <Grid xs={12} md={6} lg={8}>
           <EcommerceSalesOverview title="Verkoopoverzicht" data={salesOverviewData} />
+        </Grid>
+
+        <Grid xs={12} md={6} lg={4}>
+          <EcommercePaidByCustomer
+            title="Aankopen per Leverancier"
+            chart={{
+              series: purchases_by_supplier,
+            }}
+          />
         </Grid>
 
         <Grid xs={12} md={6} lg={4}>
