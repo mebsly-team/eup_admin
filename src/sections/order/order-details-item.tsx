@@ -422,7 +422,9 @@ export default function OrderDetailsItems({
 
       // Update the order with the edited cart and calculated totals
       await updateOrder(currentOrder.id, {
-        sub_total: calculateSubtotal().toFixed(2),
+        // sub_total is always the excl-VAT goods total; calculateSubtotal()
+        // returns incl-VAT for non-exempt customers.
+        sub_total: calculateSubtotalExclVat().toFixed(2),
         total: calculateTotal().toFixed(2),
         cart: updatedCart,
         history: newHistory,
