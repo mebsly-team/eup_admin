@@ -24,7 +24,6 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 type Props = {
   selected: boolean;
   onEditRow: VoidFunction;
-  onPurchaseRow: VoidFunction;
   row: any;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
@@ -36,7 +35,6 @@ export default function SupplierTableRow({
   onEditRow,
   onSelectRow,
   onDeleteRow,
-  onPurchaseRow,
 }: Props) {
   const { id, name, supplier_code, kvk_number, email, is_active } = row;
   const [isActive, setIsActive] = useState(is_active);
@@ -107,15 +105,7 @@ export default function SupplierTableRow({
           <Iconify icon="solar:pen-bold" />
           {t('view_edit')}
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            onPurchaseRow();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:file-bold-duotone" />
-          {t('aanbod')}
-        </MenuItem>
+
         <MenuItem
           onClick={() => {
             confirm.onTrue();
