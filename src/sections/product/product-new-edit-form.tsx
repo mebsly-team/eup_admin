@@ -1635,41 +1635,21 @@ export default function ProductNewEditForm({ id }: Props) {
       const meta_description = getValues('meta_description') || '';
       const meta_keywords = getValues('meta_keywords') || '';
 
-      const prompt = `You are an expert SEO assistant for an e-commerce website.
-The product details:
-Title: ${title}
-Article Code: ${article_code}
-Parent Product Title: ${parent_title}
-
-Please fill in ONLY the empty fields among these with SEO-optimized Dutch content. Do NOT change fields that already have content.
-IMPORTANT: The values for meta_title, meta_description, and meta_keywords MUST NOT exceed 250 characters each.
-Empty fields to fill:
-${!description ? '- description' : ''}
-${!description_long ? '- description_long' : ''}
-${!meta_title ? '- meta_title (max 250 characters)' : ''}
-${!meta_description ? '- meta_description (max 250 characters)' : ''}
-${!meta_keywords ? '- meta_keywords (max 250 characters)' : ''}
-
-Return strictly a JSON object with the generated keys and their string values.`;
-
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-v4-flash',
-          max_tokens: 1000,
-          response_format: { type: "json_object" },
-          messages: [{ role: 'user', content: prompt }]
-        })
+      // Sir tarayiciya gitmesin diye OpenRouter cagrisi SUNUCU tarafinda yapilir.
+      // Prompt artik backend'de kuruluyor; buradan sadece urun alanlari gonderilir.
+      const response = await axiosInstance.post('/ai/product-seo/', {
+        title,
+        article_code,
+        parent_title,
+        description,
+        description_long,
+        meta_title,
+        meta_description,
+        meta_keywords,
       });
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
-      if (content) {
-        const parsed = JSON.parse(content);
+      const parsed = response.data;
+      if (parsed) {
         if (!description && parsed.description) setValue('description', parsed.description);
         if (!description_long && parsed.description_long) setValue('description_long', parsed.description_long);
         if (!meta_title && parsed.meta_title) setValue('meta_title', parsed.meta_title.substring(0, 250));
