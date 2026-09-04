@@ -102,6 +102,50 @@ interface TimeChangeDialogState {
   end: Date | null;
 }
 
+interface PlanningAddress {
+  id?: number | null;
+  street_name?: string;
+  house_number?: string;
+  house_suffix?: string;
+  zip_code?: string;
+  city?: string;
+  country?: string;
+  phone_number?: string;
+  business_name?: string;
+  first_name?: string;
+  last_name?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+interface PlanningOrder {
+  id: number;
+  ordered_date: string;
+  status: string;
+  is_paid: boolean;
+  total: string | number;
+  source_host?: string | null;
+  extra_note?: string | null;
+  snelstart_order_number?: string | null;
+  user: {
+    id: number;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    business_name?: string;
+    phone_number?: string;
+    mobile_number?: string;
+    mobile_phone?: string;
+    customer_color?: string;
+    type?: string;
+  };
+  address: PlanningAddress;
+  address_source: 'shipping' | 'user' | 'none';
+  has_coordinates: boolean;
+}
+
+const PLANNING_MARKER_COLOR = '#D32F2F';
+
 const USER_TYPES = [
   { value: "all", label: "Alle" },
   { value: "special", label: "Speciaal" },
@@ -187,6 +231,10 @@ const Map = () => {
     is_delivery_address: true
   });
   const [noOrderSince, setNoOrderSince] = useState<string>("");
+  const [isPlanningMode, setIsPlanningMode] = useState(false);
+  const [planningOrders, setPlanningOrders] = useState<PlanningOrder[]>([]);
+  const [planningLoading, setPlanningLoading] = useState(false);
+  const [planningCount, setPlanningCount] = useState<number | null>(null);
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [currentAccuracy, setCurrentAccuracy] = useState<number | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -365,6 +413,75 @@ const Map = () => {
       setIsLoading(false);
     }
   }, [filters, selectedUserTypes, selectedColors, isAllColorsSelected, noOrderSince]);
+
+  const fetchPlanningOrders = useCallback(async (fitToBounds = false) => {
+    setPlanningLoading(true);
+    try {
+      const response = await axiosInstance.get('/orders/map-planning/');
+      const orders: PlanningOrder[] = Array.isArray(response.data) ? response.data : [];
+      setPlanningOrders(orders);
+      setPlanningCount(orders.length);
+
+      const withCoords = orders.filter(o => o.has_coordinates);
+      const withoutCoords = orders.length - withCoords.length;
+      if (withoutCoords > 0) {
+        enqueueSnackbar(
+          `${withoutCoords} planning order(s) zonder coördinaten worden niet op de kaart getoond`,
+          { variant: 'warning' }
+        );
+      }
+
+      if (fitToBounds && withCoords.length && mapRef.current) {
+        const bounds = withCoords.map(o => [o.address.latitude as number, o.address.longitude as number] as [number, number]);
+        if (bounds.length === 1) {
+          mapRef.current.flyTo(bounds[0], 13);
+        } else {
+          mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 13 });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching planning orders:', error);
+      enqueueSnackbar('Planning orders konden niet worden geladen', { variant: 'error' });
+    } finally {
+      setPlanningLoading(false);
+    }
+  }, [enqueueSnackbar]);
+
+  const handleRemoveFromPlanning = async (order: PlanningOrder) => {
+    try {
+      await axiosInstance.patch(`/orders/${order.id}/`, { is_on_map_planning: false });
+      setPlanningOrders(prev => prev.filter(o => o.id !== order.id));
+      setPlanningCount(prev => (prev === null ? prev : Math.max(0, prev - 1)));
+      mapRef.current?.closePopup();
+      enqueueSnackbar(`Order ${order.id} verwijderd uit planning`, { variant: 'success' });
+    } catch (error) {
+      console.error('Error removing order from planning:', error);
+      enqueueSnackbar(`Order ${order.id} kon niet uit de planning worden verwijderd`, { variant: 'error' });
+    }
+  };
+
+  const handleTogglePlanningMode = () => {
+    setIsPlanningMode(prev => !prev);
+  };
+
+  useEffect(() => {
+    if (isPlanningMode) {
+      fetchPlanningOrders(true);
+    }
+  }, [isPlanningMode, fetchPlanningOrders]);
+
+  // Load the planning count once so the toggle shows how many orders are planned
+  useEffect(() => {
+    const loadCount = async () => {
+      try {
+        const response = await axiosInstance.get('/orders/map-planning/');
+        setPlanningCount(Array.isArray(response.data) ? response.data.length : 0);
+      } catch (error) {
+        console.error('Error fetching planning count:', error);
+      }
+    };
+    loadCount();
+  }, []);
 
   const handleUserTypeChange = (event: React.MouseEvent<HTMLElement>, newUserTypes: string[]) => {
     if (newUserTypes.includes("all")) {
@@ -1158,6 +1275,31 @@ const Map = () => {
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
+            <ToggleButton
+              value="planning"
+              selected={isPlanningMode}
+              onChange={handleTogglePlanningMode}
+              size="small"
+              aria-label="planning"
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.7rem',
+                py: 0.3,
+                px: 1,
+                minHeight: '28px',
+                whiteSpace: 'nowrap',
+                '&.Mui-selected': {
+                  borderColor: PLANNING_MARKER_COLOR,
+                  backgroundColor: `${PLANNING_MARKER_COLOR}22`,
+                  color: PLANNING_MARKER_COLOR,
+                  '&:hover': { backgroundColor: `${PLANNING_MARKER_COLOR}33` },
+                }
+              }}
+            >
+              <Iconify icon="solar:map-point-wave-bold" width={16} sx={{ mr: 0.5 }} />
+              Planning{planningCount !== null ? ` (${planningCount})` : ''}
+            </ToggleButton>
+
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel id="no-order-since-label" sx={{ fontSize: '0.8rem' }}>Geen bestelling sinds</InputLabel>
               <Select
@@ -1301,7 +1443,151 @@ const Map = () => {
                 </Pane>
               </>
             )}
-            {users.flatMap((user) => {
+            {isPlanningMode && planningOrders
+              .filter(o => o.has_coordinates && o.address.latitude != null && o.address.longitude != null)
+              .map((order) => {
+                const addr = order.address;
+                const u = order.user;
+                const customerName = (u.first_name || u.last_name)
+                  ? `${u.first_name || ''} ${u.last_name || ''}`.trim()
+                  : '';
+                const phone = addr.phone_number || u.phone_number || u.mobile_number || u.mobile_phone;
+                const calendarUser: User = {
+                  id: String(u.id),
+                  email: u.email,
+                  first_name: u.first_name || '',
+                  last_name: u.last_name || '',
+                  business_name: u.business_name,
+                  addresses: [],
+                  phone_number: u.phone_number,
+                  mobile_number: u.mobile_number,
+                  mobile_phone: u.mobile_phone,
+                };
+                const calendarAddress: Address = {
+                  id: String(addr.id ?? `order-${order.id}`),
+                  street_name: addr.street_name || '',
+                  house_number: `${addr.house_number || ''}${addr.house_suffix || ''}`,
+                  city: addr.city || '',
+                  zip_code: addr.zip_code || '',
+                  country: addr.country || '',
+                  latitude: addr.latitude as number,
+                  longitude: addr.longitude as number,
+                };
+                return (
+                  <Marker
+                    key={`planning-${order.id}`}
+                    position={[addr.latitude as number, addr.longitude as number]}
+                    icon={createCustomIcon(PLANNING_MARKER_COLOR, 'P', '#212121')}
+                    autoPan
+                    autoPanPadding={[50, 50]}
+                    interactive
+                  >
+                    <Popup
+                      closeButton={false}
+                      autoPan={true}
+                      autoPanPadding={[50, 50]}
+                      keepInView={true}
+                      closeOnClick={false}
+                      closeOnEscapeKey={true}
+                      className="custom-popup"
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            '&:hover': { color: 'primary.main' },
+                          }}
+                          onClick={() => window.open(paths.dashboard.order.details(String(order.id)), '_blank')}
+                        >
+                          Order {order.id}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          title="Verwijderen uit planning"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromPlanning(order);
+                          }}
+                          sx={{
+                            p: 0.5,
+                            color: 'error.main',
+                            '&:hover': { backgroundColor: 'error.lighter' },
+                          }}
+                        >
+                          <DeleteIcon sx={{ fontSize: '1rem' }} />
+                        </IconButton>
+                      </Box>
+
+                      <Typography
+                        component="span"
+                        sx={{
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          '&:hover': { color: 'primary.main' },
+                        }}
+                        onClick={() => window.open(paths.dashboard.user.edit(String(u.id)), '_blank')}
+                      >
+                        {customerName}
+                        {u.business_name ? `${customerName ? ' - ' : ''}${u.business_name}` : ''}
+                      </Typography> <br />
+                      {addr.street_name} {addr.house_number}{addr.house_suffix}, {addr.city} <br />
+                      {addr.zip_code}, {addr.country} <br />
+                      {order.address_source === 'user' && (
+                        <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>
+                          (klantadres - geen verzendadres op order)
+                        </Typography>
+                      )}
+
+                      <Box component="div" sx={{ mt: 1 }}>
+                        <strong>Datum:</strong> {new Date(order.ordered_date).toLocaleDateString('nl-NL')}
+                      </Box>
+                      <Box component="div">
+                        <strong>Status:</strong> {order.status}{order.is_paid ? ' · betaald' : ' · onbetaald'}
+                      </Box>
+                      <Box component="div">
+                        <strong>Totaal:</strong> € {Number(order.total).toFixed(2)}
+                      </Box>
+                      {order.snelstart_order_number && (
+                        <Box component="div">
+                          <strong>Snelstart:</strong> {order.snelstart_order_number}
+                        </Box>
+                      )}
+
+                      {phone && (
+                        <Box component="div" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <Iconify icon="solar:phone-bold" width={14} sx={{ mr: 0.5 }} />
+                          {phone}
+                        </Box>
+                      )}
+
+                      <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          fullWidth
+                          onClick={() => handleAddToCalendar(calendarUser, calendarAddress)}
+                        >
+                          Plan bezoek
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          fullWidth
+                          startIcon={<DeleteIcon sx={{ fontSize: '1rem' }} />}
+                          onClick={() => handleRemoveFromPlanning(order)}
+                        >
+                          Uit planning
+                        </Button>
+                      </Stack>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            {!isPlanningMode && users.flatMap((user) => {
               // Filter addresses that have valid coordinates
               const validAddresses = user.addresses.filter(address =>
                 address.latitude &&
@@ -1569,7 +1855,7 @@ const Map = () => {
             })}
           </MapContainer>
 
-          {isLoading && (
+          {(isLoading || planningLoading) && (
             <Box
               sx={{
                 position: 'absolute',

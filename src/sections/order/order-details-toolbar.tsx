@@ -65,7 +65,7 @@ export default function OrderDetailsToolbar({
   const popoverSendInvoice = usePopover();
   const { t, onChangeLang } = useTranslate();
   const { user } = useAuthContext();
-  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note } = currentOrder;
+  const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note, is_on_map_planning } = currentOrder;
   console.log("🚀 ~ currentOrder:", currentOrder)
 
   const rawInvoiceEmails = [
@@ -125,6 +125,25 @@ export default function OrderDetailsToolbar({
       }
     } catch (error) {
       console.error('Error uploading bol pakbon:', error);
+    }
+  };
+
+  const [isTogglingPlanning, setIsTogglingPlanning] = useState(false);
+
+  const handleToggleMapPlanning = async () => {
+    const nextValue = !is_on_map_planning;
+    setIsTogglingPlanning(true);
+    try {
+      const history = Array.isArray(currentOrder.history) ? [...currentOrder.history] : [];
+      history.push({
+        date: new Date(),
+        event: `${nextValue ? 'Toegevoegd aan kaartplanning' : 'Verwijderd uit kaartplanning'} door ${user?.email || 'gebruiker'}`,
+      });
+      await updateOrder(id, { is_on_map_planning: nextValue, history });
+    } catch (error) {
+      console.error('Error toggling map planning:', error);
+    } finally {
+      setIsTogglingPlanning(false);
     }
   };
 
@@ -265,6 +284,22 @@ export default function OrderDetailsToolbar({
             onClick={() => setOpenDownloadDialog(true)}
           >
             Download
+          </Button>
+
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<Iconify icon={is_on_map_planning ? 'solar:map-point-remove-bold' : 'solar:map-point-add-bold'} />}
+            onClick={handleToggleMapPlanning}
+            disabled={isTogglingPlanning}
+            sx={{
+              backgroundColor: is_on_map_planning ? 'lightgreen' : 'transparent',
+              '&:hover': {
+                backgroundColor: is_on_map_planning ? 'lightgreen' : undefined,
+              }
+            }}
+          >
+            {is_on_map_planning ? 'Remove from map planning' : 'Add to map planning'}
           </Button>
 
           {extra_note === "offer" ? <Button
