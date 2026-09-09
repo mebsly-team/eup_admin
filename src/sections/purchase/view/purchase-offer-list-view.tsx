@@ -90,7 +90,10 @@ export default function PurchaseListView() {
       setLoading(true);
       const limit = table.rowsPerPage;
       const offset = table.page * table.rowsPerPage;
-      const offersResponse = await axiosInstance.get(`/purchases/?type=offer&limit=${limit}&offset=${offset}`);
+      // One offer per supplier, sorted by amount from highest to lowest
+      const offersResponse = await axiosInstance.get(
+        `/purchases/?type=offer&ordering=-total_inc_btw,-id&limit=${limit}&offset=${offset}`
+      );
       setOffersData(offersResponse.data.results || []);
       setOffersCount(offersResponse.data.count || 0);
     } catch (error) {
@@ -123,7 +126,11 @@ export default function PurchaseListView() {
         supplier_id: selectedSupplier.id
       });
 
-      enqueueSnackbar(t('offer_created_successfully') || 'Offer created successfully', { variant: 'success' });
+      if (response.data?.purchase_offer_id) {
+        enqueueSnackbar(t('offer_created_successfully') || 'Offer created successfully', { variant: 'success' });
+      } else {
+        enqueueSnackbar(response.data?.message || 'No products with low stock, no offer created', { variant: 'info' });
+      }
 
       // Refresh the offers list
       fetchOffers();
