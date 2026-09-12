@@ -134,6 +134,7 @@ export function useNavData() {
               { title: t('list'), path: paths.dashboard.purchase.list },
               { title: t('create'), path: paths.dashboard.purchase.new },
               { title: t('bestel_advies'), path: paths.dashboard.purchase.offers },
+              { title: t('offers_sent_to_supplier'), path: paths.dashboard.purchase.offersSent },
               // { title: t('edit'), path: paths.dashboard.statics.demo.edit },
               // { title: t('account'), path: paths.dashboard.statics.account },
             ],

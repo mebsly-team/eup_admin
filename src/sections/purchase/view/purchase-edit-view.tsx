@@ -55,6 +55,7 @@ export default function PurchaseEditView() {
   const [currentPurchase, setCurrentPurchase] = useState<IPurchaseItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   const [suppliers, setSuppliers] = useState<ISupplierItem[]>([]);
   const [eanSearch, setEanSearch] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
@@ -560,6 +561,52 @@ export default function PurchaseEditView() {
     } catch (error) {
       console.error('Error downloading PDF:', error);
       enqueueSnackbar(t('failed_to_download_pdf'), { variant: 'error' });
+      throw error;
+    }
+  };
+
+  /**
+   * Advice offer -> sent offer. Downloads the PDF first and only moves the
+   * offer to the sent list once that succeeded, then navigates there.
+   */
+  const handleSendToSupplier = async () => {
+    if (!currentPurchase) {
+      enqueueSnackbar(t('no_purchase_data'), { variant: 'error' });
+      return;
+    }
+
+    const hasCalculationErrors =
+      !currentPurchase.total_exc_btw ||
+      currentPurchase.total_exc_btw === '0.00' ||
+      !currentPurchase.total_inc_btw ||
+      currentPurchase.total_inc_btw === '0.00' ||
+      currentPurchase.items.length === 0;
+
+    const hasInvalidItems = currentPurchase.items.some(
+      (item) => !item.product_purchase_price || !item.product_quantity
+    );
+
+    if (hasCalculationErrors || hasInvalidItems) {
+      enqueueSnackbar(
+        t('calculation_errors_prevent_conversion') || 'Cannot send: Calculation errors detected',
+        { variant: 'error' }
+      );
+      return;
+    }
+
+    try {
+      setSending(true);
+      await handleDownloadPdf();
+      await axiosInstance.post(`/purchases/${id}/mark-as-sent/`);
+      enqueueSnackbar(t('offer_sent_to_supplier_successfully'), { variant: 'success' });
+      router.push(paths.dashboard.purchase.offersSent);
+    } catch (error: any) {
+      console.error('Error sending offer to supplier:', error);
+      enqueueSnackbar(error?.response?.data?.error || t('failed_to_send_offer'), {
+        variant: 'error',
+      });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -677,6 +724,14 @@ export default function PurchaseEditView() {
     return null;
   }
 
+  // An offer can only leave this page once it has items and non-zero totals.
+  const isPurchaseIncomplete =
+    !currentPurchase.total_exc_btw ||
+    currentPurchase.total_exc_btw === '0.00' ||
+    !currentPurchase.total_inc_btw ||
+    currentPurchase.total_inc_btw === '0.00' ||
+    currentPurchase.items.length === 0;
+
   return (
     <Container maxWidth={false}>
       <Stack spacing={3}>
@@ -700,32 +755,36 @@ export default function PurchaseEditView() {
             {currentPurchase.type === 'offer' && (
               <LoadingButton
                 variant="contained"
+                color="info"
+                loading={sending}
+                onClick={handleSendToSupplier}
+                startIcon={<Iconify icon="eva:paper-plane-outline" />}
+                disabled={saving || isPurchaseIncomplete}
+                title={
+                  isPurchaseIncomplete
+                    ? t('calculation_errors_prevent_conversion')
+                    : t('create_pdf_and_send')
+                }
+              >
+                {t('create_pdf_and_send')}
+              </LoadingButton>
+            )}
+
+            {currentPurchase.type === 'offer_sent' && (
+              <LoadingButton
+                variant="contained"
                 color="success"
                 loading={saving}
                 onClick={handleConvertToPurchase}
                 startIcon={<Iconify icon="eva:shopping-cart-outline" />}
-                disabled={
-                  !currentPurchase ||
-                  !currentPurchase.total_exc_btw ||
-                  currentPurchase.total_exc_btw === '0.00' ||
-                  !currentPurchase.total_inc_btw ||
-                  currentPurchase.total_inc_btw === '0.00' ||
-                  currentPurchase.items.length === 0
-                }
+                disabled={sending || isPurchaseIncomplete}
                 title={
-                  !currentPurchase
-                    ? t('no_purchase_data')
-                    : !currentPurchase.total_exc_btw ||
-                        currentPurchase.total_exc_btw === '0.00' ||
-                        !currentPurchase.total_inc_btw ||
-                        currentPurchase.total_inc_btw === '0.00' ||
-                        currentPurchase.items.length === 0
-                      ? t('calculation_errors_prevent_conversion') ||
-                        'Calculation errors prevent conversion'
-                      : t('convert_to_purchase')
+                  isPurchaseIncomplete
+                    ? t('calculation_errors_prevent_conversion')
+                    : t('save_to_inkoop')
                 }
               >
-                {t('convert_to_purchase')}
+                {t('save_to_inkoop')}
               </LoadingButton>
             )}
             <LoadingButton

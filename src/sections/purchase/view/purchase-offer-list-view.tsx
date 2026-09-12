@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { Fragment, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'src/routes/hooks';
 
 import Card from '@mui/material/Card';
@@ -11,9 +11,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import { LoadingScreen } from 'src/components/loading-screen';
 import Collapse from '@mui/material/Collapse';
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import { format } from 'date-fns';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -23,8 +21,6 @@ import Stack from '@mui/material/Stack';
 
 import { paths } from 'src/routes/paths';
 import { useTranslate } from 'src/locales';
-import { useAuthContext } from 'src/auth/hooks';
-import { RouterLink } from 'src/routes/components';
 import axiosInstance from 'src/utils/axios';
 
 import Scrollbar from 'src/components/scrollbar';
@@ -43,22 +39,26 @@ import PurchaseTableFiltersResult from '../purchase-table-filters-result';
 
 const TABLE_HEAD = [
   { id: 'id', label: 'ID' },
-  { id: 'supplier_name', label: 'Supplier' },
-  { id: 'purchase_invoice_date', label: 'Invoice Date' },
-  { id: 'number_of_items', label: 'Items', align: 'center' },
-  { id: 'total_exc_btw', label: 'Total (excl. BTW)', align: 'right' },
-  { id: 'total_inc_btw', label: 'Total (incl. BTW)', align: 'right' },
+  { id: 'supplier_name', label: 'supplier' },
+  { id: 'purchase_invoice_date', label: 'invoice_date' },
+  { id: 'purchase_invoice_number', label: 'invoice_number' },
+  { id: 'number_of_items', label: 'items', align: 'center' },
+  { id: 'total_exc_btw', label: 'total_excl_btw', align: 'right' },
+  { id: 'total_inc_btw', label: 'total_incl_btw', align: 'right' },
   { id: 'expand', label: '', width: 68 },
-  { id: 'actions', label: '', width: 88 },
+  { id: 'actions', label: '', width: 176 },
 ];
+
+// Total number of columns rendered per row, used for full-width cells.
+const COLUMN_COUNT = TABLE_HEAD.length + 1;
 
 const ITEMS_TABLE_HEAD = [
   { id: 'checkbox', width: 48 },
-  { id: 'product_image', label: 'Image', align: 'center', width: 80 },
-  { id: 'product_ean', label: 'EAN' },
-  { id: 'product_title', label: 'Title' },
-  { id: 'product_quantity', label: 'Quantity', align: 'center' },
-  { id: 'product_purchase_price', label: 'Purchase Price', align: 'right' },
+  { id: 'product_image', label: 'image', align: 'center', width: 80 },
+  { id: 'product_ean', label: 'ean' },
+  { id: 'product_title', label: 'title' },
+  { id: 'product_quantity', label: 'quantity', align: 'center' },
+  { id: 'product_purchase_price', label: 'purchase_price', align: 'right' },
 ];
 
 const defaultFilters: IPurchaseTableFilters = {
@@ -71,7 +71,6 @@ const defaultFilters: IPurchaseTableFilters = {
 export default function PurchaseListView() {
   const table = useTable();
   const { t } = useTranslate();
-  const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const settings = useSettingsContext();
@@ -84,6 +83,7 @@ export default function PurchaseListView() {
   const [suppliers, setSuppliers] = useState<ISupplierItem[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
   const [creatingOffer, setCreatingOffer] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -98,11 +98,11 @@ export default function PurchaseListView() {
       setOffersCount(offersResponse.data.count || 0);
     } catch (error) {
       console.error('Error fetching offers:', error);
-      enqueueSnackbar('Failed to fetch offers', { variant: 'error' });
+      enqueueSnackbar(t('failed_to_fetch_offers'), { variant: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [enqueueSnackbar, table.page, table.rowsPerPage]);
+  }, [enqueueSnackbar, t, table.page, table.rowsPerPage]);
 
   const fetchSuppliers = useCallback(async () => {
     try {
@@ -164,27 +164,71 @@ export default function PurchaseListView() {
   const handleDeleteRow = useCallback(async (id: string) => {
     try {
       await axiosInstance.delete(`/purchases/${id}/`);
-      enqueueSnackbar('Offer deleted successfully');
+      enqueueSnackbar(t('offer_deleted_successfully'));
       fetchOffers();
     } catch (error) {
       console.error('Error deleting offer:', error);
-      enqueueSnackbar('Failed to delete offer', { variant: 'error' });
+      enqueueSnackbar(t('failed_to_delete_offer'), { variant: 'error' });
     }
-  }, [enqueueSnackbar, fetchOffers]);
+  }, [enqueueSnackbar, t, fetchOffers]);
+
+  /**
+   * Build the offer PDF and move the offer to the "sent to supplier" list.
+   * The PDF download happens first: if it fails the offer stays here so the
+   * user can retry, instead of silently disappearing from this page.
+   */
+  const handleSendToSupplier = useCallback(
+    async (id: string) => {
+      try {
+        setSendingId(id);
+
+        const response = await axiosInstance.get(`/purchases/${id}/offer/`, {
+          responseType: 'blob',
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `offer_${id}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error generating offer PDF:', error);
+        enqueueSnackbar(t('failed_to_download_pdf'), { variant: 'error' });
+        setSendingId(null);
+        return;
+      }
+
+      try {
+        await axiosInstance.post(`/purchases/${id}/mark-as-sent/`);
+        enqueueSnackbar(t('offer_sent_to_supplier_successfully'), { variant: 'success' });
+        fetchOffers();
+      } catch (error: any) {
+        console.error('Error marking offer as sent:', error);
+        enqueueSnackbar(error?.response?.data?.error || t('failed_to_send_offer'), {
+          variant: 'error',
+        });
+      } finally {
+        setSendingId(null);
+      }
+    },
+    [enqueueSnackbar, t, fetchOffers]
+  );
 
   const handleExpandRow = (rowId: string) => {
     setExpandedRow(expandedRow === rowId ? null : rowId);
   };
 
   const handleEditRow = (id: string) => {
-    router.push(`/dashboard/purchase/${id}/edit`);
+    router.push(paths.dashboard.purchase.edit(id));
   };
 
   const renderPurchaseItems = (items: any[]) => (
-    <Collapse in={true} timeout="auto" unmountOnExit>
+    <Collapse in timeout="auto" unmountOnExit>
       <Box sx={{ py: 3, px: { xs: 2, md: 3 } }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Purchase Items
+          {t('purchase_items')}
         </Typography>
         <Table size="small">
           <TableHeadCustom
@@ -231,18 +275,27 @@ export default function PurchaseListView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading={t('list')}
+        heading={t('bestel_advies')}
         links={[
           { name: t('dashboard'), href: paths.dashboard.root },
           { name: t('purchases'), href: paths.dashboard.purchase.list },
           { name: t('bestel_advies') },
         ]}
+        action={
+          <Button
+            variant="outlined"
+            href={paths.dashboard.purchase.offersSent}
+            startIcon={<Iconify icon="eva:paper-plane-outline" />}
+          >
+            {t('offers_sent_to_supplier')}
+          </Button>
+        }
         sx={{
           mb: { xs: 3, md: 5 },
         }}
       />
-      <Typography variant="h6" sx={{ mb: 3 }}>
-        {t('bestel_advies')}
+      <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
+        {t('bestel_advies_page_description')}
       </Typography>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
         <Autocomplete
@@ -298,7 +351,6 @@ export default function PurchaseListView() {
                 }))}
                 rowCount={offersCount}
                 numSelected={table.selected.length}
-                onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
@@ -308,18 +360,9 @@ export default function PurchaseListView() {
               />
 
               <TableBody>
-                <TableRow>
-                  <TableCell colSpan={9}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 2 }}>
-
-
-                    </Stack>
-                  </TableCell>
-                </TableRow>
                 {filteredOffers.map((row) => (
-                  <>
+                  <Fragment key={row.id}>
                     <PurchaseTableRow
-                      key={row.id}
                       purchase={row}
                       selected={table.selected.includes(row.id)}
                       onSelectRow={() => table.onSelectRow(row.id)}
@@ -327,15 +370,17 @@ export default function PurchaseListView() {
                       onEditRow={() => handleEditRow(row.id)}
                       expanded={expandedRow === row.id}
                       onExpand={() => handleExpandRow(row.id)}
+                      onSendToSupplier={() => handleSendToSupplier(row.id)}
+                      sending={sendingId === row.id}
                     />
                     {expandedRow === row.id && (
                       <TableRow>
-                        <TableCell colSpan={9} sx={{ p: 0 }}>
+                        <TableCell colSpan={COLUMN_COUNT} sx={{ p: 0 }}>
                           {renderPurchaseItems(row.items)}
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 ))}
                 <TableEmptyRows
                   height={denseHeight}

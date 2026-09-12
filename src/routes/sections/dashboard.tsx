@@ -85,6 +85,7 @@ const PurchaseProfilePage = lazy(() => import('src/pages/dashboard/purchase/prof
 const PurchaseCardsPage = lazy(() => import('src/pages/dashboard/purchase/cards').catch(() => ({ default: () => <div>Loading page</div> })));
 const PurchaseListPage = lazy(() => import('src/pages/dashboard/purchase/list').catch(() => ({ default: () => <div>Loading page</div> })));
 const PurchaseOffersPage = lazy(() => import('src/pages/dashboard/purchase/offers').catch(() => ({ default: () => <div>Loading page</div> })));
+const PurchaseOffersSentPage = lazy(() => import('src/pages/dashboard/purchase/offers-sent').catch(() => ({ default: () => <div>Loading page</div> })));
 const PurchaseCreatePage = lazy(() => import('src/pages/dashboard/purchase/new').catch(() => ({ default: () => <div>Loading page</div> })));
 const PurchaseEditPage = lazy(() => import('src/pages/dashboard/purchase/edit').catch(() => ({ default: () => <div>Loading page</div> })));
 const PurchaseOfferPage = lazy(() => import('src/pages/dashboard/purchase/offer').catch(() => ({ default: () => <div>Loading page</div> })));
@@ -168,6 +169,7 @@ export const dashboardRoutes = [
           { path: 'new', element: <PurchaseCreatePage /> },
           { path: ':id/edit', element: <PurchaseEditPage /> },
           { path: 'offers', element: <PurchaseOffersPage /> },
+          { path: 'offers-sent', element: <PurchaseOffersSentPage /> },
         ],
       },
       {
