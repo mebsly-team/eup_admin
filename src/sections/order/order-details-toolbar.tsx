@@ -475,7 +475,17 @@ export default function OrderDetailsToolbar({
             color="inherit"
             variant="outlined"
             startIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
-            onClick={() => sendToSnelstart({ id })}
+            onClick={() => {
+              if (
+                is_sent_to_snelstart &&
+                !window.confirm(
+                  `Deze order staat al in Snelstart (factuur ${snelstart_order_number || '?'}). De bestaande boeking wordt verwijderd en opnieuw verzonden. Doorgaan?`
+                )
+              ) {
+                return;
+              }
+              sendToSnelstart({ id });
+            }}
             disabled={source_host !== 'bol.com' && !currentOrder?.delivery_details?.tracking_number}
             sx={{
               backgroundColor: is_sent_to_snelstart ? 'lightgreen' : 'transparent',
