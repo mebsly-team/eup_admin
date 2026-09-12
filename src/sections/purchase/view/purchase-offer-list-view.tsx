@@ -235,14 +235,14 @@ export default function PurchaseListView() {
         links={[
           { name: t('dashboard'), href: paths.dashboard.root },
           { name: t('purchases'), href: paths.dashboard.purchase.list },
-          { name: t('offers_to_supplier') },
+          { name: t('bestel_advies') },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },
         }}
       />
       <Typography variant="h6" sx={{ mb: 3 }}>
-        {t('orders_to_supplier')}
+        {t('bestel_advies')}
       </Typography>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
         <Autocomplete
