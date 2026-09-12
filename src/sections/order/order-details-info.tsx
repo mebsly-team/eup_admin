@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -180,6 +180,12 @@ export default function OrderDetailsInfo({
   const [options, setOptions] = useState([]);
 
   const [addressSearchText, setAddressSearchText] = useState('');
+  // postcode.eu autocomplete is iterative: a match that is not yet a full address
+  // returns a context that the next search has to be scoped to.
+  const [addressContext, setAddressContext] = useState<{ context: string; prefix: string } | null>(null);
+  const [isAddressLoading, setIsAddressLoading] = useState(false);
+  const addressFetchTimer = useRef<any>(null);
+  const addressFetchSeq = useRef(0);
   const [selectedShipmentMethod, setSelectedShipmentMethod] = useState();
   console.log("🚀 ~ selectedShipmentMethod:", selectedShipmentMethod)
   const [selectedCountry, setSelectedCountry] = useState(updatedShippingAddress?.country || shippingAddress?.country || "NL");
@@ -425,7 +431,7 @@ export default function OrderDetailsInfo({
       addressToSave = userAddresses.find((a: any) => String(a.id) === String(shippingAddressSource)) || {};
     }
 
-    const newHistory = currentOrder.history;
+    const newHistory = currentOrder.history || [];
     newHistory.push({
       date: new Date(),
       event: `Adres gewijzigd: ${JSON.stringify(addressToSave)}, door ${user?.email}`,
@@ -452,7 +458,7 @@ export default function OrderDetailsInfo({
       addressToSave = userAddresses.find((a: any) => String(a.id) === String(invoiceAddressSource)) || {};
     }
 
-    const newHistory = currentOrder.history;
+    const newHistory = currentOrder.history || [];
     newHistory.push({
       date: new Date(),
       event: `Factuuradres gewijzigd: ${JSON.stringify(addressToSave)}, door ${user?.email}`,
@@ -496,20 +502,60 @@ export default function OrderDetailsInfo({
   //   }
   // };
 
-  const handleAddressFetch = async ({ searchText, country }: any) => {
-    setAddressSearchText(searchText);
-    const input = searchText;
-    const selected = country || selectedCountry;
-
-    if (input) {
-      try {
-        const response = await axiosInstance.get(`/get-address-details/?input=${input}&country=${selected}`);
-        const data = response.data;
-        setOptions(data.matches || []);
-      } catch (error) {
-        console.error('Error fetching address data:', error);
-      }
+  const fetchAddressMatches = async ({ searchText, context }: any) => {
+    const input = (searchText || '').trim();
+    if (!input) {
+      setOptions([]);
+      setIsAddressLoading(false);
+      return;
     }
+    // Scope the search to the drilled-down context when there is one, otherwise to the country.
+    const scope = context || selectedCountry;
+    const seq = addressFetchSeq.current + 1;
+    addressFetchSeq.current = seq;
+    setIsAddressLoading(true);
+
+    try {
+      const response = await axiosInstance.get('/get-address-details/', {
+        params: { input, country: scope },
+      });
+      if (seq !== addressFetchSeq.current) return; // a newer search already started
+      setOptions(response.data?.matches || []);
+    } catch (error) {
+      console.error('Error fetching address data:', error);
+      if (seq === addressFetchSeq.current) setOptions([]);
+    } finally {
+      if (seq === addressFetchSeq.current) setIsAddressLoading(false);
+    }
+  };
+
+  const handleAddressFetch = ({ searchText, context }: any) => {
+    setAddressSearchText(searchText);
+    if (addressFetchTimer.current) clearTimeout(addressFetchTimer.current);
+    addressFetchTimer.current = setTimeout(
+      () => fetchAddressMatches({ searchText, context }),
+      300
+    );
+  };
+
+  const resetAddressSearch = () => {
+    if (addressFetchTimer.current) clearTimeout(addressFetchTimer.current);
+    addressFetchSeq.current += 1;
+    setOptions([]);
+    setAddressSearchText('');
+    setAddressContext(null);
+    setIsAddressLoading(false);
+  };
+
+  const handleAddressInputChange = (newValue: string) => {
+    // Keep the context only as long as the typed text still builds on the selected match.
+    const keepContext =
+      addressContext && newValue.startsWith(addressContext.prefix.trimEnd());
+    if (!keepContext && addressContext) setAddressContext(null);
+    handleAddressFetch({
+      searchText: newValue,
+      context: keepContext ? addressContext?.context : undefined,
+    });
   };
 
   const createShipment = async () => {
@@ -624,24 +670,45 @@ export default function OrderDetailsInfo({
   };
 
   const handleAddressDetails = async ({ context }: any) => {
-    const searchContext = context;
-    if (searchContext) {
-      try {
-        const response = await axiosInstance.get(`/get-address-details/?context=${searchContext}`);
-        const data = response.data;
-        setUpdatedShippingAddress({
-          ...updatedShippingAddress,
-          house_number: data?.address?.buildingNumber,
-          house_suffix: data?.address?.buildingNumberAddition,
-          zip_code: data?.address?.postcode,
-          city: data?.address?.locality,
-          street_name: data?.address?.street,
-          country: selectedCountry, // Country is already set in the selectedCountry state
-        });
-      } catch (error) {
-        console.error('Error fetching address details:', error);
-      }
+    if (!context) return;
+    try {
+      const response = await axiosInstance.get('/get-address-details/', {
+        params: { context },
+      });
+      const address = response.data?.address || {};
+      setUpdatedShippingAddress((prev: any) => ({
+        ...prev,
+        house_number:
+          address.buildingNumber !== null && address.buildingNumber !== undefined
+            ? String(address.buildingNumber)
+            : address.building || '',
+        house_suffix: address.buildingNumberAddition || '',
+        zip_code: address.postcode || '',
+        city: address.locality || '',
+        street_name: address.street || '',
+        country: response.data?.country?.iso2Code || selectedCountry,
+      }));
+    } catch (error) {
+      console.error('Error fetching address details:', error);
     }
+  };
+
+  const handleAddressOptionSelect = (selectedOption: any) => {
+    if (!selectedOption || typeof selectedOption === 'string') return;
+    const nextText = selectedOption.value || '';
+    setAddressSearchText(nextText);
+    setOptions([]);
+    if (addressFetchTimer.current) clearTimeout(addressFetchTimer.current);
+
+    if (selectedOption.precision === 'Address') {
+      setAddressContext(null);
+      handleAddressDetails({ context: selectedOption.context });
+      return;
+    }
+
+    // Locality / Street / PostalCode: keep searching inside the selected context.
+    setAddressContext({ context: selectedOption.context, prefix: nextText });
+    fetchAddressMatches({ searchText: nextText, context: selectedOption.context });
   };
 
   const renderCustomer = (
@@ -950,6 +1017,7 @@ export default function OrderDetailsInfo({
               onChange={(e) => {
                 const val = e.target.value;
                 setShippingAddressSource(val);
+                resetAddressSearch();
                 if (val === 'other') {
                   setUpdatedShippingAddress({
                     first_name: '', last_name: '', business_name: '', street_name: '', house_number: '', house_suffix: '', zip_code: '', city: '', country: 'NL', phone_number: ''
@@ -1017,7 +1085,7 @@ export default function OrderDetailsInfo({
                     ...updatedShippingAddress,
                     country: e.target.value,
                   });
-                  setOptions([]);
+                  resetAddressSearch();
                 }}
                 sx={{ width: "auto" }}
               >
@@ -1031,23 +1099,86 @@ export default function OrderDetailsInfo({
             <Autocomplete
               freeSolo
               options={options} // Display matches as options
-              getOptionLabel={(option: any) => option.value || ''} // Display full address in the dropdown
-              onInputChange={(e, newValue) => {
-                handleAddressFetch({ searchText: newValue, country: selectedCountry });
+              // The API already returns the relevant matches; filtering them again
+              // client-side hides them whenever the typed text is not a literal
+              // substring of the label (e.g. "Havermarkt 30 3500 HASSELT" vs
+              // "Hasselt, Havermarkt 30").
+              filterOptions={(x) => x}
+              inputValue={addressSearchText}
+              loading={isAddressLoading}
+              getOptionLabel={(option: any) =>
+                typeof option === 'string' ? option : option.value || ''
+              } // Display full address in the dropdown
+              onInputChange={(e, newValue, reason) => {
+                if (reason === 'input') handleAddressInputChange(newValue);
+                else if (reason === 'clear') resetAddressSearch();
               }} // Fetch on input change
               onChange={(e, selectedOption) => {
-                handleAddressDetails({ context: selectedOption?.context });
+                handleAddressOptionSelect(selectedOption);
               }}
-              renderInput={(params) => <TextField {...params} label="Adres" fullWidth />}
+              renderInput={(params) => (
+                <TextField {...params} label="Adres zoeken" fullWidth />
+              )}
               renderOption={(props, option: any) => (
-                <li {...props}>
-                  {option.value} {/* Display full address in the dropdown */}
+                <li {...props} key={option.context || option.value}>
+                  {option.label || option.value} {/* Display full address in the dropdown */}
                 </li>
               )}
             />
 
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Straat:
+              </Box>
+              <TextField
+                value={updatedShippingAddress.street_name || ''}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, street_name: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Huisnummer:
+              </Box>
+              <TextField
+                value={updatedShippingAddress.house_number || ''}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, house_number: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Toevoeging:
+              </Box>
+              <TextField
+                value={updatedShippingAddress.house_suffix || ''}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, house_suffix: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Postcode:
+              </Box>
+              <TextField
+                value={updatedShippingAddress.zip_code || ''}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, zip_code: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+                Plaats:
+              </Box>
+              <TextField
+                value={updatedShippingAddress.city || ''}
+                onChange={(e) => setUpdatedShippingAddress({ ...updatedShippingAddress, city: e.target.value })}
+                sx={{ width: 150 }}
+              />
+            </Stack>
+
             <Box component="span" sx={{ color: 'text.secondary', width: "auto", flexShrink: 0 }}>
-              {`${updatedShippingAddress.street_name} ${updatedShippingAddress.house_number} ${updatedShippingAddress.house_suffix}, ${updatedShippingAddress.zip_code}, ${updatedShippingAddress.city}, ${updatedShippingAddress.country}`}
+              {formatAddress({ ...updatedShippingAddress, country: selectedCountry })}
             </Box>
 
             <TextField
