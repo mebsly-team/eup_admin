@@ -117,6 +117,35 @@ export default function ProductNewEditForm({ id }: Props) {
     return null;
   }, [currentProduct?.history]);
 
+  // Orders behind the stock counters (number_in_pakbon etc.), keyed by counter field
+  const [stockReservations, setStockReservations] = useState<Record<string, any[]>>({});
+
+  useEffect(() => {
+    if (!currentProduct?.id || currentProduct?.is_variant) return;
+    axiosInstance
+      .get('/orders/stock-reservations/', { params: { product_id: currentProduct.id } })
+      .then((response) => setStockReservations(response.data?.reservations || {}))
+      .catch((error) => console.error('Error fetching stock reservations:', error));
+  }, [currentProduct?.id, currentProduct?.is_variant]);
+
+  const renderReservations = (field: string) => {
+    const orders = stockReservations[field];
+    if (!orders?.length) return undefined;
+    return orders.map((order, index) => (
+      <span key={order.id}>
+        {index > 0 && ', '}
+        <Link
+          href={paths.dashboard.order.details(order.id)}
+          target="_blank"
+          rel="noreferrer"
+          sx={{ pointerEvents: 'auto', textDecoration: 'underline', color: 'violet' }}
+        >
+          {`#${order.snelstart_order_number || order.id}${order.customer ? ` ${order.customer}` : ''} (${order.quantity})`}
+        </Link>
+      </span>
+    ));
+  };
+
   const handleLightBoxSlides = useCallback((images) => {
     if (images.length) {
       setOpenLightBox(true);
@@ -3054,35 +3083,41 @@ export default function ProductNewEditForm({ id }: Props) {
                 name="number_in_order"
                 label={t('number_in_order')}
                 type="number"
+                helperText={renderReservations('number_in_order')}
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
                 name="number_in_offer"
                 label={t('number_in_offer')}
                 type="number"
+                helperText={renderReservations('number_in_offer')}
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
                 name="number_in_pakbon"
                 label={t('number_in_pakbon')}
                 type="number"
+                helperText={renderReservations('number_in_pakbon')}
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
                 name="number_in_confirmation"
                 label={t('number_in_confirmation')}
                 type="number"
+                helperText={renderReservations('number_in_confirmation')}
               />
               <RHFTextField
                 name="number_in_werkbon"
                 label={t('number_in_werkbon')}
                 type="number"
+                helperText={renderReservations('number_in_werkbon')}
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
                 name="number_in_other"
                 label={t('number_in_other')}
                 type="number"
+                helperText={renderReservations('number_in_other')}
                 onBlur={handleEmptyNumbers}
               />
             </>}
