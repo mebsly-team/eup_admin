@@ -4,6 +4,8 @@ export type IOrderTableFilterValue = string | Date | null;
 
 export type IOrderTableFilters = {
   name: string;
+  orderId: string;
+  ean: string;
   status: string;
   startDate: any;
   endDate: any;

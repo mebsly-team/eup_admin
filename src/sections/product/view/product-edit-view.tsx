@@ -1,7 +1,9 @@
-import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { useTranslate } from 'src/locales';
 import { useGetProduct } from 'src/api/product';
@@ -227,9 +229,20 @@ export default function ProductEditView({ id }: Props) {
           { name: (currentProduct as any)?.name || currentProduct?.title },
         ]}
         action={
-          <Button variant="contained" onClick={handleDownloadDymo}>
-            DYMO
-          </Button>
+          <Stack direction="row" spacing={1}>
+            {currentProduct?.ean ? (
+              <Button
+                variant="outlined"
+                component={RouterLink}
+                href={`${paths.dashboard.order.root}?page=1&ean=${encodeURIComponent(currentProduct.ean)}`}
+              >
+                Show all orders
+              </Button>
+            ) : null}
+            <Button variant="contained" onClick={handleDownloadDymo}>
+              DYMO
+            </Button>
+          </Stack>
         }
         sx={{
           mb: { xs: 3, md: 5 },

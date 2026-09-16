@@ -108,6 +108,8 @@ export default function OrderListView() {
   const defaultFilters: IOrderTableFilters = {
     status: queryParams.get('status') || 'all',
     name: queryParams.get('name') || '',
+    orderId: queryParams.get('order_id') || '',
+    ean: queryParams.get('ean') || '',
     startDate:
       (queryParams.get('start_date') &&
         queryParams.get('start_date') !== 'undefined' &&
@@ -146,6 +148,8 @@ export default function OrderListView() {
     const params = new URLSearchParams(location.search);
     const urlStatus = params.get('status') || 'all';
     const urlName = params.get('name') || '';
+    const urlOrderId = params.get('order_id') || '';
+    const urlEan = params.get('ean') || '';
     const urlStartDateStr = params.get('start_date') || '';
     const urlEndDateStr = params.get('end_date') || '';
     const urlPaymentStatus = params.get('payment_status') || 'all';
@@ -171,6 +175,8 @@ export default function OrderListView() {
     if (
       filters.status !== urlStatus ||
       filters.name !== urlName ||
+      filters.orderId !== urlOrderId ||
+      filters.ean !== urlEan ||
       filters.paymentStatus !== urlPaymentStatus ||
       currentStartDate !== urlStartDateStr ||
       currentEndDate !== urlEndDateStr
@@ -178,6 +184,8 @@ export default function OrderListView() {
       setFilters({
         status: urlStatus,
         name: urlName,
+        orderId: urlOrderId,
+        ean: urlEan,
         paymentStatus: urlPaymentStatus,
         startDate: urlStartDate || '',
         endDate: urlEndDate || '',
@@ -199,6 +207,8 @@ export default function OrderListView() {
         ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
         : '';
       const searchFilter = filters.name ? `&search=${filters.name}` : '';
+      const orderIdFilter = filters.orderId ? `&order_id=${encodeURIComponent(filters.orderId)}` : '';
+      const eanFilter = filters.ean ? `&ean=${encodeURIComponent(filters.ean)}` : '';
       const startDateFilter = filters.startDate
         ? `&start_date=${filters.startDate instanceof Date ? formatDate(filters.startDate) : filters.startDate}`
         : '';
@@ -212,7 +222,7 @@ export default function OrderListView() {
 
       const { data } = await axiosInstance.get(
         `/orders/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
-        }${searchFilter}${statusFilter}${uninvoicedFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
+        }${searchFilter}${orderIdFilter}${eanFilter}${statusFilter}${uninvoicedFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
       );
       console.log('OrderListView - orders fetched successfully:', data);
       setCount(data.count || 0);
@@ -283,6 +293,8 @@ export default function OrderListView() {
 
   const canReset =
     !!filters.name ||
+    !!filters.orderId ||
+    !!filters.ean ||
     filters.status !== 'all' ||
     filters.paymentStatus !== 'all' ||
     (!!filters.startDate && !!filters.endDate);
@@ -302,6 +314,13 @@ export default function OrderListView() {
           newSearchParams.delete('name');
         } else {
           newSearchParams.set('name', String(value));
+        }
+      } else if (name === 'orderId' || name === 'ean') {
+        const paramName = name === 'orderId' ? 'order_id' : 'ean';
+        if (value === '' || value === null) {
+          newSearchParams.delete(paramName);
+        } else {
+          newSearchParams.set(paramName, String(value));
         }
       } else if (name === 'startDate') {
         if (value === '' || value === null) {
@@ -347,6 +366,8 @@ export default function OrderListView() {
     setFilters({
       status: 'all',
       name: '',
+      orderId: '',
+      ean: '',
       startDate: '',
       endDate: '',
       paymentStatus: 'all',

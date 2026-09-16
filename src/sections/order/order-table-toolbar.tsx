@@ -35,6 +35,20 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
     [onFilters]
   );
 
+  const handleFilterOrderId = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onFilters('orderId', event.target.value.replace(/\D/g, ''));
+    },
+    [onFilters]
+  );
+
+  const handleFilterEan = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onFilters('ean', event.target.value.trim());
+    },
+    [onFilters]
+  );
+
   const handleFilterStartDate = useCallback(
     (newValue: Date | null) => {
       onFilters('startDate', newValue);
@@ -125,6 +139,21 @@ export default function OrderTableToolbar({ filters, onFilters, dateError }: Pro
             </MenuItem>
           ))}
         </TextField>
+
+        <TextField
+          label="Order ID"
+          value={filters.orderId}
+          onChange={handleFilterOrderId}
+          inputProps={{ inputMode: 'numeric' }}
+          sx={{ minWidth: { md: 130 } }}
+        />
+
+        <TextField
+          label="Product EAN"
+          value={filters.ean}
+          onChange={handleFilterEan}
+          sx={{ minWidth: { md: 170 } }}
+        />
 
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField

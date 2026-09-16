@@ -40,6 +40,14 @@ export default function OrderTableFiltersResult({
     onFilters('name', '');
   }, [onFilters]);
 
+  const handleRemoveOrderId = useCallback(() => {
+    onFilters('orderId', '');
+  }, [onFilters]);
+
+  const handleRemoveEan = useCallback(() => {
+    onFilters('ean', '');
+  }, [onFilters]);
+
   const handleRemoveStatus = useCallback(() => {
     onFilters('status', 'all');
   }, [onFilters]);
@@ -68,6 +76,18 @@ export default function OrderTableFiltersResult({
         {filters.startDate && filters.endDate && (
           <Block label="Date:">
             <Chip size="small" label={shortLabel} onDelete={handleRemoveDate} />
+          </Block>
+        )}
+
+        {!!filters.orderId && (
+          <Block label="Order ID:">
+            <Chip label={filters.orderId} size="small" onDelete={handleRemoveOrderId} />
+          </Block>
+        )}
+
+        {!!filters.ean && (
+          <Block label="EAN:">
+            <Chip label={filters.ean} size="small" onDelete={handleRemoveEan} />
           </Block>
         )}
 
