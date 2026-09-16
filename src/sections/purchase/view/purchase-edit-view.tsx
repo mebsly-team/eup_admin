@@ -23,6 +23,7 @@ import Link from '@mui/material/Link';
 import { DatePicker } from '@mui/x-date-pickers';
 
 import { paths } from 'src/routes/paths';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
@@ -902,6 +903,7 @@ export default function PurchaseEditView() {
                     <Table size="small">
                       <TableHead>
                         <TableRow>
+                          <TableCell sx={{ width: 90 }} />
                           <TableCell>{t('product')}</TableCell>
                           <TableCell>{t('ean')}</TableCell>
                           <TableCell align="right">{t('stock')}</TableCell>
@@ -922,6 +924,30 @@ export default function PurchaseEditView() {
                               }),
                             }}
                           >
+                            <TableCell sx={{ p: 1 }}>
+                              {item.product_detail?.images?.[0] ? (
+                                <Box
+                                  component="img"
+                                  loading="lazy"
+                                  alt={item.product_detail.title}
+                                  src={`${IMAGE_FOLDER_PATH}${item.product_detail.images[0]}`}
+                                  sx={{
+                                    display: 'block',
+                                    width: 'auto',
+                                    height: 'auto',
+                                    maxWidth: 75,
+                                    maxHeight: 60,
+                                    borderRadius: 1,
+                                  }}
+                                />
+                              ) : (
+                                <Iconify
+                                  icon="solar:gallery-bold"
+                                  width={32}
+                                  sx={{ color: 'text.disabled' }}
+                                />
+                              )}
+                            </TableCell>
                             <TableCell>
                               <Typography variant="subtitle2">
                                 {item.product_detail.title}
