@@ -20,6 +20,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import Tooltip from "@mui/material/Tooltip";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -73,6 +74,10 @@ interface User {
   mobile_phone?: string;
   days_closed?: string;
   days_no_delivery?: string;
+  unpaid_orders_count?: number;
+  unpaid_orders_total?: number;
+  unpaid_invoices_count?: number;
+  unpaid_invoices_total?: number;
 }
 
 interface SelectedUser {
@@ -1724,7 +1729,53 @@ const Map = () => {
                       closeOnEscapeKey={true}
                       className="custom-popup"
                     >
-                      <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ backgroundColor: markerColor, width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white' }}>  </Box>
+                        {(!!user.unpaid_orders_count || !!user.unpaid_invoices_count) && (
+                          <Tooltip
+                            arrow
+                            title={
+                              <>
+                                {!!user.unpaid_orders_count && (
+                                  <div>
+                                    {user.unpaid_orders_count} onbetaalde order(s): € {Number(user.unpaid_orders_total || 0).toFixed(2)}
+                                  </div>
+                                )}
+                                {!!user.unpaid_invoices_count && (
+                                  <div>
+                                    {user.unpaid_invoices_count} onbetaalde factuur/facturen: € {Number(user.unpaid_invoices_total || 0).toFixed(2)}
+                                  </div>
+                                )}
+                              </>
+                            }
+                          >
+                            <Box
+                              onClick={() =>
+                                window.open(
+                                  `${paths.dashboard.order.root}?payment_status=unpaid&name=${encodeURIComponent(user.email || user.business_name || '')}`,
+                                  '_blank'
+                                )
+                              }
+                              sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                px: 0.75,
+                                py: 0.25,
+                                borderRadius: 1,
+                                bgcolor: 'error.main',
+                                color: 'common.white',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Iconify icon="solar:bill-cross-bold" width={16} />
+                              Onbetaald
+                            </Box>
+                          </Tooltip>
+                        )}
+                      </Box>
                       <Typography
                         component="span"
                         sx={{
