@@ -21,10 +21,10 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { fDate, fDateTime } from 'src/utils/format-time';
-import { fCurrency } from 'src/utils/format-number';
+import { fCurrency, roundToTwoDecimals } from 'src/utils/format-number';
 
 import Scrollbar from 'src/components/scrollbar';
-import { IInvoice } from 'src/types/invoice';
+import { IInvoice, IInvoiceOrder } from 'src/types/invoice';
 
 type Props = {
   invoice: IInvoice;
@@ -39,6 +39,18 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
   const { invoice_number, created_at, snelstart_invoice_number, orders, invoice_date } = invoice;
 
   const sortedOrders = orders ? [...orders].sort((a, b) => Number(b.id) - Number(a.id)) : [];
+
+  const countItems = (order: IInvoiceOrder) =>
+    order.cart?.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0;
+
+  const totalItems = sortedOrders.reduce((sum, order) => sum + countItems(order), 0);
+  const grandTotal = roundToTwoDecimals(
+    sortedOrders.reduce((sum, order) => sum + Number(order.total || 0), 0)
+  );
+  // The backend stores its own total_amount when orders are added/removed; it goes
+  // stale if a linked order is edited afterwards. Flag that so the user can spot it.
+  const storedTotal = roundToTwoDecimals(Number(invoice.total_amount || 0));
+  const totalMismatch = sortedOrders.length > 0 && Math.abs(grandTotal - storedTotal) >= 0.01;
 
   return (
     <Card sx={{ pt: 5, px: 5, pb: 5 }}>
@@ -149,7 +161,7 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
                   </TableCell>
                   <TableCell>{order.user?.business_name || order.user?.email || order.user?.first_name || 'Unknown'}</TableCell>
                   <TableCell>{fDate(order.ordered_date)}</TableCell>
-                  <TableCell align="right">{order.cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0}</TableCell>
+                  <TableCell align="right">{countItems(order)}</TableCell>
                   <TableCell align="right">{fCurrency(order.total)}</TableCell>
                   <TableCell align="right">
                     {onRemoveOrder && !invoice.is_paid && (
@@ -163,9 +175,30 @@ export default function InvoiceDetails({ invoice, onRemoveOrder, onAddOrderClick
                 </TableRow>
               ))}
 
+              {sortedOrders.length > 0 && (
+                <TableRow sx={{ '& td': { borderBottom: 'none', pt: 2 } }}>
+                  <TableCell colSpan={3}>
+                    <Typography variant="subtitle1">Grand Total</Typography>
+                    {totalMismatch && (
+                      <Typography variant="caption" sx={{ color: 'warning.main', display: 'block' }}>
+                        Stored invoice total ({fCurrency(storedTotal) || '0.00'}) differs from the sum of the
+                        linked orders.
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle1">{totalItems}</Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle1">{fCurrency(grandTotal) || '0.00'}</Typography>
+                  </TableCell>
+                  <TableCell />
+                </TableRow>
+              )}
+
               {!orders?.length && (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     No orders linked.
                   </TableCell>
                 </TableRow>
