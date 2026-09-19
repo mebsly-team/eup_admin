@@ -1,14 +1,20 @@
+import { useState, useCallback } from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Timeline from '@mui/lab/Timeline';
 import TimelineDot from '@mui/lab/TimelineDot';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
+import LoadingButton from '@mui/lab/LoadingButton';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineSeparator from '@mui/lab/TimelineSeparator';
 import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem';
+
+import axiosInstance from 'src/utils/axios';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -16,11 +22,39 @@ import { IProductItem } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
+type HistoryEntry = {
+    date: Date | string;
+    event: unknown;
+};
+
 type Props = {
     currentProduct: IProductItem;
 };
 
+// The log is not part of the product payload any more: it averages 9 KB per
+// product and only this card ever showed it, so it is fetched on request.
 export default function ProductDetailsHistory({ currentProduct }: Props) {
+    const [history, setHistory] = useState<HistoryEntry[] | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const knownCount = currentProduct?.history_count;
+
+    const loadHistory = useCallback(async () => {
+        if (!currentProduct?.id) return;
+        setIsLoading(true);
+        setError(null);
+        try {
+            const { data } = await axiosInstance.get(`/products/${currentProduct.id}/history/`);
+            setHistory(Array.isArray(data?.history) ? data.history : []);
+        } catch (e) {
+            console.error('ProductDetailsHistory - failed to load history:', e);
+            setError('Geschiedenis kon niet worden geladen');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentProduct?.id]);
+
     const formatHistoryEvent = (event: unknown): string => {
         if (typeof event === 'string') {
             return event;
@@ -70,6 +104,7 @@ export default function ProductDetailsHistory({ currentProduct }: Props) {
             </Box>
         );
     };
+
     const renderTimeline = (
         <Timeline
             sx={{
@@ -81,12 +116,12 @@ export default function ProductDetailsHistory({ currentProduct }: Props) {
                 },
             }}
         >
-            {currentProduct?.history?.map((item, index) => {
+            {history?.map((item, index) => {
                 const firstTimeline = index === 0;
-                const lastTimeline = index === (currentProduct?.history?.length || 0) - 1;
+                const lastTimeline = index === (history?.length || 0) - 1;
 
                 return (
-                    <TimelineItem key={String(item.date)}>
+                    <TimelineItem key={`${String(item.date)}-${index}`}>
                         <TimelineSeparator>
                             <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
                             {lastTimeline ? null : <TimelineConnector />}
@@ -107,6 +142,44 @@ export default function ProductDetailsHistory({ currentProduct }: Props) {
         </Timeline>
     );
 
+    const renderBody = () => {
+        if (history === null) {
+            return (
+                <Stack spacing={1} alignItems="flex-start">
+                    <LoadingButton
+                        variant="outlined"
+                        loading={isLoading}
+                        disabled={knownCount === 0}
+                        onClick={loadHistory}
+                    >
+                        {knownCount === 0 ? 'Geen geschiedenis' : 'Geschiedenis laden'}
+                        {knownCount ? ` (${knownCount})` : ''}
+                    </LoadingButton>
+                    {error ? (
+                        <Stack spacing={1} alignItems="flex-start">
+                            <Typography variant="caption" color="error">
+                                {error}
+                            </Typography>
+                            <Button size="small" onClick={loadHistory}>
+                                Opnieuw proberen
+                            </Button>
+                        </Stack>
+                    ) : null}
+                </Stack>
+            );
+        }
+
+        if (history.length === 0) {
+            return (
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Geen geschiedenis
+                </Typography>
+            );
+        }
+
+        return renderTimeline;
+    };
+
     return (
         <Card sx={{ mb: 3 }}>
             <CardHeader title="History" />
@@ -116,8 +189,8 @@ export default function ProductDetailsHistory({ currentProduct }: Props) {
                 direction={{ xs: 'column-reverse', md: 'row' }}
                 sx={{ p: 3 }}
             >
-                {renderTimeline}
+                {renderBody()}
             </Stack>
         </Card>
     );
-} 
+}

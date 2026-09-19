@@ -135,10 +135,14 @@ export interface IProductItem {
   brand: Brand;
   categories: Category[];
   tags: any[];
-  history: {
+  // Not part of the product payload any more; loaded on request from
+  // /products/<id>/history/ by the history card.
+  history?: {
     date: Date;
     event: string;
   }[];
+  history_count?: number | null;
+  last_physical_check_date?: string | null;
 }
 
 export interface Campaign {

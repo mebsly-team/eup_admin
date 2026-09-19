@@ -93,29 +93,10 @@ export default function ProductNewEditForm({ id }: Props) {
   const [openLightBox, setOpenLightBox] = useState(false);
   const [lightBoxSlides, setLightBoxSlides] = useState();
 
-  const lastPhysicalCheckDate = useMemo(() => {
-    if (!currentProduct?.history || !Array.isArray(currentProduct.history)) return null;
-    
-    for (let i = currentProduct.history.length - 1; i >= 0; i--) {
-      const entry = currentProduct.history[i];
-      if (entry?.event) {
-        let eventStr = '';
-        if (typeof entry.event === 'string') {
-          eventStr = entry.event;
-        } else if (Array.isArray(entry.event)) {
-          // If it's an array of objects/strings, stringify or join it safely
-          eventStr = entry.event.map(e => typeof e === 'string' ? e : JSON.stringify(e)).join(', ');
-        } else if (typeof entry.event === 'object') {
-          eventStr = JSON.stringify(entry.event);
-        }
-        
-        if (eventStr.includes('Totale voorraad gewijzigd') || eventStr.includes('Vrije voorraad gewijzigd')) {
-          return entry.date;
-        }
-      }
-    }
-    return null;
-  }, [currentProduct?.history]);
+  // The edit log is no longer part of the product payload, so the backend
+  // reports the last stock count itself; the log loads on request from the
+  // history card.
+  const lastPhysicalCheckDate = currentProduct?.last_physical_check_date || null;
 
   // Orders behind the stock counters (number_in_pakbon etc.), keyed by counter field
   const [stockReservations, setStockReservations] = useState<Record<string, any[]>>({});
@@ -1077,15 +1058,17 @@ export default function ProductNewEditForm({ id }: Props) {
       }
       setPendingChanges(changes);
 
-      // Add history entry if there are changes
+      // Add history entry if there are changes. Only the new entry is sent:
+      // the form never loads the stored log, so it must not send one back.
       if (changes.length > 0) {
-        const newHistory = [...(currentProduct?.history || [])];
-        newHistory.push({
-          date: new Date(),
-          event: changes.map(change => change.message).join(', '),
-        });
-        data.history = newHistory;
+        data.history_append = [
+          {
+            date: new Date(),
+            event: changes.map(change => change.message).join(', '),
+          },
+        ];
       }
+      delete data.history;
 
       let response;
       if (currentProduct?.id) {
