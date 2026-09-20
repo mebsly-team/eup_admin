@@ -893,7 +893,11 @@ export default function ProductNewEditForm({ id }: Props) {
       data.tags = [];
       data.brand = typeof data.brand === 'object' ? data.brand?.id : data.brand;
       data.supplier = typeof data.supplier === 'object' ? data.supplier?.id : data.supplier;
-      data.categories = data?.categories.map((item) => item?.id);
+      // Categories are objects when they come from the API and plain ids when
+      // they come back from the locally saved draft.
+      data.categories = (data?.categories || []).map((item) =>
+        item && typeof item === 'object' ? item.id : item
+      );
       data.order_unit_amount = data.order_unit_amount || 0;
       data.min_order_amount = data.min_order_amount || 0;
       data.price_per_piece_vat = (
@@ -1077,7 +1081,12 @@ export default function ProductNewEditForm({ id }: Props) {
         response = await axiosInstance.post('/products/', data);
       }
       const responseData = response.data;
-      methods.reset(responseData);
+      // The response expands sibling_products into objects and this form never
+      // edits that relation, so it is kept out of the form state: sending it
+      // back on the next save is rejected ("Expected pk value, received dict").
+      const formValues = { ...responseData };
+      delete formValues.sibling_products;
+      methods.reset(formValues);
       localStorage.removeItem('formData');
       enqueueSnackbar(currentProduct ? t('update_success') : t('create_success'));
 
