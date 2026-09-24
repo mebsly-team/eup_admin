@@ -230,18 +230,37 @@ export default function PurchaseEditView() {
   };
 
   const handleAddProduct = async () => {
-    if (!eanSearch) return;
+    const query = eanSearch.trim();
+    if (!query) return;
     try {
-      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
-      if (response.data?.length > 0) {
-        const product = response.data[0];
-        console.log('🔍 API Product Data:', product);
-        console.log('🔍 Product price_cost:', product.price_cost);
-        console.log('🔍 Product vat:', product.vat);
+      const response = await axiosInstance.get(`/products/?ean=${encodeURIComponent(query)}`);
+      const results: any[] = Array.isArray(response.data) ? response.data : response.data?.results || [];
+      if (results.length === 0) {
+        enqueueSnackbar(t('product_not_found'), { variant: 'error' });
+        return;
+      }
 
+      // The ean filter is a substring match. Every product that carries exactly
+      // this EAN (as its own or as an alternative EAN) goes in; a partial code
+      // with no exact hit falls back to the first match.
+      const exactMatches = results.filter(
+        (product) =>
+          String(product.ean ?? '').trim() === query ||
+          (product.alternative_eans || []).some((alt: any) => String(alt?.ean ?? '').trim() === query)
+      );
+      const matches = exactMatches.length > 0 ? exactMatches : [results[0]];
+
+      const existingIds = new Set((currentPurchase?.items || []).map((item: any) => item.product));
+      const toAdd = matches.filter((product) => !existingIds.has(product.id));
+      if (toAdd.length === 0) {
+        enqueueSnackbar(t('product_already_in_purchase'), { variant: 'warning' });
+        setEanSearch('');
+        return;
+      }
+
+      const newItems = toAdd.map((product) => {
         const vatRate = getVatRate(selectedSupplier?.supplier_country, product.vat);
-
-        const newItem = {
+        return {
           id: crypto.randomUUID(),
           product: product.id,
           product_detail: {
@@ -263,25 +282,20 @@ export default function PurchaseEditView() {
           vat_rate: vatRate,
           isNewItem: true,
         };
+      });
 
-        console.log('🔍 New Item Created:', newItem);
-        console.log('🔍 New Item product_purchase_price:', newItem.product_purchase_price);
-        console.log('🔍 New Item vat_rate:', newItem.vat_rate);
-
-        setCurrentPurchase((prev) => {
-          const updated = {
-            ...prev!,
-            items: [newItem, ...prev!.items],
-          };
-          console.log('🔍 Updated Purchase Items:', updated.items);
-          return updated;
-        });
-        setEanSearch('');
-        calculateTotals([newItem, ...currentPurchase!.items]);
-        enqueueSnackbar(t('product_added_to_purchase'), { variant: 'success' });
-      } else {
-        enqueueSnackbar(t('product_not_found'), { variant: 'error' });
-      }
+      setCurrentPurchase((prev) => ({
+        ...prev!,
+        items: [...newItems, ...prev!.items],
+      }));
+      setEanSearch('');
+      calculateTotals([...newItems, ...currentPurchase!.items] as IPurchaseItem['items']);
+      enqueueSnackbar(
+        newItems.length > 1
+          ? t('products_added_to_purchase', { count: newItems.length })
+          : t('product_added_to_purchase'),
+        { variant: 'success' }
+      );
     } catch (error) {
       console.error('Error fetching product:', error);
       enqueueSnackbar(t('failed_to_fetch_product'), { variant: 'error' });

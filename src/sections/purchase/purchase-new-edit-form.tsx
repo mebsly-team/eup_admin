@@ -80,13 +80,38 @@ export default function PurchaseEditView() {
   }, [fetchSuppliers]);
 
   const handleAddProduct = async () => {
-    if (!eanSearch) return;
+    const query = eanSearch.trim();
+    if (!query) return;
     try {
-      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
-      if (response.data?.length > 0) {
-        const product = response.data[0];
+      const response = await axiosInstance.get(`/products/?ean=${encodeURIComponent(query)}`);
+      const results: any[] = Array.isArray(response.data) ? response.data : response.data?.results || [];
+      if (results.length === 0) {
+        enqueueSnackbar(t('product_not_found'), { variant: 'error' });
+        return;
+      }
+
+      // The ean filter is a substring match. Every product that carries exactly
+      // this EAN (as its own or as an alternative EAN) goes in; a partial code
+      // with no exact hit falls back to the first match.
+      const exactMatches = results.filter(
+        (product) =>
+          String(product.ean ?? '').trim() === query ||
+          (product.alternative_eans || []).some((alt: any) => String(alt?.ean ?? '').trim() === query)
+      );
+      const matches = exactMatches.length > 0 ? exactMatches : [results[0]];
+
+      const currentItems = currentPurchase?.items || [];
+      const existingIds = new Set(currentItems.map((item: any) => item.product));
+      const toAdd = matches.filter((product) => !existingIds.has(product.id));
+      if (toAdd.length === 0) {
+        enqueueSnackbar(t('product_already_in_purchase'), { variant: 'warning' });
+        setEanSearch('');
+        return;
+      }
+
+      const newItems = toAdd.map((product) => {
         const appliedVat = Number(product.vat) || 0;
-        const newItem = {
+        return {
           id: crypto.randomUUID(),
           product: product.id,
           product_detail: {
@@ -103,23 +128,19 @@ export default function PurchaseEditView() {
           vat_rate: appliedVat,
           isNewItem: true,
         };
+      });
 
-        // Ensure items is initialized as an array
-        const currentItems = currentPurchase?.items || [];
-        const nonYellow = currentItems.filter((i) => !i.isNewItem);
-        const yellow = currentItems.filter((i) => i.isNewItem);
-        
-        const newItemsArray = [newItem, ...yellow, ...nonYellow];
+      const nonYellow = currentItems.filter((i) => !i.isNewItem);
+      const yellow = currentItems.filter((i) => i.isNewItem);
 
-        setCurrentPurchase((prev) => ({
-          ...prev!,
-          items: newItemsArray,
-        }) as any);
-        setEanSearch('');
-        calculateTotals(newItemsArray);
-      } else {
-        enqueueSnackbar(t('product_not_found'), { variant: 'error' });
-      }
+      const newItemsArray = [...newItems, ...yellow, ...nonYellow];
+
+      setCurrentPurchase((prev) => ({
+        ...prev!,
+        items: newItemsArray,
+      }) as any);
+      setEanSearch('');
+      calculateTotals(newItemsArray as any);
     } catch (error) {
       console.error('Error fetching product:', error);
       enqueueSnackbar(t('failed_to_fetch_product'), { variant: 'error' });

@@ -342,6 +342,8 @@
   "purchases": "Inkoopen",
   "offers": "Aanbiedingen",
   "product_added_to_purchase": "Product toegevoegd aan inkoop",
+  "products_added_to_purchase": "{{count}} producten toegevoegd aan inkoop",
+  "product_already_in_purchase": "Product staat al in deze inkoop",
   "new_purchase": "Nieuwe Inkoop",
   "invoice_date_required": "Factuurdatum is verplicht",
   "total_vat": "Totaal BTW",
