@@ -90,9 +90,10 @@ export default function PurchaseListView() {
       setLoading(true);
       const limit = table.rowsPerPage;
       const offset = table.page * table.rowsPerPage;
-      // One offer per supplier, sorted by amount from highest to lowest
+      // One offer per supplier, sorted by amount from highest to lowest.
+      // Offers without any items (Regels 0) are hidden server-side.
       const offersResponse = await axiosInstance.get(
-        `/purchases/?type=offer&ordering=-total_inc_btw,-id&limit=${limit}&offset=${offset}`
+        `/purchases/?type=offer&has_items=true&ordering=-total_inc_btw,-id&limit=${limit}&offset=${offset}`
       );
       setOffersData(offersResponse.data.results || []);
       setOffersCount(offersResponse.data.count || 0);
