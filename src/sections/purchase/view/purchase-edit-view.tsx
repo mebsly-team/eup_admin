@@ -275,6 +275,7 @@ export default function PurchaseEditView() {
             min_stock_value: product.min_stock_value || 0,
             min_order_amount: product.min_order_amount || 0,
             max_stock_at_rack: product.max_stock_at_rack || 0,
+            quantity_per_unit: product.quantity_per_unit,
           },
           product_quantity: 1,
           product_purchase_price: product.price_cost || '0',
@@ -1070,6 +1071,13 @@ export default function PurchaseEditView() {
                                 size="small"
                                 sx={{ width: 80 }}
                               />
+                              <Typography
+                                variant="caption"
+                                display="block"
+                                sx={{ color: 'text.secondary', mt: 0.5, fontSize: 11 }}
+                              >
+                                Stuck: {(item.product_detail as any)?.quantity_per_unit ?? '-'}
+                              </Typography>
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>

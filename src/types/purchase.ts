@@ -32,6 +32,7 @@ export type IPurchaseItem = {
             title: string;
             images: string[];
             ean: string;
+            quantity_per_unit?: number;
         };
         product_quantity: number;
         product_purchase_price: string;
