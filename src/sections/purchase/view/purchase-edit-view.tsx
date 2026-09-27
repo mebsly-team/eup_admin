@@ -1076,7 +1076,7 @@ export default function PurchaseEditView() {
                                 display="block"
                                 sx={{ color: 'text.secondary', mt: 0.5, fontSize: 11 }}
                               >
-                                Stuck: {(item.product_detail as any)?.quantity_per_unit ?? '-'}
+                                Stuks: {(item.product_detail as any)?.quantity_per_unit ?? '-'}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
