@@ -385,18 +385,12 @@ export default function PurchaseEditView() {
       });
 
       setCurrentPurchase((prev) => {
-        const mergedItems =
-          prev?.items?.map((prevItem) => {
-            const matchingCalculatedItem = items?.find((i) => i.id === prevItem.id);
-            return {
-              ...prevItem,
-              ...matchingCalculatedItem,
-            };
-          }) || [];
-
+        // Every caller puts the items in state before calling this, so the
+        // array is kept as is: a new one here re-triggers the totals effect
+        // on every render.
         const updated = {
           ...prev!,
-          items: mergedItems.length > 0 ? mergedItems : items,
+          items: prev?.items?.length ? prev.items : items,
           total_exc_btw: totals.totalExcBtw.toFixed(2),
           total_inc_btw: totalIncBtw.toFixed(2),
           total_vat: totals.totalVat.toFixed(2),

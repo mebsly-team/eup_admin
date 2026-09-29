@@ -17,7 +17,10 @@ const Iconify = forwardRef<SVGElement, Props>(({ icon, width = 20, sx, ...other 
     component={Icon}
     className="component-iconify"
     icon={icon}
-    sx={{ width, height: width, ...sx }}
+    // Iconify rewrites the svg body on every render, so a click that starts
+    // on a <path> is dropped when a render lands before mouseup. Keep the
+    // svg itself as the event target.
+    sx={{ width, height: width, '& *': { pointerEvents: 'none' }, ...sx }}
     {...other}
   />
 ));
