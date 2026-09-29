@@ -443,10 +443,10 @@ export default function PurchaseEditView() {
     calculateTotals(updatedItems);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false): Promise<boolean> => {
     if (!selectedSupplier) {
       enqueueSnackbar(t('supplier_required'), { variant: 'error' });
-      return;
+      return false;
     }
 
     if (!selectedSupplier.supplier_country) {
@@ -455,7 +455,7 @@ export default function PurchaseEditView() {
           'Supplier country is required. Please update the supplier information.',
         { variant: 'error' }
       );
-      return;
+      return false;
     }
 
     try {
@@ -516,19 +516,21 @@ export default function PurchaseEditView() {
         setHistory([newHistoryEntry, ...history]);
       }
 
-      enqueueSnackbar(t('purchase_updated_successfully'));
+      if (!silent) enqueueSnackbar(t('purchase_updated_successfully'));
+      return true;
     } catch (error) {
       console.error('Error updating purchase:', error);
       enqueueSnackbar(t('failed_to_update_purchase'), { variant: 'error' });
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = async (): Promise<boolean> => {
     if (!currentPurchase) {
       enqueueSnackbar(t('no_purchase_data'), { variant: 'error' });
-      return;
+      return false;
     }
 
     const hasCalculationErrors =
@@ -544,7 +546,7 @@ export default function PurchaseEditView() {
           'Cannot download PDF: Calculation errors detected',
         { variant: 'error' }
       );
-      return;
+      return false;
     }
 
     const hasInvalidItems = currentPurchase.items.some(
@@ -557,7 +559,7 @@ export default function PurchaseEditView() {
           'Cannot download PDF: Invalid item data detected',
         { variant: 'error' }
       );
-      return;
+      return false;
     }
 
     try {
@@ -574,10 +576,11 @@ export default function PurchaseEditView() {
       enqueueSnackbar(t('pdf_downloaded_successfully') || 'PDF downloaded successfully', {
         variant: 'success',
       });
+      return true;
     } catch (error) {
       console.error('Error downloading PDF:', error);
       enqueueSnackbar(t('failed_to_download_pdf'), { variant: 'error' });
-      throw error;
+      return false;
     }
   };
 
@@ -612,13 +615,16 @@ export default function PurchaseEditView() {
 
     try {
       setSending(true);
-      await handleDownloadPdf();
+      // Persist edits first so the PDF (rendered server side) and the sent
+      // offer reflect what is on screen.
+      if (!(await handleSave(true))) return;
+      if (!(await handleDownloadPdf())) return;
       await axiosInstance.post(`/purchases/${id}/mark-as-sent/`);
       enqueueSnackbar(t('offer_sent_to_supplier_successfully'), { variant: 'success' });
       router.push(paths.dashboard.purchase.offersSent);
     } catch (error: any) {
       console.error('Error sending offer to supplier:', error);
-      enqueueSnackbar(error?.response?.data?.error || t('failed_to_send_offer'), {
+      enqueueSnackbar(error?.error || t('failed_to_send_offer'), {
         variant: 'error',
       });
     } finally {
@@ -764,7 +770,7 @@ export default function PurchaseEditView() {
               variant="contained"
               color="primary"
               loading={saving}
-              onClick={handleSave}
+              onClick={() => handleSave()}
             >
               {t('save_changes')}
             </LoadingButton>
@@ -807,7 +813,7 @@ export default function PurchaseEditView() {
               variant="contained"
               color="primary"
               loading={saving}
-              onClick={handleDownloadPdf}
+              onClick={() => handleDownloadPdf()}
               disabled={
                 !currentPurchase ||
                 !currentPurchase.total_exc_btw ||
