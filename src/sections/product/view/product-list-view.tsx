@@ -160,7 +160,11 @@ export default function ProductListView() {
 
   console.log('productList', productList);
 
+  const latestRequestRef = useRef(0);
+
   const getAll = async () => {
+    latestRequestRef.current += 1;
+    const requestId = latestRequestRef.current;
     setIsLoading(true);
 
     const statusFilter =
@@ -175,7 +179,7 @@ export default function ProductListView() {
     const orderByParam = table.orderBy
       ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
       : '';
-    const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const searchFilter = filters.name ? `&search=${encodeURIComponent(filters.name)}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
     const { data } = await axiosInstance.get(
       `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${
@@ -184,6 +188,8 @@ export default function ProductListView() {
         table.page * table.rowsPerPage
       }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
     );
+    // A slower response of an older search must not overwrite the newest one
+    if (requestId !== latestRequestRef.current) return;
     setCount(data.count || 0);
     setProductList(data.results || []);
     setIsLoading(false);

@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import { useSnackbar } from 'notistack';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 
 import Stack from '@mui/material/Stack';
@@ -71,14 +71,20 @@ export default function ProductTableToolbar({
     if (!categoryList?.length) getAllCategories();
   }, [categoryList]);
 
-  // Debounce the search filter function
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      onFilters('name', value);
-    }, 750),
-    [onFilters]
+  // onFilters changes on every render of the parent, so the debounced function reads it from a
+  // ref and is created once. Recreating it per render left one pending timer per keystroke.
+  const onFiltersRef = useRef(onFilters);
+  onFiltersRef.current = onFilters;
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        onFiltersRef.current('name', value);
+      }, 750),
+    []
   );
+
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
 
   // Handle changes in the search field
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
