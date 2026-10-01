@@ -19,6 +19,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import OrderDetailsInfo from '../order-details-info';
 import OrderDetailsItems from '../order-details-item';
 import OrderDetailsToolbar from '../order-details-toolbar';
+import OrderDetailsFinance from '../order-details-finance';
 import OrderDetailsHistory from '../order-details-history';
 
 // ----------------------------------------------------------------------
@@ -330,16 +331,20 @@ export default function OrderDetailsView({ id }: Props) {
         </Grid>
 
         <Grid xs={12} md={4}>
-          <OrderDetailsInfo
-            currentOrder={currentOrder}
-            customer={currentOrder.user || {}}
-            delivery={currentOrder.delivered_date || {}}
-            payment={currentOrder.payment_reference}
-            shippingAddress={currentOrder.shipping_address || {}}
-            invoiceAddress={currentOrder.invoice_address || {}}
-            updateOrder={updateOrder}
-            orderId={id}
-          />
+          <Stack spacing={3}>
+            <OrderDetailsInfo
+              currentOrder={currentOrder}
+              customer={currentOrder.user || {}}
+              delivery={currentOrder.delivered_date || {}}
+              payment={currentOrder.payment_reference}
+              shippingAddress={currentOrder.shipping_address || {}}
+              invoiceAddress={currentOrder.invoice_address || {}}
+              updateOrder={updateOrder}
+              orderId={id}
+            />
+
+            <OrderDetailsFinance orderId={id} currentOrder={currentOrder} />
+          </Stack>
         </Grid>
       </Grid>
     </Container>
