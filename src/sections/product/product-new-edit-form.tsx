@@ -24,7 +24,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Link, alpha, MenuItem, IconButton, ListItemIcon, FormControlLabel, Switch, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, List, ListItem, ListItemText } from '@mui/material';
+import { Link, alpha, Alert, Chip, MenuItem, IconButton, ListItemIcon, LinearProgress, Switch, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, List, ListItem, ListItemText } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -38,6 +38,7 @@ import { countries } from 'src/assets/data';
 import { useGetProduct } from 'src/api/product';
 import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
 
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import ImageGallery from 'src/components/imageGallery';
@@ -47,6 +48,7 @@ import FormProvider, {
   RHFEditor,
   RHFSelect,
   RHFSwitch,
+  RHFCheckbox,
   RHFTextField,
   RHFAutocomplete,
 } from 'src/components/hook-form';
@@ -63,8 +65,30 @@ import { random } from 'lodash';
 // ----------------------------------------------------------------------
 const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"];
 
+// The dashboard header is fixed: one bar on small screens, two from lg up.
+const STICKY_TOP = { xs: 64, lg: 128 };
+// Below the form's own sticky header.
+const SIDE_STICKY_TOP = { xs: 196, lg: 260 };
+const SECTION_SX = { scrollMarginTop: { xs: 80, md: 188, lg: 252 } };
+const HEADER_WRAP_SX = { flexWrap: 'wrap', rowGap: 1 };
+
+const FLAG_GROUPS = [
+  {
+    title: 'Verkoop',
+    flags: ['is_featured', 'sell_first', 'is_clearance', 'is_party_sale', 'is_regular', 'is_used'],
+  },
+  {
+    title: 'Toegang',
+    flags: ['is_only_for_logged_in_user', 'is_only_for_export', 'has_electronic_barcode'],
+  },
+  { title: 'Externe kanalen', flags: ['is_listed_on_marktplaats', 'is_listed_on_2dehands'] },
+];
+
+const formatEuro = (amount: number) => `€ ${amount.toFixed(2).replace('.', ',')}`;
+
 type Props = {
-  id: string;
+  id?: string;
+  headerActions?: React.ReactNode;
 };
 
 function updateQueryParams(key, value) {
@@ -72,7 +96,7 @@ function updateQueryParams(key, value) {
   url.searchParams.set(key, value);
   window.history.replaceState({}, '', url);
 }
-export default function ProductNewEditForm({ id }: Props) {
+export default function ProductNewEditForm({ id, headerActions }: Props) {
   const { product: currentProduct } = useGetProduct(id || undefined);
   const { user } = useAuthContext();
 
@@ -1218,31 +1242,36 @@ export default function ProductNewEditForm({ id }: Props) {
     }
   };
 
+  const tabCount = (count?: number) =>
+    typeof count === 'number' ? <Label sx={{ ml: 1 }}>{count}</Label> : undefined;
+
   const renderTabs = (
     <Tabs
       value={activeTab}
-      onChange={(e) => {
-        setActiveTab(Number(e.target.id));
-        updateQueryParams('tab', Number(e.target.id));
+      onChange={(event, value) => {
+        setActiveTab(Number(value));
+        updateQueryParams('tab', Number(value));
       }}
+      variant="scrollable"
+      scrollButtons="auto"
       sx={{
         px: 2.5,
-        boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+        boxShadow: (th) => `inset 0 2px 0 0 ${alpha(th.palette.grey[500], 0.08)}`,
       }}
     >
-      <Tab iconPosition="end" id={0} value={0} label={t('main_product')} />
+      <Tab value={0} label={t('main_product')} />
       <Tab
         iconPosition="end"
-        id={1}
         value={1}
-        label={`${t('bundles')}`}
+        label={t('bundles')}
+        icon={tabCount(currentProduct?.variants?.length)}
         disabled={!currentProduct}
       />
       <Tab
         iconPosition="end"
-        id={2}
         value={2}
-        label={`${t('variants')}`}
+        label={t('variants')}
+        icon={tabCount(currentProduct?.sibling_products?.length)}
         disabled={!currentProduct}
       />
     </Tabs>
@@ -1257,41 +1286,37 @@ export default function ProductNewEditForm({ id }: Props) {
     setSupplierEdit(true);
   };
   const renderDetails = (
-    <Grid xs={12}>
+    <Grid xs={12} id="sec-basis" sx={SECTION_SX}>
       <Card>
-        <Box>
-          {localStorage.getItem('formData') && (
-            <Typography
-              fontSize="14px"
-              color="blue"
-              sx={{ px: 3, pt: 2, cursor: 'pointer', display: 'block' }}
-              onClick={getLocalSavedData}
+        <CardHeader
+          title={t('basic_information')}
+          sx={HEADER_WRAP_SX}
+          action={
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              startIcon={<Iconify icon="solar:import-linear" />}
+              onClick={() => handleImportFromSnelstart({ id: getValues('article_code') })}
             >
-              {t('import_data_from_local_storage')}
-            </Typography>
-          )}
-        </Box>
-        <Typography
-          fontSize="14px"
-          color="blue"
-          sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
-          // onClick={handleImportFromSnelstart}
-          onClick={() => handleImportFromSnelstart({ id: getValues('article_code') })}
-        >
-          {t('import_from_snelstart')}
-        </Typography>
-
-        {/* {currentProduct?.is_variant && (
-          <Typography
-            fontSize="14px"
-            color="blue"
-            sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
-            onClick={handleImportMainProduct}
+              Importeren uit Snelstart
+            </Button>
+          }
+        />
+        {localStorage.getItem('formData') && (
+          <Alert
+            severity="info"
+            sx={{ mx: 3, mt: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={getLocalSavedData}>
+                Laden
+              </Button>
+            }
           >
-            {t('import_data_from_main_product')}
-          </Typography>
-        )} */}
-        <CardHeader title={t('basic_information')} />
+            {t('import_data_from_local_storage')}
+          </Alert>
+        )}
+
 
         <Stack spacing={1} sx={{ p: 3 }}>
           {/* <RHFTextField name="parent_product" label={t('parent_product')} /> */}
@@ -1327,23 +1352,19 @@ export default function ProductNewEditForm({ id }: Props) {
                   </>
                 )}
               </RHFSelect>
-            ) : getValues('unit') ? (
-              <Box>
-                {`${t('unit')}: ${t(getValues('unit'))}`}
-
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
-                  onClick={() => setUnitEdit(true)}
-                >{`${t('edit')}`}</Typography>
-              </Box>
             ) : (
               <Box>
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
-                  onClick={() => setUnitEdit(true)}
-                >{`${t('unit')} ${t('edit')}`}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', color: 'violet' }}>
+                  {t('unit')}
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="subtitle2">
+                    {getValues('unit') ? t(getValues('unit')) : '—'}
+                  </Typography>
+                  <Button size="small" onClick={() => setUnitEdit(true)}>
+                    {t('edit')}
+                  </Button>
+                </Stack>
               </Box>
             )}
 
@@ -1425,26 +1446,14 @@ export default function ProductNewEditForm({ id }: Props) {
     </Grid>
   );
 
-  const renderMeta = (
-    <Grid xs={12}>
-      <Card>
-        <CardHeader title={t('titles')} />
-        <Stack spacing={2} sx={{ p: 3 }}>
-          <RHFTextField name="title" label={t('product_title')} labelColor="violet" />
-          <RHFTextField name="title_long" label={t('product_title_long')} labelColor="violet" />
-          {/* <RHFTextField name="url" label={t('url')} /> */}
-        </Stack>
-      </Card>
-    </Grid>
-  );
 
   const renderDetails2 = (
-    <Grid xs={12}>
+    <Grid xs={12} id="sec-merk" sx={SECTION_SX}>
       <Card>
         <CardHeader
           title={
             <>
-              {t('basic_information2')}
+              Merk & leverancier
               <IconButton
                 onClick={() => {
                   getAllSuppliers();
@@ -1492,36 +1501,31 @@ export default function ProductNewEditForm({ id }: Props) {
                 )}
                 noOptionsText={<span>{t('geen_resultaten')}</span>}
               />
-            ) : currentProduct?.brand?.id ? (
-              <Box>
-                <Link
-                  href={paths.dashboard.brand.edit(currentProduct?.brand?.id)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  sx={{
-                    fontWeight: 'normal',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    color: 'violet',
-                  }}
-                >
-                  {`${t('brand')}: ${getValues('brand') ? getValues('brand')?.name : '-'}`}
-                </Link>
-
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
-                  onClick={handleBrandEditClick}
-                >{`${t('edit')}`}</Typography>
-              </Box>
             ) : (
               <Box>
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
-                  onClick={handleBrandEditClick}
-                >{`${t('brand')} ${t('edit')}`}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', color: 'violet' }}>
+                  {t('brand')}
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  {currentProduct?.brand?.id ? (
+                    <Link
+                      href={paths.dashboard.brand.edit(currentProduct?.brand?.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="subtitle2"
+                      color="inherit"
+                    >
+                      {getValues('brand')?.name || '-'}
+                    </Link>
+                  ) : (
+                    <Typography variant="subtitle2" sx={{ color: 'text.disabled' }}>
+                      —
+                    </Typography>
+                  )}
+                  <Button size="small" onClick={handleBrandEditClick}>
+                    {t('edit')}
+                  </Button>
+                </Stack>
               </Box>
             )}
 
@@ -1551,37 +1555,31 @@ export default function ProductNewEditForm({ id }: Props) {
                 )}
                 noOptionsText={<span>{t('geen_resultaten')}</span>}
               />
-            ) : currentProduct?.supplier?.id ? (
-              <Box>
-                <Link
-                  href={paths.dashboard.supplier.edit(currentProduct?.supplier?.id)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  sx={{
-                    fontWeight: 'normal',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    color: 'violet',
-                  }}
-                >
-                  {`${t('supplier')}: ${getValues('supplier') ? getValues('supplier')?.supplier_code : ''
-                    }-${getValues('supplier') ? getValues('supplier')?.name : ''}`}{' '}
-                </Link>
-
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
-                  onClick={handleSupplierEditClick}
-                >{`${t('edit')}`}</Typography>
-              </Box>
             ) : (
               <Box>
-                <Typography
-                  typography="caption"
-                  sx={{ alignSelf: 'center', color: 'violet', cursor: 'pointer' }}
-                  onClick={handleSupplierEditClick}
-                >{`${t('supplier')} ${t('edit')}`}</Typography>{' '}
+                <Typography variant="caption" sx={{ display: 'block', color: 'violet' }}>
+                  {t('supplier')}
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  {currentProduct?.supplier?.id ? (
+                    <Link
+                      href={paths.dashboard.supplier.edit(currentProduct?.supplier?.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="subtitle2"
+                      color="inherit"
+                    >
+                      {`${getValues('supplier')?.supplier_code || ''}-${getValues('supplier')?.name || ''}`}
+                    </Link>
+                  ) : (
+                    <Typography variant="subtitle2" sx={{ color: 'text.disabled' }}>
+                      —
+                    </Typography>
+                  )}
+                  <Button size="small" onClick={handleSupplierEditClick}>
+                    {t('edit')}
+                  </Button>
+                </Stack>
               </Box>
             )}
           </Box>
@@ -1617,7 +1615,6 @@ export default function ProductNewEditForm({ id }: Props) {
               sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
             />
           </Box>
-          <Divider sx={{ borderStyle: 'dashed' }} />
         </Stack>
       </Card>
     </Grid>
@@ -1686,24 +1683,34 @@ export default function ProductNewEditForm({ id }: Props) {
     }
   };
 
+  const metaCount = (name: 'meta_title' | 'meta_description' | 'meta_keywords') =>
+    `${String(values[name] || '').length} / 250`;
+
   const renderDescription = (
-    <Grid xs={12}>
+    <Grid xs={12} id="sec-seo" sx={SECTION_SX}>
       <Card>
         <CardHeader
-          title={t('description_seo')}
-          sx={{ mb: 2 }}
+          title="Beschrijving & SEO"
+          sx={HEADER_WRAP_SX}
           action={
-            <IconButton sx={{ color: 'purple' }} onClick={generateSeoData} disabled={isGeneratingSeo}>
-              <Iconify icon={isGeneratingSeo ? "eos-icons:loading" : "mdi:magic"} />
-            </IconButton>
+            <LoadingButton
+              size="small"
+              variant="outlined"
+              color="secondary"
+              loading={isGeneratingSeo}
+              onClick={generateSeoData}
+              startIcon={<Iconify icon="mdi:magic" />}
+            >
+              Genereer met AI
+            </LoadingButton>
           }
         />
         <Stack spacing={3} sx={{ p: 3 }}>
           <RHFTextField name="description" label={t('description') || 'Description'} multiline rows={3} />
           <RHFTextField name="description_long" label={t('description_long') || 'Long Description'} multiline rows={6} />
-          <RHFTextField name="meta_title" label={t('meta_title')} inputProps={{ maxLength: 250 }} />
-          <RHFTextField name="meta_description" label={t('meta_description')} inputProps={{ maxLength: 250 }} />
-          <RHFTextField name="meta_keywords" label={t('meta_keywords')} inputProps={{ maxLength: 250 }} />
+          <RHFTextField name="meta_title" label={t('meta_title')} inputProps={{ maxLength: 250 }} helperText={metaCount('meta_title')} />
+          <RHFTextField name="meta_description" label={t('meta_description')} inputProps={{ maxLength: 250 }} helperText={metaCount('meta_description')} />
+          <RHFTextField name="meta_keywords" label={t('meta_keywords')} inputProps={{ maxLength: 250 }} helperText={metaCount('meta_keywords')} />
         </Stack>
       </Card>
     </Grid>
@@ -1719,140 +1726,222 @@ export default function ProductNewEditForm({ id }: Props) {
     setValue('images', items);
   };
   const renderImages = (
-    <>
+    <Box>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        useFlexGap
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1}
+        sx={{ mb: 1 }}
+      >
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {t('images')} — sleep om de volgorde te wijzigen; de eerste is de hoofdafbeelding
+        </Typography>
+        {getValues('article_code') ? (
+          <Link
+            href={`https://www.google.com/search?q=${getValues('article_code')}&tbm=isch`}
+            target="_blank"
+            rel="noreferrer"
+            variant="caption"
+            sx={{ fontWeight: 600 }}
+          >
+            Zoek afbeeldingen op Google ↗
+          </Link>
+        ) : null}
+      </Stack>
+
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="images" direction="horizontal">
-          {(provided, snapshot) => (
-            <div
+          {(provided) => (
+            <Box
               ref={provided.innerRef}
-              style={{
-                display: 'flex',
-                padding: '8px',
-                background: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey',
-                overflowX: 'auto',
-              }}
               {...provided.droppableProps}
+              sx={{ display: 'flex', overflowX: 'auto', pb: 1 }}
             >
               {getValues('images')?.map((item, index) => (
                 <Draggable key={item} draggableId={item} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      style={{
-                        padding: '8px',
-                        margin: '0 8px 0 0',
+                  {(dragProvided, snapshot) => (
+                    <Box
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      {...dragProvided.dragHandleProps}
+                      sx={{
+                        position: 'relative',
+                        flex: '0 0 112px',
+                        height: 112,
+                        mr: 1.25,
+                        borderRadius: 1.25,
+                        overflow: 'hidden',
                         userSelect: 'none',
-                        background: snapshot.isDragging ? 'lightgreen' : 'none',
-                        ...provided.draggableProps.style,
+                        bgcolor: 'background.neutral',
+                        border: (th) =>
+                          `solid 1px ${index === 0 ? th.palette.primary.main : th.palette.divider}`,
+                        ...(snapshot.isDragging && { boxShadow: (th) => th.customShadows.z8 }),
                       }}
                     >
-                      <div
-                        style={{
-                          position: 'relative',
-                          border: '1px solid whitesmoke',
-                          minWidth: '150px',
-                          textAlign: 'center',
+                      <Box
+                        component="img"
+                        src={`${IMAGE_FOLDER_PATH}${item}`}
+                        alt={`Preview ${index + 1}`}
+                        onClick={() => handleLightBoxSlides(getValues('images'))}
+                        sx={{ width: 1, height: 1, objectFit: 'contain', cursor: 'zoom-in' }}
+                      />
+                      {index === 0 ? (
+                        <Label
+                          variant="filled"
+                          color="primary"
+                          sx={{ position: 'absolute', left: 6, bottom: 6 }}
+                        >
+                          Hoofd
+                        </Label>
+                      ) : null}
+                      <IconButton
+                        size="small"
+                        aria-label={`Afbeelding ${index + 1} verwijderen`}
+                        onClick={() => handleDeleteImage(item)}
+                        sx={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          color: 'error.main',
+                          bgcolor: 'background.paper',
+                          boxShadow: (th) => th.customShadows.z1,
+                          '&:hover': { bgcolor: 'background.paper' },
                         }}
                       >
-                        <img
-                          src={`${IMAGE_FOLDER_PATH}${item}`}
-                          alt={`Preview ${index + 1}`}
-                          style={{
-                            width: '100%',
-                            height: 'auto',
-                            objectFit: 'cover',
-                            maxHeight: '200px',
-                          }}
-                          onClick={() => handleLightBoxSlides(getValues('images'))}
-                        />
-
-                        <IconButton
-                          style={{ position: 'absolute', top: 0, right: 0, color: 'black' }}
-                          onClick={() => handleDeleteImage(item)}
-                        >
-                          <Iconify icon="solar:trash-bin-trash-bold" width={24} />
-                        </IconButton>
-                      </div>
-                    </div>
+                        <Iconify icon="eva:close-fill" width={16} />
+                      </IconButton>
+                    </Box>
                   )}
                 </Draggable>
               ))}
               {provided.placeholder}
-            </div>
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setImageGalleryOpen(true)}
+                sx={{
+                  flex: '0 0 112px',
+                  height: 112,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.5,
+                  cursor: 'pointer',
+                  borderRadius: 1.25,
+                  bgcolor: 'background.paper',
+                  color: 'primary.main',
+                  typography: 'caption',
+                  fontWeight: 600,
+                  border: (th) => `dashed 1px ${th.palette.grey[500]}`,
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                <Iconify icon="mingcute:add-line" />
+                {t('upload_images')}
+              </Box>
+            </Box>
           )}
         </Droppable>
       </DragDropContext>
-      {/* Add Image button */}
       <Typography typography="caption" sx={{ color: 'error.main' }}>
         {(errors.images as any)?.message}
       </Typography>
-      <Button sx={{ color: 'violet' }} onClick={() => setImageGalleryOpen(true)}>
-        {t('upload_images')}
-      </Button>
-    </>
+    </Box>
   );
 
-  const renderCategories = (
-    <Grid xs={12}>
+  const renderTitles = (
+    <Grid xs={12} id="sec-titels" sx={SECTION_SX}>
       <Card>
-        <CardHeader title={t('categories')} />
+        <CardHeader title="Titels & afbeeldingen" />
         <Stack spacing={2} sx={{ p: 3 }}>
-          <Box
-            columnGap={2}
-            rowGap={3}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-          >
-            {openDialogCategory && (
-              <CategorySelector
-                defaultSelectedCategories={getValues('categories')}
-                open={openDialogCategory}
-                onClose={() => setOpenDialogCategory(false)}
-                onSave={(ct) => {
-                  if (currentProduct?.id) currentProduct.categories = ct;
-                  setValue('categories', ct);
-                  setOpenDialogCategory(false); // Close the dialog after saving
-                }}
-              />
-            )}
-            <div>
-              <Typography color="violet" variant="subtitle2">
-                {t('selected_categories')}:
-              </Typography>
-              <ul>
-                {currentProduct?.id
-                  ? currentProduct?.categories?.map((category, index) => (
-                    <li key={index}>
-                      {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                    </li>
-                  ))
-                  : getValues('categories')?.map((category, index) => (
-                    <li key={index}>
-                      {category ? <strong>{category?.name}</strong> : `Category: ${category?.id}`}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-            <Typography typography="caption" sx={{ color: 'error.main' }}>
-              {(errors?.categories as any)?.message}
-            </Typography>
-          </Box>
-          {/* Add Image button */}
-          <Button onClick={() => setOpenDialogCategory(true)}>{t('select_category')}</Button>
+          <RHFTextField name="title" label={t('product_title')} labelColor="violet" />
+          <RHFTextField name="title_long" label={t('product_title_long')} labelColor="violet" />
+          {renderImages}
         </Stack>
       </Card>
     </Grid>
   );
 
-  const renderPricing = (
-    <Grid xs={12}>
+  const selectedCategories =
+    (currentProduct?.id ? currentProduct?.categories : getValues('categories')) || [];
+
+  const renderCategories = (
+    <Grid xs={12} id="sec-categorie" sx={SECTION_SX}>
       <Card>
-        <CardHeader title={t('pricing')} />
+        <CardHeader
+          title={t('categories')}
+          sx={HEADER_WRAP_SX}
+          action={
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              onClick={() => setOpenDialogCategory(true)}
+            >
+              {t('select_category')}
+            </Button>
+          }
+        />
+        <Stack spacing={1} sx={{ p: 3 }}>
+          {openDialogCategory && (
+            <CategorySelector
+              defaultSelectedCategories={getValues('categories')}
+              open={openDialogCategory}
+              onClose={() => setOpenDialogCategory(false)}
+              onSave={(ct) => {
+                if (currentProduct?.id) currentProduct.categories = ct;
+                setValue('categories', ct);
+                setOpenDialogCategory(false); // Close the dialog after saving
+              }}
+            />
+          )}
+          {selectedCategories.length ? (
+            <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1}>
+              {selectedCategories.map((category, index) => (
+                <Chip
+                  key={index}
+                  label={category?.name || `Category: ${category?.id ?? category}`}
+                />
+              ))}
+            </Stack>
+          ) : (
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Nog geen categorie gekozen.
+            </Typography>
+          )}
+          <Typography typography="caption" sx={{ color: 'error.main' }}>
+            {(errors?.categories as any)?.message}
+          </Typography>
+        </Stack>
+      </Card>
+    </Grid>
+  );
+
+  const pricePerPiece = Number(values.price_per_piece) || 0;
+  const priceCost = Number(values.price_cost) || 0;
+  const marginPct =
+    pricePerPiece > 0 && priceCost > 0
+      ? Math.round(((pricePerPiece - priceCost) / pricePerPiece) * 100)
+      : null;
+  // Same rule as the price_per_piece validation: at least 15% above the cost price.
+  const marginTooLow = priceCost > 0 && pricePerPiece < priceCost * 1.15;
+
+  const renderPricing = (
+    <Grid xs={12} id="sec-prijs" sx={SECTION_SX}>
+      <Card>
+        <CardHeader
+          title={t('pricing')}
+          sx={HEADER_WRAP_SX}
+          action={
+            <Button size="small" variant="outlined" color="inherit" onClick={fetchGooglePrices}>
+              Andere prijzen
+            </Button>
+          }
+        />
 
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
@@ -2114,20 +2203,43 @@ export default function ProductNewEditForm({ id }: Props) {
                 <MenuItem value={21}>21</MenuItem>
               </RHFSelect>
             </Box>
-              <Link
-                component="button"
-                type="button"
-                variant="body2"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault();
-                  fetchGooglePrices();
-                }}
-                sx={{ alignSelf: 'flex-start', ml: 1 }}
-              >
-                Andere prijzen
-              </Link>
-
           </Box>
+
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            sx={{
+              borderRadius: 1.5,
+              bgcolor: 'background.neutral',
+              border: (th) => `solid 1px ${th.palette.divider}`,
+              '& > div': { flex: '1 1 150px', px: 2, py: 1.5 },
+            }}
+          >
+            <div>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                Prijs incl. btw
+              </Typography>
+              <Typography variant="h6">
+                {formatEuro(pricePerPiece * (1 + Number(values.vat || 0) / 100))}
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                Marge
+              </Typography>
+              <Typography variant="h6" sx={{ color: marginTooLow ? 'error.main' : 'success.dark' }}>
+                {marginPct === null ? '—' : `${marginPct}%`}
+              </Typography>
+            </div>
+            <div>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                Winst per stuk
+              </Typography>
+              <Typography variant="h6">
+                {priceCost > 0 ? formatEuro(pricePerPiece - priceCost) : '—'}
+              </Typography>
+            </div>
+          </Stack>
 
           {/* Dialog for Google Prices */}
           <Dialog open={openGooglePricesDialog} onClose={() => setOpenGooglePricesDialog(false)} maxWidth="sm" fullWidth>
@@ -2222,9 +2334,10 @@ export default function ProductNewEditForm({ id }: Props) {
   );
 
   const renderProperties = (
-    <Grid xs={12}>
+    <>
+    <Grid xs={12} id="sec-locatie" sx={SECTION_SX}>
       <Card>
-        <CardHeader title={t('product_properties')} />
+        <CardHeader title="Locatie & bestelregels" />
         <Stack spacing={2} sx={{ p: 3 }}>
           <Box
             columnGap={2}
@@ -2299,7 +2412,7 @@ export default function ProductNewEditForm({ id }: Props) {
               type="number"
               onBlur={handleEmptyNumbers}
             />
-            <Box sx={{ mt: 2, mb: 2 }}>
+            <Box sx={{ gridColumn: '1 / -1' }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>Alternatieve EANs</Typography>
               {eanFields.map((field, index) => (
                 <Stack key={field.id} direction="row" spacing={2} sx={{ mb: 1 }}>
@@ -2313,128 +2426,34 @@ export default function ProductNewEditForm({ id }: Props) {
               </Button>
             </Box>
 
-            <RHFSwitch
-              name="has_electronic_barcode"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('has_electronic_barcode')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_used"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_used')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_regular"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_regular')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_only_for_logged_in_user"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_only_for_logged_in_user')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            {/* <RHFSwitch
-              name="stock_check"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('stock_check')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            /> */}
-            <RHFSwitch
-              name="is_only_for_export"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_only_for_export')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_featured"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_featured')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_party_sale"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_party_sale')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_clearance"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_clearance')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="sell_first"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('sell_first')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-
-            <RHFSwitch
-              name="is_listed_on_marktplaats"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_listed_on_marktplaats')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
-            <RHFSwitch
-              name="is_listed_on_2dehands"
-              labelPlacement="start"
-              label={
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {t('is_listed_on_2dehands')}
-                </Typography>
-              }
-              sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-            />
           </Box>
+        </Stack>
+      </Card>
+    </Grid>
+    <Grid xs={12} id="sec-eigenschappen" sx={SECTION_SX}>
+      <Card>
+        <CardHeader title="Eigenschappen" />
+        <Stack spacing={2} sx={{ p: 3 }}>
+          {FLAG_GROUPS.map((group) => (
+            <Box key={group.title}>
+              <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+                {group.title}
+              </Typography>
+              <Box
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
+                  xl: 'repeat(3, 1fr)',
+                }}
+              >
+                {group.flags.map((flag) => (
+                  <RHFCheckbox key={flag} name={flag} label={t(flag)} />
+                ))}
+              </Box>
+            </Box>
+          ))}
           <Divider sx={{ borderStyle: 'dashed' }} />
           <Box
             columnGap={2}
@@ -2557,10 +2576,11 @@ export default function ProductNewEditForm({ id }: Props) {
         </Stack>
       </Card>
     </Grid>
+    </>
   );
 
   const renderMetrics = (
-    <Grid xs={12}>
+    <Grid xs={12} id="sec-afmetingen" sx={SECTION_SX}>
       <Card>
         <CardHeader title={t('size_volume')} />
         <Stack spacing={2} sx={{ p: 3 }}>
@@ -2733,14 +2753,13 @@ export default function ProductNewEditForm({ id }: Props) {
               />
             ) : null}
           </Box>
-          <Divider sx={{ borderStyle: 'dashed' }} />
         </Stack>
       </Card>
     </Grid>
   );
 
   const renderExtra = (
-    <Grid xs={12}>
+    <Grid xs={12} id="sec-anders" sx={SECTION_SX}>
       <Card>
         <CardHeader title={t('other')} />
         <Stack spacing={2} sx={{ p: 3 }}>
@@ -2759,319 +2778,464 @@ export default function ProductNewEditForm({ id }: Props) {
     activeAction = action;
     handleFormSubmit();
   };
-  const renderActions = (
-    <Grid
-      xs={12}
-      sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', gap: '1rem' }}
-    >
-      {!currentProduct ? (
+  const renderSaveButtons = (size: 'medium' | 'large') =>
+    !currentProduct ? (
+      <LoadingButton
+        type="button"
+        variant="contained"
+        size={size}
+        loading={isSubmitting}
+        onClick={() => handleActionClick('save_back')}
+      >
+        {t('create_product')}
+      </LoadingButton>
+    ) : (
+      <>
+        <LoadingButton
+          type="button"
+          variant="outlined"
+          color="primary"
+          size={size}
+          loading={isSubmitting}
+          onClick={() => handleActionClick('save_stay')}
+        >
+          {t('save_stay')}
+        </LoadingButton>
         <LoadingButton
           type="button"
           variant="contained"
-          size="large"
+          size={size}
           loading={isSubmitting}
           onClick={() => handleActionClick('save_back')}
         >
-          {t('create_product')}
+          {t('save_back')}
         </LoadingButton>
-      ) : (
-        <>
-          <LoadingButton
-            type="button"
-            variant="contained"
-            color="warning"
+      </>
+    );
+
+  const renderActions = (
+    <Grid xs={12}>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        useFlexGap
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1.5}
+      >
+        {currentProduct ? (
+          <Button
+            variant="outlined"
+            color="error"
             size="large"
-            loading={isSubmitting}
+            disabled={isSubmitting}
             onClick={() => setDeleteConfirmDialogOpen(true)}
           >
             {t('delete')}
-          </LoadingButton>
-          <LoadingButton
-            type="button"
-            variant="contained"
-            size="large"
-            loading={isSubmitting}
-            onClick={() => handleActionClick('save_stay')}
-          >
-            {t('save_stay')}
-          </LoadingButton>
-          <LoadingButton
-            type="submit"
-            variant="contained"
-            size="large"
-            loading={isSubmitting}
-            onClick={() => handleActionClick('save_back')}
-          >
-            {t('save_back')}
-          </LoadingButton>
-        </>
-      )}
+          </Button>
+        ) : (
+          <span />
+        )}
+        <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5}>
+          {renderSaveButtons('large')}
+        </Stack>
+      </Stack>
     </Grid>
   );
 
-  const renderPreview = mdUp ? (
-    <Card id="my-card">
+  const showTabs = !(
+    currentProduct?.is_variant ||
+    ['package', 'box', 'pallet_layer', 'pallet_full'].includes(currentProduct?.unit)
+  );
 
-
-      <FormControlLabel
-        control={
-          <Switch
-            disabled={!canToggle}
-            checked={getValues('is_visible_particular')}
-            onChange={async (e) => {
-              try {
-                if (currentProduct?.id) {
-                  const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
-                    is_visible_particular: e.target.checked,
-                    title: getValues('title'),
-                  });
-                  setValue('is_visible_particular', response?.data?.is_visible_particular ?? getValues('is_visible_particular'));
-                }
-              } catch (error) {
-                console.error('Missing Fields:', error);
-                const missingFields = Object.values(error)?.[0] || [];
-                missingFields.forEach((element) => {
-                  enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-                });
-              }
-            }}
-          />
-        }
-        label={getValues('is_visible_particular') ? (
-          <Link
-            target="_blank"
-            href={`https://kooptop.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              typography: '',
-              float: 'right',
-              fontWeight: 'fontWeightBold',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              marginRight: 3,
-              pointerEvents: canToggle ? 'auto' : 'none',
-
-            }}
-          >
-            WEB
-          </Link>
-        ) : "WEB"}
-      />
-      <FormControlLabel
-        control={
-          <Switch
-            disabled={!canToggle}
-            checked={getValues('is_visible_B2B')}
-            onChange={async (e) => {
-              try {
-                if (currentProduct?.id) {
-                  const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
-                    is_visible_B2B: e.target.checked,
-                    title: getValues('title'),
-                  });
-                  setValue('is_visible_B2B', response?.data?.is_visible_B2B ?? getValues('is_visible_B2B'));
-                }
-              } catch (error) {
-                console.error('Missing Fields:', error);
-                const missingFields = Object.values(error)?.[0] || [];
-                missingFields.forEach((element) => {
-                  enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-                });
-              }
-            }}
-          />
-        }
-        label={getValues('is_visible_B2B') ? (
-          <Link
-            target="_blank"
-            href={`https://europowerbv.com/product/${currentProduct?.id}/${currentProduct?.slug}`}
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              typography: '',
-              float: 'right',
-              fontWeight: 'fontWeightBold',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              marginRight: 3,
-              pointerEvents: canToggle ? 'auto' : 'none',
-            }}
-          >
-            B2B
-          </Link>
-        ) : "B2B"}
-      />
-
-      {currentProduct?.parent_product ? (
-        <Link
-          href={paths.dashboard.product.edit(currentProduct?.parent_product)}
-          color="blue"
-          sx={{
-            alignItems: 'center',
-            typography: '',
-            display: 'inline-flex',
-            alignSelf: 'flex-end',
-            fontWeight: 'fontWeightBold',
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            marginLeft: 3,
-          }}
+  const renderHeader = (
+    <Card sx={{ position: { md: 'sticky' }, top: STICKY_TOP, zIndex: 10, mb: 2 }}>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        useFlexGap
+        alignItems="center"
+        spacing={1.5}
+        sx={{ px: 2, py: 1.5 }}
+      >
+        <IconButton
+          onClick={() => router.back()}
+          aria-label="Terug"
+          sx={{ border: (th) => `solid 1px ${th.palette.divider}`, borderRadius: 1 }}
         >
-          {t('main_product')}
-        </Link>
-      ) : null}
-      {currentProduct?.parent_product ? (
-        <Link
-          href={`${paths.dashboard.product.edit(currentProduct?.parent_product)}?tab=1`}
-          color="blue"
-          sx={{
-            alignItems: 'center',
-            typography: '',
-            display: 'inline-flex',
-            alignSelf: 'flex-end',
-            fontWeight: 'fontWeightBold',
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            marginLeft: 3,
-          }}
-        >
-          {t('bundles')}
-        </Link>
-      ) : null}
-      <CardHeader title={t('preview')} />
+          <Iconify icon="eva:arrow-ios-back-fill" />
+        </IconButton>
 
-      <Stack>
-        <Card sx={{ padding: 3 }}>
-          <Box sx={{ position: 'unset' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left' }}>
-              {getValues('images')?.[0] && (
-                <img
-                  src={`${IMAGE_FOLDER_PATH}${getValues('images')?.[0]}`}
-                  alt=""
-                  style={{
-                    width: 'auto',
-                    height: 'auto',
-                    maxHeight: '250px',
-                    maxWidth: 'fit-content',
-                    alignSelf: 'center',
-                  }}
-                />
-              )}
-              <Box sx={{ textAlign: 'left', mt: 1 }}>
-                <Typography variant="h6" fontWeight="600" color="text.secondary">
-                  {getValues('title')}
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {getValues('price_per_piece') ? (
-                      <Typography variant="h6" fontWeight="600" fontSize="14px" color="#E94560">
-                        €
-                        {(
-                          Number(getValues('price_per_piece') || 0) *
-                          (1 + Number(getValues('vat') || 0) / 100)
-                        ).toFixed(2)}
-                      </Typography>
-                    ) : null}
-                    <Typography
-                      variant="subtitle2"
-                      ml={1}
-                      sx={{ color: 'grey', textDecoration: 'line-through' }}
-                    >
-                      {
-                        Number(getValues('price_consumers') || 0).toFixed(2)
-                      }
-                    </Typography>
-                  </Box>
-                  <Typography variant="subtitle2" sx={{ color: 'grey' }}>
-                    {Number(getValues('sell_count'))} verkocht
-                  </Typography>
-                </Box>
-                <Rating
-                  defaultValue={parseFloat(getValues('average_rating') || '4.55')}
-                  onChange={undefined}
-                />
-              </Box>
-            </Box>
-          </Box>
-        </Card>
+        <Box sx={{ minWidth: 0, flex: '1 1 260px' }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+            <Typography variant="h6" noWrap title={values.title}>
+              {values.title || t('create_product')}
+            </Typography>
+            {currentProduct ? (
+              <Label
+                color={currentProduct.is_product_active ? 'success' : 'default'}
+                sx={{ flexShrink: 0 }}
+              >
+                {currentProduct.is_product_active ? 'Actief' : t('hidden')}
+              </Label>
+            ) : null}
+          </Stack>
+          <Typography variant="body2" noWrap sx={{ color: 'text.secondary' }}>
+            {t('ean')} {values.ean || '—'} · {t('article_code')} {values.article_code || '—'}
+          </Typography>
+        </Box>
+
+        <Stack direction="row" flexWrap="wrap" useFlexGap alignItems="center" spacing={1}>
+          {headerActions}
+          {activeTab === 0 ? renderSaveButtons('medium') : null}
+        </Stack>
       </Stack>
+
+      {showTabs ? renderTabs : null}
+    </Card>
+  );
+
+  const errorFields = Object.keys(errors);
+
+  const sections = [
+    {
+      id: 'sec-basis',
+      label: t('basic_information'),
+      fields: ['article_code', 'ean', 'sku', 'hs_code', 'unit', 'color', 'size'],
+    },
+    { id: 'sec-titels', label: 'Titels & afbeeldingen', fields: ['title', 'title_long', 'images'] },
+    {
+      id: 'sec-merk',
+      label: 'Merk & leverancier',
+      fields: ['brand', 'supplier', 'supplier_article_code', 'stock_at_supplier'],
+    },
+    {
+      id: 'sec-prijs',
+      label: t('pricing'),
+      fields: [
+        'variant_discount',
+        'quantity_per_unit',
+        'price_cost',
+        'price_per_piece',
+        'price_per_unit',
+        'price_consumers',
+        'vat',
+        'inhoud_number',
+        'inhoud_unit',
+        'inhoud_price',
+      ],
+    },
+    {
+      id: 'sec-locatie',
+      label: 'Locatie & bestelregels',
+      fields: [
+        'location',
+        'location_stock',
+        'extra_location',
+        'extra_location_stock',
+        'delivery_time',
+        'chip',
+        'comm_channel_after_out_of_stock',
+        'max_order_allowed_per_unit',
+        'order_unit_amount',
+        'min_order_amount',
+        'min_stock_value',
+        'max_stock_at_rack',
+        'alternative_eans',
+      ],
+    },
+    {
+      id: 'sec-eigenschappen',
+      label: 'Eigenschappen',
+      fields: ['expiry_date', 'is_taken_from_another_package_ean', 'languages_on_item_package'],
+    },
+    {
+      id: 'sec-afmetingen',
+      label: 'Afmetingen & gewicht',
+      fields: [
+        'size_unit',
+        'size_x_value',
+        'size_y_value',
+        'size_z_value',
+        'volume',
+        'volume_unit',
+        'weight',
+        'weight_unit',
+        'liter',
+        'liter_unit',
+        'unit_in_pallet',
+        'pallet_layer_total_number',
+        'pallet_full_total_number',
+      ],
+    },
+    { id: 'sec-categorie', label: t('categories'), fields: ['categories'] },
+    {
+      id: 'sec-seo',
+      label: 'Beschrijving & SEO',
+      fields: ['description', 'description_long', 'meta_title', 'meta_description', 'meta_keywords'],
+    },
+    { id: 'sec-anders', label: t('other'), fields: ['important_information'] },
+    ...(currentProduct?.id ? [{ id: 'sec-historie', label: 'Geschiedenis', fields: [] }] : []),
+  ];
+
+  const renderSectionNav = (
+    <Box
+      component="nav"
+      aria-label="Secties"
+      sx={{
+        display: { xs: 'none', lg: 'block' },
+        flex: '0 0 188px',
+        position: 'sticky',
+        top: SIDE_STICKY_TOP,
+      }}
+    >
+      <Stack spacing={0.25}>
+        {sections.map((section) => {
+          const count = section.fields.filter((field) => errorFields.includes(field)).length;
+          return (
+            <Button
+              key={section.id}
+              color="inherit"
+              onClick={() =>
+                document
+                  .getElementById(section.id)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+              sx={{
+                justifyContent: 'space-between',
+                textAlign: 'left',
+                fontWeight: 400,
+                color: 'text.secondary',
+                px: 1.25,
+              }}
+            >
+              {section.label}
+              {count > 0 ? <Label color="error">{count}</Label> : null}
+            </Button>
+          );
+        })}
+      </Stack>
+      <Typography variant="caption" sx={{ display: 'block', mt: 2, px: 1.25, color: 'text.secondary' }}>
+        <Box component="span" sx={{ color: 'violet', fontWeight: 600 }}>
+          Paarse velden
+        </Box>{' '}
+        zijn verplicht om het product zichtbaar te maken.
+      </Typography>
+    </Box>
+  );
+
+  const renderErrors =
+    errorFields.length > 0 ? (
+      <Grid xs={12}>
+        <Alert severity="error">
+          {errorFields.map((field) => (
+            <div key={field}>
+              {t(field)}: {(errors as any)[field]?.message}
+            </div>
+          ))}
+        </Alert>
+      </Grid>
+    ) : null;
+
+  const handleVisibilityToggle =
+    (field: 'is_visible_particular' | 'is_visible_B2B') =>
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      try {
+        if (currentProduct?.id) {
+          const response = await axiosInstance.put(`/products/${currentProduct.id}/`, {
+            [field]: e.target.checked,
+            title: getValues('title'),
+          });
+          setValue(field, response?.data?.[field] ?? getValues(field));
+        }
+      } catch (error) {
+        console.error('Missing Fields:', error);
+        const missingFields: any = Object.values(error)?.[0] || [];
+        missingFields.forEach((element) => {
+          enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        });
+      }
+    };
+
+  const renderVisibility = (
+    <Card>
+      <CardHeader title="Zichtbaarheid" />
+      <Stack sx={{ px: 2, pt: 1, pb: 2 }}>
+        {(
+          [
+            { field: 'is_visible_particular', label: 'Particulier', host: 'kooptop.com' },
+            { field: 'is_visible_B2B', label: 'B2B', host: 'europowerbv.com' },
+          ] as const
+        ).map((channel) => {
+          const visible = !!getValues(channel.field);
+          return (
+            <Stack
+              key={channel.field}
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{ minHeight: 52 }}
+            >
+              <Switch
+                disabled={!canToggle}
+                checked={visible}
+                onChange={handleVisibilityToggle(channel.field)}
+                inputProps={{ 'aria-label': `Zichtbaar op ${channel.host}` }}
+              />
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Typography variant="subtitle2">{channel.label}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {channel.host}
+                </Typography>
+              </Box>
+              {visible && currentProduct?.id ? (
+                <Link
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://${channel.host}/product/${currentProduct.id}/${currentProduct.slug}`}
+                  variant="body2"
+                  sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}
+                >
+                  Bekijk ↗
+                </Link>
+              ) : null}
+            </Stack>
+          );
+        })}
+
+        {currentProduct?.parent_product ? (
+          <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
+            <Link
+              href={paths.dashboard.product.edit(currentProduct?.parent_product)}
+              variant="body2"
+              sx={{ fontWeight: 600 }}
+            >
+              {t('main_product')}
+            </Link>
+            <Link
+              href={`${paths.dashboard.product.edit(currentProduct?.parent_product)}?tab=1`}
+              variant="body2"
+              sx={{ fontWeight: 600 }}
+            >
+              {t('bundles')}
+            </Link>
+          </Stack>
+        ) : null}
+      </Stack>
+    </Card>
+  );
+
+  const renderPreview = mdUp ? (
+    <Card>
+      <CardHeader title={t('preview')} />
+      <Box sx={{ p: 2 }}>
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 1.5,
+            border: (th) => `solid 1px ${th.palette.divider}`,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {getValues('images')?.[0] && (
+            <img
+              src={`${IMAGE_FOLDER_PATH}${getValues('images')?.[0]}`}
+              alt=""
+              style={{
+                width: 'auto',
+                height: 'auto',
+                maxHeight: '180px',
+                maxWidth: '100%',
+                alignSelf: 'center',
+              }}
+            />
+          )}
+          <Typography variant="subtitle2" sx={{ mt: 1 }}>
+            {getValues('title')}
+          </Typography>
+          <Stack direction="row" alignItems="baseline" spacing={1}>
+            {getValues('price_per_piece') ? (
+              <Typography variant="subtitle1" sx={{ color: '#E94560' }}>
+                €
+                {(
+                  Number(getValues('price_per_piece') || 0) *
+                  (1 + Number(getValues('vat') || 0) / 100)
+                ).toFixed(2)}
+              </Typography>
+            ) : null}
+            <Typography
+              variant="body2"
+              sx={{ color: 'text.secondary', textDecoration: 'line-through' }}
+            >
+              {Number(getValues('price_consumers') || 0).toFixed(2)}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', ml: 'auto !important' }}>
+              {Number(getValues('sell_count'))} verkocht
+            </Typography>
+          </Stack>
+          <Rating
+            defaultValue={parseFloat(getValues('average_rating') || '4.55')}
+            onChange={undefined}
+          />
+        </Box>
+      </Box>
     </Card>
   ) : null;
 
+  const freeStock = Number(values.free_stock) || 0;
+  const overallStock = Number(values.overall_stock) || 0;
+
   const renderStock = (
-    <Grid
-      xs={12}
+    <Card
       sx={{
-        pointerEvents: (currentProduct?.is_variant || !['m.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"].includes(user?.email)) ? 'none' : 'auto',
+        pointerEvents:
+          currentProduct?.is_variant ||
+          !['m.sahin@europowerbv.nl', 'hatice.sahin@europowerbv.nl'].includes(user?.email)
+            ? 'none'
+            : 'auto',
       }}
     >
-      <Card
-        sx={{ marginBottom: "4px" }}
-      >
-        {/* <Typography
-          fontSize="14px"
-          color="blue"
-          sx={{ px: 3, pt: 2, cursor: 'pointer', float: 'right' }}
-          // onClick={handleImportFromSnelstart}
-          onClick={() =>
-            handleImportFromSnelstart({ id: getValues('article_code'), onlyStock: true })
-          }
-        >
-          {t('get_stock_from_snelstart')}
-        </Typography> */}
-        <CardHeader title={t('stock')} />
-        {lastPhysicalCheckDate && (
-          <Typography variant="body2" sx={{ px: 3, color: 'text.secondary', fontStyle: 'italic' }}>
-            Last physical check date: {format(new Date(lastPhysicalCheckDate), 'dd-MM-yyyy HH:mm')}
-          </Typography>
-        )}
-        <Stack spacing={2} sx={{ p: 3 }}>
-          <Box
-            columnGap={2}
-            rowGap={3}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-          >
-            <RHFTextField
-              name="overall_stock"
-              label={t('overall_stock')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            // labelColor="violet"
-            />
-            <RHFTextField
-              name="free_stock"
-              label={t('free_stock')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            // labelColor="violet"
-            />
-            {/* <RHFTextField
-              name="ordered_in_progress_stock"
-              label={t('ordered_in_progress_stock')}
-              type="number"
-              onBlur={handleEmptyNumbers}
-            /> */}
+      <CardHeader
+        title={t('stock')}
+        subheader={
+          lastPhysicalCheckDate
+            ? `Geteld op ${format(new Date(lastPhysicalCheckDate), 'dd-MM-yyyy HH:mm')}`
+            : undefined
+        }
+      />
+      <Stack spacing={2} sx={{ p: 2 }}>
+        <Box columnGap={1.5} rowGap={2} display="grid" gridTemplateColumns="repeat(2, 1fr)">
+          <RHFTextField
+            size="small"
+            name="free_stock"
+            label={t('free_stock')}
+            type="number"
+            onBlur={handleEmptyNumbers}
+          />
+          <RHFTextField
+            size="small"
+            name="overall_stock"
+            label={t('overall_stock')}
+            type="number"
+            onBlur={handleEmptyNumbers}
+          />
+        </Box>
+        <LinearProgress
+          variant="determinate"
+          color={freeStock > 0 ? 'success' : 'error'}
+          value={overallStock > 0 ? Math.min(100, Math.max(0, (freeStock / overallStock) * 100)) : 0}
+          sx={{ height: 6, borderRadius: 1 }}
+        />
 
-            {currentProduct?.is_variant ? null : <>
+        {currentProduct?.is_variant ? null : (
+          <>
+            <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+              Gereserveerd
+            </Typography>
+            <Box columnGap={1.5} rowGap={2} display="grid" gridTemplateColumns="repeat(2, 1fr)">
               <RHFTextField
+                size="small"
                 name="number_in_order"
                 label={t('number_in_order')}
                 type="number"
@@ -3079,6 +3243,7 @@ export default function ProductNewEditForm({ id }: Props) {
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
+                size="small"
                 name="number_in_offer"
                 label={t('number_in_offer')}
                 type="number"
@@ -3086,6 +3251,7 @@ export default function ProductNewEditForm({ id }: Props) {
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
+                size="small"
                 name="number_in_pakbon"
                 label={t('number_in_pakbon')}
                 type="number"
@@ -3093,12 +3259,14 @@ export default function ProductNewEditForm({ id }: Props) {
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
+                size="small"
                 name="number_in_confirmation"
                 label={t('number_in_confirmation')}
                 type="number"
                 helperText={renderReservations('number_in_confirmation')}
               />
               <RHFTextField
+                size="small"
                 name="number_in_werkbon"
                 label={t('number_in_werkbon')}
                 type="number"
@@ -3106,42 +3274,40 @@ export default function ProductNewEditForm({ id }: Props) {
                 onBlur={handleEmptyNumbers}
               />
               <RHFTextField
+                size="small"
                 name="number_in_other"
                 label={t('number_in_other')}
                 type="number"
                 helperText={renderReservations('number_in_other')}
                 onBlur={handleEmptyNumbers}
               />
-            </>}
-          </Box>
-        </Stack>
-      </Card>
-      <Divider sx={{ borderStyle: 'dashed' }} />
-      {currentProduct?.is_variant ? null : <Card>
-        <CardHeader title={t('stats')} />
-        <Stack spacing={2} sx={{ p: 3 }}>
-          <Box
-            columnGap={2}
-            rowGap={3}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-          >
+            </Box>
+            <Divider sx={{ borderStyle: 'dashed' }} />
             <RHFTextField
+              size="small"
               disabled={currentProduct?.is_variant}
               name="sell_count"
               label={t('sell_count')}
               type="number"
               onBlur={handleEmptyNumbers}
-            // labelColor="violet"
             />
-          </Box>
-        </Stack>
-      </Card>}
-    </Grid>
+          </>
+        )}
+      </Stack>
+    </Card>
   );
+
+  const renderPendingChanges =
+    pendingChanges && pendingChanges.length > 0 ? (
+      <Card>
+        <CardHeader title={t('Wijzigingen')} />
+        <Box component="ul" sx={{ m: 0, p: 2, pl: 4, typography: 'body2' }}>
+          {pendingChanges.map((change, idx) => (
+            <li key={idx}>{change.message}</li>
+          ))}
+        </Box>
+      </Card>
+    ) : null;
 
   if (!isNewProduct && !currentProduct)
     return (
@@ -3151,52 +3317,60 @@ export default function ProductNewEditForm({ id }: Props) {
     );
   return (
     <FormProvider methods={methods} onSubmit={handleFormSubmit}>
-      {!(currentProduct?.is_variant || ['package', 'box', 'pallet_layer', 'pallet_full'].includes(currentProduct?.unit)) ? renderTabs : null}
+      {renderHeader}
 
       {activeTab === 0 ? (
-        <Grid container spacing={1}>
-          <Grid container md={9} spacing={1}>
-            {renderDetails}
-            {renderMeta}
-            {renderDetails2}
-            {renderMetrics}
-            {renderPricing}
-            {renderProperties}
-            {renderExtra}
-            {renderCategories}
-            {renderImages}
-            {renderDescription}
-            {renderActions}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'stretch', md: 'flex-start' },
+            gap: 2,
+          }}
+        >
+          {renderSectionNav}
 
-            {currentProduct?.id && (
-              <Stack sx={{ mt: 3 }}>
-                <ProductDetailsHistory currentProduct={currentProduct} />
-              </Stack>
-            )}
-          </Grid>
-          <Grid md={3}>
-            <Card id="my-card" sx={{ position: 'sticky', top: 64, width: '100%' }}>
-              {renderPreview}
-              {renderStock}
-              {getValues('article_code') ? (
-                <a
-                  href={`https://www.google.com/search?q=${getValues('article_code')}&tbm=isch`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    float: 'left',
-                    fontWeight: 'fontWeightBold',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    marginLeft: '1rem',
-                  }}
-                >
-                  Zoek afbeeldingen op Google
-                </a>
-              ) : null}
-            </Card>
-          </Grid>
-        </Grid>
+          <Box sx={{ flex: '1 1 0', minWidth: 0 }}>
+            <Grid container spacing={2}>
+              {renderErrors}
+              {renderDetails}
+              {renderTitles}
+              {renderDetails2}
+              {renderPricing}
+              {renderProperties}
+              {renderMetrics}
+              {renderCategories}
+              {renderDescription}
+              {renderExtra}
+
+              {currentProduct?.id && (
+                <Grid xs={12} id="sec-historie" sx={SECTION_SX}>
+                  <ProductDetailsHistory currentProduct={currentProduct} />
+                </Grid>
+              )}
+              {renderActions}
+            </Grid>
+          </Box>
+
+          <Stack
+            spacing={2}
+            sx={{
+              flexShrink: 0,
+              width: { xs: 1, md: 320 },
+              position: { md: 'sticky' },
+              top: SIDE_STICKY_TOP,
+              maxHeight: { md: 'calc(100vh - 220px)', lg: 'calc(100vh - 284px)' },
+              overflowY: { md: 'auto' },
+              // Cards keep their height; the column scrolls instead.
+              '& > *': { flexShrink: 0 },
+            }}
+          >
+            {renderVisibility}
+            {renderStock}
+            {renderPreview}
+            {renderPendingChanges}
+          </Stack>
+        </Box>
       ) : activeTab === 1 ? (
         <ProductVariantForm currentProduct={currentProduct} activeTab={activeTab} />
       ) : (
@@ -3229,32 +3403,6 @@ export default function ProductNewEditForm({ id }: Props) {
         />
       ) : null}
       <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
-      <div>
-        ERRORS:
-        <br />
-        {Object.keys(errors).map((field) => {
-          const error = errors[field];
-          return (
-            <div key={field}>
-              "{t(field)}"{'=>'} {error.message}
-            </div>
-          );
-        })}
-      </div>
-      {pendingChanges && pendingChanges.length > 0 && (
-        <Grid xs={12}>
-          <Card sx={{ mb: 2 }}>
-            <CardHeader title={t('Wijzigingen')} />
-            <Stack spacing={1} sx={{ p: 3 }}>
-              <ul style={{ margin: 0, paddingLeft: 20 }}>
-                {pendingChanges.map((change, idx) => (
-                  <li key={idx}>{change.message}</li>
-                ))}
-              </ul>
-            </Stack>
-          </Card>
-        </Grid>
-      )}
     </FormProvider>
   );
 }

@@ -1,15 +1,12 @@
-import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { useTranslate } from 'src/locales';
 import { useGetProduct } from 'src/api/product';
 
-import { useSettingsContext } from 'src/components/settings';
-import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
+import Iconify from 'src/components/iconify';
 
 import ProductNewEditForm from '../product-new-edit-form';
 
@@ -20,9 +17,6 @@ type Props = {
 };
 
 export default function ProductEditView({ id }: Props) {
-  const settings = useSettingsContext();
-  const { t } = useTranslate();
-
   const { product: currentProduct } = useGetProduct(id);
 
   const handleDownloadDymo = () => {
@@ -217,38 +211,33 @@ export default function ProductEditView({ id }: Props) {
   };
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      <CustomBreadcrumbs
-        heading={t('edit')}
-        links={[
-          { name: t('dashboard'), href: paths.dashboard.root },
-          {
-            name: t('product'),
-            href: paths.dashboard.product.root,
-          },
-          { name: (currentProduct as any)?.name || currentProduct?.title },
-        ]}
-        action={
-          <Stack direction="row" spacing={1}>
+    <Container maxWidth={false}>
+      <ProductNewEditForm
+        id={id}
+        headerActions={
+          <>
             {currentProduct?.ean ? (
               <Button
                 variant="outlined"
+                color="inherit"
                 component={RouterLink}
                 href={`${paths.dashboard.order.root}?page=1&ean=${encodeURIComponent(currentProduct.ean)}`}
+                startIcon={<Iconify icon="solar:bill-list-linear" />}
               >
-                Show all orders
+                Bestellingen
               </Button>
             ) : null}
-            <Button variant="contained" onClick={handleDownloadDymo}>
-              DYMO
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={handleDownloadDymo}
+              startIcon={<Iconify icon="solar:tag-linear" />}
+            >
+              DYMO-etiket
             </Button>
-          </Stack>
+          </>
         }
-        sx={{
-          mb: { xs: 3, md: 5 },
-        }}
       />
-      <ProductNewEditForm id={id} />
     </Container>
   );
 }
