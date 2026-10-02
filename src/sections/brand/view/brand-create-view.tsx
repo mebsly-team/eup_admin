@@ -31,7 +31,7 @@ export default function BrandCreateView() {
           { name: t('new_brand') },
         ]}
         sx={{
-          mb: { xs: 3, md: 5 },
+          mb: 3,
         }}
       />
 

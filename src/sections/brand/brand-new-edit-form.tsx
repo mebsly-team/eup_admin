@@ -7,8 +7,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import { Typography } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { paths } from 'src/routes/paths';
@@ -19,12 +19,16 @@ import axiosInstance from 'src/utils/axios';
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
-import Image from 'src/components/image';
+import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import ImageGallery from 'src/components/imageGallery/index.tsx';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 import { IBrandItem } from 'src/types/brand';
+
+// The dashboard header is fixed: one bar on small screens, two from lg up.
+// Only from md up: the card is not sticky below that and `top` would shift it.
+const STICKY_TOP = { md: 64, lg: 128 };
 
 type Props = {
   currentBrand?: IBrandItem;
@@ -34,7 +38,7 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
   const router = useRouter();
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
-  const { t, onChangeLang } = useTranslate();
+  const { t } = useTranslate();
 
   const NewBrandSchema = Yup.object().shape({
     name: Yup.string().required(t('required')),
@@ -44,7 +48,6 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
 
   const defaultValues = useMemo(
     () => ({
-      // id: currentBrand?.id || null,
       name: currentBrand?.name || '',
       description: currentBrand?.description || '',
       logo: currentBrand?.logo || null,
@@ -59,88 +62,175 @@ export default function BrandNewEditForm({ currentBrand }: Props) {
 
   const {
     reset,
-    control,
+    watch,
     setValue,
     handleSubmit,
-    getValues,
     formState: { isSubmitting, errors },
-    ...rest
   } = methods;
 
-  console.log('getValues', getValues());
   const handleSelectImage = async (urlList) => {
-    setValue('logo', urlList?.[0]);
+    setValue('logo', urlList?.[0], { shouldValidate: true });
     setImageGalleryOpen(false);
   };
 
   const onSubmit = handleSubmit(async (data) => {
     const finalData = { ...data };
     try {
-      let response;
       if (currentBrand) {
-        response = await axiosInstance.put(`/brands/${currentBrand.id}/`, finalData);
+        await axiosInstance.put(`/brands/${currentBrand.id}/`, finalData);
       } else {
-        response = await axiosInstance.post(`/brands/`, finalData);
+        await axiosInstance.post(`/brands/`, finalData);
       }
       enqueueSnackbar(currentBrand ? t('update_success') : t('create_success'));
       reset();
       router.push(paths.dashboard.brand.root);
     } catch (error) {
-      if (error) {
-        console.log('error', error);
-        const errorData = error;
-        if (errorData) {
-          Object.entries(errorData).forEach(([fieldName, errors]) => {
-            errors.forEach((errorMsg) => {
-              enqueueSnackbar({
-                variant: 'error',
-                message: `${t(fieldName)}: ${errorMsg}`,
-              });
-            });
+      console.error(error);
+      // The API answers with { field: [messages] }; anything else gets the generic text.
+      const fieldErrors =
+        error && typeof error === 'object'
+          ? Object.entries(error).filter(([, messages]) => Array.isArray(messages))
+          : [];
+      if (fieldErrors.length) {
+        fieldErrors.forEach(([fieldName, messages]) => {
+          (messages as string[]).forEach((errorMsg) => {
+            enqueueSnackbar({ variant: 'error', message: `${t(fieldName)}: ${errorMsg}` });
           });
-        }
+        });
       } else {
-        console.error('Error:', error.message);
-        enqueueSnackbar({ variant: 'error', message: t('error') });
+        enqueueSnackbar({
+          variant: 'error',
+          message: error?.detail || error?.error || t('error'),
+        });
       }
     }
   });
 
+  const logo = watch('logo');
+  const name = watch('name');
+  const headerTitle = name || currentBrand?.name || t('create_brand');
+
+  const renderHeader = (
+    <Card sx={{ position: { md: 'sticky' }, top: STICKY_TOP, zIndex: 10, mb: 3 }}>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        useFlexGap
+        alignItems="center"
+        spacing={1.5}
+        sx={{ px: 2, py: 1.5 }}
+      >
+        <IconButton
+          type="button"
+          onClick={() => router.push(paths.dashboard.brand.root)}
+          aria-label="Terug"
+          sx={{ border: (theme) => `solid 1px ${theme.palette.divider}`, borderRadius: 1 }}
+        >
+          <Iconify icon="eva:arrow-ios-back-fill" />
+        </IconButton>
+
+        <Box sx={{ minWidth: 0, flex: '1 1 260px' }}>
+          <Typography variant="h5" noWrap title={headerTitle}>
+            {headerTitle}
+          </Typography>
+          <Typography variant="body2" noWrap sx={{ color: 'text.secondary' }}>
+            {currentBrand ? `ID ${currentBrand.id}` : 'Nog niet opgeslagen'}
+          </Typography>
+        </Box>
+
+        <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+          {!currentBrand ? t('create_brand') : t('save_changes')}
+        </LoadingButton>
+      </Stack>
+    </Card>
+  );
+
+  const renderGeneral = (
+    <Card sx={{ p: 2.5 }}>
+      <SectionTitle title="Algemeen" hint="Naam en beschrijving van het merk" />
+      <Stack spacing={3}>
+        <RHFTextField name="name" label={t('name')} />
+        <RHFTextField name="description" label={t('description')} multiline minRows={3} />
+      </Stack>
+    </Card>
+  );
+
+  const renderLogo = (
+    <Card sx={{ p: 2.5 }}>
+      <SectionTitle title={t('logo')} hint="Afbeelding uit de mediabibliotheek" />
+      <Box
+        sx={{
+          p: 2,
+          aspectRatio: '4 / 3',
+          borderRadius: 1,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'background.neutral',
+          color: 'text.disabled',
+          border: (theme) =>
+            `dashed 1px ${errors?.logo ? theme.palette.error.main : theme.palette.divider}`,
+        }}
+      >
+        {logo ? (
+          <Box
+            component="img"
+            alt={name}
+            src={`${IMAGE_FOLDER_PATH}${logo}`}
+            sx={{ width: 1, height: 1, objectFit: 'contain' }}
+          />
+        ) : (
+          <Stack alignItems="center" spacing={0.5}>
+            <Iconify icon="solar:gallery-bold" width={32} />
+            <Typography variant="caption">Geen logo</Typography>
+          </Stack>
+        )}
+      </Box>
+      {errors?.logo && (
+        <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+          {errors.logo.message as string}
+        </Typography>
+      )}
+      <Button
+        fullWidth
+        type="button"
+        variant="outlined"
+        color="inherit"
+        startIcon={<Iconify icon="solar:gallery-add-bold" />}
+        onClick={() => setImageGalleryOpen(true)}
+        sx={{ mt: 1.5 }}
+      >
+        {logo ? 'Logo wijzigen' : 'Logo kiezen'}
+      </Button>
+    </Card>
+  );
+
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={8}>
-          <Card sx={{ p: 3 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="name" label={t('name')} />
-              <RHFTextField name="description" label={t('description')} />
-              <Stack spacing={1.5}>
-                <Typography variant="subtitle2">Logo</Typography>
-                <Image src={`${IMAGE_FOLDER_PATH}${getValues('logo')}`} />
-                <Button onClick={() => setImageGalleryOpen(true)}>{t('select')}</Button>
-                {errors?.logo && <Typography color="error">{errors?.logo?.message}</Typography>}
-              </Stack>
-            </Box>
+      {renderHeader}
 
-            <Stack alignItems="flex-end" sx={{ mt: 3 }}>
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentBrand ? t('create_brand') : t('save_changes')}
-              </LoadingButton>
-            </Stack>
-          </Card>
-          {isImageGalleryOpen ? (
-            <ImageGallery onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} />
-          ) : null}
-        </Grid>
-      </Grid>
+      <Stack direction={{ xs: 'column', md: 'row' }} alignItems="flex-start" spacing={3}>
+        <Box sx={{ flex: '1 1 0', minWidth: 0, width: 1 }}>{renderGeneral}</Box>
+        <Box sx={{ flex: { md: '0 0 320px' }, width: { xs: 1, md: 320 } }}>{renderLogo}</Box>
+      </Stack>
+
+      {isImageGalleryOpen ? (
+        <ImageGallery onClose={() => setImageGalleryOpen(false)} onSelect={handleSelectImage} />
+      ) : null}
     </FormProvider>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function SectionTitle({ title, hint }: { title: string; hint: string }) {
+  return (
+    <Box sx={{ mb: 2.5 }}>
+      <Typography variant="h6">{title}</Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        {hint}
+      </Typography>
+    </Box>
   );
 }

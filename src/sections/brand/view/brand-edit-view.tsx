@@ -31,6 +31,8 @@ export default function BrandEditView({ id }: Props) {
   const { t, onChangeLang } = useTranslate();
 
   useEffect(() => {
+    // The form keeps its own state, so it must remount for another brand.
+    setCurrentBrand(undefined);
     getBrandInfo(id);
   }, [id]);
 
@@ -50,10 +52,10 @@ export default function BrandEditView({ id }: Props) {
           { name: currentBrand?.name },
         ]}
         sx={{
-          mb: { xs: 3, md: 5 },
+          mb: 3,
         }}
       />
-      {currentBrand && <BrandNewEditForm currentBrand={currentBrand} />}
+      {currentBrand && <BrandNewEditForm key={currentBrand.id} currentBrand={currentBrand} />}
     </Container>
   );
 }

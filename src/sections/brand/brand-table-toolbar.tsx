@@ -1,122 +1,87 @@
-import { useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import MenuItem from '@mui/material/MenuItem';
+import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import { SelectChangeEvent } from '@mui/material/Select';
+import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
-
-import { IBrandTableFilters, IBrandTableFilterValue } from 'src/types/brand';
 
 // ----------------------------------------------------------------------
 
+const SEARCH_DELAY = 400;
+
 type Props = {
-  filters: IBrandTableFilters;
-  onFilters: (name: string, value: IBrandTableFilterValue) => void;
-  //
-  roleOptions: string[];
+  name: string;
+  onSearch: (value: string) => void;
+  onReset: VoidFunction;
+  canReset: boolean;
+  results: number;
 };
 
-export default function UserTableToolbar({
-  filters,
-  onFilters,
-  //
-  roleOptions,
-}: Props) {
-  const popover = usePopover();
-  const { t, onChangeLang } = useTranslate();
+export default function BrandTableToolbar({ name, onSearch, onReset, canReset, results }: Props) {
+  const { t } = useTranslate();
 
-  const handleFilterName = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onFilters('name', event.target.value);
-    },
-    [onFilters]
-  );
+  const [query, setQuery] = useState(name);
+  const committed = useRef(name);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
 
-  const handleFilterRole = useCallback(
-    (event: SelectChangeEvent<string[]>) => {
-      onFilters(
-        'role',
-        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
-      );
-    },
-    [onFilters]
-  );
+  // Follow filter changes made elsewhere (reset, deep links).
+  useEffect(() => {
+    if (name !== committed.current) {
+      committed.current = name;
+      setQuery(name);
+    }
+  }, [name]);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const handleQuery = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setQuery(value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      committed.current = value.trim();
+      onSearch(value.trim());
+    }, SEARCH_DELAY);
+  };
 
   return (
-    <>
-      <Stack
-        spacing={2}
-        alignItems={{ xs: 'flex-end', md: 'center' }}
-        direction={{
-          xs: 'column',
-          md: 'row',
+    <Stack direction="row" alignItems="center" flexWrap="wrap" useFlexGap spacing={1.5} sx={{ p: 2 }}>
+      <TextField
+        size="small"
+        value={query}
+        onChange={handleQuery}
+        placeholder="Zoek op naam of beschrijving"
+        inputProps={{ 'aria-label': t('search') }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+            </InputAdornment>
+          ),
         }}
-        sx={{
-          p: 2.5,
-          pr: { xs: 2.5, md: 1 },
-        }}
-      >
-        <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
-          <TextField
-            fullWidth
-            value={filters.name}
-            onChange={handleFilterName}
-            placeholder={`${t('search')}...`}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-                </InputAdornment>
-              ),
-            }}
-          />
+        sx={{ flex: '1 1 300px', maxWidth: { md: 420 } }}
+      />
 
-          <IconButton onClick={popover.onOpen}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </Stack>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ ml: 'auto' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+          <Box component="strong" sx={{ color: 'text.primary' }}>
+            {results}
+          </Box>{' '}
+          {results === 1 ? 'merk' : 'merken'}
+        </Typography>
+
+        {canReset && (
+          <Button size="small" color="error" onClick={onReset}>
+            Filters wissen
+          </Button>
+        )}
       </Stack>
-
-      <CustomPopover
-        open={popover.open}
-        onClose={popover.onClose}
-        arrow="right-top"
-        sx={{ width: 140 }}
-      >
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:printer-minimalistic-bold" />
-          {t('print')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:import-bold" />
-          {t('import')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:export-bold" />
-          {t('export')}
-        </MenuItem>
-      </CustomPopover>
-    </>
+    </Stack>
   );
 }
