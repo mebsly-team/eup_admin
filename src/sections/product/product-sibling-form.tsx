@@ -1,42 +1,26 @@
 /* eslint-disable no-nested-ternary */
-import { useState, useEffect, SetStateAction } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
+import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
+import TableRow from '@mui/material/TableRow';
+import TextField from '@mui/material/TextField';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import CardHeader from '@mui/material/CardHeader';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import CancelIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import RemoveIcon from '@mui/icons-material/Remove';
-import {
-  Chip,
-  Radio,
-  Select,
-  Switch,
-  Button,
-  MenuItem,
-  TextField,
-  RadioGroup,
-  FormControl,
-  useMediaQuery,
-  FormControlLabel,
-  ListItemIcon,
-  Stack,
-} from '@mui/material';
-import {
-  DataGrid,
-  GridRowId,
-  GridColDef,
-  GridRowModes,
-  GridRowModel,
-  GridCellParams,
-  GridRowModesModel,
-  GridEventListener,
-  GridActionsCellItem,
-  GridRowEditStopReasons,
-} from '@mui/x-data-grid';
-import { HOST_API } from 'src/config-global';
+import LoadingButton from '@mui/lab/LoadingButton';
+import Autocomplete from '@mui/material/Autocomplete';
+import ToggleButton from '@mui/material/ToggleButton';
+import TableContainer from '@mui/material/TableContainer';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -44,65 +28,99 @@ import { useRouter } from 'src/routes/hooks';
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
+import { HOST_API } from 'src/config-global';
+import { useGetProduct } from 'src/api/product';
 
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
+import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 
 import { IProductItem } from 'src/types/product';
-import { useGetProduct } from 'src/api/product';
+
+import {
+  readable,
+  formatPrice,
+  canEditVisibility,
+  VisibilitySwitch,
+  RelationTableHead,
+} from './product-relation-shared';
 
 type Props = {
   currentProduct?: IProductItem;
   activeTab: any;
 };
 
-const styles = {
-  formControlRoot: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    width: '300px',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    border: '2px solid lightgray',
-    padding: 4,
-    borderRadius: '4px',
-    '&> div.container': {
-      gap: '6px',
-      display: 'flex',
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-    },
-    '& > div.container > span': {
-      backgroundColor: 'gray',
-      padding: '1px 3px',
-      borderRadius: '4px',
-    },
-  },
-};
 const unitOrder = ['piece', 'package', 'rol', 'box', 'pallet_layer', 'pallet_full'];
 const hostUrl = HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000';
+
+const COLOR_NAMES = [
+  "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
+  "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
+  "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkkhaki",
+  "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen",
+  "darkslateblue", "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray",
+  "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold",
+  "goldenrod", "gray", "green", "greenyellow", "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki",
+  "lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+  "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+  "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta", "maroon",
+  "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue",
+  "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
+  "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
+  "palegreen", "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
+  "purple", "red", "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell",
+  "sienna", "silver", "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan", "teal",
+  "thistle", "tomato", "turquoise", "violet", "wheat", "white", "whitesmoke", "yellow", "yellowgreen", "mix"
+];
+
+const TABLE_HEAD = [
+  { label: 'Titel' },
+  { label: 'Kleur', width: 140 },
+  { label: 'Optie', width: 110 },
+  { label: 'Eenheid', width: 100 },
+  { label: 'EAN', width: 140 },
+  { label: 'Prijs per stuk', align: 'right' as const, width: 120 },
+  { label: 'Voorraad', align: 'right' as const, width: 110 },
+  { label: 'Particulier', width: 110 },
+  { label: 'B2B', width: 70 },
+  { label: '', width: 136 },
+];
+
+function ColorSwatch({ color }: { color: string }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        flexShrink: 0,
+        width: 18,
+        height: 18,
+        borderRadius: '50%',
+        backgroundColor: color,
+        border: (theme) => `solid 1px ${theme.palette.divider}`,
+      }}
+    />
+  );
+}
 
 export default function ProductSiblingForm({ currentProduct: defaultProduct, activeTab }: Props) {
   const { product: currentProduct } = useGetProduct(defaultProduct.id);
   const router = useRouter();
-  const { t, onChangeLang } = useTranslate();
-  const theme = useTheme();
+  const { t } = useTranslate();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [isWaiting, setIsWaiting] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
-  const [selectedColors, setSelectedColors] = useState([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [currentOptionValues, setCurrentOptionValues] = useState<string[]>([]);
+  const [optionDraft, setOptionDraft] = useState('');
   const [currentProductSiblingRows, setCurrentProductSiblingRows] = useState<IProductItem[]>([]);
-  console.log('currentProductSiblingRows', currentProductSiblingRows);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const currentProductSiblingIdList =
     currentProduct?.sibling_products.map((item: { id: any }) => item?.id || item) || [];
-  const isMobile = useMediaQuery('(max-width:600px)');
   const [radioValue, setRadioValue] = useState(currentProduct?.color ? "color" : "no_color");
 
-  const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
   const [ean, setEan] = useState(''); // New state for EAN
-
 
   const getSiblings = async () => {
     try {
@@ -150,7 +168,7 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     const discount = unitOrder.includes(parentProduct.unit) ? unitOrder.indexOf(parentProduct.unit) * 5 : null;
     const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(parentProduct.unit);
     const title = `${parentProduct?.title}${clr ? `-${t(clr)}` : ''}${sz ? `-${t(sz)}` : ''}-${t(parentProduct.unit)}`;
-    const data = {
+    const data: any = {
       title,
       title_long: title,
       sibling_products: [parentProduct?.id],
@@ -186,9 +204,9 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
 
     if (discount) {
       data.sibling_discount = discount;
-      data.price_per_piece = parseFloat(
-        Number(parentProduct?.price_per_piece) * (1 - discount / 100)
-      ).toFixed(2);
+      data.price_per_piece = (Number(parentProduct?.price_per_piece) * (1 - discount / 100)).toFixed(
+        2
+      );
     }
 
     if (isPalletOrBox) {
@@ -247,84 +265,41 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     }
   };
 
-  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
-    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
-      event.defaultMuiPrevented = true;
-    }
-  };
-
-  const handleEditClick = (id: GridRowId) => () => {
+  const handleEditClick = (id: any) => () => {
     router.push(`${paths.dashboard.product.edit(id)}?tab=0`);
     window.location.reload();
   };
 
-  const handleActiveSwitchChange = (row) => async (e) => {
-    e.stopPropagation(); // Stop event propagation
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
-      return; // Do nothing if not superuser
-    }
-    setIsWaiting(true);
-    const newStatus = e.target.checked;
-    try {
-      const response = await axiosInstance.put(`/products/${row.id}/`, {
-        is_visible_particular: newStatus,
-        title: row.title,
-      });
-      setCurrentProductSiblingRows((prevRows) => {
-        // Find the index of the existing sibling
-        const siblingIndex = prevRows.findIndex((sibling) => sibling.id === row.id);
-        const updatedRows = [...prevRows];
-        updatedRows[siblingIndex] = { ...row, is_visible_particular: newStatus };
-        return updatedRows.sort((a, b) => a.id - b.id);
-      });
-    } catch (error) {
-      console.error('Missing Fields:', error);
-      const missingFields = Object.values(error)?.[0] || [];
-      missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-      });
-    } finally {
-      // getSiblings();
-      setIsWaiting(false);
-    }
-  };
+  const handleVisibilityChange =
+    (row, field: 'is_visible_particular' | 'is_visible_B2B') => async (e) => {
+      e.stopPropagation(); // Stop event propagation
+      if (!canEditVisibility()) return;
 
-  const handleActiveSwitchChange2 = (row) => async (e) => {
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!currentUser.is_superuser) {
-      return; // Do nothing if not superuser
-    }
-    e.stopPropagation(); // Stop event propagation
-    setIsWaiting(true);
-    const newStatus = e.target.checked;
+      setIsWaiting(true);
+      const newStatus = e.target.checked;
+      try {
+        await axiosInstance.put(`/products/${row.id}/`, {
+          [field]: newStatus,
+          title: row.title,
+        });
+        setCurrentProductSiblingRows((prevRows) =>
+          prevRows
+            .map((sibling) => (sibling.id === row.id ? { ...sibling, [field]: newStatus } : sibling))
+            .sort((a, b) => a.id - b.id)
+        );
+      } catch (error) {
+        console.error('Missing Fields:', error);
+        const missingFields: any = Object.values(error)?.[0] || [];
+        missingFields.forEach((element) => {
+          enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        });
+      } finally {
+        setIsWaiting(false);
+      }
+    };
 
+  const handleDelete = async (id: any) => {
     try {
-      const response = await axiosInstance.put(`/products/${row.id}/`, {
-        is_visible_B2B: e.target.checked,
-        title: row.title,
-      });
-      setCurrentProductSiblingRows((prevRows) => {
-        // Find the index of the existing sibling
-        const siblingIndex = prevRows.findIndex((sibling) => sibling.id === row.id);
-        const updatedRows = [...prevRows];
-        updatedRows[siblingIndex] = { ...row, is_visible_B2B: newStatus };
-        return updatedRows.sort((a, b) => a.id - b.id);
-      });
-    } catch (error) {
-      console.error('Missing Fields:', error);
-      const missingFields = Object.values(error)?.[0] || [];
-      missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-      });
-    } finally {
-      // getSiblings();
-      setIsWaiting(false);
-    }
-  };
-  const handleDeleteClick = (id: GridRowId) => async () => {
-    try {
-      // const { data } = await axiosInstance.delete(`/products/${id}/`);
       await axiosInstance.patch(`/products/${id}/`, {
         is_hidden: true,
         is_visible_particular: false,
@@ -334,234 +309,11 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
       enqueueSnackbar(t('delete_success'));
       setCurrentProductSiblingRows(currentProductSiblingRows.filter((row) => row.id !== id));
     } catch (error) {
-      enqueueSnackbar({ siblings: 'error', message: t('error') });
+      enqueueSnackbar({ variant: 'error', message: t('error') });
     } finally {
       getSiblings();
     }
   };
-
-  const handleCancelClick = (id: GridRowId) => () => {
-    setRowModesModel({
-      ...rowModesModel,
-      [id]: { mode: GridRowModes.View, ignoreModifications: true },
-    });
-
-    const editedRow = currentProductSiblingRows.find((row) => row.id === id);
-    if (editedRow!.isNew) {
-      setCurrentProductSiblingRows(currentProductSiblingRows.filter((row) => row.id !== id));
-    }
-  };
-
-  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRadioValue((event.target as HTMLInputElement).value);
-  };
-
-  const processRowUpdate = (newRow: GridRowModel) => {
-    const updatedRow = { ...newRow, isNew: false };
-    setCurrentProductSiblingRows(
-      currentProductSiblingRows.map((row) => (row.id === newRow.id ? updatedRow : row)).sort((a, b) => a.id - b.id)
-    );
-    return updatedRow;
-  };
-
-  const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
-    setRowModesModel(newRowModesModel);
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'title', headerName: 'Title', editable: false, fontSize: 8, resizable: true, flex: 1 },
-    {
-      field: 'color',
-      headerName: t('color'),
-      // type: 'number',
-      width: 80,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      renderCell: (params: GridCellParams) => t(params.value?.toString().replace(/%/g, ' ') || ''),
-      resizable: true,
-    },
-    {
-      field: 'size',
-      headerName: t('option'),
-      // type: 'number',
-      width: 80,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      resizable: true,
-      renderCell: (params: GridCellParams) => t(params.value?.toString().replace(/%/g, ' ') || ''),
-
-    },
-    {
-      field: 'unit',
-      headerName: t('unit'),
-      // type: 'number',
-      width: 100,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      renderCell: (params: GridCellParams) => t(params.value),
-      resizable: true,
-    },
-    {
-      field: 'ean',
-      headerName: 'EAN',
-      // type: 'number',
-      width: 140,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      resizable: true,
-    },
-    {
-      field: 'price_per_piece',
-      headerName: t('price_per_piece'),
-      // type: 'date',
-      width: 100,
-      editable: false,
-      resizable: true,
-    },
-    {
-      field: 'quantity_per_unit',
-      headerName: t('quantity_per_unit'),
-      // type: 'date',
-      width: 50,
-      editable: false,
-      resizable: true,
-    },
-    {
-      field: 'free_stock',
-      headerName: t('Voorraad'),
-      // type: 'date',
-      width: 80,
-      editable: false,
-      resizable: true,
-    },
-    // {
-    //   field: 'role',
-    //   headerName: 'Department',
-    //   width: 220,
-    //   editable: false,
-    //   type: 'singleSelect',
-    //   valueOptions: ['Market', 'Finance', 'Development'],
-    // },
-    {
-      field: 'is_visible_particular',
-      type: 'actions',
-      headerName: `${t('is_particular')}?`,
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id, row }) => [
-        <>
-          <Switch
-            size="small"
-            checked={row?.is_visible_particular}
-            onChange={handleActiveSwitchChange(row)}
-          />
-          {row?.is_visible_particular && (
-            <Iconify
-              icon="mdi:open-in-new"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(`http://${hostUrl}/product/${row?.id}/${row?.slug}`, '_blank');
-              }}
-              sx={{ cursor: 'pointer' }}
-            />
-          )}
-        </>
-      ],
-    },
-    {
-      field: 'is_visible_B2B',
-      type: 'actions',
-      headerName: `${t('is_b2b')}?`,
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id, row }) => [
-        <Switch
-          size="small"
-          checked={row?.is_visible_B2B}
-          onChange={handleActiveSwitchChange2(row)}
-        />,
-      ],
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id, row }) => {
-        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
-
-        if (isInEditMode) {
-          return [
-            <GridActionsCellItem
-              icon={<SaveIcon />}
-              label="Save"
-              sx={{
-                color: 'primary.main',
-              }}
-            // onClick={handleSaveClick(id)}
-            />,
-            <GridActionsCellItem
-              icon={<CancelIcon />}
-              label="Cancel"
-              className="textPrimary"
-              onClick={handleCancelClick(id)}
-              color="inherit"
-            />,
-          ];
-        }
-
-        return row.id !== currentProduct?.id
-          ? [
-            <GridActionsCellItem
-              icon={<EditIcon />}
-              label="Edit"
-              className="textPrimary"
-              onClick={handleEditClick(id)}
-              color="inherit"
-            />,
-            <GridActionsCellItem
-              icon={<DeleteIcon />}
-              label="Delete"
-              onClick={handleDeleteClick(id)}
-              color="inherit"
-            />,
-            <GridActionsCellItem
-              icon={<RemoveIcon />}
-              label="Delete"
-              onClick={() => removeFromSiblings(row.ean)}
-              color="inherit"
-            />,
-
-          ]
-          : [
-            <GridActionsCellItem
-              icon={<EditIcon />}
-              label="Edit"
-              className="textPrimary"
-              onClick={handleEditClick(id)}
-              color="inherit"
-            />,
-          ];
-      },
-    },
-  ];
-  const mobileColumns = columns.filter(
-    (col) =>
-      col.field !== 'color' &&
-      col.field !== 'size' &&
-      col.field !== 'unit' &&
-      col.field !== 'ean' &&
-      col.field !== 'quantity_per_unit' &&
-      col.field !== 'free_stock' &&
-      col.field !== 'price_per_piece'
-  );
-  const getRowClassName = (row: GridRowModel) =>
-    !row.row.id === currentProduct?.id ? 'sibling-row' : '';
 
   const addToSiblings = async (eanSearch: string) => {
     if (!eanSearch) return;
@@ -636,184 +388,354 @@ export default function ProductSiblingForm({ currentProduct: defaultProduct, act
     }
   };
 
+  const addOption = () => {
+    const value = optionDraft.trim();
+    if (!value) return;
+    if (!currentOptionValues.includes(value)) {
+      setCurrentOptionValues([...currentOptionValues, value]);
+    }
+    setOptionDraft('');
+  };
+
+  const withColor = radioValue === 'color';
+  const colorCount = withColor ? selectedColors.length : 0;
+  const optionCount = currentOptionValues.length;
+  // Mirrors createSiblings: every colour gets every option, or one variant when there are none.
+  const newCount = withColor ? colorCount * (optionCount || 1) : optionCount;
+  const typeLocked = !!currentProduct?.color;
+
   return (
-    <>
-      <Stack direction="row" spacing={2} sx={{ my: 2 }}>
-        <TextField
-          label="EAN"
-          value={ean}
-          onChange={(e) => setEan(e.target.value)}
-          sx={{ width: 200 }}
-        />
-        <Button variant="contained" onClick={() => addToSiblings(ean)}>
-          Product toevoegen
-        </Button>
+    <Stack spacing={2}>
+      <Stack direction={{ xs: 'column', md: 'row' }} alignItems="stretch" spacing={2}>
+        <Card sx={{ flex: '2 1 0', minWidth: 0 }}>
+          <CardHeader
+            title="Nieuwe varianten aanmaken"
+            subheader="Varianten zijn losse producten in een andere kleur of uitvoering. Klanten wisselen ertussen op de productpagina."
+          />
+          <Stack spacing={2} sx={{ p: 3 }}>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={radioValue}
+              disabled={typeLocked}
+              onChange={(_, value) => value && setRadioValue(value)}
+              aria-label={t('selectSiblingType')}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              <ToggleButton value="color" sx={{ px: 2 }}>
+                Met kleur
+              </ToggleButton>
+              <ToggleButton value="no_color" sx={{ px: 2 }}>
+                Zonder kleur
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {withColor ? (
+              <Autocomplete
+                multiple
+                disableCloseOnSelect
+                options={COLOR_NAMES}
+                value={selectedColors}
+                onChange={(_, value) => setSelectedColors(value)}
+                getOptionLabel={(option) => t(option)}
+                renderOption={(props, option) => (
+                  <li {...props} key={option}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <ColorSwatch color={option} />
+                      <span>{t(option)}</span>
+                    </Stack>
+                  </li>
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      {...getTagProps({ index })}
+                      key={option}
+                      size="small"
+                      variant="outlined"
+                      icon={<ColorSwatch color={option} />}
+                      label={t(option)}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField {...params} label="Kleuren" placeholder="Kleur zoeken" />
+                )}
+              />
+            ) : null}
+
+            <Box>
+              <Typography variant="caption" sx={{ display: 'block', mb: 0.75, color: 'text.secondary' }}>
+                Opties (bijv. lichtkleur, maat){withColor ? ' — optioneel bij kleuren' : ''}
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" useFlexGap alignItems="center" spacing={1}>
+                {currentOptionValues.map((value) => (
+                  <Chip
+                    key={value}
+                    label={value}
+                    variant="outlined"
+                    onDelete={() =>
+                      setCurrentOptionValues(currentOptionValues.filter((item) => item !== value))
+                    }
+                  />
+                ))}
+                <TextField
+                  size="small"
+                  value={optionDraft}
+                  onChange={(e) => setOptionDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addOption();
+                    }
+                  }}
+                  placeholder="Optie typen"
+                  inputProps={{ 'aria-label': t('add_option') }}
+                  sx={{ width: 160 }}
+                />
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  disabled={!optionDraft.trim()}
+                  onClick={addOption}
+                  startIcon={<Iconify icon="mingcute:add-line" />}
+                >
+                  Toevoegen
+                </Button>
+              </Stack>
+            </Box>
+
+            <Stack
+              direction="row"
+              flexWrap="wrap"
+              useFlexGap
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1.5}
+              sx={{ pt: 2, borderTop: (theme) => `dashed 1px ${theme.palette.divider}` }}
+            >
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                {newCount === 0
+                  ? withColor
+                    ? 'Kies minstens één kleur.'
+                    : 'Voeg minstens één optie toe.'
+                  : `Er ${newCount === 1 ? 'wordt 1 variant' : `worden ${newCount} varianten`} aangemaakt${
+                      colorCount && optionCount ? ` (${colorCount} kleuren × ${optionCount} opties)` : ''
+                    }.`}
+              </Typography>
+              <LoadingButton
+                variant="contained"
+                loading={isLoading}
+                disabled={newCount === 0}
+                onClick={createSiblings}
+              >
+                {newCount > 1
+                  ? `${newCount} varianten aanmaken`
+                  : newCount === 1
+                    ? '1 variant aanmaken'
+                    : 'Varianten aanmaken'}
+              </LoadingButton>
+            </Stack>
+          </Stack>
+        </Card>
+
+        <Card sx={{ flex: '1 1 0', minWidth: 0 }}>
+          <CardHeader
+            title="Bestaand product koppelen"
+            subheader="Bestaat de variant al als product? Koppel hem met de EAN."
+          />
+          <Stack spacing={2} alignItems="flex-start" sx={{ p: 3 }}>
+            <TextField
+              fullWidth
+              label="EAN van het product"
+              value={ean}
+              onChange={(e) => setEan(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addToSiblings(ean);
+                }
+              }}
+            />
+            <Button variant="outlined" color="primary" disabled={!ean} onClick={() => addToSiblings(ean)}>
+              Product koppelen
+            </Button>
+          </Stack>
+        </Card>
       </Stack>
 
-      <hr />
-      <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
-        <Typography sx={{ mb: 2 }}>{t('selectSiblingType')}</Typography>
-        <Box>
-          <RadioGroup value={radioValue} onChange={handleRadioChange}>
-            <FormControlLabel
-              value="color"
-              control={<Radio size="medium" />}
-              label={t('color')}
-              sx={{ textTransform: 'capitalize' }}
-              disabled={!!currentProduct?.color}
-            />
-            <FormControlLabel value="no_color" control={<Radio size="medium" />} label={t('no_color')} disabled={!!currentProduct?.color}
-            />
-          </RadioGroup>
-
-          <Box
-
-          >
-            {radioValue === 'color' ? (
-              <FormControl sx={{ minWidth: 300 }}>
-                <Select
-                  multiple
-                  value={selectedColors}
-                  onChange={(e) => setSelectedColors(e.target.value)}
-                >
-                  {[
-                    "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
-                    "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
-                    "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray", "darkgreen", "darkkhaki",
-                    "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen",
-                    "darkslateblue", "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray",
-                    "dodgerblue", "firebrick", "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold",
-                    "goldenrod", "gray", "green", "greenyellow", "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki",
-                    "lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
-                    "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
-                    "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta", "maroon",
-                    "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue",
-                    "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
-                    "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
-                    "palegreen", "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
-                    "purple", "red", "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell",
-                    "sienna", "silver", "skyblue", "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan", "teal",
-                    "thistle", "tomato", "turquoise", "violet", "wheat", "white", "whitesmoke", "yellow", "yellowgreen", "mix"
-                  ].map(color => (
-                    <MenuItem key={color} value={color}>
-                      <ListItemIcon>
-                        <Box
+      <Card sx={{ cursor: isWaiting ? 'wait' : 'default' }}>
+        <CardHeader title="Varianten van dit product" sx={{ mb: 2 }} />
+        {isLoading ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Iconify icon="svg-spinners:8-dots-rotate" />
+          </Box>
+        ) : (
+          <TableContainer>
+            <Scrollbar>
+              <Table sx={{ minWidth: 1200 }}>
+                <RelationTableHead cells={TABLE_HEAD} />
+                <TableBody>
+                  {currentProductSiblingRows.map((row: any) => {
+                    const isCurrent = row.id === currentProduct?.id;
+                    const color = readable(row.color);
+                    const outOfStock = Number(row.free_stock) <= 0;
+                    return (
+                      <TableRow key={row.id} hover selected={isCurrent}>
+                        <TableCell sx={{ maxWidth: 360 }}>
+                          <Link
+                            component="button"
+                            type="button"
+                            color="inherit"
+                            variant="subtitle2"
+                            onClick={handleEditClick(row.id)}
+                            sx={{ textAlign: 'left' }}
+                          >
+                            {row.title}
+                          </Link>
+                          {isCurrent ? (
+                            <Box>
+                              <Label color="primary">Dit product</Label>
+                            </Box>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          {color ? (
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                              <ColorSwatch color={color} />
+                              <span>{t(color)}</span>
+                            </Stack>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell>{readable(row.size) || '—'}</TableCell>
+                        <TableCell>{t(row.unit)}</TableCell>
+                        <TableCell sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+                          {row.ean || '—'}
+                        </TableCell>
+                        <TableCell align="right" sx={{ typography: 'subtitle2', whiteSpace: 'nowrap' }}>
+                          {formatPrice(row.price_per_piece)}
+                        </TableCell>
+                        <TableCell
+                          align="right"
                           sx={{
-                            width: 16,
-                            height: 16,
-                            backgroundColor: color,
-                            borderRadius: 0.5,
-                            border: '1px solid #ccc'
+                            whiteSpace: 'nowrap',
+                            fontVariantNumeric: 'tabular-nums',
+                            ...(outOfStock && { color: 'error.main', fontWeight: 600 }),
                           }}
-                        />
-                      </ListItemIcon>
-                      {t(color)}
-                    </MenuItem>
-                  ))}
-
-                </Select>
-              </FormControl>
-            ) : null}
-          </Box>
-          <Box>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: '0.2rem',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                {currentOptionValues.map((value, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
-                    <TextField
-                      value={value}
-                      onChange={(e) => {
-                        const newValues = [...currentOptionValues];
-                        newValues[index] = e.target.value;
-                        setCurrentOptionValues(newValues);
-                      }}
-                      sx={{ flex: 1 }}
-                    />
-                    <Iconify
-                      icon="mdi:delete"
-                      onClick={() => {
-                        const newValues = currentOptionValues.filter((_, i) => i !== index);
-                        setCurrentOptionValues(newValues);
-                      }}
-                      sx={{
-                        cursor: 'pointer',
-                        position: 'absolute',
-                        top: '-8px',
-                        right: '-8px',
-                        fontSize: '16px',
-                        color: 'color',
-                      }}
-                    />
-                  </Box>
-                ))}
-                {(radioValue === 'no_color' || selectedColors.length > 0) && (
-                  <>
-                    <Button
-                      onClick={() => setCurrentOptionValues([...currentOptionValues, ""])}
-                      sx={{ minWidth: 'auto' }}
-                    >
-                      <Iconify icon="mdi:plus" />
-                    </Button>
-                    {currentOptionValues.length === 0 && (
-                      <Typography variant="body2" color="textSecondary">
-                        {t('add_option')}
-                      </Typography>
-                    )}
-                  </>
-                )}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button
-            onClick={createSiblings}
-            color="primary"
-            disabled={radioValue === 'color' && selectedColors.length === 0}
-          >
-            {t('generate')}
-          </Button>
-        </Box>
-      </Box>
-      {isLoading ? (
-        <Iconify icon="svg-spinners:8-dots-rotate" />
-      ) : (
-        <Box
-          sx={{
-            cursor: isWaiting ? 'wait' : 'default',
-            height: 600,
-            width: '100%',
-            '& .actions': {
-              color: 'text.secondary',
-            },
-            '& .textPrimary': {
-              color: 'text.primary',
-            },
-            '& .sibling-row': {
-              backgroundColor: 'grey',
-              // pointerEvents: 'none',
-            },
-          }}
+                        >
+                          {outOfStock ? 'Niet op voorraad' : row.free_stock}
+                        </TableCell>
+                        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                          <VisibilitySwitch
+                            checked={row.is_visible_particular}
+                            label={`Zichtbaar voor particulieren: ${row.title}`}
+                            onChange={handleVisibilityChange(row, 'is_visible_particular')}
+                          />
+                          {row.is_visible_particular ? (
+                            <Tooltip title={`Bekijk op ${hostUrl}`}>
+                              <IconButton
+                                size="small"
+                                component="a"
+                                href={`http://${hostUrl}/product/${row.id}/${row.slug}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                aria-label={`Bekijk ${row.title} op ${hostUrl}`}
+                              >
+                                <Iconify icon="mdi:open-in-new" width={18} />
+                              </IconButton>
+                            </Tooltip>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          <VisibilitySwitch
+                            checked={row.is_visible_B2B}
+                            label={`Zichtbaar voor B2B: ${row.title}`}
+                            onChange={handleVisibilityChange(row, 'is_visible_B2B')}
+                          />
+                        </TableCell>
+                        <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                          <Tooltip title={t('view_edit')}>
+                            <IconButton onClick={handleEditClick(row.id)} aria-label={`Bewerk ${row.title}`}>
+                              <Iconify icon="solar:pen-bold" />
+                            </IconButton>
+                          </Tooltip>
+                          {!isCurrent ? (
+                            <>
+                              <Tooltip
+                                title={
+                                  row.ean
+                                    ? 'Ontkoppelen (product blijft bestaan)'
+                                    : 'Ontkoppelen kan alleen met een EAN'
+                                }
+                              >
+                                <span>
+                                  <IconButton
+                                    disabled={!row.ean}
+                                    onClick={() => removeFromSiblings(row.ean)}
+                                    aria-label={`Ontkoppel ${row.title}`}
+                                  >
+                                    <Iconify icon="solar:link-broken-bold" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="Product verwijderen">
+                                <IconButton
+                                  color="error"
+                                  onClick={() => setDeleteTarget(row)}
+                                  aria-label={`Verwijder ${row.title}`}
+                                >
+                                  <Iconify icon="solar:trash-bin-trash-bold" />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          useFlexGap
+          spacing={3}
+          sx={{ px: 3, py: 2, typography: 'caption', color: 'text.secondary' }}
         >
-          {currentProductSiblingRows.length ? <DataGrid
-            rows={currentProductSiblingRows}
-            columns={isMobile ? mobileColumns : columns}
-            editMode="row"
-            rowModesModel={rowModesModel}
-            onRowModesModelChange={handleRowModesModelChange}
-            onRowEditStop={handleRowEditStop}
-            processRowUpdate={processRowUpdate}
-            getRowClassName={getRowClassName}
-            hideFooterPagination
-          /> : null}
-        </Box>
-      )}
-    </>
+          <Stack direction="row" alignItems="center" spacing={0.75}>
+            <Iconify icon="solar:link-broken-bold" width={16} />
+            <span>Ontkoppelen: het product blijft bestaan, maar is geen variant meer</span>
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ color: 'error.main' }}>
+            <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+            <span>Verwijderen: het product verdwijnt uit de winkel en de lijst</span>
+          </Stack>
+        </Stack>
+      </Card>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={t('delete')}
+        content={`${deleteTarget?.title || ''} verwijderen?`}
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDelete(deleteTarget.id);
+              setDeleteTarget(null);
+            }}
+          >
+            {t('delete')}
+          </Button>
+        }
+      />
+    </Stack>
   );
 }

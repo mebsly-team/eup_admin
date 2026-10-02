@@ -1,26 +1,22 @@
 /* eslint-disable no-nested-ternary */
-import { useState, useEffect, SetStateAction } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
+import Card from '@mui/material/Card';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
+import TableRow from '@mui/material/TableRow';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import CardHeader from '@mui/material/CardHeader';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import CancelIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { Select, Switch, Button, MenuItem, FormControl, useMediaQuery } from '@mui/material';
-import {
-  DataGrid,
-  GridRowId,
-  GridColDef,
-  GridRowModes,
-  GridRowModel,
-  GridCellParams,
-  GridRowModesModel,
-  GridEventListener,
-  GridActionsCellItem,
-  GridRowEditStopReasons,
-} from '@mui/x-data-grid';
+import ButtonBase from '@mui/material/ButtonBase';
+import LoadingButton from '@mui/lab/LoadingButton';
+import TableContainer from '@mui/material/TableContainer';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -29,74 +25,63 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
+import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 
 import { IProductItem } from 'src/types/product';
+
+import {
+  readable,
+  formatPrice,
+  canEditVisibility,
+  VisibilitySwitch,
+  RelationTableHead,
+} from './product-relation-shared';
 
 type Props = {
   currentProduct?: IProductItem;
   activeTab: any;
 };
 
-const styles = {
-  formControlRoot: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    width: '300px',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    border: '2px solid lightgray',
-    padding: 4,
-    borderRadius: '4px',
-    '&> div.container': {
-      gap: '6px',
-      display: 'flex',
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-    },
-    '& > div.container > span': {
-      backgroundColor: 'gray',
-      padding: '1px 3px',
-      borderRadius: '4px',
-    },
-  },
-};
 const unitOrder = ['piece', 'rol', 'set', 'zak', 'fles', 'pot', 'package', 'box', 'pallet_layer', 'pallet_full'];
+
+// Discount on the piece price a new bundle starts with.
+const BUNDLE_UNITS = [
+  { value: 'package', discount: 5 },
+  { value: 'box', discount: 10 },
+  { value: 'pallet_layer', discount: 15 },
+  { value: 'pallet_full', discount: 20 },
+];
+
+const TABLE_HEAD = [
+  { label: 'Eenheid', width: 150 },
+  { label: 'Titel' },
+  { label: 'Kleur', width: 90 },
+  { label: 'Optie', width: 90 },
+  { label: 'EAN', width: 140 },
+  { label: 'Aantal', align: 'right' as const, width: 80 },
+  { label: 'Prijs per stuk', align: 'right' as const, width: 130 },
+  { label: 'Voorraad', align: 'right' as const, width: 100 },
+  { label: 'Particulier', width: 90 },
+  { label: 'B2B', width: 70 },
+  { label: '', width: 96 },
+];
 
 export default function ProductVariantForm({ currentProduct, activeTab }: Props) {
   const router = useRouter();
-  const { t, onChangeLang } = useTranslate();
-  const theme = useTheme();
+  const { t } = useTranslate();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [isWaiting, setIsWaiting] = useState(false); // State for the spinner
   const { enqueueSnackbar } = useSnackbar();
-  const [selectedValues1, setSelectedValues1] = useState([]);
-  const [colorValues, setColorValues] = useState([]);
-  const [currentColorValue, setCurrentColorValue] = useState('');
-  const [selectedUnitValues, setSelectedUnitValues] = useState([]);
-  const [currentProductVariantRows, setCurrentProductVariantRows] = useState([]);
+  const [selectedUnitValues, setSelectedUnitValues] = useState<string[]>([]);
+  const [currentProductVariantRows, setCurrentProductVariantRows] = useState<any[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const currentProductVariantIdList =
     currentProduct?.variants.map((item: { id: any }) => item.id) || [];
-  const isMobile = useMediaQuery('(max-width:600px)');
 
-  const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
-
-  const handleKeyUp = (e: { keyCode: number; target: { value: any } }) => {
-    if (e.keyCode === 13) {
-      setColorValues((oldState) => [...oldState, e.target.value]);
-      setCurrentColorValue('');
-    }
-  };
-  const handleChange = (e: { target: { value: SetStateAction<string> } }) => {
-    setCurrentColorValue(e.target.value);
-  };
-  const handleDelete = (item: never, index: number) => {
-    const arr = [...colorValues];
-    arr.splice(index, 1);
-    setColorValues(arr);
-  };
   const getVariants = async () => {
     try {
       setIsLoading(true); // Show the spinner
@@ -116,6 +101,8 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
         variantList.push(currentProduct);
         const filteredVariants = variantList.filter((variant) => variant !== null);
         setCurrentProductVariantRows(filteredVariants);
+      } else {
+        setCurrentProductVariantRows(currentProduct ? [currentProduct] : []);
       }
     } catch (error) {
       console.error('Error fetching variants:', error);
@@ -146,7 +133,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     const isPalletOrBox = ['box', 'pallet_layer', 'pallet_full'].includes(unitValue);
     const title = `${parentProduct?.title}${value1 ? `-${t(value1)}` : ''}${value2 ? `-${t(value2)}` : ''
       }-${t(unitValue)}`;
-    const data = {
+    const data: any = {
       title,
       is_variant: true,
       title_long: title,
@@ -181,9 +168,9 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     data.price_cost = parentProduct?.price_cost;
     if (discount) {
       data.variant_discount = discount;
-      data.price_per_piece = parseFloat(
-        Number(parentProduct?.price_per_piece) * (1 - discount / 100)
-      ).toFixed(2);
+      data.price_per_piece = (Number(parentProduct?.price_per_piece) * (1 - discount / 100)).toFixed(
+        2
+      );
     }
     if (isPalletOrBox) {
       data.ean = parentProduct?.ean;
@@ -202,7 +189,7 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
 
   const createVariants = async () => {
     setIsLoading(true); // Show the spinner
-    let parentProduct = {};
+    let parentProduct: any = {};
     try {
       const response = await axiosInstance.get(`/products/${currentProduct?.id}/?nocache=true`);
       parentProduct = response?.data;
@@ -233,88 +220,41 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     }
   };
 
-  const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
-    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
-      event.defaultMuiPrevented = true;
-    }
-  };
-
-  const handleEditClick = (id: GridRowId) => () => {
+  const handleEditClick = (id: any) => () => {
     router.push(`${paths.dashboard.product.edit(id)}?tab=0`);
     window.location.reload();
   };
 
-  const handleActiveSwitchChange = (row) => async (e) => {
-    e.stopPropagation(); // Stop event propagation
+  const handleVisibilityChange =
+    (row, field: 'is_visible_particular' | 'is_visible_B2B') => async (e) => {
+      e.stopPropagation(); // Stop event propagation
+      if (!canEditVisibility()) return;
 
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"];
-    const canToggle = allowedEmails.includes(currentUser?.email);
-    if (!canToggle) return;
+      setIsWaiting(true);
+      const newStatus = e.target.checked;
+      try {
+        await axiosInstance.put(`/products/${row.id}/`, {
+          [field]: newStatus,
+          title: row.title,
+        });
+        setCurrentProductVariantRows((prevRows) =>
+          prevRows.map((variant) =>
+            variant.id === row.id ? { ...variant, [field]: newStatus } : variant
+          )
+        );
+      } catch (error) {
+        console.error('Missing Fields:', error);
+        const missingFields: any = Object.values(error)?.[0] || [];
+        missingFields.forEach((element) => {
+          enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        });
+      } finally {
+        setIsWaiting(false);
+      }
+    };
 
-    setIsWaiting(true);
-    const newStatus = e.target.checked;
+  const handleDelete = async (id: any) => {
     try {
-      const response = await axiosInstance.put(`/products/${row.id}/`, {
-        is_visible_particular: newStatus,
-        title: row.title,
-      });
-      setCurrentProductVariantRows((prevRows) => {
-        // Find the index of the existing variant
-        const variantIndex = prevRows.findIndex((variant) => variant.id === row.id);
-        const updatedRows = [...prevRows];
-        updatedRows[variantIndex] = { ...row, is_visible_particular: newStatus };
-        return updatedRows;
-      });
-    } catch (error) {
-      console.error('Missing Fields:', error);
-      const missingFields = Object.values(error)?.[0] || [];
-      missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-      });
-    } finally {
-      // getVariants();
-      setIsWaiting(false);
-    }
-  };
-
-  const handleActiveSwitchChange2 = (row) => async (e) => {
-    e.stopPropagation(); // Stop event propagation
-
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const allowedEmails = ['info@europowerbv.com', 'm.sahin@europowerbv.nl', "hatice.sahin@europowerbv.nl"];
-    const canToggle = allowedEmails.includes(currentUser?.email);
-    if (!canToggle) return;
-
-    setIsWaiting(true);
-    const newStatus = e.target.checked;
-
-    try {
-      const response = await axiosInstance.put(`/products/${row.id}/`, {
-        is_visible_B2B: e.target.checked,
-        title: row.title,
-      });
-      setCurrentProductVariantRows((prevRows) => {
-        // Find the index of the existing variant
-        const variantIndex = prevRows.findIndex((variant) => variant.id === row.id);
-        const updatedRows = [...prevRows];
-        updatedRows[variantIndex] = { ...row, is_visible_B2B: newStatus };
-        return updatedRows;
-      });
-    } catch (error) {
-      console.error('Missing Fields:', error);
-      const missingFields = Object.values(error)?.[0] || [];
-      missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-      });
-    } finally {
-      // getVariants();
-      setIsWaiting(false);
-    }
-  };
-  const handleDeleteClick = (id: GridRowId) => async () => {
-    try {
-      // const { data } = await axiosInstance.delete(`/products/${id}/`);
       await axiosInstance.patch(`/products/${id}/`, {
         is_hidden: true,
         is_visible_particular: false,
@@ -349,292 +289,242 @@ export default function ProductVariantForm({ currentProduct, activeTab }: Props)
     }
   };
 
-  const handleCancelClick = (id: GridRowId) => () => {
-    setRowModesModel({
-      ...rowModesModel,
-      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+  const mainProduct = currentProductVariantRows.find((item) => !item.is_variant);
+  const sortedRows = currentProductVariantRows
+    .map((item) => ({
+      ...item,
+      free_stock: mainProduct
+        ? Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1))
+        : item.free_stock,
+    }))
+    .sort((a, b) => {
+      // First sort by unit order, then by id
+      const unitComparison = unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit);
+      return unitComparison === 0 ? a.id - b.id : unitComparison;
     });
 
-    const editedRow = currentProductVariantRows.find((row) => row.id === id);
-    if (editedRow!.isNew) {
-      setCurrentProductVariantRows(currentProductVariantRows.filter((row) => row.id !== id));
-    }
-  };
+  const basePrice = Number(currentProduct?.price_per_piece) || 0;
+  const selectedCount = selectedUnitValues.length;
 
-  const processRowUpdate = (newRow: GridRowModel) => {
-    const updatedRow = { ...newRow, isNew: false };
-    setCurrentProductVariantRows(
-      currentProductVariantRows.map((row) => (row.id === newRow.id ? updatedRow : row))
+  const toggleUnit = (unit: string) =>
+    setSelectedUnitValues((prev) =>
+      prev.includes(unit) ? prev.filter((value) => value !== unit) : [...prev, unit]
     );
-    return updatedRow;
-  };
 
-  const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
-    setRowModesModel(newRowModesModel);
-  };
-
-  const columns: GridColDef[] = [
-    { field: 'title', headerName: 'Title', editable: false, fontSize: 8, resizable: true, flex: 1 },
-    {
-      field: 'color',
-      headerName: t('color'),
-      // type: 'number',
-      width: 80,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      renderCell: (params: GridCellParams) => t(params.value?.toString().replace(/%/g, ' ') || ''),
-      resizable: true,
-    },
-    {
-      field: 'size',
-      headerName: t('option'),
-      // type: 'number',
-      width: 80,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      renderCell: (params: GridCellParams) => params.value?.toString().replace(/%/g, ' ') || '',
-      resizable: true,
-    },
-    {
-      field: 'unit',
-      headerName: t('unit'),
-      // type: 'number',
-      width: 100,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      renderCell: (params: GridCellParams) => t(params.value),
-      resizable: true,
-    },
-    {
-      field: 'ean',
-      headerName: 'EAN',
-      // type: 'number',
-      width: 140,
-      align: 'left',
-      headerAlign: 'left',
-      editable: false,
-      resizable: true,
-    },
-    {
-      field: 'price_per_piece',
-      headerName: t('price_per_piece'),
-      // type: 'date',
-      width: 100,
-      editable: false,
-      resizable: true,
-    },
-    {
-      field: 'quantity_per_unit',
-      headerName: t('quantity_per_unit'),
-      // type: 'date',
-      width: 50,
-      editable: false,
-      resizable: true,
-    },
-    {
-      field: 'free_stock',
-      headerName: t('Voorraad'),
-      // type: 'date',
-      width: 80,
-      editable: false,
-      resizable: true,
-    },
-    // {
-    //   field: 'role',
-    //   headerName: 'Department',
-    //   width: 220,
-    //   editable: false,
-    //   type: 'singleSelect',
-    //   valueOptions: ['Market', 'Finance', 'Development'],
-    // },
-    {
-      field: 'is_visible_particular',
-      type: 'actions',
-      headerName: `${t('is_particular')}?`,
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id, row }) => [
-        <Switch
-          size="small"
-          checked={row?.is_visible_particular}
-          disabled={!['info@europowerbv.com', 'm.sahin@europowerbv.nl',"hatice.sahin@europowerbv.nl"].includes((JSON.parse(localStorage.getItem('user') || '{}')?.email))}
-          onChange={handleActiveSwitchChange(row)}
-        />,
-      ],
-    },
-    {
-      field: 'is_visible_B2B',
-      type: 'actions',
-      headerName: `${t('is_b2b')}?`,
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id, row }) => [
-        <Switch
-          size="small"
-          checked={row?.is_visible_B2B}
-          disabled={!['info@europowerbv.com', 'm.sahin@europowerbv.nl',"hatice.sahin@europowerbv.nl"].includes((JSON.parse(localStorage.getItem('user') || '{}')?.email))}
-          onChange={handleActiveSwitchChange2(row)}
-        />,
-      ],
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: 'Actions',
-      width: 100,
-      cellClassName: 'actions',
-      getActions: ({ id, row }) => {
-        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
-
-        if (isInEditMode) {
-          return [
-            <GridActionsCellItem
-              icon={<SaveIcon />}
-              label="Save"
-              sx={{
-                color: 'primary.main',
-              }}
-            // onClick={handleSaveClick(id)}
-            />,
-            <GridActionsCellItem
-              icon={<CancelIcon />}
-              label="Cancel"
-              className="textPrimary"
-              onClick={handleCancelClick(id)}
-              color="inherit"
-            />,
-          ];
-        }
-
-        return row.id !== currentProduct?.id ? [
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            className="textPrimary"
-            onClick={handleEditClick(id)}
-            color="inherit"
-          />,
-          <GridActionsCellItem
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleDeleteClick(id)}
-            color="inherit"
-          />,
-        ]
-          : [
-            <GridActionsCellItem
-              icon={<EditIcon />}
-              label="Edit"
-              className="textPrimary"
-              onClick={handleEditClick(id)}
-              color="inherit"
-            />,
-          ];
-      },
-    },
-  ];
-  const mobileColumns = columns.filter(
-    (col) =>
-      col.field !== 'color' &&
-      col.field !== 'size' &&
-      col.field !== 'unit' &&
-      col.field !== 'ean' &&
-      col.field !== 'quantity_per_unit' &&
-      // col.field !== 'free_stock' &&
-      col.field !== 'price_per_piece'
-  );
-  const getRowClassName = (row: GridRowModel) => (!row.row.is_variant ? 'variant-row' : '');
-
-  const mainProduct = currentProductVariantRows.find((item) => !item.is_variant);
-  const updatedVariants = currentProductVariantRows.map((item) =>
-    true
-      ? {
-        ...item,
-        free_stock: Math.floor(mainProduct.free_stock / (item.quantity_per_unit || 1)),
-      }
-      : item
-  );
-  const sortedRows = [...updatedVariants];
-  sortedRows?.sort((a, b) => {
-    // First sort by unit order
-    const unitComparison = unitOrder.indexOf(a.unit) - unitOrder.indexOf(b.unit);
-
-    // If units are the same, sort by id
-    if (unitComparison === 0) {
-      return a.id - b.id;
-    }
-
-    return unitComparison;
-  });
   return (
-    <>
-      <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: '100px 1fr',
-            gap: '1rem',
-            p: 3,
-            borderBottom: `solid 1px ${theme.palette.divider}`,
-          }}
-        >
-          <Typography sx={{ mb: 2 }}>{t('selectBundles')}</Typography>
-          <FormControl sx={{ minWidth: 300 }}>
-            <Select
-              name="unit"
-              multiple
-              value={selectedUnitValues}
-              onChange={(e) => setSelectedUnitValues(e.target.value)}
+    <Stack spacing={2}>
+      <Card>
+        <CardHeader
+          title="Bundel toevoegen"
+          subheader="Kies de verpakkingen waarin dit product ook verkocht wordt. De korting op de stukprijs wordt automatisch toegepast."
+        />
+        <Stack spacing={2} sx={{ p: 3 }}>
+          <Box
+            gap={1.5}
+            display="grid"
+            gridTemplateColumns={{ xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }}
+          >
+            {BUNDLE_UNITS.map((unit) => {
+              const selected = selectedUnitValues.includes(unit.value);
+              const existing = currentProductVariantRows.filter(
+                (row) => row.is_variant && row.unit === unit.value
+              ).length;
+              return (
+                <ButtonBase
+                  key={unit.value}
+                  aria-pressed={selected}
+                  onClick={() => toggleUnit(unit.value)}
+                  sx={{
+                    p: 1.75,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    textAlign: 'left',
+                    gap: 0.5,
+                    borderRadius: 1.25,
+                    border: (theme) =>
+                      `solid 1px ${selected ? theme.palette.primary.main : theme.palette.divider}`,
+                    bgcolor: selected ? 'action.selected' : 'background.paper',
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                    <Typography variant="subtitle2">{t(unit.value)}</Typography>
+                    {selected ? (
+                      <Label variant="filled" color="primary">
+                        Gekozen
+                      </Label>
+                    ) : existing ? (
+                      <Label>{existing}× aanwezig</Label>
+                    ) : null}
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {unit.discount}% korting op de stukprijs
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {basePrice > 0
+                      ? `${formatPrice(basePrice * (1 - unit.discount / 100))} per stuk`
+                      : '—'}
+                  </Typography>
+                </ButtonBase>
+              );
+            })}
+          </Box>
+
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            useFlexGap
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1.5}
+          >
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {selectedCount
+                ? 'Titel, categorieën, leverancier en btw worden van het hoofdproduct overgenomen.'
+                : 'Nog geen verpakking gekozen.'}
+            </Typography>
+            <LoadingButton
+              variant="contained"
+              loading={isLoading}
+              disabled={!selectedCount}
+              onClick={createVariants}
             >
-              <MenuItem value="package">{t('package')}</MenuItem>
-              <MenuItem value="box">{t('box')}</MenuItem>
-              <MenuItem value="pallet_layer">{t('pallet_layer')}</MenuItem>
-              <MenuItem value="pallet_full">{t('pallet_full')}</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button onClick={createVariants} color="primary" disabled={!selectedUnitValues?.length}>
-            {t('generate2')}
+              {selectedCount > 1
+                ? `${selectedCount} bundels aanmaken`
+                : selectedCount === 1
+                  ? '1 bundel aanmaken'
+                  : 'Bundels aanmaken'}
+            </LoadingButton>
+          </Stack>
+        </Stack>
+      </Card>
+
+      <Card sx={{ cursor: isWaiting ? 'wait' : 'default' }}>
+        <CardHeader
+          title="Bundels van dit product"
+          subheader={
+            mainProduct
+              ? `Voorraad wordt berekend uit de vrije voorraad van het hoofdproduct (${mainProduct.free_stock ?? 0} stuks).`
+              : undefined
+          }
+          sx={{ mb: 2 }}
+        />
+        {isLoading ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Iconify icon="svg-spinners:8-dots-rotate" />
+          </Box>
+        ) : (
+          <TableContainer>
+            <Scrollbar>
+              <Table sx={{ minWidth: 1180 }}>
+                <RelationTableHead cells={TABLE_HEAD} />
+                <TableBody>
+                  {sortedRows.map((row) => {
+                    const isMain = row.id === currentProduct?.id;
+                    const discount = Number(row.variant_discount) || 0;
+                    const outOfStock = Number(row.free_stock) <= 0;
+                    return (
+                      <TableRow key={row.id} hover selected={isMain}>
+                        <TableCell>
+                          <Typography variant="subtitle2">{t(row.unit)}</Typography>
+                          {isMain ? <Label color="primary">{t('main_product')}</Label> : null}
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 360 }}>
+                          <Link
+                            component="button"
+                            type="button"
+                            color="inherit"
+                            variant="body2"
+                            onClick={handleEditClick(row.id)}
+                            sx={{ textAlign: 'left' }}
+                          >
+                            {row.title}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{t(readable(row.color))}</TableCell>
+                        <TableCell>{readable(row.size)}</TableCell>
+                        <TableCell sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+                          {row.ean || '—'}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {row.quantity_per_unit}
+                        </TableCell>
+                        <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                          <Typography variant="subtitle2">{formatPrice(row.price_per_piece)}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {isMain ? 'Basisprijs' : discount ? `${discount}% korting` : ''}
+                          </Typography>
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{
+                            whiteSpace: 'nowrap',
+                            fontVariantNumeric: 'tabular-nums',
+                            ...(outOfStock && { color: 'error.main', fontWeight: 600 }),
+                          }}
+                        >
+                          {outOfStock ? 'Niet leverbaar' : row.free_stock}
+                        </TableCell>
+                        <TableCell>
+                          <VisibilitySwitch
+                            checked={row.is_visible_particular}
+                            label={`Zichtbaar voor particulieren: ${row.title}`}
+                            onChange={handleVisibilityChange(row, 'is_visible_particular')}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <VisibilitySwitch
+                            checked={row.is_visible_B2B}
+                            label={`Zichtbaar voor B2B: ${row.title}`}
+                            onChange={handleVisibilityChange(row, 'is_visible_B2B')}
+                          />
+                        </TableCell>
+                        <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                          <Tooltip title={t('view_edit')}>
+                            <IconButton onClick={handleEditClick(row.id)} aria-label={`Bewerk ${row.title}`}>
+                              <Iconify icon="solar:pen-bold" />
+                            </IconButton>
+                          </Tooltip>
+                          {!isMain ? (
+                            <Tooltip title={t('delete')}>
+                              <IconButton
+                                color="error"
+                                onClick={() => setDeleteTarget(row)}
+                                aria-label={`Verwijder ${row.title}`}
+                              >
+                                <Iconify icon="solar:trash-bin-trash-bold" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
+      </Card>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={t('delete')}
+        content={`${deleteTarget?.title || ''} verwijderen?`}
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDelete(deleteTarget.id);
+              setDeleteTarget(null);
+            }}
+          >
+            {t('delete')}
           </Button>
-        </Box>
-      </Box>
-      {isLoading ? (
-        <Iconify icon="svg-spinners:8-dots-rotate" />
-      ) : (
-        <Box
-          sx={{
-            cursor: isWaiting ? 'wait' : 'default',
-            height: 600,
-            width: '100%',
-            '& .actions': {
-              color: 'text.secondary',
-            },
-            '& .textPrimary': {
-              color: 'text.primary',
-            },
-            '& .variant-row': {
-              backgroundColor: 'grey',
-              // pointerEvents: 'none',
-            },
-          }}
-        >
-          <DataGrid
-            rows={sortedRows}
-            columns={isMobile ? mobileColumns : columns}
-            editMode="row"
-            rowModesModel={rowModesModel}
-            onRowModesModelChange={handleRowModesModelChange}
-            onRowEditStop={handleRowEditStop}
-            processRowUpdate={processRowUpdate}
-            getRowClassName={getRowClassName}
-            hideFooterPagination
-          />
-        </Box>
-      )}
-    </>
+        }
+      />
+    </Stack>
   );
 }
