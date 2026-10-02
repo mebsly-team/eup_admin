@@ -1,19 +1,14 @@
-import { Key, ReactNode, ReactPortal, ReactElement, JSXElementConstructor } from 'react';
-
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
-import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
-import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
@@ -23,216 +18,212 @@ import { fDate, fTime } from 'src/utils/format-time';
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
-import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
-import { ConfirmDialog } from 'src/components/custom-dialog';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import Label, { LabelColor } from 'src/components/label';
 
 import { IOrderItem } from 'src/types/order';
 
 // ----------------------------------------------------------------------
+
+export const ORDER_TABLE_COLUMNS = 10;
+
+const STATUS_COLOR: Record<string, LabelColor> = {
+  pending_order: 'warning',
+  user_pending: 'error',
+  werkbon: 'info',
+  packing: 'secondary',
+  shipped: 'primary',
+  delivered: 'success',
+  confirmed: 'success',
+  cancelled: 'error',
+};
+
+const SOURCE_ICON: Record<string, string> = {
+  'europowerbv.com': 'europowerbv.png',
+  'bol.com': 'bol.ico',
+};
+
+const LINE_COLUMNS = 'minmax(220px, 1fr) 140px 110px 150px 150px 120px';
 
 type Props = {
   row: IOrderItem;
   selected: boolean;
   onViewRow: VoidFunction;
   onSelectRow: VoidFunction;
-  onDeleteRow: VoidFunction;
 };
 
-export default function OrderTableRow({
-  row,
-  selected,
-  onViewRow,
-  onSelectRow,
-  onDeleteRow,
-}: Props) {
+export default function OrderTableRow({ row, selected, onViewRow, onSelectRow }: Props) {
   const {
     cart,
-    delivered_date,
     extra_note,
     id,
-    invoice_address,
-    is_invoice_address_same_with_shipping,
     is_paid,
     ordered_date,
     payment_reference,
-    shipped_date,
-    shipping_address,
     status,
-    sub_total,
     total,
     user,
-    source_admin,
     source_host,
     is_sent_to_snelstart,
-    snelstart_order_number
-  } = row;
-  console.log("🚀 ~ row:", row)
-  const { t, onChangeLang } = useTranslate();
-  const theme = useTheme();
-  const styles = {
-    hideOnSm: {
-      [theme.breakpoints.down('sm')]: {
-        display: 'none',
-      },
-    },
-    hideOnMd: {
-      [theme.breakpoints.down('md')]: {
-        display: 'none',
-      },
-    },
-    hideOnLg: {
-      [theme.breakpoints.down('lg')]: {
-        display: 'none',
-      },
-    },
-    hideOnXl: {
-      [theme.breakpoints.down('xl')]: {
-        display: 'none',
-      },
-    },
-  };
-  const confirm = useBoolean();
+    snelstart_order_number,
+  } = row as any;
+
+  const { t } = useTranslate();
 
   const collapse = useBoolean();
 
-  const popover = usePopover();
+  const items: any[] = cart?.items || [];
+
+  const customerName =
+    user?.business_name || `${user?.first_name || ''} ${user?.last_name || ''}`.trim();
+
+  const hasTime = typeof ordered_date === 'string' && ordered_date.includes('T');
+
+  const paymentLabel = (
+    <Label
+      variant="soft"
+      color={is_paid ? 'success' : 'error'}
+      startIcon={
+        <Box
+          sx={{
+            m: '4px',
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            bgcolor: 'currentColor',
+          }}
+        />
+      }
+      sx={{ cursor: 'inherit' }}
+    >
+      {t(is_paid ? 'paid' : 'unpaid')}
+    </Label>
+  );
 
   const renderPrimary = (
     <TableRow hover selected={selected}>
       <TableCell padding="checkbox">
-        <Checkbox checked={selected} onClick={onSelectRow} />
+        <Checkbox
+          checked={selected}
+          onClick={onSelectRow}
+          inputProps={{ 'aria-label': `Selecteer bestelling ${id}` }}
+        />
       </TableCell>
 
-      <TableCell sx={{ padding: 0 }}>
-        <Box
-          onClick={onViewRow}
+      <TableCell sx={{ px: 1 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Link
+            component="button"
+            type="button"
+            onClick={onViewRow}
+            variant="subtitle2"
+            sx={{ fontVariantNumeric: 'tabular-nums' }}
+          >
+            #{id}
+          </Link>
+          <Tooltip title={source_host || 'kooptop.com'}>
+            <img
+              style={{ height: 16, width: 16 }}
+              src={`/assets/icons/home/${SOURCE_ICON[source_host] || 'kooptop.png'}`}
+              alt={source_host || 'kooptop.com'}
+            />
+          </Tooltip>
+        </Stack>
+      </TableCell>
+
+      <TableCell sx={{ px: 1, maxWidth: 280 }}>
+        <Typography variant="subtitle2" noWrap>
+          {customerName || user?.email}
+        </Typography>
+        <Typography variant="body2" noWrap sx={{ color: 'text.secondary' }}>
+          R.C. {user?.relation_code}
+          {customerName ? ` · ${user?.email}` : ''}
+        </Typography>
+      </TableCell>
+
+      <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>
+        <Typography variant="body2">{fDate(ordered_date)}</Typography>
+        {hasTime && (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {fTime(ordered_date)}
+          </Typography>
+        )}
+      </TableCell>
+
+      <TableCell align="right" sx={{ px: 1 }}>
+        {items.length}
+      </TableCell>
+
+      <TableCell
+        align="right"
+        sx={{ px: 1, pr: 2, typography: 'subtitle2', whiteSpace: 'nowrap' }}
+      >
+        {fCurrency(total || 0)}
+      </TableCell>
+
+      <TableCell sx={{ px: 1 }}>
+        {payment_reference ? (
+          <Link
+            href={`https://my.mollie.com/dashboard/${'org_1065131'}/payments/${payment_reference}`}
+            target="_blank"
+            rel="noopener"
+            underline="none"
+          >
+            {paymentLabel}
+          </Link>
+        ) : (
+          paymentLabel
+        )}
+      </TableCell>
+
+      <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>
+        <Typography
+          variant="body2"
           sx={{
-            cursor: 'pointer',
-            display: "flex",
-            alignItems: "center",
-            '&:hover': {
-              textDecoration: 'underline',
-            },
+            fontVariantNumeric: 'tabular-nums',
+            ...(!snelstart_order_number && { color: 'text.disabled' }),
           }}
         >
-          {id} {" "} <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : source_host === "bol.com" ? "bol.ico" : "kooptop.png"}`} alt="icon" />
-        </Box>
-      </TableCell>
-
-      <TableCell sx={{ display: 'flex', alignItems: 'center', width: '150px' }}>
-        <ListItemText
-          primary={user.email}
-          secondary={<><span>{`R.C.: ${user.relation_code}`}</span><br /><span>{user.business_name ? (user.business_name || "") : (user.first_name || "") + ' ' + (user.last_name || "")}</span></>}
-          primaryTypographyProps={{ typography: 'body2' }}
-          secondaryTypographyProps={{
-            component: 'span',
-            color: 'text.disabled',
+          {snelstart_order_number || '—'}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            color: is_sent_to_snelstart ? 'text.secondary' : 'warning.dark',
+            fontWeight: is_sent_to_snelstart ? 400 : 600,
           }}
-        />
+        >
+          {is_sent_to_snelstart ? 'Verzonden' : 'Nog niet verzonden'}
+        </Typography>
       </TableCell>
 
-      <TableCell sx={{ padding: 1, ...styles.hideOnMd, width: '80px' }}>
-        <ListItemText
-          primary={fDate(ordered_date)}
-          secondary={fTime(delivered_date)}
-          primaryTypographyProps={{ typography: 'body2', noWrap: true }}
-          secondaryTypographyProps={{
-            typography: 'body2',
-            noWrap: true,
-          }}
-        />
-      </TableCell>
-
-      <TableCell align="center" sx={{ ...styles.hideOnSm, padding: 1 }}>
-        {cart.items?.length}
-      </TableCell>
-
-      <TableCell sx={{ padding: 1 }}>
-        <ListItemText
-          primary={fCurrency(total || 0)}
-          secondary={
-            <Link
-              href={`https://my.mollie.com/dashboard/${'org_1065131'}/payments/${payment_reference}`}
-              variant="body2"
-              target="_blank"
-              rel="noopener"
-              sx={{ cursor: 'pointer' }}
-            >
-              <Label
-                variant="soft"
-                color={is_paid ? 'success' : 'error'}
-                sx={{ cursor: 'pointer' }}
-              >
-                {t(is_paid ? 'paid' : 'unpaid')}
-              </Label>
-            </Link>
-          }
-          primaryTypographyProps={{ typography: 'body2', noWrap: true }}
-          secondaryTypographyProps={{
-            typography: 'body2',
-            noWrap: true,
-          }}
-        />
-      </TableCell>
-
-      <TableCell sx={{ padding: 1, width: 110 }}>
-        {snelstart_order_number || '-'}
-      </TableCell>
-
-      <TableCell sx={{ width: 110, padding: 1 }}>
-        <ListItemText
-          primary={extra_note === "offer" ? <Label
-            variant="soft"
-            color={'info'}
-          >
-            {t("offer")}
-          </Label> : <Label
-            variant="soft"
-            color={
-              (status === 'delivered' && 'success') ||
-              (status === 'confirmed' && 'success') ||
-              (status === 'pending_order' && 'warning') ||
-              (status === 'pending_offer' && 'warning') ||
-              (status === 'cancelled' && 'error') ||
-              'default'
-            }
-          >
+      <TableCell sx={{ px: 1 }}>
+        {extra_note === 'offer' ? (
+          <Label variant="soft" color="info">
+            Offer
+          </Label>
+        ) : (
+          <Label variant="soft" color={STATUS_COLOR[status] || 'default'}>
             {t(status)}
-          </Label>}
-          secondary={
-            <Label
-              variant="soft"
-              color={is_sent_to_snelstart ? 'success' : 'error'}
-            >
-              {t("snelstart")}
-            </Label>
-          }
-          primaryTypographyProps={{ typography: 'body2', noWrap: true }}
-          secondaryTypographyProps={{
-            typography: 'body2',
-            noWrap: true,
-          }}
-        />
-
+          </Label>
+        )}
       </TableCell>
 
       <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
         <IconButton
-          color={collapse.value ? 'inherit' : 'default'}
           onClick={collapse.onToggle}
-          sx={{
-            ...(collapse.value && {
-              bgcolor: 'action.hover',
-            }),
-          }}
+          aria-expanded={collapse.value}
+          aria-label={`Toon producten van bestelling ${id}`}
+          sx={{ ...(collapse.value && { bgcolor: 'action.hover' }) }}
         >
-          <Iconify icon="eva:arrow-ios-downward-fill" />
+          <Iconify
+            icon="eva:arrow-ios-downward-fill"
+            sx={{ transition: 'transform 0.2s', ...(collapse.value && { transform: 'rotate(180deg)' }) }}
+          />
         </IconButton>
 
-        <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
-          <Iconify icon="eva:more-vertical-fill" />
+        <IconButton onClick={onViewRow} aria-label={`Open bestelling ${id}`}>
+          <Iconify icon="eva:arrow-ios-forward-fill" />
         </IconButton>
       </TableCell>
     </TableRow>
@@ -240,135 +231,99 @@ export default function OrderTableRow({
 
   const renderSecondary = (
     <TableRow>
-      <TableCell sx={{ p: 0, border: 'none' }} colSpan={8}>
-        <Collapse
-          in={collapse.value}
-          timeout="auto"
-          unmountOnExit
-          sx={{ bgcolor: 'background.neutral' }}
-        >
-          <Stack component={Paper} sx={{ m: 1.5 }}>
-            {cart.items.map(
-              (
-                item: {
-                  id: Key | null | undefined;
-                  product: {
-                    images: (string | undefined)[];
-                    title:
-                    | string
-                    | number
-                    | boolean
-                    | ReactElement<any, string | JSXElementConstructor<any>>
-                    | Iterable<ReactNode>
-                    | ReactPortal
-                    | null
-                    | undefined;
-                    article_code: any;
-                    categories: { name: any }[];
-                    location: any;
-                    extra_location: any;
-                    price_per_piece: string | number | null;
-                    quantity_per_unit: any;
-                    price_per_unit: string | number | null;
-                  };
-                  quantity: any;
-                },
-                i: number
-              ) => (
-                <Stack
-                  key={i}
-                  direction="row"
-                  alignItems="center"
+      <TableCell sx={{ p: 0, border: 'none' }} colSpan={ORDER_TABLE_COLUMNS}>
+        <Collapse in={collapse.value} timeout="auto" unmountOnExit>
+          <Box sx={{ pl: { xs: 2, md: 7 }, pr: 2, pt: 0.5, pb: 2, bgcolor: 'background.neutral' }}>
+            <Box
+              sx={{
+                border: (theme) => `solid 1px ${theme.palette.divider}`,
+                borderRadius: 1,
+                bgcolor: 'background.paper',
+                overflowX: 'auto',
+              }}
+            >
+              <Box sx={{ minWidth: 900 }}>
+                <Box
                   sx={{
-                    p: (theme) => theme.spacing(1.5, 2, 1.5, 1.5),
-                    '&:not(:last-of-type)': {
-                      borderBottom: (theme) => `solid 2px ${theme.palette.background.neutral}`,
-                    },
+                    display: 'grid',
+                    gridTemplateColumns: LINE_COLUMNS,
+                    columnGap: 1.5,
+                    px: 1.5,
+                    py: 1,
+                    typography: 'overline',
+                    color: 'text.secondary',
+                    bgcolor: 'background.neutral',
                   }}
                 >
-                  <Avatar
-                    src={`${IMAGE_FOLDER_PATH}${item?.product?.images?.[0]}`}
-                    variant="rounded"
-                    sx={{ width: 48, height: 48, mr: 2 }}
-                  />
+                  <Box>Product</Box>
+                  <Box>EAN</Box>
+                  <Box sx={{ textAlign: 'right' }}>{t('free_stock')}</Box>
+                  <Box sx={{ textAlign: 'right' }}>Excl. BTW</Box>
+                  <Box sx={{ textAlign: 'right' }}>Incl. BTW</Box>
+                  <Box sx={{ textAlign: 'right' }}>Regeltotaal</Box>
+                </Box>
 
-                  <ListItemText
-                    primary={item.product?.title}
-                    // secondary={`${t('article_code')}: ${item.product?.article_code}`}
-                    primaryTypographyProps={{
-                      typography: 'caption',
-                      noWrap: false,
-                      maxWidth: '175px',
-                      overflow: 'hidden',
-                      whiteSpace: 'pre-wrap',
-                      textOverflow: 'ellipsis',
-                    }}
-                    secondaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                  />
+                {items.map((item, index) => {
+                  const freeStock = item.product?.free_stock;
+                  const outOfStock = typeof freeStock === 'number' && freeStock <= 0;
 
-                  {/* <ListItemText
-                    sx={{ padding: 1, ...styles.hideOnLg }}
-                    primary={t('categories')}
-                    secondary={item.product?.categories
-                      ?.map((cat: { name: any }) => cat.name)
-                      .join(',')}
-                    primaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                    secondaryTypographyProps={{
-                      typography: 'caption',
-                      sx: {
-                        maxWidth: 100,
-                        wordBreak: 'break-all', // This is the correct CSS property to use
-                      },
-                    }}
-                  /> */}
-                  <ListItemText
-                    primary={`${t('free_stock')}: ${item.product?.free_stock}`}
-                    // secondary={`${t('location')}2: ${item.product?.extra_location}`}
-                    primaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                    secondaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                  />
+                  return (
+                    <Box
+                      key={item.id ?? index}
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: LINE_COLUMNS,
+                        columnGap: 1.5,
+                        alignItems: 'center',
+                        px: 1.5,
+                        py: 1,
+                        typography: 'body2',
+                        fontVariantNumeric: 'tabular-nums',
+                        borderTop: (theme) => `solid 1px ${theme.palette.divider}`,
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+                        <Avatar
+                          src={`${IMAGE_FOLDER_PATH}${item.product?.images?.[0]}`}
+                          variant="rounded"
+                          sx={{ width: 40, height: 40 }}
+                        />
+                        <Typography variant="body2">{item.product?.title}</Typography>
+                      </Stack>
 
-                  <ListItemText
-                    primary={
-                      <>
-                        {`(excl BTW:) ${item.quantity} x ${fCurrency(item.single_product_discounted_price_per_unit)}`}
-                        <br />
-                        <span style={{ color: 'red' }}>
-                          {`(incl BTW:) ${item.quantity} x ${fCurrency(item.single_product_discounted_price_per_unit_vat)}`}
-                        </span>
-                      </>
-                    }
-                    secondary={`${t('price_per_unit_vat')} : ${fCurrency(item.product_item_total_price_vat || Number(item.single_product_discounted_price_per_unit_vat) * item.quantity)}`}
-                    primaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                    secondaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                  />
-                  {/* <ListItemText
-                    primary={`${t('amount')}: x${item.quantity}`}
-                    // secondary={`${t('quantity_per_unit')}: ${item.product?.quantity_per_unit}`}
-                    primaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                    secondaryTypographyProps={{
-                      typography: 'caption',
-                    }}
-                  /> */}
+                      <Box sx={{ color: 'text.secondary' }}>{item.product?.ean || '—'}</Box>
 
-                </Stack>
-              )
-            )}
-          </Stack>
+                      <Box
+                        sx={{
+                          textAlign: 'right',
+                          ...(outOfStock && { color: 'error.main', fontWeight: 600 }),
+                        }}
+                      >
+                        {freeStock ?? '—'}
+                      </Box>
+
+                      <Box sx={{ textAlign: 'right' }}>
+                        {item.quantity} × {fCurrency(item.single_product_discounted_price_per_unit)}
+                      </Box>
+
+                      <Box sx={{ textAlign: 'right', color: 'text.secondary' }}>
+                        {item.quantity} ×{' '}
+                        {fCurrency(item.single_product_discounted_price_per_unit_vat)}
+                      </Box>
+
+                      <Box sx={{ textAlign: 'right', fontWeight: 600 }}>
+                        {fCurrency(
+                          item.product_item_total_price_vat ||
+                            Number(item.single_product_discounted_price_per_unit_vat) *
+                              item.quantity
+                        )}
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
+          </Box>
         </Collapse>
       </TableCell>
     </TableRow>
@@ -379,46 +334,6 @@ export default function OrderTableRow({
       {renderPrimary}
 
       {renderSecondary}
-
-      <CustomPopover
-        open={popover.open}
-        onClose={popover.onClose}
-        arrow="right-top"
-        sx={{ width: 140 }}
-      >
-        {/* <MenuItem
-          onClick={() => {
-            confirm.onTrue();
-            popover.onClose();
-          }}
-          sx={{ color: 'error.main' }}
-        >
-          <Iconify icon="solar:trash-bin-trash-bold" />
-          Delete
-        </MenuItem> */}
-
-        <MenuItem
-          onClick={() => {
-            onViewRow();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:eye-bold" />
-          Bekijk
-        </MenuItem>
-      </CustomPopover>
-
-      <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
-        title="Delete"
-        content="Are you sure want to delete?"
-        action={
-          <Button variant="contained" color="error" onClick={onDeleteRow}>
-            Delete
-          </Button>
-        }
-      />
     </>
   );
 }

@@ -6,11 +6,15 @@ import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
+import Menu from '@mui/material/Menu';
+import Stack from '@mui/material/Stack';
+import MenuItem from '@mui/material/MenuItem';
 import { alpha } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
-import IconButton from '@mui/material/IconButton';
+import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import Link from '@mui/material/Link';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -23,32 +27,23 @@ import Box from '@mui/material/Box';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { useBoolean } from 'src/hooks/use-boolean';
-
 import axiosInstance from 'src/utils/axios';
-import { isAfter, isBetween } from 'src/utils/format-time';
+import { isAfter } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
-import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import {
-  useTable,
-  TableHeadCustom,
-  TableSelectedAction,
-  TablePaginationCustom,
-} from 'src/components/table';
+import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/components/table';
 import { LoadingScreen } from 'src/components/loading-screen';
 
-import { IOrderItem, IOrderTableFilters, IOrderTableFilterValue } from 'src/types/order';
+import { IOrderItem, IOrderTableFilters } from 'src/types/order';
 
-import OrderTableRow from '../order-table-row';
+import OrderTableRow, { ORDER_TABLE_COLUMNS } from '../order-table-row';
 import OrderTableToolbar from '../order-table-toolbar';
-import OrderTableFiltersResult from '../order-table-filters-result';
 
 // ----------------------------------------------------------------------
 
@@ -65,17 +60,45 @@ export const ORDER_STATUS_OPTIONS = [
   { value: 'confirmed', label: 'Bevestigd' },
   { value: 'other', label: 'Anders' },
 ];
-const STATUS_OPTIONS = [{ value: 'all', label: 'Alle' }, { value: 'uninvoiced', label: 'Faturasız (Uninvoiced)' }, ...ORDER_STATUS_OPTIONS];
+
+// The statuses of the daily order flow get a tab; the rest sit in a menu.
+const TAB_STATUSES = [
+  'pending_order',
+  'user_pending',
+  'werkbon',
+  'packing',
+  'shipped',
+  'delivered',
+  'pending_offer',
+];
+const STATUS_TABS = [
+  { value: 'all', label: 'Alle' },
+  ...ORDER_STATUS_OPTIONS.filter((option) => TAB_STATUSES.includes(option.value)),
+];
+const MORE_STATUSES = ORDER_STATUS_OPTIONS.filter(
+  (option) => !TAB_STATUSES.includes(option.value)
+);
+
+const FILTER_PARAMS: Record<keyof IOrderTableFilters, string> = {
+  status: 'status',
+  name: 'name',
+  orderId: 'order_id',
+  ean: 'ean',
+  startDate: 'start_date',
+  endDate: 'end_date',
+  paymentStatus: 'payment_status',
+};
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'Bestel', width: 40, padding: 0 },
-  { id: 'name', label: 'Klant', width: 40, padding: 1 },
-  { id: 'ordered_date', label: 'Datum', width: 80, padding: 1, hideOnMd: true },
-  { id: 'totalQuantity', label: 'Items', width: 40, align: 'center', padding: 1, hideOnSm: true },
-  { id: 'total', label: 'Prijs', width: 50, padding: 1, },
-  { id: 'snelstart_order_number', label: 'Snelstart', width: 110, padding: 1 },
-  { id: 'status', label: 'Status', width: 110, padding: 1 },
-  { id: '', width: 88, padding: 1 },
+  { id: 'id', label: 'Bestelling', width: 110, padding: 1 },
+  { id: 'name', label: 'Klant', padding: 1 },
+  { id: 'ordered_date', label: 'Datum', width: 110, padding: 1 },
+  { id: 'totalQuantity', label: 'Items', width: 60, align: 'right', padding: 1 },
+  { id: 'total', label: 'Bedrag', width: 110, align: 'right', padding: 1 },
+  { id: 'is_paid', label: 'Betaling', width: 120, padding: 1 },
+  { id: 'snelstart_order_number', label: 'Snelstart', width: 150, padding: 1 },
+  { id: 'status', label: 'Status', width: 120, padding: 1 },
+  { id: '', width: 96, padding: 1 },
 ];
 
 // ----------------------------------------------------------------------
@@ -92,18 +115,10 @@ export default function OrderListView() {
 
   const router = useRouter();
 
-  const confirm = useBoolean();
   const location = useLocation();
   const [orderList, setOrderList] = useState<IOrderItem[]>([]);
-
-  const [tableData, setTableData] = useState<IOrderItem[]>(orderList);
+  const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
   const queryParams = new URLSearchParams(location.search);
-
-  console.log('OrderListView - initial state:', {
-    orderList: orderList.length,
-    tableData: tableData.length,
-    location: location.pathname,
-  });
 
   const defaultFilters: IOrderTableFilters = {
     status: queryParams.get('status') || 'all',
@@ -126,11 +141,6 @@ export default function OrderListView() {
   const [filters, setFilters] = useState(defaultFilters);
 
   const dateError = isAfter(filters.startDate, filters.endDate);
-
-  const dataInPage = orderList.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
 
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [isSyncing, setIsSyncing] = useState(false);
@@ -297,67 +307,30 @@ export default function OrderListView() {
     !!filters.ean ||
     filters.status !== 'all' ||
     filters.paymentStatus !== 'all' ||
-    (!!filters.startDate && !!filters.endDate);
+    !!filters.startDate ||
+    !!filters.endDate;
 
-  const handleFilters = useCallback(
-    (name: string, value: IOrderTableFilterValue) => {
+  const handleApplyFilters = useCallback(
+    (patch: Partial<IOrderTableFilters>) => {
       const newSearchParams = new URLSearchParams(location.search);
 
-      if (name === 'status') {
-        if (value === 'all' || value === null || value === '') {
-          newSearchParams.delete('status');
+      (Object.keys(patch) as (keyof IOrderTableFilters)[]).forEach((name) => {
+        const value = patch[name];
+        if (value === 'all' || value === null || value === '' || value === undefined) {
+          newSearchParams.delete(FILTER_PARAMS[name]);
         } else {
-          newSearchParams.set('status', String(value));
+          newSearchParams.set(
+            FILTER_PARAMS[name],
+            value instanceof Date ? formatDate(value) : String(value)
+          );
         }
-      } else if (name === 'name') {
-        if (value === '' || value === null) {
-          newSearchParams.delete('name');
-        } else {
-          newSearchParams.set('name', String(value));
-        }
-      } else if (name === 'orderId' || name === 'ean') {
-        const paramName = name === 'orderId' ? 'order_id' : 'ean';
-        if (value === '' || value === null) {
-          newSearchParams.delete(paramName);
-        } else {
-          newSearchParams.set(paramName, String(value));
-        }
-      } else if (name === 'startDate') {
-        if (value === '' || value === null) {
-          newSearchParams.delete('start_date');
-        } else {
-          const dateValue = value instanceof Date ? formatDate(value) : String(value);
-          newSearchParams.set('start_date', dateValue);
-        }
-      } else if (name === 'endDate') {
-        if (value === '' || value === null) {
-          newSearchParams.delete('end_date');
-        } else {
-          const dateValue = value instanceof Date ? formatDate(value) : String(value);
-          newSearchParams.set('end_date', dateValue);
-        }
-      } else if (name === 'paymentStatus') {
-        if (value === 'all' || value === null || value === '') {
-          newSearchParams.delete('payment_status');
-        } else {
-          newSearchParams.set('payment_status', String(value));
-        }
-      }
+      });
 
-      if (name !== 'page') {
-        newSearchParams.set('page', '1');
-        table.onChangePage(null, 0);
-      } else {
-        newSearchParams.set('page', String(value));
-      }
+      newSearchParams.set('page', '1');
+      table.onChangePage(null, 0);
 
       router.push(`${location.pathname}?${newSearchParams.toString()}`);
-      if (name !== 'page') {
-        setFilters((prevState) => ({
-          ...prevState,
-          [name]: value,
-        }));
-      }
+      setFilters((prevState) => ({ ...prevState, ...patch }));
     },
     [location.pathname, location.search, router, table]
   );
@@ -375,32 +348,6 @@ export default function OrderListView() {
     router.push(`${location.pathname}?page=1`);
   }, [location.pathname, router]);
 
-  const handleDeleteRow = useCallback(
-    (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
-      enqueueSnackbar('Delete success!');
-
-      setTableData(deleteRow);
-
-      table.onUpdatePageDeleteRow(dataInPage.length);
-    },
-    [dataInPage.length, enqueueSnackbar, table, tableData]
-  );
-
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
-    enqueueSnackbar('Delete success!');
-
-    setTableData(deleteRows);
-
-    table.onUpdatePageDeleteRows({
-      totalRowsInPage: dataInPage.length,
-      totalRowsFiltered: orderList.length,
-    });
-  }, [orderList.length, dataInPage.length, enqueueSnackbar, table, tableData]);
-
   const handleViewRow = useCallback(
     (id: string) => {
       router.push(paths.dashboard.order.details(id));
@@ -410,22 +357,29 @@ export default function OrderListView() {
 
   const handleFilterStatus = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
-      handleFilters('status', newValue);
+      handleApplyFilters({ status: newValue });
     },
-    [handleFilters]
+    [handleApplyFilters]
   );
+
   const handleTablePageChange = useCallback(
     (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
-      handleFilters('page', String(pageNo + 1));
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.set('page', String(pageNo + 1));
+      router.push(`${location.pathname}?${newSearchParams.toString()}`);
       table.onChangePage(e, pageNo);
     },
-    [handleFilters, table]
+    [location.pathname, location.search, router, table]
   );
+
+  const moreStatus = MORE_STATUSES.find((option) => option.value === filters.status);
+  const hasStatusTab = STATUS_TABS.some((tab) => tab.value === filters.status);
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <CustomBreadcrumbs
-          heading={t('list')}
+          heading="Bestellingen"
           links={[
             {
               name: t('dashboard'),
@@ -464,67 +418,102 @@ export default function OrderListView() {
         />
 
         <Card>
-          <Tabs
-            value={filters.status}
-            onChange={handleFilterStatus}
+          <Stack
+            direction="row"
+            alignItems="center"
             sx={{
-              px: 0,
+              px: 2,
               boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
-              'div div': {
-                justifyContent: 'space-between',
-              },
             }}
           >
-            {STATUS_OPTIONS.map((tab) => (
-              <Tab
-                key={tab.value}
-                // iconPosition="end"
-                value={tab.value}
-                label={tab.label}
-                sx={{
-                  textTransform: 'uppercase',
-                  fontSize: '0.725rem',
-                  marginRight: '1rem!important',
-                }}
-              // icon={
-              //   <Label
-              //     variant={
-              //       ((tab.value === 'all' || tab.value === filters.status) && 'filled') || 'soft'
-              //     }
-              //     color={
-              //       (tab.value === 'delivered' && 'success') ||
-              //       (tab.value === 'pending_order' && 'warning') ||
-              //       (tab.value === 'pending_offer' && 'warning') ||
-              //       (tab.value === 'cancelled' && 'error') ||
-              //       'default'
-              //     }
-              //   >
-              //     {['completed', 'pending', 'cancelled', 'refunded'].includes(tab.value)
-              //       ? tableData.filter((user) => user.status === tab.value).length
-              //       : tableData.length}
-              //   </Label>
-              // }
-              />
-            ))}
-          </Tabs>
+            <Tabs
+              value={hasStatusTab ? filters.status : false}
+              onChange={handleFilterStatus}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{ flexGrow: 1, minWidth: 0 }}
+            >
+              {STATUS_TABS.map((tab) => (
+                <Tab key={tab.value} value={tab.value} label={tab.label} />
+              ))}
+            </Tabs>
+
+            <Button
+              color={moreStatus ? 'primary' : 'inherit'}
+              onClick={(event) => setMoreAnchor(event.currentTarget)}
+              endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+              sx={{
+                ml: 1,
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                fontWeight: moreStatus ? 600 : 400,
+                ...(!moreStatus && { color: 'text.secondary' }),
+              }}
+            >
+              {moreStatus ? moreStatus.label : 'Meer statussen'}
+            </Button>
+
+            <Menu anchorEl={moreAnchor} open={!!moreAnchor} onClose={() => setMoreAnchor(null)}>
+              {MORE_STATUSES.map((option) => (
+                <MenuItem
+                  key={option.value}
+                  selected={option.value === filters.status}
+                  onClick={() => {
+                    setMoreAnchor(null);
+                    handleApplyFilters({ status: option.value });
+                  }}
+                >
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Menu>
+          </Stack>
 
           <OrderTableToolbar
             filters={filters}
-            onFilters={handleFilters}
+            onApplyFilters={handleApplyFilters}
+            onResetFilters={handleResetFilters}
+            canReset={canReset}
+            results={count}
             //
             dateError={dateError}
           />
 
-          {canReset && (
-            <OrderTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={count}
-              sx={{ p: 2.5, pt: 0 }}
-            />
+          {table.selected.length > 0 && (
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="wrap"
+              useFlexGap
+              spacing={1}
+              sx={{ px: 2, py: 1, bgcolor: 'grey.800', color: 'common.white' }}
+            >
+              <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+                {table.selected.length}{' '}
+                {table.selected.length === 1
+                  ? 'bestelling geselecteerd'
+                  : 'bestellingen geselecteerd'}
+              </Typography>
+              <Button variant="outlined" color="inherit" size="small" onClick={handleMergeInvoices}>
+                Facturen samenvoegen
+              </Button>
+              <Button
+                variant="outlined"
+                color="inherit"
+                size="small"
+                onClick={() => setAddToInvoiceOpen(true)}
+              >
+                Aan factuur toevoegen
+              </Button>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => table.onSelectAllRows(false, [])}
+                sx={{ opacity: 0.72 }}
+              >
+                Selectie wissen
+              </Button>
+            </Stack>
           )}
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
@@ -546,35 +535,9 @@ export default function OrderListView() {
                 <LoadingScreen />
               </Box>
             )}
-            <TableSelectedAction
-              dense={table.dense}
-              numSelected={table.selected.length}
-              rowCount={orderList.length}
-              onSelectAllRows={(checked) =>
-                table.onSelectAllRows(
-                  checked,
-                  orderList.map((row) => row.id)
-                )
-              }
-              action={
-                <Box display="flex" gap={1} alignItems="center">
-                  <Button variant="contained" color="secondary" onClick={handleMergeInvoices} size="small">
-                    Merge Invoices
-                  </Button>
-                  <Button variant="contained" color="info" onClick={() => setAddToInvoiceOpen(true)} size="small">
-                    Add to Invoice
-                  </Button>
-                  <Tooltip title={t('delete')}>
-                    <IconButton color="primary" onClick={confirm.onTrue}>
-                      <Iconify icon="solar:trash-bin-trash-bold" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              }
-            />
 
             <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ width: "100%" }}>
+              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 1040 }}>
                 <TableHeadCustom
                   order={table.order}
                   orderBy={table.orderBy}
@@ -597,17 +560,27 @@ export default function OrderListView() {
                       row={row}
                       selected={table.selected.includes(row.id)}
                       onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
                       onViewRow={() => handleViewRow(row.id)}
                     />
                   ))}
 
-                  {/* <TableEmptyRows
-                    height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, orderList.length)}
-                  /> */}
-
-                  {/* <TableNoData notFound={notFound} /> */}
+                  {!isLoading && orderList.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={ORDER_TABLE_COLUMNS} align="center" sx={{ py: 8 }}>
+                        <Typography variant="subtitle1">Geen bestellingen gevonden</Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                          {canReset
+                            ? 'Pas de filters aan of wis ze om alle bestellingen te zien.'
+                            : 'Er zijn nog geen bestellingen.'}
+                        </Typography>
+                        {canReset && (
+                          <Button variant="outlined" onClick={handleResetFilters} sx={{ mt: 2 }}>
+                            Filters wissen
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </Scrollbar>
@@ -624,29 +597,6 @@ export default function OrderListView() {
           />
         </Card>
       </Container>
-
-      <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {table.selected.length} </strong> items?
-          </>
-        }
-        action={
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              handleDeleteRows();
-              confirm.onFalse();
-            }}
-          >
-            {t('delete')}
-          </Button>
-        }
-      />
 
       <Dialog open={addToInvoiceOpen} onClose={() => setAddToInvoiceOpen(false)}>
         <DialogTitle>Add to Existing Invoice</DialogTitle>
@@ -676,51 +626,6 @@ export default function OrderListView() {
 }
 
 // ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-  dateError,
-}: {
-  inputData: IOrderItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IOrderTableFilters;
-  dateError: boolean;
-}) {
-  const { status, name, startDate, endDate } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (order) =>
-        order.orderNumber.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.customer.name.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.customer.email.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  if (status !== 'all') {
-    inputData = inputData.filter((order) => order.status === status);
-  }
-
-  if (!dateError) {
-    if (startDate && endDate) {
-      inputData = inputData.filter((order) => isBetween(order.createdAt, startDate, endDate));
-    }
-  }
-
-  return inputData;
-}
 
 const formatDate = (date: any) => {
   const year = date.getFullYear();
