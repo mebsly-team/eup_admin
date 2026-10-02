@@ -58,6 +58,7 @@ type Props = {
   onDeleteRow: VoidFunction;
   handleLightBoxSlides: (images: string[]) => void;
   onToggleVisibility: VoidFunction;
+  onVisibilityChange: VoidFunction;
 };
 
 export default function ProductTableRow({
@@ -68,6 +69,7 @@ export default function ProductTableRow({
   onDeleteRow,
   handleLightBoxSlides,
   onToggleVisibility,
+  onVisibilityChange,
 }: Props) {
   const {
     id,
@@ -115,6 +117,7 @@ export default function ProductTableRow({
           title,
         });
         setCurrent(response?.data?.[field] ?? current);
+        onVisibilityChange();
       } catch (error) {
         console.error('Missing Fields:', error);
         const missingFields: any = Object.values(error)?.[0] || [];

@@ -31,6 +31,7 @@ import axiosInstance from 'src/utils/axios';
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
@@ -75,6 +76,8 @@ export default function ProductListView() {
   const confirm = useBoolean();
   const [productList, setProductList] = useState<IProductItem[]>([]);
   const [count, setCount] = useState(0);
+  const [tabCounts, setTabCounts] = useState<Record<string, number> | null>(null);
+  const [countsVersion, setCountsVersion] = useState(0);
 
   const defaultFilters: IProductTableFilters = {
     visibility: queryParams.get('visibility') || 'visible',
@@ -149,6 +152,29 @@ export default function ProductListView() {
   useEffect(() => {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order, showBundles]);
+
+  // Every list filter except the visibility itself, so each tab gets its count.
+  const countsQuery = `${!showBundles ? '&is_variant=false' : ''}${
+    filters.name ? `&search=${encodeURIComponent(filters.name)}` : ''
+  }${filters.category ? `&category=${filters.category}` : ''}`;
+
+  useEffect(() => {
+    let active = true;
+
+    axiosInstance
+      .get(`/products/visibility-counts/?${countsQuery.slice(1)}`)
+      .then(({ data }) => {
+        if (active) setTabCounts(data.counts);
+      })
+      .catch(() => {
+        // The tabs work without counts.
+        if (active) setTabCounts(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [countsQuery, countsVersion]);
 
   const latestRequestRef = useRef(0);
 
@@ -236,22 +262,24 @@ export default function ProductListView() {
       });
       enqueueSnackbar(t('delete_success'));
       getAll();
+      setCountsVersion((version) => version + 1);
     },
     [enqueueSnackbar, getAll, t]
   );
 
-  const handleDeleteRows = useCallback(async () => {
+  const handleHideRows = useCallback(async () => {
     const selectedIds = table.selected;
     const promises = selectedIds.map(async (id) => {
       try {
+        // Hiding keeps the product in the Verborgen tab; only the row's own
+        // delete action sets is_hidden, which removes it from every list.
         await axiosInstance.patch(`/products/${id}/`, {
-          is_hidden: true,
           is_visible_particular: false,
           is_visible_B2B: false,
           is_product_active: false,
         });
       } catch (error) {
-        console.error(`Error deleting product with ID ${id}:`, error);
+        console.error(`Error hiding product with ID ${id}:`, error);
       }
     });
 
@@ -260,8 +288,9 @@ export default function ProductListView() {
       table.onSelectAllRows(false, []);
       enqueueSnackbar(t('update_success'));
       getAll();
+      setCountsVersion((version) => version + 1);
     } catch (error) {
-      console.error('Error deleting rows:', error);
+      console.error('Error hiding rows:', error);
     }
   }, [table, enqueueSnackbar, getAll, t]);
 
@@ -276,6 +305,7 @@ export default function ProductListView() {
         });
         enqueueSnackbar(t('update_success'));
         getAll();
+        setCountsVersion((version) => version + 1);
       } catch (error) {
         console.log('error', error);
         const err = Object.values(error)?.[0] || [];
@@ -331,6 +361,7 @@ export default function ProductListView() {
       await axiosInstance.post('import/products/', formData);
       enqueueSnackbar(t('update_success'), { variant: 'success' });
       getAll();
+      setCountsVersion((version) => version + 1);
     } catch (error) {
       console.error(error);
       enqueueSnackbar(t('error'), { variant: 'error' });
@@ -420,6 +451,17 @@ export default function ProductListView() {
               <Tab
                 key={tab.value}
                 value={tab.value}
+                iconPosition="end"
+                icon={
+                  tabCounts ? (
+                    <Label
+                      variant={tab.value === filters.visibility ? 'filled' : 'soft'}
+                      color={tab.value === filters.visibility ? 'primary' : 'default'}
+                    >
+                      {tabCounts[tab.value] || 0}
+                    </Label>
+                  ) : undefined
+                }
                 label={
                   <Stack direction="row" alignItems="baseline" spacing={1}>
                     <span>{tab.label}</span>
@@ -525,6 +567,7 @@ export default function ProductListView() {
                       onDeleteRow={() => handleDeleteRow(row.id)}
                       onEditRow={() => handleEditRow(row.id)}
                       handleLightBoxSlides={handleLightBoxSlides}
+                      onVisibilityChange={() => setCountsVersion((version) => version + 1)}
                       onToggleVisibility={onToggleVisibility(row)}
                     />
                   ))}
@@ -574,7 +617,7 @@ export default function ProductListView() {
             variant="contained"
             color="error"
             onClick={() => {
-              handleDeleteRows();
+              handleHideRows();
               confirm.onFalse();
             }}
           >
