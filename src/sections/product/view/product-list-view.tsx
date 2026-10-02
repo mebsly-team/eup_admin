@@ -3,30 +3,22 @@ import { useLocation } from 'react-router-dom';
 import Lightbox from 'yet-another-react-lightbox';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
+import Menu from '@mui/material/Menu';
+import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
+import TableRow from '@mui/material/TableRow';
+import { alpha } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
-import { useTheme } from '@mui/material/styles';
-import IconButton from '@mui/material/IconButton';
+import TableCell from '@mui/material/TableCell';
+import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
-import ButtonGroup from '@mui/material/ButtonGroup';
-import Menu from '@mui/material/Menu';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import {
-  Box,
-  Dialog,
-  Select,
-  MenuItem,
-  TextField,
-  Typography,
-  InputLabel,
-  FormControl,
-  DialogActions,
-  Switch,
-} from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -43,27 +35,38 @@ import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { useSettingsContext } from 'src/components/settings';
+import { LoadingScreen } from 'src/components/loading-screen';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import {
-  useTable,
-  TableHeadCustom,
-  TableSelectedAction,
-  TablePaginationCustom,
-} from 'src/components/table';
+import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/components/table';
 
 import { IProductItem, IProductTableFilters, IProductTableFilterValue } from 'src/types/product';
 
-import ProductTableRow from '../product-table-row';
 import ProductTableToolbar from '../product-table-toolbar';
-import ProductTableFiltersResult from '../product-table-filters-result';
+import ProductTableRow, { PRODUCT_TABLE_COLUMNS } from '../product-table-row';
+
 // ----------------------------------------------------------------------
+
+const VISIBILITY_TABS = [
+  { value: 'visible', label: 'Actief', hint: '' },
+  { value: 'is_visible_particular', label: 'Particulier', hint: 'kooptop.com' },
+  { value: 'is_visible_B2B', label: 'B2B', hint: 'europowerbv.com' },
+  { value: 'hidden', label: 'Verborgen', hint: '' },
+];
+
+const downloadBlob = (data: BlobPart, filename: string) => {
+  const url = window.URL.createObjectURL(new Blob([data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
 
 // ----------------------------------------------------------------------
 
 export default function ProductListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const settings = useSettingsContext();
   const router = useRouter();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -72,9 +75,6 @@ export default function ProductListView() {
   const confirm = useBoolean();
   const [productList, setProductList] = useState<IProductItem[]>([]);
   const [count, setCount] = useState(0);
-  const [tableData, setTableData] = useState<IProductItem[]>(productList);
-  const [isStockUpdateDialogOpen, setStockUpdateDialogOpen] = useState(false);
-  const [selectedSingleRow, setSelectedSingleRow] = useState();
 
   const defaultFilters: IProductTableFilters = {
     visibility: queryParams.get('visibility') || 'visible',
@@ -86,10 +86,10 @@ export default function ProductListView() {
       '',
   };
   const [filters, setFilters] = useState(defaultFilters);
-  const { t, onChangeLang } = useTranslate();
+  const { t } = useTranslate();
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [openLightBox, setOpenLightBox] = useState(false);
-  const [lightBoxSlides, setLightBoxSlides] = useState();
+  const [lightBoxSlides, setLightBoxSlides] = useState<{ src: string }[]>([]);
   const [showBundles, setShowBundles] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>(filters.name);
 
@@ -97,7 +97,7 @@ export default function ProductListView() {
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const exportMenuOpen = Boolean(exportMenuAnchor);
 
-  const handleLightBoxSlides = useCallback((images) => {
+  const handleLightBoxSlides = useCallback((images: string[]) => {
     if (images.length) {
       setOpenLightBox(true);
       const slides = images.map((img) => ({
@@ -107,25 +107,17 @@ export default function ProductListView() {
     }
   }, []);
   const TABLE_HEAD = [
-    { id: 'image', label: t('image') },
-    { id: 'title', label: t('title'), hideOnMd: true },
-    { id: 'supplier', label: t('supplier'), hideOnMd: true },
-    { id: 'price_per_piece', label: t('price') },
-    { id: 'price_cost', label: t('price_cost') },
-    { id: 'variants', label: t('number_of_variants'), hideOnSm: true },
-    { id: 'variants', label: t('number_of_variants2'), hideOnSm: true },
-    { id: 'vat', label: t('vat') },
-    { id: 'ean', label: t('ean'), hideOnSm: true },
-    { id: 'overall_stock', label: t('free_all_stock'), hideOnMd: true },
-    { id: 'is_visible_particular', label: `${t('is_particular')}` },
-    { id: 'is_visible_B2B', label: `${t('is_b2b')}` },
+    { id: 'title', label: 'Product', padding: 1 },
+    { id: 'supplier', label: t('supplier'), width: 180, padding: 1 },
+    { id: 'price_per_piece', label: t('price'), width: 100, align: 'right', padding: 1 },
+    { id: 'price_cost', label: 'Kostprijs', width: 120, align: 'right', padding: 1 },
+    { id: 'variants', label: 'Bundels / varianten', width: 150, padding: 1 },
+    { id: 'vat', label: t('vat'), width: 60, padding: 1 },
+    { id: 'free_stock', label: 'Voorraad vrij / totaal', width: 150, padding: 1 },
+    { id: 'is_visible_particular', label: 'Particulier', width: 90, padding: 1 },
+    { id: 'is_visible_B2B', label: 'B2B', width: 80, padding: 1 },
+    { id: '', width: 56, padding: 1 },
   ];
-  const theme = useTheme();
-
-  const dataInPage = productList.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -158,8 +150,6 @@ export default function ProductListView() {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order, showBundles]);
 
-  console.log('productList', productList);
-
   const latestRequestRef = useRef(0);
 
   const getAll = async () => {
@@ -181,18 +171,25 @@ export default function ProductListView() {
       : '';
     const searchFilter = filters.name ? `&search=${encodeURIComponent(filters.name)}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
-    const { data } = await axiosInstance.get(
-      `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${
-        table.rowsPerPage
-      }&offset=${
-        table.page * table.rowsPerPage
-      }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
-    );
-    // A slower response of an older search must not overwrite the newest one
-    if (requestId !== latestRequestRef.current) return;
-    setCount(data.count || 0);
-    setProductList(data.results || []);
-    setIsLoading(false);
+    try {
+      const { data } = await axiosInstance.get(
+        `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${
+          table.rowsPerPage
+        }&offset=${
+          table.page * table.rowsPerPage
+        }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
+      );
+      // A slower response of an older search must not overwrite the newest one
+      if (requestId !== latestRequestRef.current) return;
+      setCount(data.count || 0);
+      setProductList(data.results || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error(error);
+      if (requestId !== latestRequestRef.current) return;
+      enqueueSnackbar(t('error'), { variant: 'error' });
+      setIsLoading(false);
+    }
   };
 
   const handleFilters = useCallback(
@@ -205,6 +202,8 @@ export default function ProductListView() {
       }
       if (name !== 'page') {
         table.onChangePage(null, 0);
+        // The selected rows are no longer on screen after a filter change.
+        table.onSelectAllRows(false, []);
       }
 
       // table.onResetPage();
@@ -229,8 +228,7 @@ export default function ProductListView() {
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
-      const deleteRow = productList.filter((row) => row.id !== id);
-      const { data } = await axiosInstance.patch(`/products/${id}/`, {
+      await axiosInstance.patch(`/products/${id}/`, {
         is_hidden: true,
         is_visible_particular: false,
         is_visible_B2B: false,
@@ -238,10 +236,8 @@ export default function ProductListView() {
       });
       enqueueSnackbar(t('delete_success'));
       getAll();
-      // setTableData(deleteRow);
-      // table.onUpdatePageDeleteRow(dataInPage?.length);
     },
-    [dataInPage?.length, enqueueSnackbar, table, productList]
+    [enqueueSnackbar, getAll, t]
   );
 
   const handleDeleteRows = useCallback(async () => {
@@ -260,20 +256,19 @@ export default function ProductListView() {
     });
 
     try {
-      await Promise.all(promises); // Wait for all delete requests to complete
-      const remainingRows = tableData.filter((row) => !selectedIds.includes(row.id));
-      setTableData(remainingRows); // Update tableData state with remaining rows
-      enqueueSnackbar(t('delete_success'));
-      getAll(); // Refresh data if needed
+      await Promise.all(promises); // Wait for all requests to complete
+      table.onSelectAllRows(false, []);
+      enqueueSnackbar(t('update_success'));
+      getAll();
     } catch (error) {
       console.error('Error deleting rows:', error);
     }
-  }, [tableData, table.selected, enqueueSnackbar, getAll, t]);
+  }, [table, enqueueSnackbar, getAll, t]);
 
   const onToggleVisibility = useCallback(
-    (row) => async () => {
+    (row: IProductItem) => async () => {
       try {
-        const response = await axiosInstance.put(`/products/${row.id}/`, {
+        await axiosInstance.put(`/products/${row.id}/`, {
           is_product_active: !row.is_product_active,
           is_visible_particular: false,
           is_visible_B2B: false,
@@ -289,7 +284,7 @@ export default function ProductListView() {
         });
       }
     },
-    [tableData, table.selected, enqueueSnackbar, getAll, t]
+    [enqueueSnackbar, getAll, t]
   );
 
   const handleEditRow = useCallback(
@@ -299,18 +294,9 @@ export default function ProductListView() {
     [router]
   );
 
-  const updateStock = useCallback(() => {
-    // TODO:
-    setStockUpdateDialogOpen(false);
-  }, []);
-
-  const handleUpdateStock = useCallback((row) => {
-    setSelectedSingleRow(row);
-    setStockUpdateDialogOpen(true);
-  }, []);
   const handleTablePageChange = useCallback(
-    (e, pageNo) => {
-      handleFilters('page', pageNo + 1);
+    (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
+      handleFilters('page', String(pageNo + 1));
       table.onChangePage(e, pageNo);
     },
     [handleFilters, table]
@@ -320,57 +306,86 @@ export default function ProductListView() {
     setShowBundles(!showBundles);
   };
 
-  const handleExport = useCallback(async () => {
-    try {
-      const response = await axiosInstance.get('/export/products/', {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
-      link.setAttribute('download', `products_export_${currentDateTime}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error('Export failed:', error);
-      enqueueSnackbar('Export failed', { variant: 'error' });
-    }
-  }, [enqueueSnackbar]);
+  const handleExport = useCallback(
+    async (endpoint: string, prefix: string) => {
+      setExportMenuAnchor(null);
+      try {
+        const response = await axiosInstance.get(endpoint, { responseType: 'blob' });
+        const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
+        downloadBlob(response.data, `${prefix}_${currentDateTime}.csv`);
+      } catch (error) {
+        console.error('Export failed:', error);
+        enqueueSnackbar('Export failed', { variant: 'error' });
+      }
+    },
+    [enqueueSnackbar]
+  );
 
-  const handleExportKort = useCallback(async () => {
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
     try {
-      const response = await axiosInstance.get('/export/products/kort/', {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
-      link.setAttribute('download', `products_kort_${currentDateTime}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      const formData = new FormData();
+      formData.append('file', file);
+      await axiosInstance.post('import/products/', formData);
+      enqueueSnackbar(t('update_success'), { variant: 'success' });
+      getAll();
     } catch (error) {
-      console.error('Export Kort failed:', error);
-      enqueueSnackbar('Export Kort failed', { variant: 'error' });
+      console.error(error);
+      enqueueSnackbar(t('error'), { variant: 'error' });
     }
-    setExportMenuAnchor(null);
-  }, [enqueueSnackbar]);
+  };
+
+  const canReset = !!filters.name || !!filters.category || filters.visibility !== 'visible';
 
   return (
     <>
       <Container maxWidth={false}>
         <CustomBreadcrumbs
-          heading={t('list')}
+          heading={t('products')}
           links={[
             { name: t('dashboard'), href: paths.dashboard.root },
             { name: t('products'), href: paths.dashboard.product.root },
             { name: t('list') },
           ]}
           action={
-            <Box sx={{ display: 'flex' }}>
+            <Box display="flex" flexWrap="wrap" gap={1}>
+              <Button
+                component="label"
+                variant="outlined"
+                color="inherit"
+                startIcon={<Iconify icon="solar:import-linear" />}
+              >
+                {t('import')} (CSV)
+                <input type="file" accept=".csv" hidden onChange={handleImport} />
+              </Button>
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<Iconify icon="solar:export-linear" />}
+                endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+              >
+                {t('export')}
+              </Button>
+              <Menu
+                anchorEl={exportMenuAnchor}
+                open={exportMenuOpen}
+                onClose={() => setExportMenuAnchor(null)}
+              >
+                <MenuItem onClick={() => handleExport('/export/products/', 'products_export')}>
+                  Export
+                </MenuItem>
+                <MenuItem onClick={() => handleExport('/export/products/kort/', 'products_kort')}>
+                  Export Kort
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleExport('/export/products/?nocache=true', 'products')}
+                >
+                  Export (zonder cache)
+                </MenuItem>
+              </Menu>
               <Button
                 component={RouterLink}
                 href={paths.dashboard.product.new}
@@ -379,33 +394,6 @@ export default function ProductListView() {
               >
                 {t('new_product')}
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<Iconify icon="ph:export-bold" />}
-                onClick={(e) => setExportMenuAnchor(e.currentTarget)}
-                sx={{ ml: 1 }}
-              >
-                {t('Export')}
-              </Button>
-              <Menu
-                anchorEl={exportMenuAnchor}
-                open={exportMenuOpen}
-                onClose={() => setExportMenuAnchor(null)}
-              >
-                <MenuItem
-                  onClick={() => {
-                    handleExport();
-                    setExportMenuAnchor(null);
-                  }}
-                >
-                  <Iconify icon="ph:export-bold" sx={{ mr: 1 }} />
-                  {t('Export')}
-                </MenuItem>
-                <MenuItem onClick={handleExportKort}>
-                  <Iconify icon="ph:export-bold" sx={{ mr: 1 }} />
-                  Export Kort
-                </MenuItem>
-              </Menu>
             </Box>
           }
           sx={{
@@ -414,51 +402,105 @@ export default function ProductListView() {
         />
 
         <Card>
+          <Tabs
+            value={
+              VISIBILITY_TABS.some((tab) => tab.value === filters.visibility)
+                ? filters.visibility
+                : false
+            }
+            onChange={(event, value) => handleFilters('visibility', value)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              px: 2,
+              boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+            }}
+          >
+            {VISIBILITY_TABS.map((tab) => (
+              <Tab
+                key={tab.value}
+                value={tab.value}
+                label={
+                  <Stack direction="row" alignItems="baseline" spacing={1}>
+                    <span>{tab.label}</span>
+                    {tab.hint && (
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {tab.hint}
+                      </Typography>
+                    )}
+                  </Stack>
+                }
+              />
+            ))}
+          </Tabs>
+
           <ProductTableToolbar
             filters={filters}
             onFilters={handleFilters}
-            roleOptions={[]}
+            onResetFilters={handleResetFilters}
+            canReset={canReset}
+            results={count}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            showBundles={showBundles}
+            onToggleBundles={handleShowBundles}
           />
 
-          <ProductTableFiltersResult
-            filters={filters}
-            onFilters={handleFilters}
-            //
-            onResetFilters={handleResetFilters}
-            //
-            results={count}
-            sx={{ p: 2.5, pt: 0 }}
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Switch checked={showBundles} onChange={handleShowBundles} />
-            <Typography onClick={handleShowBundles} style={{ cursor: 'pointer' }}>
-              Bundels tonen
-            </Typography>
-          </Box>
+          {table.selected.length > 0 && (
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="wrap"
+              useFlexGap
+              spacing={1}
+              sx={{ px: 2, py: 1, bgcolor: 'grey.800', color: 'common.white' }}
+            >
+              <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+                {table.selected.length}{' '}
+                {table.selected.length === 1 ? 'product geselecteerd' : 'producten geselecteerd'}
+              </Typography>
+              <Button
+                variant="outlined"
+                color="inherit"
+                size="small"
+                startIcon={<Iconify icon="solar:eye-closed-bold" />}
+                onClick={confirm.onTrue}
+              >
+                {t('hide')}
+              </Button>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => table.onSelectAllRows(false, [])}
+                sx={{ opacity: 0.72 }}
+              >
+                Selectie wissen
+              </Button>
+            </Stack>
+          )}
+
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
-            <TableSelectedAction
-              dense={table.dense}
-              numSelected={table.selected?.length}
-              rowCount={productList?.length}
-              onSelectAllRows={(checked) =>
-                table.onSelectAllRows(
-                  checked,
-                  productList.map((row) => row.id)
-                )
-              }
-              action={
-                <Tooltip title={t('delete')}>
-                  <IconButton color="primary" onClick={confirm.onTrue}>
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Tooltip>
-              }
-            />
+            {isLoading && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  zIndex: 1,
+                }}
+              >
+                <LoadingScreen />
+              </Box>
+            )}
 
             <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'}>
+              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 1240 }}>
                 <TableHeadCustom
                   order={table.order}
                   orderBy={table.orderBy}
@@ -474,34 +516,36 @@ export default function ProductListView() {
                   }
                 />
                 <TableBody>
-                  {isLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                      <Iconify icon="svg-spinners:8-dots-rotate" sx={{ mr: -3 }} />
-                    </Box>
-                  ) : (
-                    <>
-                      {productList.map((row) => (
-                        <ProductTableRow
-                          key={row.id}
-                          row={row}
-                          selected={table.selected.includes(row.id)}
-                          onSelectRow={() => table.onSelectRow(row.id)}
-                          onDeleteRow={() => handleDeleteRow(row.id)}
-                          onEditRow={() => handleEditRow(row.id)}
-                          onEditStock={() => handleUpdateStock(row)}
-                          handleLightBoxSlides={handleLightBoxSlides}
-                          onToggleVisibility={onToggleVisibility(row)}
-                        />
-                      ))}
+                  {productList.map((row) => (
+                    <ProductTableRow
+                      key={row.id}
+                      row={row}
+                      selected={table.selected.includes(row.id)}
+                      onSelectRow={() => table.onSelectRow(row.id)}
+                      onDeleteRow={() => handleDeleteRow(row.id)}
+                      onEditRow={() => handleEditRow(row.id)}
+                      handleLightBoxSlides={handleLightBoxSlides}
+                      onToggleVisibility={onToggleVisibility(row)}
+                    />
+                  ))}
 
-                      {/* <TableEmptyRows
-                    height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, productList?.length)}
-                  />
-
-                  <TableNoData notFound={notFound} /> */}
-                    </>
-                  )}{' '}
+                  {!isLoading && productList.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={PRODUCT_TABLE_COLUMNS} align="center" sx={{ py: 8 }}>
+                        <Typography variant="subtitle1">Geen producten gevonden</Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                          {canReset
+                            ? 'Pas de filters aan of wis ze om alle producten te zien.'
+                            : 'Er zijn nog geen producten.'}
+                        </Typography>
+                        {canReset && (
+                          <Button variant="outlined" onClick={handleResetFilters} sx={{ mt: 2 }}>
+                            Filters wissen
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </Scrollbar>
@@ -521,8 +565,10 @@ export default function ProductListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title={t('delete')}
-        content={t('sure_delete_selected_items')}
+        title={t('hide')}
+        content={`${table.selected.length} ${
+          table.selected.length === 1 ? 'product' : 'producten'
+        } verbergen? Ze verhuizen naar het tabblad Verborgen.`}
         action={
           <Button
             variant="contained"
@@ -532,58 +578,11 @@ export default function ProductListView() {
               confirm.onFalse();
             }}
           >
-            {t('delete')}
+            {t('hide')}
           </Button>
         }
       />
 
-      {isStockUpdateDialogOpen ? (
-        <Dialog
-          fullWidth
-          maxWidth="sm"
-          open={isStockUpdateDialogOpen}
-          onClose={() => setStockUpdateDialogOpen(false)}
-          transitionDuration={{
-            enter: theme.transitions.duration.shortest,
-            exit: 0,
-          }}
-          PaperProps={{
-            sx: {
-              mt: 15,
-              overflow: 'unset',
-            },
-          }}
-        >
-          <Box sx={{ p: 3, borderBottom: `solid 1px ${theme.palette.divider}` }}>
-            <Typography sx={{ mb: 2 }}>{selectedSingleRow?.title}</Typography>
-
-            <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-              {`${t('overall_stock')}: ${selectedSingleRow?.overall_stock}`}
-            </Typography>
-            <TextField name="amount" label={t('amount')} sx={{ width: 100 }} type="number" />
-            <FormControl sx={{ minWidth: 300 }}>
-              <InputLabel id="demo-select-small-label">{t('select')}</InputLabel>
-              <Select labelId="demo-select-small-label" id="demo-select-small">
-                <MenuItem value="stock_update_choice_0">{t('stock_update_choice_0')}</MenuItem>
-                <MenuItem value="stock_update_choice_1">{t('stock_update_choice_1')}</MenuItem>
-                <MenuItem value="stock_update_choice_2">{t('stock_update_choice_2')}</MenuItem>
-                <MenuItem value="stock_update_choice_3">{t('stock_update_choice_3')}</MenuItem>
-                <MenuItem value="stock_update_choice_4">{t('stock_update_choice_4')}</MenuItem>
-                <MenuItem value="stock_update_choice_5">{t('stock_update_choice_5')}</MenuItem>
-                <MenuItem value="stock_update_choice_6">{t('stock_update_choice_6')}</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-          <DialogActions>
-            <Button onClick={() => setStockUpdateDialogOpen(false)} color="primary">
-              {t('cancel')}
-            </Button>
-            <Button onClick={updateStock} color="primary">
-              {t('save')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      ) : null}
       <Lightbox open={openLightBox} close={() => setOpenLightBox(false)} slides={lightBoxSlides} />
     </>
   );

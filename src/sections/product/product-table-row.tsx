@@ -1,26 +1,30 @@
 import { useState } from 'react';
 
+import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
+import Avatar from '@mui/material/Avatar';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
-import Link from '@mui/material/Link';
-import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
-import { HOST_API, IMAGE_FOLDER_PATH } from 'src/config-global';
-import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
+import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
-import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -30,17 +34,31 @@ import { IProductItem } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
+export const PRODUCT_TABLE_COLUMNS = 11;
+
+// Below this share of the selling price the margin is shown as a warning.
+const LOW_MARGIN_PCT = 15;
+
+const VISIBILITY_EDITORS = [
+  'info@europowerbv.com',
+  'm.sahin@europowerbv.nl',
+  'hatice.sahin@europowerbv.nl',
+];
+
+// Always two decimals: cost prices are compared at cent level.
+const priceFormat = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
+
+const stopPropagation = (event: React.SyntheticEvent) => event.stopPropagation();
+
 type Props = {
   selected: boolean;
   onEditRow: VoidFunction;
   row: IProductItem;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
-  onEditStock: VoidFunction;
-  handleLightBoxSlides: VoidFunction;
+  handleLightBoxSlides: (images: string[]) => void;
   onToggleVisibility: VoidFunction;
 };
-const hostUrl = HOST_API.includes('kooptop') ? 'kooptop.com' : '52.28.100.129:3000';
 
 export default function ProductTableRow({
   row,
@@ -48,7 +66,6 @@ export default function ProductTableRow({
   onEditRow,
   onSelectRow,
   onDeleteRow,
-  onEditStock,
   handleLightBoxSlides,
   onToggleVisibility,
 }: Props) {
@@ -56,244 +73,284 @@ export default function ProductTableRow({
     id,
     images,
     title,
-    description,
     ean,
     is_product_active,
     price_per_piece,
     price_cost,
     overall_stock,
     free_stock,
-    variants,
+    min_stock_value,
     variants_count,
     slug,
     is_visible_particular,
     is_visible_B2B,
     siblings_count,
+    supplier,
     vat,
-  } = row;
+  } = row as any;
+
+  const { t } = useTranslate();
   const { enqueueSnackbar } = useSnackbar();
 
-  const [isActive, setIsActive] = useState(is_visible_particular);
-  const [isActiveB2B, setIsActiveB2B] = useState(is_visible_B2B);
+  const [isActive, setIsActive] = useState<boolean>(is_visible_particular);
+  const [isActiveB2B, setIsActiveB2B] = useState<boolean>(is_visible_B2B);
+
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const allowedEmails = [
-    'info@europowerbv.com',
-    'm.sahin@europowerbv.nl',
-    'hatice.sahin@europowerbv.nl',
-  ];
-  const canToggle = allowedEmails.includes(currentUser?.email);
-  const theme = useTheme();
-  const styles = {
-    hideOnSm: {
-      [theme.breakpoints.down('sm')]: {
-        display: 'none',
-      },
-    },
-    hideOnMd: {
-      [theme.breakpoints.down('md')]: {
-        display: 'none',
-      },
-    },
-  };
-  const { t, onChangeLang } = useTranslate();
+  const canToggle = VISIBILITY_EDITORS.includes(currentUser?.email);
 
   const confirm = useBoolean();
-
   const popover = usePopover();
-  const popoverClick = (e: any) => {
-    e.stopPropagation();
-    popover.onOpen(e);
-  };
-  const onSelectRowClick = (e: any) => {
-    e.stopPropagation();
-    onSelectRow();
-  };
-  const handleActiveSwitchChange = async (e) => {
-    e.stopPropagation(); // Stop event propagation
 
-    if (!canToggle) {
-      return; // Do nothing if not superuser
-    }
+  const handleVisibility =
+    (field: 'is_visible_particular' | 'is_visible_B2B') =>
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!canToggle) return;
 
-    try {
-      const response = await axiosInstance.put(`/products/${id}/`, {
-        is_visible_particular: e.target.checked,
-        title,
-      });
-      setIsActive(response?.data?.is_visible_particular ?? isActive);
-    } catch (error) {
-      console.error('Missing Fields:', error);
-      const missingFields = Object.values(error)?.[0] || [];
-      missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-      });
-    }
-  };
-  const handleActiveSwitchChange2 = async (e) => {
-    e.stopPropagation(); // Stop event propagation
+      const [current, setCurrent] =
+        field === 'is_visible_particular' ? [isActive, setIsActive] : [isActiveB2B, setIsActiveB2B];
 
-    if (!canToggle) {
-      return; // Do nothing if not superuser
-    }
+      try {
+        const response = await axiosInstance.put(`/products/${id}/`, {
+          [field]: event.target.checked,
+          title,
+        });
+        setCurrent(response?.data?.[field] ?? current);
+      } catch (error) {
+        console.error('Missing Fields:', error);
+        const missingFields: any = Object.values(error)?.[0] || [];
+        missingFields.forEach((element: string) => {
+          enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+        });
+      }
+    };
 
-    try {
-      const response = await axiosInstance.put(`/products/${id}/`, {
-        is_visible_B2B: e.target.checked,
-        title,
-      });
-      setIsActiveB2B(response?.data?.is_visible_B2B ?? isActiveB2B);
-    } catch (error) {
-      console.error('Missing Fields:', error);
-      const missingFields = Object.values(error)?.[0] || [];
-      missingFields.forEach((element) => {
-        enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-      });
-    }
-  };
-  const handleImageClick = (e) => {
-    e.stopPropagation();
-    handleLightBoxSlides(images);
-  };
+  const price = Number(price_per_piece) || 0;
+  const cost = Number(price_cost) || 0;
+  const marginPct = price > 0 && cost > 0 ? Math.round(((price - cost) / price) * 100) : null;
+
+  const free = Number(free_stock) || 0;
+  const overall = Number(overall_stock) || 0;
+  const minStock = Number(min_stock_value) || 0;
+  const outOfStock = free <= 0;
+  const lowStock = !outOfStock && minStock > 0 && free <= minStock;
+  const stockColor = (outOfStock && 'error') || (lowStock && 'warning') || 'success';
+
+  const counts = [
+    variants_count ? `${variants_count} ${variants_count === 1 ? 'bundel' : 'bundels'}` : '',
+    siblings_count ? `${siblings_count} ${siblings_count === 1 ? 'variant' : 'varianten'}` : '',
+  ].filter(Boolean);
+
+  const shopLinks = [
+    {
+      show: is_product_active && isActive,
+      host: 'kooptop.com',
+      icon: 'kooptop.png',
+    },
+    {
+      show: is_product_active && isActiveB2B,
+      host: 'europowerbv.com',
+      icon: 'europowerbv.png',
+    },
+  ].filter((shop) => shop.show);
+
   return (
     <>
-      <style>
-        {`
-          .links {
-            display: none;
-          }
-          .has-links:hover .links {
-            display: inline;
-          }
-        `}
-      </style>
-      <TableRow sx={{ cursor: 'pointer' }} hover selected={selected} onClick={() => onEditRow()}>
-        <TableCell padding="checkbox" sx={{ p: 1, whiteSpace: 'wrap' }}>
-          <Checkbox checked={selected} onClick={onSelectRowClick} />
-        </TableCell>
-
-        <TableCell
-          sx={{ p: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={handleImageClick}
-        >
-          <Image
-            alt={title}
-            src={`${IMAGE_FOLDER_PATH}${images?.[0]}`}
-            sxImg={{ width: 'auto', height: 'auto', maxWidth: '75px', maxHeight: '50px' }}
+      <TableRow hover selected={selected} onClick={onEditRow} sx={{ cursor: 'pointer' }}>
+        <TableCell padding="checkbox" onClick={stopPropagation}>
+          <Checkbox
+            checked={selected}
+            onClick={onSelectRow}
+            inputProps={{ 'aria-label': `Selecteer ${title}` }}
           />
         </TableCell>
 
-        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'wrap' }} className="has-links">
-          <ListItemText
-            primary={title}
-            secondary={description}
-            primaryTypographyProps={{ typography: 'body2' }}
-            secondaryTypographyProps={{
-              component: 'span',
-              color: 'text.disabled',
-            }}
-          />
-          <span className="links">
-            {is_visible_particular && (
-              <a
-                target="_blank"
-                href={`https://kooptop.com/product/${id}/${slug}`}
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                WEB
-              </a>
-            )}
-            {'  '}
-            {is_visible_B2B && (
-              <a
-                target="_blank"
-                href={`https://europowerbv.com/product/${id}/${slug}`}
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                B2B
-              </a>
-            )}
-          </span>
+        <TableCell sx={{ px: 1, maxWidth: 420 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+            <Avatar
+              alt={title}
+              src={images?.[0] ? `${IMAGE_FOLDER_PATH}${images[0]}` : undefined}
+              variant="rounded"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleLightBoxSlides(images || []);
+              }}
+              sx={{
+                width: 48,
+                height: 48,
+                flexShrink: 0,
+                bgcolor: 'background.neutral',
+                border: (theme) => `solid 1px ${theme.palette.divider}`,
+                '& img': { objectFit: 'contain' },
+              }}
+            >
+              <Iconify icon="solar:box-linear" sx={{ color: 'text.disabled' }} />
+            </Avatar>
+
+            <Box sx={{ minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                <Link
+                  component={RouterLink}
+                  href={`${paths.dashboard.product.edit(String(id))}?tab=0`}
+                  onClick={stopPropagation}
+                  variant="subtitle2"
+                  color="inherit"
+                  noWrap
+                  title={title}
+                >
+                  {title}
+                </Link>
+              </Stack>
+
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums', mr: 0.5 }}
+                >
+                  {ean || '—'}
+                </Typography>
+
+                {shopLinks.map((shop) => (
+                  <Tooltip key={shop.host} title={`Bekijk op ${shop.host}`}>
+                    <Box
+                      component="a"
+                      href={`https://${shop.host}/product/${id}/${slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Bekijk op ${shop.host}`}
+                      onClick={stopPropagation}
+                      sx={{
+                        width: 26,
+                        height: 26,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 0.75,
+                        border: (theme) => `solid 1px ${theme.palette.divider}`,
+                        bgcolor: 'background.paper',
+                        '&:hover': { bgcolor: 'action.hover' },
+                      }}
+                    >
+                      <img
+                        src={`/assets/icons/home/${shop.icon}`}
+                        alt=""
+                        style={{ width: 16, height: 16 }}
+                      />
+                    </Box>
+                  </Tooltip>
+                ))}
+              </Stack>
+            </Box>
+          </Stack>
         </TableCell>
-        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
-          {row.supplier?.id ? (
+
+        <TableCell sx={{ px: 1, maxWidth: 180 }}>
+          {supplier?.id ? (
             <Link
               component={RouterLink}
-              href={paths.dashboard.supplier.edit(String(row.supplier.id))}
-              sx={{
-                color: 'inherit',
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline',
-                  color: 'primary.main',
-                },
-              }}
-              onClick={(e) => e.stopPropagation()}
+              href={paths.dashboard.supplier.edit(String(supplier.id))}
+              onClick={stopPropagation}
+              variant="body2"
+              color="inherit"
+              noWrap
+              sx={{ display: 'block' }}
             >
-              {row.supplier?.name || '-'}
+              {supplier.name || '—'}
             </Link>
           ) : (
-            row.supplier?.name || '-'
+            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+              —
+            </Typography>
           )}
         </TableCell>
-        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_per_piece}</TableCell>
-        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{price_cost ?? '-'}</TableCell>
-        <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
-          {variants_count || '-'}
-        </TableCell>
-        <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>
-          {siblings_count || '-'}
-        </TableCell>
-        <TableCell sx={{ p: 1, whiteSpace: 'nowrap' }}>{vat}</TableCell>
-        <TableCell sx={{ p: 1, ...styles.hideOnSm, whiteSpace: 'nowrap' }}>{ean}</TableCell>
-        <TableCell sx={{ p: 1, ...styles.hideOnMd, whiteSpace: 'nowrap' }}>
-          {free_stock}/{overall_stock}
-        </TableCell>
 
         <TableCell
-          sx={{ p: 1, whiteSpace: 'nowrap', pointerEvents: is_product_active ? 'auto' : 'none' }}
+          align="right"
+          sx={{ px: 1, pr: 2, typography: 'subtitle2', whiteSpace: 'nowrap' }}
         >
-          <div onClick={(e) => e.stopPropagation()} tabIndex={0}>
-            <Switch
-              name="is_visible_particular"
-              checked={isActive}
-              disabled={!canToggle || !is_product_active}
-              onChange={handleActiveSwitchChange}
-            />
-          </div>
+          {price > 0 ? priceFormat.format(price) : '—'}
         </TableCell>
-        <TableCell
-          sx={{ p: 1, whiteSpace: 'nowrap', pointerEvents: is_product_active ? 'auto' : 'none' }}
-        >
-          <div onClick={(e) => e.stopPropagation()} tabIndex={0}>
-            <Switch
-              name="is_visible_B2B"
-              checked={isActiveB2B}
-              disabled={!canToggle || !is_product_active}
-              onChange={handleActiveSwitchChange2}
-            />
-          </div>
-        </TableCell>
-        <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
-          {/* <Tooltip title="Quick Edit" placement="top" arrow>
-            <IconButton color={quickEdit.value ? 'inherit' : 'default'} onClick={quickEdit.onTrue}>
-              <Iconify icon="solar:pen-bold" />
-            </IconButton>
-          </Tooltip> */}
 
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popoverClick}>
+        <TableCell align="right" sx={{ px: 1, pr: 2, whiteSpace: 'nowrap' }}>
+          <Typography variant="body2">{cost > 0 ? priceFormat.format(cost) : '—'}</Typography>
+          {cost > 0 ? (
+            marginPct !== null && (
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 600,
+                  color: marginPct < LOW_MARGIN_PCT ? 'error.main' : 'success.dark',
+                }}
+              >
+                Marge {marginPct}%
+              </Typography>
+            )
+          ) : (
+            <Typography variant="caption" sx={{ fontWeight: 600, color: 'warning.dark' }}>
+              Geen kostprijs
+            </Typography>
+          )}
+        </TableCell>
+
+        <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>
+          <Typography
+            variant="body2"
+            sx={{ ...(!counts.length && { color: 'text.disabled' }) }}
+          >
+            {counts.join(' · ') || '—'}
+          </Typography>
+        </TableCell>
+
+        <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>{vat}%</TableCell>
+
+        <TableCell sx={{ px: 1, pr: 2, whiteSpace: 'nowrap' }}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontVariantNumeric: 'tabular-nums',
+              ...(outOfStock && { color: 'error.main', fontWeight: 600 }),
+              ...(lowStock && { color: 'warning.dark', fontWeight: 600 }),
+            }}
+          >
+            {free} / {overall}
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            color={stockColor}
+            value={overall > 0 ? Math.min(100, Math.max(0, (free / overall) * 100)) : 0}
+            sx={{ mt: 0.5, height: 4, borderRadius: 1 }}
+          />
+        </TableCell>
+
+        <TableCell sx={{ px: 1 }} onClick={stopPropagation}>
+          <Switch
+            checked={isActive}
+            disabled={!canToggle || !is_product_active}
+            onChange={handleVisibility('is_visible_particular')}
+            inputProps={{ 'aria-label': `Zichtbaar voor particulieren: ${title}` }}
+          />
+        </TableCell>
+
+        <TableCell sx={{ px: 1 }} onClick={stopPropagation}>
+          <Switch
+            checked={isActiveB2B}
+            disabled={!canToggle || !is_product_active}
+            onChange={handleVisibility('is_visible_B2B')}
+            inputProps={{ 'aria-label': `Zichtbaar voor B2B: ${title}` }}
+          />
+        </TableCell>
+
+        <TableCell align="right" sx={{ px: 1 }} onClick={stopPropagation}>
+          <IconButton
+            color={popover.open ? 'inherit' : 'default'}
+            onClick={popover.onOpen}
+            aria-label={`Acties voor ${title}`}
+          >
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
       </TableRow>
 
-      <CustomPopover
-        open={popover.open}
-        onClose={popover.onClose}
-        arrow="right-top"
-        // sx={{ width: 140 }}
-      >
+      <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
         <MenuItem
           onClick={() => {
             onEditRow();
@@ -305,19 +362,9 @@ export default function ProductTableRow({
         </MenuItem>
         <MenuItem
           onClick={() => {
-            onEditStock();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="eva:cube-fill" />
-          {t('stock_update_choices')}
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
             onToggleVisibility();
             popover.onClose();
           }}
-          sx={{ color: 'error.main' }}
         >
           <Iconify icon={is_product_active ? 'solar:eye-closed-bold' : 'solar:eye-bold'} />
           {is_product_active ? t('hide') : t('show')}
