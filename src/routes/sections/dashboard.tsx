@@ -74,12 +74,7 @@ const EmployeeAccountPage = lazy(() => import('src/pages/dashboard/employee/acco
 const EmployeeCreatePage = lazy(() => import('src/pages/dashboard/employee/new').catch(() => ({ default: () => <div>Loading page</div> })));
 const EmployeeEditPage = lazy(() => import('src/pages/dashboard/employee/edit').catch(() => ({ default: () => <div>Loading page</div> })));
 // STATICS
-const StaticsProfilePage = lazy(() => import('src/pages/dashboard/statics/profile').catch(() => ({ default: () => <div>Loading page</div> })));
-const StaticsCardsPage = lazy(() => import('src/pages/dashboard/statics/cards').catch(() => ({ default: () => <div>Loading page</div> })));
 const StaticsListPage = lazy(() => import('src/pages/dashboard/statics/list').catch(() => ({ default: () => <div>Loading page</div> })));
-const StaticsAccountPage = lazy(() => import('src/pages/dashboard/statics/account').catch(() => ({ default: () => <div>Loading page</div> })));
-const StaticsCreatePage = lazy(() => import('src/pages/dashboard/statics/new').catch(() => ({ default: () => <div>Loading page</div> })));
-const StaticsEditPage = lazy(() => import('src/pages/dashboard/statics/edit').catch(() => ({ default: () => <div>Loading page</div> })));
 // PURCHASE
 const PurchaseProfilePage = lazy(() => import('src/pages/dashboard/purchase/profile').catch(() => ({ default: () => <div>Loading page</div> })));
 const PurchaseCardsPage = lazy(() => import('src/pages/dashboard/purchase/cards').catch(() => ({ default: () => <div>Loading page</div> })));
@@ -150,13 +145,8 @@ export const dashboardRoutes = [
       {
         path: 'statics',
         children: [
-          { element: <StaticsProfilePage />, index: true },
-          { path: 'profile', element: <StaticsProfilePage /> },
-          { path: 'cards', element: <StaticsCardsPage /> },
+          { element: <StaticsListPage />, index: true },
           { path: 'list', element: <StaticsListPage /> },
-          { path: 'new', element: <StaticsCreatePage /> },
-          { path: ':id/edit', element: <StaticsEditPage /> },
-          { path: 'account', element: <StaticsAccountPage /> },
         ],
       },
       {

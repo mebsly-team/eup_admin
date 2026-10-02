@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 
-import { UserListView } from 'src/sections/statics/view';
+import { StaticsView } from 'src/sections/statics/view';
 
 // ----------------------------------------------------------------------
 
-export default function UserListPage() {
+export default function StaticsPage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard: Statics</title>
+        <title> Dashboard: Websiteteksten</title>
       </Helmet>
 
-      <UserListView />
+      <StaticsView />
     </>
   );
 }
