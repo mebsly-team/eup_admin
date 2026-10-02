@@ -31,7 +31,7 @@ export default function CategoryCreateView() {
           { name: t('new_category') },
         ]}
         sx={{
-          mb: { xs: 3, md: 5 },
+          mb: 3,
         }}
       />
 

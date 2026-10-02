@@ -1,21 +1,21 @@
-import isEqual from 'lodash/isEqual';
-import { useLocation } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
+import TableRow from '@mui/material/TableRow';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
-import IconButton from '@mui/material/IconButton';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
+import TableSortLabel from '@mui/material/TableSortLabel';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
-
-import { useBoolean } from 'src/hooks/use-boolean';
+import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import axiosInstance from 'src/utils/axios';
 
@@ -24,204 +24,104 @@ import { useTranslate } from 'src/locales';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
-import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useSettingsContext } from 'src/components/settings';
+import { LoadingScreen } from 'src/components/loading-screen';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
-import {
-  useTable,
-  TableHeadCustom,
-  TableSelectedAction,
-  TablePaginationCustom,
-} from 'src/components/table';
+import { useTable, TablePaginationCustom } from 'src/components/table';
 
-import {
-  ICategoryItem,
-  ICategoryTableFilters,
-  ICategoryTableFilterValue,
-} from 'src/types/category';
-
-import CategoryTableRow from '../category-table-row';
 import CategoryTableToolbar from '../category-table-toolbar';
-import CategoryTableFiltersResult from '../category-table-filters-result';
-
-// ----------------------------------------------------------------------
-
-const defaultFilters: ICategoryTableFilters = {
-  name: '',
-};
+import CategoryTableRow, { CATEGORY_TABLE_COLUMNS } from '../category-table-row';
 
 // ----------------------------------------------------------------------
 
 export default function CategoryListView() {
   const { enqueueSnackbar } = useSnackbar();
-  const table = useTable();
   const settings = useSettingsContext();
   const router = useRouter();
-  const confirm = useBoolean();
-  const [categoryList, setCategoryList] = useState<ICategoryItem[]>([]);
+  const searchParams = useSearchParams();
+  const { t } = useTranslate();
+
+  const pageParam = searchParams.get('page');
+
+  const table = useTable({
+    defaultOrderBy: 'id',
+    defaultOrder: 'desc',
+    defaultCurrentPage: pageParam ? Math.max(parseInt(pageParam, 10) - 1, 0) : 0,
+  });
+
+  const [categoryList, setCategoryList] = useState<any[]>([]);
   const [count, setCount] = useState(0);
-  const [tableData, setTableData] = useState<ICategoryItem[]>(categoryList);
-  const [filters, setFilters] = useState(defaultFilters);
-  const location = useLocation();
-  const { t, onChangeLang } = useTranslate();
-
-  const TABLE_HEAD = [
-    { id: 'id', label: 'ID', width: 180, align: 'center' },
-    { id: 'image', label: t('image'), width: 180 },
-    { id: 'name', label: t('naam') },
-    // { id: 'parent_category', label: 'Parent' },
-    { id: 'sub_categories', label: t('subcategorieën') },
-    // { id: 'description', label: 'Description', width: 220 },
-  ];
-  const dataInPage =
-    categoryList?.slice(
-      table.page * table.rowsPerPage,
-      table.page * table.rowsPerPage + table.rowsPerPage
-    ) || [];
-
-  const denseHeight = table.dense ? 56 : 56 + 20;
-
-  const canReset = !isEqual(defaultFilters, filters);
-
-  const notFound = (!categoryList?.length && canReset) || !categoryList?.length;
+  const [isLoading, setIsLoading] = useState(true);
+  const [name, setName] = useState(searchParams.get('name') || '');
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const pageParam = params.get('page');
-    const urlPage = pageParam ? Number(pageParam) : 1;
-    const newPageIdx = urlPage > 0 ? urlPage - 1 : 0;
+    const params = new URLSearchParams(window.location.search);
 
-    if (table.page !== newPageIdx) {
-      table.setPage(newPageIdx);
+    if (table.page > 0) params.set('page', String(table.page + 1));
+    else params.delete('page');
+
+    if (name) params.set('name', name);
+    else params.delete('name');
+
+    const newSearch = params.toString();
+    const currentSearch = window.location.search.replace(/^\?/, '');
+
+    if (newSearch !== currentSearch) {
+      router.push(`${window.location.pathname}${newSearch ? `?${newSearch}` : ''}`);
     }
+  }, [table.page, name, router]);
 
-    const urlName = params.get('name') || '';
-
-    if (filters.name !== urlName) {
-      setFilters({
-        name: urlName,
-      });
-    }
-  }, [location.search]);
-
-  useEffect(() => {
-    getAll();
-  }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
-
-  console.log('categoryList', categoryList);
+  const latestRequestRef = useRef(0);
 
   const getAll = async () => {
-    const searchFilter = filters.name ? `&search=${filters.name}` : '';
-    const orderByParam = table.orderBy
-      ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
-      : '';
+    latestRequestRef.current += 1;
+    const requestId = latestRequestRef.current;
+    setIsLoading(true);
+
+    const searchFilter = name ? `&search=${encodeURIComponent(name)}` : '';
+    const ordering = `&ordering=${table.order === 'desc' ? '-' : ''}${table.orderBy}`;
+
     try {
       const { data } = await axiosInstance.get(
-        `/categories/?limit=${table.rowsPerPage}&offset=${table.rowsPerPage * table.page
-        }${searchFilter}${orderByParam}`
+        `/categories/?limit=${table.rowsPerPage}&offset=${
+          table.rowsPerPage * table.page
+        }${searchFilter}${ordering}`
       );
-      console.log('data', data);
+      // A slower response of an older search must not overwrite the newest one
+      if (requestId !== latestRequestRef.current) return;
       setCount(data.count || 0);
       setCategoryList(data.results || []);
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.errors) {
-        const errorMessages = Object.values(error.response.data.errors).flat();
-        errorMessages.forEach((errorMessage) => {
-          console.error(errorMessage);
-          enqueueSnackbar({ variant: 'error', message: errorMessage });
-        });
-      } else {
-        const errorMessages = Object.entries(error);
-        if (errorMessages.length) {
-          errorMessages.forEach(([fieldName, errors]) => {
-            errors.forEach((errorMsg) => {
-              enqueueSnackbar({
-                variant: 'error',
-                message: `${t(fieldName)}: ${errorMsg}`,
-              });
-            });
-          });
-        } else {
-          console.error('An unexpected error occurred:', error);
-          enqueueSnackbar({ variant: 'error', message: JSON.stringify(error) });
-        }
-      }
+      console.error(error);
+      if (requestId !== latestRequestRef.current) return;
+      enqueueSnackbar(t('error'), { variant: 'error' });
     }
+    setIsLoading(false);
   };
 
-  const handleFilters = useCallback(
-    (name: string, value: ICategoryTableFilterValue) => {
-      const newSearchParams = new URLSearchParams(location.search);
-      newSearchParams.set(name, value);
-      if (name !== 'page') newSearchParams.set('page', '1');
+  useEffect(() => {
+    getAll();
+  }, [name, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
+  const handleSearch = useCallback(
+    (value: string) => {
       table.onResetPage();
-      router.push(`${location.pathname}?${newSearchParams.toString()}`);
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+      setName(value);
     },
-    [location.pathname, location.search, router, table]
+    [table]
   );
 
-  const handleTablePageChange = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement> | null, pageNo: number) => {
-      const params = new URLSearchParams(location.search);
-      params.set('page', String(pageNo + 1));
-      router.push(`${location.pathname}?${params.toString()}`);
-      table.onChangePage(e, pageNo);
-    },
-    [location.pathname, location.search, router, table]
-  );
-
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
-
-  const handleDeleteRow = useCallback(
-    async (id: string) => {
-      try {
-        const { data } = await axiosInstance.delete(`/categories/${id}/`);
-        enqueueSnackbar(t('delete_success'));
-        getAll();
-      } catch (error) {
-        console.log('🚀 ~ onSubmit ~ error:', error);
-        if (error.response && error.response.data && error.response.data.errors) {
-          const errorMessages = Object.values(error.response.data.errors).flat();
-          errorMessages.forEach((errorMessage) => {
-            console.error(errorMessage);
-            enqueueSnackbar({ variant: 'error', message: errorMessage });
-          });
-        } else {
-          console.error('An unexpected error occurred:', error);
-          enqueueSnackbar({ variant: 'error', message: t('error') });
-        }
-      }
-    },
-    [enqueueSnackbar, t, getAll]
-  );
-
-  const handleDeleteRows = useCallback(async () => {
-    const selectedIds = table.selected;
-    const promises = selectedIds.map(async (id) => {
-      try {
-        await axiosInstance.delete(`/categories/${id}/`);
-      } catch (error) {
-        console.error(`Error deleting ID ${id}:`, error);
-      }
-    });
-
+  const handleDeleteRow = async (id: string) => {
     try {
-      await Promise.all(promises); // Wait for all delete requests to complete
-      const remainingRows = tableData.filter((row) => !selectedIds.includes(row.id));
-      setTableData(remainingRows); // Update tableData state with remaining rows
+      await axiosInstance.delete(`/categories/${id}/`);
       enqueueSnackbar(t('delete_success'));
-      getAll(); // Refresh data if needed
+      getAll();
     } catch (error) {
-      console.error('Error deleting rows:', error);
+      console.error(error);
+      // The API refuses categories that still have subcategories, and non-superadmins.
+      enqueueSnackbar(error?.detail || error?.error || t('error'), { variant: 'error' });
     }
-  }, [tableData, table.selected, enqueueSnackbar, getAll, t]);
+  };
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -229,146 +129,149 @@ export default function CategoryListView() {
     },
     [router]
   );
+
   const handleAddSubCategoryRow = useCallback(
     (parent: string) => {
       router.push(`${paths.dashboard.category.new}?parent=${parent}`);
     },
     [router]
   );
+
+  const renderSortLabel = (id: string, label: string) => (
+    <TableSortLabel
+      active={table.orderBy === id}
+      direction={table.orderBy === id ? table.order : 'asc'}
+      onClick={() => table.onSort(id)}
+    >
+      {label}
+    </TableSortLabel>
+  );
+
   return (
-    <>
-      <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-        <CustomBreadcrumbs
-          heading={t('list')}
-          links={[
-            { name: t('dashboard'), href: paths.dashboard.root },
-            { name: t('category'), href: paths.dashboard.category.root },
-            { name: t('list') },
-          ]}
-          action={
-            <Button
-              component={RouterLink}
-              href={paths.dashboard.category.new}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              {t('new_category')}
-            </Button>
-          }
-          sx={{
-            mb: { xs: 3, md: 5 },
-          }}
-        />
-
-        <Card>
-          <CategoryTableToolbar filters={filters} onFilters={handleFilters} />
-
-          {canReset && (
-            <CategoryTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={categoryList?.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
-
-          <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
-            <TableSelectedAction
-              dense={table.dense}
-              numSelected={table.selected?.length}
-              rowCount={categoryList?.length}
-              onSelectAllRows={(checked) =>
-                table.onSelectAllRows(checked, categoryList?.map((row) => row.id))
-              }
-              action={
-                <Tooltip title={t('delete')}>
-                  <IconButton color="primary" onClick={confirm.onTrue}>
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Tooltip>
-              }
-            />
-
-            <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
-                <TableHeadCustom
-                  order={table.order}
-                  orderBy={table.orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={categoryList?.length}
-                  numSelected={table.selected?.length}
-                  onSort={table.onSort}
-                // onSelectAllRows={(checked) =>
-                //   table.onSelectAllRows(
-                //     checked,
-                //     categoryList.map((row) => row.id)
-                //   )
-                // }
-                />
-
-                <TableBody>
-                  {!categoryList?.length ? (
-                    <tr style={{ textAlign: 'center' }}>
-                      <Iconify icon="svg-spinners:8-dots-rotate" />
-                    </tr>
-                  ) : (
-                    categoryList?.map((row) => (
-                      <CategoryTableRow
-                        key={row.id}
-                        row={row}
-                        selected={table.selected.includes(row.id)}
-                        onSelectRow={() => table.onSelectRow(row.id)}
-                        onDeleteRow={handleDeleteRow}
-                        onEditRow={handleEditRow}
-                        onAddSubCategoryRow={handleAddSubCategoryRow}
-                      />
-                    ))
-                  )}
-
-                  {/* <TableEmptyRows
-                    height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, categoryList?.length)}
-                  />
-
-                  <TableNoData notFound={notFound} /> */}
-                </TableBody>
-              </Table>
-            </Scrollbar>
-          </TableContainer>
-
-          <TablePaginationCustom
-            count={count}
-            page={table.page}
-            rowsPerPage={table.rowsPerPage}
-            onPageChange={handleTablePageChange}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
-            dense={table.dense}
-            onChangeDense={table.onChangeDense}
-          />
-        </Card>
-      </Container>
-
-      <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
-        title={t('delete')}
-        content={t('sure_delete_selected_items')}
+    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+      <CustomBreadcrumbs
+        heading="Categorieën"
+        links={[
+          { name: t('dashboard'), href: paths.dashboard.root },
+          { name: t('category'), href: paths.dashboard.category.root },
+          { name: t('list') },
+        ]}
         action={
           <Button
+            component={RouterLink}
+            href={paths.dashboard.category.new}
             variant="contained"
-            color="error"
-            onClick={() => {
-              handleDeleteRows();
-              confirm.onFalse();
-            }}
+            startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            {t('delete')}
+            {t('new_category')}
           </Button>
         }
+        sx={{
+          mb: { xs: 3, md: 5 },
+        }}
       />
-    </>
+
+      <Card>
+        <CategoryTableToolbar
+          name={name}
+          onSearch={handleSearch}
+          onReset={() => handleSearch('')}
+          canReset={!!name}
+          results={count}
+        />
+
+        <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
+          {isLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                minHeight: 120,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                zIndex: 1,
+              }}
+            >
+              <LoadingScreen />
+            </Box>
+          )}
+
+          <Scrollbar>
+            <Table size={table.dense ? 'small' : 'medium'}>
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{ px: 1, pl: 2 }}
+                    sortDirection={table.orderBy === 'name' ? table.order : false}
+                  >
+                    {renderSortLabel('name', 'Categorie')}
+                  </TableCell>
+                  <TableCell sx={{ px: 1, width: { md: 200 } }}>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                      {t('subcategorieën')}
+                    </Box>
+                    <Box component="span" sx={{ display: { sm: 'none' } }}>
+                      Sub.
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    sx={{ px: 1, width: 90, display: { xs: 'none', sm: 'table-cell' } }}
+                    sortDirection={table.orderBy === 'id' ? table.order : false}
+                  >
+                    {renderSortLabel('id', 'ID')}
+                  </TableCell>
+                  <TableCell sx={{ px: 1, width: 56 }} />
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {categoryList.map((row) => (
+                  <CategoryTableRow
+                    key={row.id}
+                    row={row}
+                    onDeleteRow={handleDeleteRow}
+                    onEditRow={handleEditRow}
+                    onAddSubCategoryRow={handleAddSubCategoryRow}
+                  />
+                ))}
+
+                {!isLoading && categoryList.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={CATEGORY_TABLE_COLUMNS} align="center" sx={{ py: 8 }}>
+                      <Typography variant="subtitle1">Geen categorieën gevonden</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                        {name
+                          ? 'Er wordt alleen op hoofdcategorieën gezocht. Pas de zoekterm aan of wis hem.'
+                          : 'Er zijn nog geen categorieën.'}
+                      </Typography>
+                      {!!name && (
+                        <Button variant="outlined" onClick={() => handleSearch('')} sx={{ mt: 2 }}>
+                          Filters wissen
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Scrollbar>
+        </TableContainer>
+
+        <TablePaginationCustom
+          count={count}
+          page={table.page}
+          rowsPerPage={table.rowsPerPage}
+          onPageChange={table.onChangePage}
+          onRowsPerPageChange={table.onChangeRowsPerPage}
+          dense={table.dense}
+          onChangeDense={table.onChangeDense}
+        />
+      </Card>
+    </Container>
   );
 }

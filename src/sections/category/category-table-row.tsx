@@ -1,76 +1,73 @@
 import { useState } from 'react';
 
+import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 
-import { useRouter } from 'src/routes/hooks';
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import { useBoolean } from 'src/hooks/use-boolean';
+
+import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
-import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
-import { ICategoryItem } from 'src/types/category';
-
 // ----------------------------------------------------------------------
-import axiosInstance from 'src/utils/axios';
 
-// ----------------------------------------------------------------------
+export const CATEGORY_TABLE_COLUMNS = 4;
+
+const HIDE_BELOW_SM = { display: { xs: 'none', sm: 'table-cell' } };
+
+// All categories below this one, at any depth.
+const countDescendants = (row: any): number =>
+  (row.sub_categories || []).reduce(
+    (total: number, sub: any) => total + 1 + countDescendants(sub),
+    0
+  );
 
 type Props = {
-  selected: boolean;
-  onEditRow: VoidFunction;
-  row: ICategoryItem;
-  onSelectRow: VoidFunction;
-  onDeleteRow: VoidFunction;
-  onAddSubCategoryRow: VoidFunction;
+  row: any;
+  depth?: number;
+  onEditRow: (id: string) => void;
+  onDeleteRow: (id: string) => Promise<void> | void;
+  onAddSubCategoryRow: (id: string) => void;
 };
 
 export default function CategoryTableRow({
   row,
+  depth = 0,
   onEditRow,
   onDeleteRow,
   onAddSubCategoryRow,
-  table,
-  color = 'rgba(145, 158, 171, 0.08)',
 }: Props) {
-  const { name, image, parent_category, sub_categories } = row;
-  const { t, onChangeLang } = useTranslate();
-  const selected = table?.selected?.includes(row.id);
-  const onSelectRow = () => table?.onSelectRow(row.id);
+  const { id, name, image, slug, sub_categories } = row;
+  const { t } = useTranslate();
   const confirm = useBoolean();
-  const router = useRouter();
-
-  const quickEdit = useBoolean();
-
   const popover = usePopover();
-  const [isSubCategoriesOpen, setSubCategoriesOpen] = useState(false);
+  const [isOpen, setOpen] = useState(false);
 
-  // Define a variable to determine whether the row is a subcategory
-  const isSubcategory = !!parent_category;
+  const subCount = sub_categories?.length || 0;
+  const totalCount = countDescendants(row);
 
-  // Generate a random color for subcategory rows
-  const randomColor = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(
-    Math.random() * 256
-  )},${Math.floor(Math.random() * 256)},0.08)`;
-
-  const handleExport = async () => {
+  const download = async (url: string, filename: string) => {
     try {
-      const response = await axiosInstance.get(`/export/products/?category_id=${row.id}`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const response = await axiosInstance.get(url, { responseType: 'blob' });
+      const href = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `products_category_${name}.csv`);
+      link.href = href;
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -79,72 +76,139 @@ export default function CategoryTableRow({
     }
   };
 
-  const handleExportKort = async () => {
-    try {
-      const response = await axiosInstance.get(`/export/products/kort/?category_id=${row.id}`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `products_category_kort_${name}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error('Export Kort failed', error);
-    }
-  };
-
-  // <TableRow key={row.id} sx={{ marginLeft: '20px' }}>
-
   return (
     <>
-      <TableRow hover selected={selected} sx={{ background: isSubcategory ? color : 'none' }}>
-        <TableCell align="center">{row.id}</TableCell>
+      <TableRow hover sx={depth ? { bgcolor: 'background.neutral' } : undefined}>
+        <TableCell sx={{ px: 1, pl: 2, maxWidth: { xs: '56vw', md: 480 } }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{ minWidth: 0, pl: depth * 3.5 }}
+          >
+            {subCount ? (
+              <IconButton
+                size="small"
+                onClick={() => setOpen(!isOpen)}
+                aria-expanded={isOpen}
+                aria-label={`${isOpen ? 'Verberg' : 'Toon'} subcategorieën van ${name}`}
+              >
+                <Iconify
+                  width={18}
+                  icon={isOpen ? 'eva:arrow-ios-downward-fill' : 'eva:arrow-ios-forward-fill'}
+                />
+              </IconButton>
+            ) : (
+              <Box sx={{ width: 28, flexShrink: 0 }} />
+            )}
 
-        <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-          {image ? <Image alt={name} src={`${IMAGE_FOLDER_PATH}${image}`} maxWidth={100} /> : '-'}
+            {depth === 0 && (
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  flexShrink: 0,
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: 'background.neutral',
+                  color: 'text.disabled',
+                }}
+              >
+                {image ? (
+                  <Box
+                    component="img"
+                    alt=""
+                    loading="lazy"
+                    src={`${IMAGE_FOLDER_PATH}${image}`}
+                    sx={{ width: 1, height: 1, objectFit: 'cover' }}
+                  />
+                ) : (
+                  <Iconify icon="solar:gallery-bold" width={20} />
+                )}
+              </Box>
+            )}
+
+            <Box sx={{ minWidth: 0 }}>
+              <Link
+                component={RouterLink}
+                href={paths.dashboard.category.edit(id)}
+                variant={depth ? 'body2' : 'subtitle2'}
+                color="inherit"
+                noWrap
+                title={name}
+                sx={{ display: 'block' }}
+              >
+                {name}
+              </Link>
+              {slug && (
+                <Typography
+                  variant="caption"
+                  noWrap
+                  sx={{ color: 'text.secondary', display: 'block' }}
+                >
+                  /{slug}
+                </Typography>
+              )}
+            </Box>
+          </Stack>
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{name}</TableCell>
-        {/* <TableCell sx={{ whiteSpace: 'nowrap' }}>{parent_category || '-'}</TableCell> */}
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          {sub_categories?.length || 0}{' '}
-          {sub_categories?.length ? (
-            <Iconify
-              sx={{ cursor: 'pointer' }}
-              width={16}
-              className="arrow"
-              icon="eva:arrow-ios-downward-fill"
-              onClick={() => setSubCategoriesOpen(!isSubCategoriesOpen)}
-            />
-          ) : null}
+        <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>
+          {subCount ? (
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => setOpen(!isOpen)}
+              sx={{ fontWeight: 400, minWidth: 0 }}
+            >
+              <Box component="strong" sx={{ mr: 0.5 }}>
+                {subCount}
+              </Box>
+              {totalCount > subCount && (
+                <Box
+                  component="span"
+                  sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'inline' } }}
+                >
+                  ({totalCount} totaal)
+                </Box>
+              )}
+            </Button>
+          ) : (
+            <Box component="span" sx={{ color: 'text.disabled', px: 1 }}>
+              —
+            </Box>
+          )}
         </TableCell>
 
-        <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
-          {/* <Tooltip title="Quick Edit" placement="top" arrow>
-            <IconButton color={quickEdit.value ? 'inherit' : 'default'} onClick={quickEdit.onTrue}>
-              <Iconify icon="solar:pen-bold" />
-            </IconButton>
-          </Tooltip> */}
+        <TableCell
+          sx={{ px: 1, color: 'text.secondary', fontVariantNumeric: 'tabular-nums', ...HIDE_BELOW_SM }}
+        >
+          {id}
+        </TableCell>
 
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+        <TableCell align="right" sx={{ px: 1 }}>
+          <IconButton
+            color={popover.open ? 'inherit' : 'default'}
+            onClick={popover.onOpen}
+            aria-label={`Acties voor ${name}`}
+          >
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
       </TableRow>
-      {/* <CategoryQuickEditForm currentCategory={row} open={quickEdit.value} onClose={quickEdit.onFalse} /> */}
 
       <CustomPopover
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
-        sx={{ width: 140 }}
+        sx={{ width: 220 }}
       >
         <MenuItem
           onClick={() => {
-            onEditRow(row.id);
+            onEditRow(id);
             popover.onClose();
           }}
         >
@@ -153,30 +217,33 @@ export default function CategoryTableRow({
         </MenuItem>
         <MenuItem
           onClick={() => {
-            handleExport();
+            onAddSubCategoryRow(id);
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="mingcute:add-line" />
+          Subcategorie toevoegen
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            download(`/export/products/?category_id=${id}`, `products_category_${name}.csv`);
             popover.onClose();
           }}
         >
           <Iconify icon="solar:export-bold" />
-          {t('export')}
+          Producten exporteren
         </MenuItem>
         <MenuItem
           onClick={() => {
-            handleExportKort();
+            download(
+              `/export/products/kort/?category_id=${id}`,
+              `products_category_kort_${name}.csv`
+            );
             popover.onClose();
           }}
         >
           <Iconify icon="solar:export-bold" />
-          Export Kort
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            onAddSubCategoryRow(row.id);
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:import-bold" />
-          {t('add_new')}
+          Producten exporteren (kort)
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -194,29 +261,39 @@ export default function CategoryTableRow({
         open={confirm.value}
         onClose={confirm.onFalse}
         title={t('delete')}
-        content={t('sure_delete')}
+        content={
+          <>
+            {t('sure_delete')}
+            <Typography variant="subtitle2" sx={{ mt: 1 }}>
+              {name}
+            </Typography>
+          </>
+        }
         action={
-          <Button variant="contained" color="error" onClick={() => onDeleteRow(row.id)}>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={async () => {
+              await onDeleteRow(id);
+              confirm.onFalse();
+            }}
+          >
             {t('delete')}
           </Button>
         }
       />
 
-      {isSubCategoriesOpen && (
-        <>
-          {sub_categories.map((row) => (
-            <CategoryTableRow
-              key={row.id}
-              row={row}
-              table={table}
-              onDeleteRow={onDeleteRow}
-              onEditRow={onEditRow}
-              onAddSubCategoryRow={onAddSubCategoryRow}
-              color={randomColor}
-            />
-          ))}
-        </>
-      )}
+      {isOpen &&
+        sub_categories.map((sub: any) => (
+          <CategoryTableRow
+            key={sub.id}
+            row={sub}
+            depth={depth + 1}
+            onEditRow={onEditRow}
+            onDeleteRow={onDeleteRow}
+            onAddSubCategoryRow={onAddSubCategoryRow}
+          />
+        ))}
     </>
   );
 }

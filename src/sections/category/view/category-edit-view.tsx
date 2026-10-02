@@ -31,6 +31,8 @@ export default function CategoryEditView({ id }: Props) {
   const { t, onChangeLang } = useTranslate();
 
   useEffect(() => {
+    // The form keeps its own state, so it must remount for another category.
+    setCurrentCategory(undefined);
     getCategoryInfo(id);
   }, [id]);
 
@@ -50,10 +52,12 @@ export default function CategoryEditView({ id }: Props) {
           { name: currentCategory?.name },
         ]}
         sx={{
-          mb: { xs: 3, md: 5 },
+          mb: 3,
         }}
       />
-      {currentCategory && <CategoryNewEditForm currentCategory={currentCategory} />}
+      {currentCategory && (
+        <CategoryNewEditForm key={currentCategory.id} currentCategory={currentCategory} />
+      )}
     </Container>
   );
 }
