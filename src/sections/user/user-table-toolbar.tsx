@@ -1,36 +1,43 @@
-import { useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import IconButton from '@mui/material/IconButton';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
+import Typography from '@mui/material/Typography';
+import ToggleButton from '@mui/material/ToggleButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { useTranslate } from 'src/locales';
 
 import { MAP_USER_COLORS } from 'src/constants/colors';
 
 import Iconify from 'src/components/iconify';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 import { IUserTableFilters, IUserTableFilterValue } from 'src/types/user';
 
 // ----------------------------------------------------------------------
 
+const SEARCH_DELAY = 400;
+
+const SITE_OPTIONS = [
+  { value: 'all', label: 'Alle sites' },
+  { value: 'kooptop.com', label: 'Kooptop' },
+  { value: 'europowerbv.com', label: 'Europower' },
+];
+
 type Props = {
   filters: IUserTableFilters;
   onFilters: (name: string, value: IUserTableFilterValue) => void;
+  onResetFilters: VoidFunction;
+  canReset: boolean;
+  results: number;
   //
   roleOptions: {
-    value: string;
-    label: string;
-  }[];
-  siteSourceOptions: {
     value: string;
     label: string;
   }[];
@@ -39,242 +46,165 @@ type Props = {
 export default function UserTableToolbar({
   filters,
   onFilters,
+  onResetFilters,
+  canReset,
+  results,
   //
   roleOptions,
-  siteSourceOptions
 }: Props) {
-  const popover = usePopover();
-  const { t, onChangeLang } = useTranslate();
-  const handleFilterName = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onFilters('name', event.target.value);
-    },
-    [onFilters]
-  );
+  const { t } = useTranslate();
 
-  const handleFilterRole = useCallback(
-    (event: SelectChangeEvent<string[]>) => {
-      onFilters(
-        'role',
-        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
-      );
-    },
-    [onFilters]
-  );
-  const handleFilterSite = useCallback(
-    (event: SelectChangeEvent<string[]>) => {
-      onFilters(
-        'site',
-        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
-      );
-    },
-    [onFilters]
-  );
+  const [query, setQuery] = useState(filters.name);
+  const committed = useRef(filters.name);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
 
-  const handleFilterColors = useCallback(
-    (event: SelectChangeEvent<string[]>) => {
-      onFilters(
-        'colors',
-        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
-      );
-    },
-    [onFilters]
-  );
+  // Follow filter changes made elsewhere (reset, deep links).
+  useEffect(() => {
+    if (filters.name !== committed.current) {
+      committed.current = filters.name;
+      setQuery(filters.name);
+    }
+  }, [filters.name]);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const handleQuery = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setQuery(value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      committed.current = value.trim();
+      onFilters('name', value.trim());
+    }, SEARCH_DELAY);
+  };
+
+  const site = filters.site[0] || 'all';
+  const role = filters.role[0] || '';
 
   return (
-    <>
-      <Stack
-        spacing={2}
-        alignItems={{ xs: 'flex-end', md: 'center' }}
-        direction={{
-          xs: 'column',
-          md: 'row',
+    <Stack direction="row" alignItems="center" flexWrap="wrap" useFlexGap spacing={1.5} sx={{ p: 2 }}>
+      <TextField
+        size="small"
+        value={query}
+        onChange={handleQuery}
+        placeholder="Zoek op naam, e-mail, relatiecode, KvK of adres"
+        inputProps={{ 'aria-label': t('search') }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+            </InputAdornment>
+          ),
         }}
-        sx={{
-          p: 2.5,
-          pr: { xs: 2.5, md: 1 },
-        }}
+        sx={{ flex: '1 1 300px' }}
+      />
+
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={site}
+        onChange={(_, value) => value && onFilters('site', value === 'all' ? [] : [value])}
+        aria-label="Site"
+        sx={{ height: 40 }}
       >
-        <FormControl
-          sx={{
-            flexShrink: 0,
-            width: { xs: 1, md: 200 },
-          }}
-        >
-          <InputLabel>Site</InputLabel>
+        {SITE_OPTIONS.map((option) => (
+          <ToggleButton key={option.value} value={option.value} sx={{ px: 1.5, whiteSpace: 'nowrap' }}>
+            {option.label}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
 
-          <Select
-            // multiple
-            value={filters.site}
-            onChange={handleFilterSite}
-            input={<OutlinedInput label="Site" />}
-            renderValue={(selected) => selected.map((value) => t(value)).join(', ')}
-            MenuProps={{
-              PaperProps: {
-                sx: { maxHeight: 240 },
-              },
-            }}
-          >
-            {siteSourceOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <Checkbox
-                  disableRipple
-                  size="small"
-                  checked={filters?.site?.includes(option.value)}
-                />
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <Select
+        size="small"
+        displayEmpty
+        value={role}
+        onChange={(event) => onFilters('role', event.target.value ? [event.target.value] : [])}
+        inputProps={{ 'aria-label': 'Type' }}
+        renderValue={(value) =>
+          `Type: ${roleOptions.find((option) => option.value === value)?.label || 'alle'}`
+        }
+        sx={{ minWidth: 150 }}
+      >
+        <MenuItem value="">Alle types</MenuItem>
+        {roleOptions.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
+      </Select>
 
-        <FormControl
-          sx={{
-            flexShrink: 0,
-            width: { xs: 1, md: 200 },
-          }}
-        >
-          <InputLabel>Role</InputLabel>
+      <Select
+        multiple
+        size="small"
+        displayEmpty
+        value={filters.colors}
+        onChange={(event) =>
+          onFilters(
+            'colors',
+            typeof event.target.value === 'string'
+              ? event.target.value.split(',')
+              : event.target.value
+          )
+        }
+        inputProps={{ 'aria-label': t('color') }}
+        renderValue={(selected) =>
+          selected.length ? (
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <span>Kleur:</span>
+              {selected.map((value) => (
+                <ColorDot key={value} color={value} />
+              ))}
+            </Stack>
+          ) : (
+            'Kleur: alle'
+          )
+        }
+        MenuProps={{ PaperProps: { sx: { maxHeight: 320 } } }}
+        sx={{ minWidth: 130 }}
+      >
+        {MAP_USER_COLORS.map((option) => (
+          <MenuItem key={option.value} value={option.color}>
+            <Checkbox disableRipple size="small" checked={filters.colors.includes(option.color)} />
+            <ColorDot color={option.color} sx={{ mr: 1 }} />
+            {option.labelNL}
+          </MenuItem>
+        ))}
+      </Select>
 
-          <Select
-            // multiple
-            value={filters.role}
-            onChange={handleFilterRole}
-            input={<OutlinedInput label="Role" />}
-            renderValue={(selected) => selected.map((value) => t(value)).join(', ')}
-            MenuProps={{
-              PaperProps: {
-                sx: { maxHeight: 240 },
-              },
-            }}
-          >
-            {roleOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <Checkbox
-                  disableRipple
-                  size="small"
-                  checked={filters?.role?.includes(option.value)}
-                />
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl
-          sx={{
-            flexShrink: 0,
-            width: { xs: 1, md: 200 },
-          }}
-        >
-          <InputLabel>{t('color')}</InputLabel>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ ml: 'auto' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+          <Box component="strong" sx={{ color: 'text.primary' }}>
+            {results}
+          </Box>{' '}
+          {results === 1 ? 'resultaat' : 'resultaten'}
+        </Typography>
 
-          <Select
-            multiple
-            value={filters.colors}
-            onChange={handleFilterColors}
-            input={<OutlinedInput label={t('color')} />}
-            renderValue={(selected) => (
-              <Stack direction="row" spacing={0.5}>
-                {selected.map((value) => {
-                  const colorObj = MAP_USER_COLORS.find((c) => c.color === value);
-                  return (
-                    <Box
-                      key={value}
-                      sx={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '50%',
-                        bgcolor: colorObj?.color,
-                        border: (theme) => `1px solid ${theme.palette.divider}`,
-                      }}
-                    />
-                  );
-                })}
-              </Stack>
-            )}
-            MenuProps={{
-              PaperProps: {
-                sx: { maxHeight: 240 },
-              },
-            }}
-          >
-            {MAP_USER_COLORS.map((option) => (
-              <MenuItem key={option.value} value={option.color}>
-                <Checkbox
-                  disableRipple
-                  size="small"
-                  checked={filters?.colors?.includes(option.color)}
-                />
-                <Box
-                  sx={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    bgcolor: option.color,
-                    mr: 1,
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
-                  }}
-                />
-                {option.labelNL}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
-          <TextField
-            fullWidth
-            value={filters.name}
-            onChange={handleFilterName}
-            placeholder={`${t('search')} (name, email, ID)...`}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <IconButton onClick={popover.onOpen}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </Stack>
+        {canReset && (
+          <Button size="small" color="error" onClick={onResetFilters}>
+            Filters wissen
+          </Button>
+        )}
       </Stack>
+    </Stack>
+  );
+}
 
-      <CustomPopover
-        open={popover.open}
-        onClose={popover.onClose}
-        arrow="right-top"
-        sx={{ width: 140 }}
-      >
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:printer-minimalistic-bold" />
-          {t('print')}
-        </MenuItem>
+// ----------------------------------------------------------------------
 
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:import-bold" />
-          {t('import')}
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="solar:export-bold" />
-          {t('export')}
-        </MenuItem>
-      </CustomPopover>
-    </>
+export function ColorDot({ color, sx }: { color: string; sx?: object }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        width: 16,
+        height: 16,
+        flexShrink: 0,
+        display: 'inline-block',
+        borderRadius: '50%',
+        bgcolor: color,
+        border: (theme) => `solid 1px ${theme.palette.divider}`,
+        ...sx,
+      }}
+    />
   );
 }
