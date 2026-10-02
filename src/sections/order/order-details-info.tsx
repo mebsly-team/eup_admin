@@ -6,7 +6,6 @@ import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
@@ -170,9 +169,6 @@ export default function OrderDetailsInfo({
   const [isInvoiceDateEdit, setIsInvoiceDateEdit] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState<Date | null>(null);
   
-  const [isNotesEdit, setIsNotesEdit] = useState(false);
-  const [notes, setNotes] = useState(currentOrder?.notes || '');
-
   const [isExtraNoteEdit, setIsExtraNoteEdit] = useState(false);
   const [extraNote, setExtraNote] = useState(currentOrder?.extra_note || '');
 
@@ -385,24 +381,6 @@ export default function OrderDetailsInfo({
     setIsInvoiceDateEdit(false);
   };
 
-  const handleNotesEditClick = () => {
-    setIsNotesEdit(!isNotesEdit);
-  };
-
-  const handleNotesUpdate = () => {
-    const newHistory = currentOrder.history || [];
-    newHistory.push({
-      date: new Date(),
-      event: `Notities gewijzigd door ${user?.email}`,
-    });
-
-    updateOrder(orderId, {
-      notes: notes,
-      history: newHistory,
-    });
-    setIsNotesEdit(false);
-  };
-
   const handleExtraNoteEditClick = () => {
     setIsExtraNoteEdit(!isExtraNoteEdit);
   };
@@ -411,7 +389,7 @@ export default function OrderDetailsInfo({
     const newHistory = currentOrder.history || [];
     newHistory.push({
       date: new Date(),
-      event: `Extra notities gewijzigd door ${user?.email}`,
+      event: `Notities gewijzigd door ${user?.email}`,
     });
 
     updateOrder(orderId, {
@@ -711,89 +689,79 @@ export default function OrderDetailsInfo({
     fetchAddressMatches({ searchText: nextText, context: selectedOption.context });
   };
 
+  const customerFacts = [
+    {
+      label: 'Relatiecode',
+      value:
+        typeof customer.relation_code === 'object' && customer.relation_code !== null
+          ? customer.relation_code.code || JSON.stringify(customer.relation_code)
+          : customer.relation_code,
+    },
+    { label: 'Betalingstermijn', value: customer.payment_termin },
+    { label: 'Kredietlimiet', value: customer.credit_limit },
+    { label: 'Klantpercentage', value: customer.customer_percentage },
+  ];
+
+  // Address values come from stored JSON and are occasionally objects.
+  const addressText = (value: any) =>
+    typeof value === 'object' && value !== null
+      ? value.code || JSON.stringify(value)
+      : value || '';
+
+  const renderAddressLines = (address: any, nameFallback?: any) => {
+    const name = `${addressText(address.first_name || nameFallback?.first_name)} ${addressText(
+      address.last_name || nameFallback?.last_name
+    )}`.trim();
+    const business = addressText(address.business_name || nameFallback?.business_name);
+    const street = `${addressText(address.street_name)} ${addressText(
+      address.house_number
+    )} ${addressText(address.house_suffix)}`.trim();
+    const city = `${addressText(address.zip_code)} ${addressText(address.city)}`.trim();
+
+    return (
+      <Stack spacing={0.25}>
+        {business && <Typography variant="subtitle2">{business}</Typography>}
+        {name && <Box>{name}</Box>}
+        {street && <Box>{street}</Box>}
+        {city && <Box>{city}</Box>}
+        <Box>{addressText(address.country)}</Box>
+        {address.phone_number && (
+          <Box sx={{ color: 'text.secondary' }}>{addressText(address.phone_number)}</Box>
+        )}
+      </Stack>
+    );
+  };
+
   const renderCustomer = (
     <>
-      <CardHeader
-        title="Klanten info"
-      // action={
-      //   <IconButton>
-      //     <Iconify icon="solar:pen-bold" />
-      //   </IconButton>
-      // }
-      />
-      <Stack direction="row" sx={{ p: 3 }}>
-        <Avatar
-          alt={customer.name}
-          src={customer.avatarUrl}
-          sx={{ width: 48, height: 48, mr: 2 }}
-        />
-
-        <Stack spacing={0.5} alignItems="flex-start" sx={{ typography: 'body2' }}>
-          <Typography variant="subtitle2">{customer.business_name}</Typography>
-          <Typography variant="subtitle2">{customer.name}</Typography>
-
+      <CardHeader title="Klant" />
+      <Stack spacing={2} sx={{ p: 3, pt: 2, typography: 'body2' }}>
+        <Stack spacing={0.25} alignItems="flex-start">
+          <Typography variant="subtitle1">{customer.business_name}</Typography>
+          <Typography variant="body2">{customer.name}</Typography>
           <Link
             href={`/dashboard/user/${customer.id}/edit`}
             target="_blank"
             rel="noopener"
             variant="body2"
-            sx={{
-              mt: 1,
-              color: 'primary.main',
-              textDecoration: 'none',
-              '&:hover': {
-                textDecoration: 'underline',
-              }
-            }}
+            sx={{ wordBreak: 'break-all' }}
           >
             {customer.email}
           </Link>
-
-          <Box sx={{ color: 'text.secondary' }}>
-            {typeof customer.relation_code === 'object' && customer.relation_code !== null 
-              ? customer.relation_code.code || JSON.stringify(customer.relation_code) 
-              : customer.relation_code}
-          </Box>
-          <Box>
-            Betalingstermijn:
-            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-              {customer.payment_termin}
-            </Box>
-          </Box>
-          <Box>
-            Kredietlimiet:
-            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-              {customer.credit_limit}
-            </Box>
-          </Box>
-          <Box>
-            Klantpercentage:
-            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-              {customer.customer_percentage}
-            </Box>
-          </Box>
-          {customer.is_vat_document_printed ? <Box>
-            BTW %0
-          </Box> : null}
-
-
-
-          {/* <Box>
-            IP Adres:
-            <Box component="span" sx={{ color: 'text.secondary', ml: 0.25 }}>
-              {customer.ipAddress}
-            </Box>
-          </Box>
-
-          <Button
-            size="small"
-            color="error"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            sx={{ mt: 1 }}
-          >
-            Toevoegen aan zwarte lijst
-          </Button> */}
         </Stack>
+
+        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+          {customerFacts.map((fact) => (
+            <Stack key={fact.label} spacing={0.25}>
+              <Box sx={{ typography: 'caption', color: 'text.secondary' }}>{fact.label}</Box>
+              {fact.value ?? '—'}
+            </Stack>
+          ))}
+        </Box>
+
+        {customer.is_vat_document_printed ? (
+          <Box sx={{ typography: 'subtitle2', color: 'warning.dark' }}>BTW 0%</Box>
+        ) : null}
       </Stack>
     </>
   );
@@ -848,10 +816,10 @@ export default function OrderDetailsInfo({
       ) : (
         <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         {/* Carrier Select Box */}
-        <Box sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+        <Box sx={{ color: 'text.secondary' }}>
           Totaalgewicht: {currentOrder?.cart?.cart_total_weight?.toFixed(2)} kg
         </Box>
-        <Box sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
+        <Box sx={{ color: 'text.secondary' }}>
           Total Volume: {currentOrder?.cart?.cart_total_volume?.toFixed(2)} m3
         </Box>
         <Stack direction="row" alignItems="center">
@@ -1002,7 +970,7 @@ export default function OrderDetailsInfo({
   const renderShipping = (
     <>
       <CardHeader
-        title="Verzending"
+        title="Verzendadres"
         action={
           <IconButton onClick={handleAddressEditClick}>
             <Iconify icon="solar:pen-bold" />
@@ -1205,38 +1173,7 @@ export default function OrderDetailsInfo({
           </Stack>
         ) : (
           <>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Naam:
-              </Box>
-              {typeof shippingAddress.first_name === 'object' && shippingAddress.first_name !== null ? JSON.stringify(shippingAddress.first_name) : (shippingAddress.first_name || '')}
-              {' '}
-              {typeof shippingAddress.last_name === 'object' && shippingAddress.last_name !== null ? JSON.stringify(shippingAddress.last_name) : (shippingAddress.last_name || '')}
-            </Stack>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Bedrijfsnaam:
-              </Box>
-              {typeof shippingAddress.business_name === 'object' && shippingAddress.business_name !== null ? JSON.stringify(shippingAddress.business_name) : (shippingAddress.business_name || '')}
-            </Stack>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Adres
-              </Box>
-              {typeof shippingAddress.street_name === 'object' && shippingAddress.street_name !== null ? JSON.stringify(shippingAddress.street_name) : (shippingAddress.street_name || '')} {typeof shippingAddress.house_number === 'object' && shippingAddress.house_number !== null ? JSON.stringify(shippingAddress.house_number) : (shippingAddress.house_number || '')}{' '}
-              {typeof shippingAddress.house_suffix === 'object' && shippingAddress.house_suffix !== null ? JSON.stringify(shippingAddress.house_suffix) : (shippingAddress.house_suffix || '')}
-              <br />
-              {`${typeof shippingAddress.zip_code === 'object' && shippingAddress.zip_code !== null ? JSON.stringify(shippingAddress.zip_code) : (shippingAddress.zip_code || '')} ${typeof shippingAddress.city === 'object' && shippingAddress.city !== null ? JSON.stringify(shippingAddress.city) : (shippingAddress.city || '')}`}
-              <br />
-              {typeof shippingAddress.country === 'object' && shippingAddress.country !== null ? (shippingAddress.country as any).code || JSON.stringify(shippingAddress.country) : (shippingAddress.country || '')}
-            </Stack>
-
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Telefoonnummer
-              </Box>
-              {shippingAddress.phone_number}
-            </Stack>
+            {renderAddressLines(shippingAddress)}
           </>
         )}
       </Stack>
@@ -1400,35 +1337,7 @@ export default function OrderDetailsInfo({
           </Stack>
         ) : (
           <>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Naam:
-              </Box>
-              {typeof invoiceAddress.first_name === 'object' && invoiceAddress.first_name !== null ? JSON.stringify(invoiceAddress.first_name) : (invoiceAddress.first_name || shippingAddress?.first_name || '')} {typeof invoiceAddress.last_name === 'object' && invoiceAddress.last_name !== null ? JSON.stringify(invoiceAddress.last_name) : (invoiceAddress.last_name || shippingAddress?.last_name || '')}
-            </Stack>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Bedrijfsnaam:
-              </Box>
-              {typeof invoiceAddress.business_name === 'object' && invoiceAddress.business_name !== null ? JSON.stringify(invoiceAddress.business_name) : (invoiceAddress.business_name || shippingAddress?.business_name || '')}
-            </Stack>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Adres
-              </Box>
-              {typeof invoiceAddress.street_name === 'object' && invoiceAddress.street_name !== null ? JSON.stringify(invoiceAddress.street_name) : (invoiceAddress.street_name || '')} {typeof invoiceAddress.house_number === 'object' && invoiceAddress.house_number !== null ? JSON.stringify(invoiceAddress.house_number) : (invoiceAddress.house_number || '')}{' '}
-              {typeof invoiceAddress.house_suffix === 'object' && invoiceAddress.house_suffix !== null ? JSON.stringify(invoiceAddress.house_suffix) : (invoiceAddress.house_suffix || '')}
-              <br />
-              {`${typeof invoiceAddress.zip_code === 'object' && invoiceAddress.zip_code !== null ? JSON.stringify(invoiceAddress.zip_code) : (invoiceAddress.zip_code || '')} ${typeof invoiceAddress.city === 'object' && invoiceAddress.city !== null ? JSON.stringify(invoiceAddress.city) : (invoiceAddress.city || '')}`}
-              <br />
-              {typeof invoiceAddress.country === 'object' && invoiceAddress.country !== null ? (invoiceAddress.country as any).code || JSON.stringify(invoiceAddress.country) : (invoiceAddress.country || '')}
-            </Stack>
-            <Stack direction="row">
-              <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
-                Telefoonnummer
-              </Box>
-              {invoiceAddress.phone_number}
-            </Stack>
+            {renderAddressLines(invoiceAddress, shippingAddress)}
           </>
         )}
       </Stack>
@@ -1512,52 +1421,10 @@ export default function OrderDetailsInfo({
     </>
   );
 
-  const renderNotes = (
-    <>
-      <CardHeader
-        title="Notities"
-        action={
-          <IconButton onClick={handleNotesEditClick}>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-        }
-      />
-      <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
-        {isNotesEdit ? (
-          <Stack spacing={1.5}>
-            <TextField
-              multiline
-              rows={4}
-              fullWidth
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Voeg hier notities toe..."
-            />
-            <Stack direction="row" spacing={1}>
-              <Button onClick={handleNotesUpdate} variant="contained">
-                Opslaan
-              </Button>
-              <Button variant="outlined" onClick={() => {
-                setNotes(currentOrder?.notes || '');
-                setIsNotesEdit(false);
-              }}>
-                Annuleren
-              </Button>
-            </Stack>
-          </Stack>
-        ) : (
-          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-            {currentOrder?.notes || 'Geen notities'}
-          </Typography>
-        )}
-      </Stack>
-    </>
-  );
-
   const renderExtraNote = (
     <>
       <CardHeader
-        title="Extra Notities"
+        title="Notities"
         action={
           <IconButton onClick={handleExtraNoteEditClick}>
             <Iconify icon="solar:pen-bold" />
@@ -1573,7 +1440,7 @@ export default function OrderDetailsInfo({
               fullWidth
               value={extraNote}
               onChange={(e) => setExtraNote(e.target.value)}
-              placeholder="Voeg hier extra notities toe..."
+              placeholder="Voeg hier notities toe..."
             />
             <Stack direction="row" spacing={1}>
               <Button onClick={handleExtraNoteUpdate} variant="contained">
@@ -1589,7 +1456,7 @@ export default function OrderDetailsInfo({
           </Stack>
         ) : (
           <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-            {currentOrder?.extra_note || 'Geen extra notities'}
+            {currentOrder?.extra_note || 'Geen notities'}
           </Typography>
         )}
       </Stack>
@@ -1598,7 +1465,7 @@ export default function OrderDetailsInfo({
 
   const renderReminders = (
     <>
-      <CardHeader title="Herinneringen (Reminders)" />
+      <CardHeader title="Herinneringen" />
       <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 150, flexShrink: 0 }}>
@@ -1634,45 +1501,33 @@ export default function OrderDetailsInfo({
     </>
   );
 
+  const divider = <Divider sx={{ borderStyle: 'dashed' }} />;
+
   return (
-    <Card>
-      {currentOrder?.source_host !== "bol.com" && (
-        <>
-          {renderInvoiceDate}
-          <Divider sx={{ borderStyle: 'dashed' }} />
-        </>
-      )}
+    <Stack spacing={3}>
+      <Card>{renderCustomer}</Card>
 
-      {renderCustomer}
+      <Card>{renderDelivery}</Card>
 
-      <Divider sx={{ borderStyle: 'dashed' }} />
+      <Card>
+        {renderShipping}
+        {divider}
+        {renderInvoice}
+      </Card>
 
-      {renderShipping}
+      <Card>
+        {renderPayment}
+        {currentOrder?.source_host !== 'bol.com' && (
+          <>
+            {divider}
+            {renderInvoiceDate}
+          </>
+        )}
+        {divider}
+        {renderReminders}
+      </Card>
 
-      <Divider sx={{ borderStyle: 'dashed' }} />
-
-      {renderInvoice}
-
-      <Divider sx={{ borderStyle: 'dashed' }} />
-
-      {renderDelivery}
-
-      <Divider sx={{ borderStyle: 'dashed' }} />
-
-      {renderPayment}
-
-      <Divider sx={{ borderStyle: 'dashed' }} />
-
-      {renderNotes}
-
-      <Divider sx={{ borderStyle: 'dashed' }} />
-
-      {renderExtraNote}
-
-      <Divider sx={{ borderStyle: 'dashed' }} />
-
-      {renderReminders}
-
-    </Card>
+      <Card>{renderExtraNote}</Card>
+    </Stack>
   );
 }

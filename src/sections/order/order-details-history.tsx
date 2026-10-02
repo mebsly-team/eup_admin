@@ -1,19 +1,10 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import Timeline from '@mui/lab/Timeline';
-import TimelineDot from '@mui/lab/TimelineDot';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
-import TimelineContent from '@mui/lab/TimelineContent';
-import TimelineSeparator from '@mui/lab/TimelineSeparator';
-import TimelineConnector from '@mui/lab/TimelineConnector';
-import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem';
 
 import { fDateTime } from 'src/utils/format-time';
-
-import { IOrderHistory } from 'src/types/order';
 
 // ----------------------------------------------------------------------
 
@@ -22,96 +13,77 @@ type Props = {
 };
 
 export default function OrderDetailsHistory({ currentOrder }: Props) {
-  const renderSummary = (
-    <Stack
-      spacing={2}
-      component={Paper}
-      variant="outlined"
-      sx={{
-        p: 2.5,
-        minWidth: 260,
-        flexShrink: 0,
-        borderRadius: 2,
-        typography: 'body2',
-        borderStyle: 'dashed',
-      }}
-    >
-      <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Besteldatum</Box>
-        {fDateTime(currentOrder?.ordered_date)}
-      </Stack>
-      <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Betalingsdatum</Box>
-        {fDateTime(currentOrder?.payment_date)}
-      </Stack>
-      <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Verzenddatum</Box>
-        {fDateTime(currentOrder?.shipped_date)}
-      </Stack>
-      <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled' }}>Afleverdatum</Box>
-        {fDateTime(currentOrder?.delivered_date)}
-      </Stack>
-    </Stack>
-  );
+  const dates = [
+    { label: 'Besteldatum', value: currentOrder?.ordered_date },
+    { label: 'Betalingsdatum', value: currentOrder?.payment_date },
+    { label: 'Verzenddatum', value: currentOrder?.shipped_date },
+    { label: 'Afleverdatum', value: currentOrder?.delivered_date },
+  ];
 
-  const renderTimeline = (
-    <Timeline
-      sx={{
-        p: 0,
-        m: 0,
-        [`& .${timelineItemClasses.root}:before`]: {
-          flex: 0,
-          padding: 0,
-        },
-      }}
-    >
-      {(() => {
-        console.log('currentOrder:', currentOrder);
-        console.log('currentOrder.history:', currentOrder?.history);
-        console.log('typeof currentOrder.history:', typeof currentOrder?.history);
-        console.log('Array.isArray(currentOrder.history):', Array.isArray(currentOrder?.history));
+  const history: any[] = Array.isArray(currentOrder?.history) ? currentOrder.history : [];
 
-        const historyArray = Array.isArray(currentOrder?.history) ? currentOrder.history : [];
-
-        return historyArray.map((item: any, index: number) => {
-          const firstTimeline = index === 0;
-
-          const lastTimeline = index === historyArray.length - 1;
-
-          return (
-            <TimelineItem key={item.date}>
-              <TimelineSeparator>
-                <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
-                {lastTimeline ? null : <TimelineConnector />}
-              </TimelineSeparator>
-
-              <TimelineContent>
-                <Typography variant="subtitle2">{item.event}</Typography>
-
-                <Box sx={{ color: 'text.disabled', typography: 'caption', mt: 0.5 }}>
-                  {fDateTime(item.date)}
-                </Box>
-              </TimelineContent>
-            </TimelineItem>
-          );
-        });
-      })()}
-    </Timeline>
-  );
+  // Newest first: the latest change is what one comes here to check.
+  const events = history.map((item, index) => ({ ...item, index })).reverse();
 
   return (
     <Card>
       <CardHeader title="Geschiedenis" />
-      <Stack
-        spacing={3}
-        alignItems={{ md: 'flex-start' }}
-        direction={{ xs: 'column-reverse', md: 'row' }}
-        sx={{ p: 3 }}
-      >
-        {renderTimeline}
 
-        {renderSummary}
+      <Box
+        sx={{
+          mx: 3,
+          mt: 2,
+          p: 2,
+          gap: 2,
+          display: 'grid',
+          borderRadius: 1,
+          typography: 'body2',
+          bgcolor: 'background.neutral',
+          gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(4, minmax(0, 1fr))' },
+        }}
+      >
+        {dates.map((date) => (
+          <Stack key={date.label} spacing={0.25}>
+            <Box sx={{ typography: 'caption', color: 'text.secondary' }}>{date.label}</Box>
+            {fDateTime(date.value) || '—'}
+          </Stack>
+        ))}
+      </Box>
+
+      <Stack sx={{ p: 3 }}>
+        {events.map((item, position) => (
+          <Stack key={item.index} direction="row" spacing={1.5}>
+            <Stack alignItems="center" sx={{ pt: 0.75 }}>
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  flexShrink: 0,
+                  borderRadius: '50%',
+                  bgcolor: position === 0 ? 'primary.main' : 'grey.400',
+                }}
+              />
+              {position < events.length - 1 && (
+                <Box sx={{ width: '1px', flexGrow: 1, mt: 0.5, bgcolor: 'divider' }} />
+              )}
+            </Stack>
+
+            <Box sx={{ pb: 2, minWidth: 0 }}>
+              <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                {item.event}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {fDateTime(item.date)}
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+
+        {events.length === 0 && (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Nog geen geschiedenis
+          </Typography>
+        )}
       </Stack>
     </Card>
   );

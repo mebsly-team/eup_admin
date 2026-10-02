@@ -27,7 +27,7 @@ import { IOrderItem } from 'src/types/order';
 
 export const ORDER_TABLE_COLUMNS = 10;
 
-const STATUS_COLOR: Record<string, LabelColor> = {
+export const ORDER_STATUS_COLOR: Record<string, LabelColor> = {
   pending_order: 'warning',
   user_pending: 'error',
   werkbon: 'info',
@@ -203,7 +203,7 @@ export default function OrderTableRow({ row, selected, onViewRow, onSelectRow }:
             Offer
           </Label>
         ) : (
-          <Label variant="soft" color={STATUS_COLOR[status] || 'default'}>
+          <Label variant="soft" color={ORDER_STATUS_COLOR[status] || 'default'}>
             {t(status)}
           </Label>
         )}

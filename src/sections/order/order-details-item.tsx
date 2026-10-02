@@ -9,20 +9,29 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton from '@mui/material/IconButton';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
+import Tooltip from '@mui/material/Tooltip';
 
 import axiosInstance from 'src/utils/axios';
 import { fCurrency, roundToTwoDecimals } from 'src/utils/format-number';
 
 import Iconify from 'src/components/iconify';
-import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
 import { useRouter } from 'src/routes/hooks/use-router';
 import { useLocation } from 'react-router-dom';
 
-import OrderItemRow from './order-details-item-row';
+import OrderItemRow, {
+  itemsGridSx,
+  ITEMS_HIDE_MEDIUM,
+  ITEMS_HIDE_NARROW,
+} from './order-details-item-row';
+
+const SORT_LABELS: Record<string, string> = {
+  '': 'standaard',
+  title: 'titel',
+  ean: 'EAN',
+  location: 'locatie',
+};
 
 export default function OrderDetailsItems({
   currentOrder,
@@ -506,11 +515,52 @@ export default function OrderDetailsItems({
     setEditedCart({ ...editedCart, [key]: formattedValue });
   };
 
+  const vatLabel = currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW';
+
+  const renderFee = (label: string, key: 'shipping_fee' | 'transaction_fee') => (
+    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+      <Box sx={{ color: 'text.secondary' }}>
+        {label} ({vatLabel})
+      </Box>
+      {isEditing ? (
+        <TextField
+          size="small"
+          type="text"
+          inputProps={{
+            inputMode: 'decimal',
+            pattern: '[-0-9]*[.,]?[0-9]*',
+            'aria-label': label,
+            style: { textAlign: 'right' },
+          }}
+          value={editedCart?.[key] ?? ''}
+          onChange={(e) => handleFeeChange(key, e.target.value)}
+          onBlur={(e) => handleFeeBlur(key, e.target.value)}
+          sx={{ width: 120 }}
+        />
+      ) : (
+        <Box>{fCurrency(editedCart?.[key]) || '-'}</Box>
+      )}
+    </Stack>
+  );
+
+  const renderTotalRow = (label: string, value: string | number) => (
+    <Stack direction="row" justifyContent="space-between" spacing={2}>
+      <Box sx={{ color: 'text.secondary' }}>{label}</Box>
+      <Box>{value || '-'}</Box>
+    </Stack>
+  );
+
   const renderTotal = (
     <Stack
-      spacing={2}
-      alignItems="flex-end"
-      sx={{ my: 3, textAlign: 'right', typography: 'body2' }}
+      spacing={1}
+      sx={{
+        my: 3,
+        ml: 'auto',
+        width: 1,
+        maxWidth: 380,
+        typography: 'body2',
+        fontVariantNumeric: 'tabular-nums',
+      }}
     >
       {currentOrder?.user?.is_vat_document_printed
         ? null
@@ -518,141 +568,84 @@ export default function OrderDetailsItems({
             const vatTotals = calculateVatTotals();
             return (
               <>
-                <Stack direction="row" justifyContent="center" alignItems="center">
-                  <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 0%</Box>
-                  <Box sx={{ width: 160, typography: 'subtitle2' }}>
-                    {fCurrency(vatTotals.vatAmount0) || '-'}
-                  </Box>
-                </Stack>
-                <Stack direction="row" justifyContent="center" alignItems="center">
-                  <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 9%</Box>
-                  <Box sx={{ width: 160, typography: 'subtitle2' }}>
-                    {fCurrency(vatTotals.vatAmount9) || '-'}
-                  </Box>
-                </Stack>
-                <Stack direction="row" justifyContent="center" alignItems="center">
-                  <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>BTW 21%</Box>
-                  <Box sx={{ width: 160, typography: 'subtitle2' }}>
-                    {fCurrency(vatTotals.vatAmount21) || '-'}
-                  </Box>
-                </Stack>
+                {renderTotalRow('BTW 0%', fCurrency(vatTotals.vatAmount0))}
+                {renderTotalRow('BTW 9%', fCurrency(vatTotals.vatAmount9))}
+                {renderTotalRow('BTW 21%', fCurrency(vatTotals.vatAmount21))}
               </>
             );
           })()}
-      <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (excl BTW)</Box>
-        <Box sx={{ width: 160, typography: 'subtitle2' }}>
-          {fCurrency(calculateSubtotalExclVat()) || '-'}
-        </Box>
-      </Stack>
-      {currentOrder?.user?.is_vat_document_printed ? null : (
-        <Stack direction="row" justifyContent="center" alignItems="center">
-          <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Subtotaal (incl BTW)</Box>
-          <Box sx={{ width: 160, typography: 'subtitle2' }}>
-            {fCurrency(calculateSubtotal()) || '-'}
-          </Box>
-        </Stack>
-      )}
+      {renderTotalRow('Subtotaal (excl BTW)', fCurrency(calculateSubtotalExclVat()))}
+      {currentOrder?.user?.is_vat_document_printed
+        ? null
+        : renderTotalRow('Subtotaal (incl BTW)', fCurrency(calculateSubtotal()))}
 
-      <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>
-          Verzendkosten ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
-        </Box>
-        {isEditing ? (
-          <TextField
-            type="text"
-            inputProps={{
-              inputMode: 'decimal',
-              pattern: '[-0-9]*[.,]?[0-9]*',
-            }}
-            value={editedCart?.shipping_fee ?? ''}
-            onChange={(e) => handleFeeChange('shipping_fee', e.target.value)}
-            onBlur={(e) => handleFeeBlur('shipping_fee', e.target.value)}
-            sx={{ width: 160 }}
-          />
-        ) : (
-          <Box sx={{ width: 160 }}>{fCurrency(editedCart?.shipping_fee) || '-'}</Box>
-        )}
-      </Stack>
-
-      <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>
-          Transactiekosten ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
-        </Box>
-        {isEditing ? (
-          <TextField
-            type="text"
-            inputProps={{
-              inputMode: 'decimal',
-              pattern: '[-0-9]*[.,]?[0-9]*',
-            }}
-            value={editedCart?.transaction_fee ?? ''}
-            onChange={(e) => handleFeeChange('transaction_fee', e.target.value)}
-            onBlur={(e) => handleFeeBlur('transaction_fee', e.target.value)}
-            sx={{ width: 160 }}
-          />
-        ) : (
-          <Box sx={{ width: 160 }}>{fCurrency(editedCart?.transaction_fee) || '-'}</Box>
-        )}
-      </Stack>
-
-      {/* <Stack direction="row" justifyContent="center" alignItems="center">
-        <Box sx={{ color: 'text.secondary', mr: '0.5rem' }}>Korting</Box>
-        {isEditing ? (
-          <TextField
-            type="text"
-            inputProps={{
-              inputMode: 'decimal',
-              pattern: '[0-9]*[.,]?[0-9]*'
-            }}
-            value={editedCart?.cart_discount ?? ''}
-            onChange={(e) => handleFeeChange('cart_discount', e.target.value)}
-            onBlur={(e) => handleFeeBlur('cart_discount', e.target.value)}
-            sx={{ width: 160 }}
-          />
-        ) : (
-          <Box sx={{ width: 160, mr: '0.5rem' }}>{fCurrency(editedCart?.cart_discount) || '-'}</Box>
-        )}
-      </Stack> */}
+      {renderFee('Verzendkosten', 'shipping_fee')}
+      {renderFee('Transactiekosten', 'transaction_fee')}
 
       <Stack
         direction="row"
-        sx={{ typography: 'subtitle1' }}
-        justifyContent="center"
-        alignItems="center"
+        justifyContent="space-between"
+        spacing={2}
+        sx={{
+          pt: 1.5,
+          typography: 'h6',
+          borderTop: (theme) => `solid 1px ${theme.palette.divider}`,
+        }}
       >
-        <Box sx={{ width: 160, mr: '0.5rem' }}>
-          Totaal ({currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
-        </Box>
-        <Box sx={{ width: 160 }}>{fCurrency(calculateTotal()) || '-'}</Box>
+        <Box>Totaal ({vatLabel})</Box>
+        <Box>{fCurrency(calculateTotal()) || '-'}</Box>
       </Stack>
-      <Stack
-        direction="row"
-        sx={{ typography: 'body2' }}
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Box sx={{ width: 160, mr: '0.5rem' }}>
-          Klant totaal om te betalen: (
-          {currentOrder?.user?.is_vat_document_printed ? 'excl BTW' : 'incl BTW'})
-        </Box>
-        <Box sx={{ width: 160 }}>{fCurrency(currentOrder?.total) || '-'}</Box>
-      </Stack>
+      {renderTotalRow(`Klant totaal om te betalen (${vatLabel})`, fCurrency(currentOrder?.total))}
     </Stack>
   );
+
+  const allItems: any[] = editedCart?.items || [];
+  const completedCount = allItems.filter((item) => item.completed).length;
+  const isVatDocumentPrinted = !!currentOrder?.user?.is_vat_document_printed;
 
   return (
     <Card>
       <CardHeader
-        title="Details"
+        title="Producten"
+        subheader={`${completedCount} van ${allItems.length} klaar`}
         action={
-          <IconButton onClick={toggleEditMode}>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
+          <Stack direction="row" alignItems="center" flexWrap="wrap" useFlexGap spacing={1}>
+            <Select
+              size="small"
+              displayEmpty
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+              inputProps={{ 'aria-label': 'Sorteer op' }}
+              renderValue={(value) =>
+                `Sorteer: ${SORT_LABELS[value as string] || SORT_LABELS['']}`
+              }
+            >
+              <MenuItem value="">Standaard</MenuItem>
+              <MenuItem value="title">Titel</MenuItem>
+              <MenuItem value="ean">EAN</MenuItem>
+              <MenuItem value="location">Locatie</MenuItem>
+            </Select>
+            <Tooltip title={sortOrder === 'asc' ? 'Oplopend' : 'Aflopend'}>
+              <IconButton onClick={() => handleSortChange(sortBy)}>
+                <Iconify
+                  icon={sortOrder === 'asc' ? 'eva:arrow-upward-fill' : 'eva:arrow-downward-fill'}
+                />
+              </IconButton>
+            </Tooltip>
+            <Button
+              variant={isEditing ? 'soft' : 'outlined'}
+              color="inherit"
+              startIcon={<Iconify icon="solar:pen-bold" />}
+              onClick={toggleEditMode}
+            >
+              Bewerken
+            </Button>
+          </Stack>
         }
+        sx={{ flexWrap: 'wrap', rowGap: 1.5, px: { xs: 2, md: 3 }, '& .MuiCardHeader-action': { m: 0, maxWidth: 1 } }}
       />
 
-      <Stack sx={{ px: 3 }}>
+      <Stack sx={{ px: { xs: 2, md: 3 }, pt: 2 }}>
         {/* Total Validation Error */}
         {(() => {
           const subtotal = currentOrder?.user?.is_vat_document_printed
@@ -709,67 +702,65 @@ export default function OrderDetailsItems({
           }
           return null;
         })()}
-        {/* Sorting Controls */}
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Sorteer op</InputLabel>
-            <Select
-              value={sortBy}
-              label="Sorteer op"
-              onChange={(e) => handleSortChange(e.target.value)}
-            >
-              <MenuItem value="">Standaard</MenuItem>
-              <MenuItem value="title">Titel</MenuItem>
-              <MenuItem value="ean">EAN</MenuItem>
-              <MenuItem value="location">Locatie</MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => handleSortChange(sortBy)}
-            startIcon={
-              <Iconify
-                icon={sortOrder === 'asc' ? 'eva:arrow-upward-fill' : 'eva:arrow-downward-fill'}
-              />
-            }
-          >
-            {sortOrder === 'asc' ? 'Oplopend' : 'Aflopend'}
-          </Button>
-        </Stack>
-
-        {currentOrder?.extra_note && (
+        {currentOrder?.extra_note && currentOrder.extra_note !== 'offer' && (
           <Box
             sx={{
-              typography: 'body2',
               mb: 2,
-              p: 3,
-              fontSize: '1.2rem',
-              border: '2px solid',
-              borderColor: 'green',
+              p: 2,
+              borderRadius: 1,
+              typography: 'subtitle1',
+              whiteSpace: 'pre-wrap',
+              border: (theme) => `solid 2px ${theme.palette.success.main}`,
             }}
           >
-            Extra nota: {currentOrder?.extra_note}
+            <Box sx={{ typography: 'overline', color: 'text.secondary' }}>Notitie</Box>
+            {currentOrder.extra_note}
           </Box>
         )}
 
-        <Scrollbar>
-          {getSortedItems(editedCart?.items || []).map((item: any) => (
+        <Box sx={{ containerType: 'inline-size' }}>
+          {!isEditing && (
+            <Box
+              sx={{
+                ...itemsGridSx(isVatDocumentPrinted),
+                px: { xs: 0, sm: 1 },
+                py: 1,
+                borderRadius: 1,
+                typography: 'overline',
+                color: 'text.secondary',
+                bgcolor: 'background.neutral',
+              }}
+            >
+              <Box />
+              <Box>Product</Box>
+              <Box sx={ITEMS_HIDE_NARROW}>Locatie</Box>
+              <Box sx={{ textAlign: 'right', ...ITEMS_HIDE_NARROW }}>Voorraad</Box>
+              <Box sx={{ textAlign: 'right' }}>Aantal</Box>
+              <Box sx={{ textAlign: 'right', ...ITEMS_HIDE_MEDIUM }}>Excl. BTW</Box>
+              {isVatDocumentPrinted ? null : (
+                <Box sx={{ textAlign: 'right', ...ITEMS_HIDE_MEDIUM }}>Incl. BTW</Box>
+              )}
+              <Box sx={{ textAlign: 'right' }}>Totaal</Box>
+            </Box>
+          )}
+
+          {getSortedItems(allItems).map((item: any) => (
             <OrderItemRow
               key={item.id}
               item={item}
               isEditing={isEditing}
-              isVatDocumentPrinted={currentOrder?.user?.is_vat_document_printed}
+              isVatDocumentPrinted={isVatDocumentPrinted}
               onUpdate={handleItemChange}
               onDelete={handleDeleteItem}
               onCheckboxChange={handleCheckboxChange}
               isNewItem={item.isNewItem}
             />
           ))}
-        </Scrollbar>
+        </Box>
         {isEditing && (
           <Stack direction="row" spacing={2} sx={{ my: 2 }}>
             <TextField
+              size="small"
               label="EAN"
               value={ean}
               onChange={(e) => setEan(e.target.value)}

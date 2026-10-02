@@ -1,4 +1,8 @@
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
+import { alpha } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
@@ -23,7 +27,22 @@ import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { useAuthContext } from 'src/auth/hooks';
 
+import { ORDER_STATUS_COLOR } from './order-table-row';
+
 // ----------------------------------------------------------------------
+
+type HandlingStep = {
+  key: string;
+  title: string;
+  done: boolean;
+  doneNote: string;
+  action: string;
+  icon: string;
+  blockedReason?: string;
+  hasMenu?: boolean;
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  onUpload?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+};
 
 type Props = {
   currentOrder: any;
@@ -66,7 +85,6 @@ export default function OrderDetailsToolbar({
   const { t, onChangeLang } = useTranslate();
   const { user } = useAuthContext();
   const { id, is_paid, ordered_date, status, source_host, is_sent_to_snelstart, snelstart_order_number, extra_note, is_on_map_planning } = currentOrder;
-  console.log("🚀 ~ currentOrder:", currentOrder)
 
   const rawInvoiceEmails = [
     { label: 'Email', value: currentOrder?.user?.email },
@@ -201,81 +219,279 @@ export default function OrderDetailsToolbar({
   const isInvoiceDownloaded = checkHistoryForInvoiceDownload();
   const isInvoiceSent = checkHistoryForInvoiceSent();
   const isOfferSent = checkHistoryForOfferSent();
+
+  const isBol = source_host === 'bol.com';
+  const trackingNumber = currentOrder?.delivery_details?.tracking_number;
+  const bolPakbonUrl = currentOrder?.delivery_details?.bol_pakbon_url;
+
+  const invoiceBlockedReason =
+    (!isBol && !trackingNumber && 'Track & trace ontbreekt') ||
+    (!snelstart_order_number && 'Snelstart-nummer ontbreekt') ||
+    '';
+
+  const handleDownloadBolPakbon = () => {
+    const history = currentOrder.history || [];
+    history.push({
+      date: new Date(),
+      event: `Bol pakbon gedownload door ${user?.email || 'gebruiker'}`,
+    });
+    updateOrder(id, { history });
+
+    window.open(
+      (bolPakbonUrl.startsWith('http') ? bolPakbonUrl : `${HOST_API}${bolPakbonUrl}`).replace(
+        'europower.s3.amazonaws.com',
+        'cdn.depotely.com'
+      ),
+      '_blank'
+    );
+  };
+
+  const handleSendToSnelstart = () => {
+    if (
+      is_sent_to_snelstart &&
+      !window.confirm(
+        `Deze order staat al in Snelstart (factuur ${snelstart_order_number || '?'}). De bestaande boeking wordt verwijderd en opnieuw verzonden. Doorgaan?`
+      )
+    ) {
+      return;
+    }
+    sendToSnelstart({ id });
+  };
+
+  const handleGenerateSnelstartNumber = async () => {
+    try {
+      const response = await fetch(`https://be.kooptop.com/api/orders/${id}/generate_snelstart_number/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        console.error('Failed to generate snelstart number');
+      }
+    } catch (error) {
+      console.error('Error generating snelstart number:', error);
+    }
+  };
+
+  // The handling steps of an order, in the order they are normally done. Nothing
+  // enforces that order: a step is only blocked by what it really needs.
+  const steps: HandlingStep[] = [
+    ...(extra_note === 'offer'
+      ? [
+          {
+            key: 'offer',
+            title: 'Offer',
+            done: isOfferSent,
+            doneNote: 'Verzonden naar klant',
+            action: t('send_offer'),
+            icon: 'eva:email-fill',
+            onClick: () => handleSendOffer({ id }),
+          },
+        ]
+      : []),
+    {
+      key: 'werkbon',
+      title: 'Werkbon',
+      done: isWerkbonCompleted,
+      doneNote: 'Geprint',
+      action: 'Werkbon printen',
+      icon: 'solar:printer-minimalistic-bold',
+      onClick: () => {
+        handleDownloadDocument({ doc: 'werkbon' });
+        onChangeStatus('werkbon');
+      },
+    },
+    isBol && bolPakbonUrl
+      ? {
+          key: 'bol-pakbon',
+          title: 'Bol pakbon',
+          done: true,
+          doneNote: 'Geüpload',
+          action: 'Download Bol Pakbon',
+          icon: 'solar:download-bold',
+          onClick: handleDownloadBolPakbon,
+        }
+      : {
+          key: 'pakbon',
+          title: 'Pakbon',
+          done: isPackingCompleted,
+          doneNote: 'Geprint',
+          action: 'Pakbon printen',
+          icon: 'solar:printer-minimalistic-bold',
+          blockedReason: trackingNumber ? '' : 'Track & trace ontbreekt',
+          onClick: () => {
+            handleDownloadDocument({ doc: 'pakbon' });
+            onChangeStatus('packing');
+          },
+        },
+    ...(isBol && !bolPakbonUrl
+      ? [
+          {
+            key: 'bol-pakbon',
+            title: 'Bol pakbon',
+            done: false,
+            doneNote: '',
+            action: 'Upload Bol Pakbon',
+            icon: 'solar:upload-bold',
+            onUpload: handleUploadBolPakbon,
+          },
+        ]
+      : []),
+    ...(isBol && !currentOrder?.invoice
+      ? [
+          {
+            key: 'add-to-invoice',
+            title: 'Factuur',
+            done: false,
+            doneNote: '',
+            action: 'Toevoegen aan factuur',
+            icon: 'solar:document-add-bold',
+            onClick: () => handleAddToLatestInvoice({ id }),
+          },
+        ]
+      : []),
+    ...(isBol
+      ? []
+      : [
+          {
+            key: 'invoice',
+            title: 'Factuur',
+            done: isInvoiceDownloaded,
+            doneNote: 'Gedownload',
+            action: 'Factuur downloaden',
+            icon: 'solar:printer-minimalistic-bold',
+            blockedReason: invoiceBlockedReason,
+            onClick: () => handleDownloadDocument({ doc: 'invoice' }),
+          },
+          {
+            key: 'send-invoice',
+            title: 'Factuur verzenden',
+            done: isInvoiceSent,
+            doneNote: 'Verzonden naar klant',
+            action: t('send_invoice'),
+            icon: 'eva:email-fill',
+            hasMenu: invoiceEmails.length > 1,
+            blockedReason:
+              invoiceBlockedReason || (invoiceEmails.length === 0 ? 'Geen e-mailadres' : ''),
+            onClick: (event: React.MouseEvent<HTMLElement>) => {
+              if (invoiceEmails.length === 1) {
+                handleSendInvoice({ id, email: invoiceEmails[0].value });
+              } else {
+                popoverSendInvoice.onOpen(event);
+              }
+            },
+          },
+          {
+            key: 'snelstart',
+            title: 'Snelstart',
+            done: !!is_sent_to_snelstart,
+            doneNote: 'Geboekt in Snelstart',
+            action: t('sendToSnelstart'),
+            icon: 'eva:arrow-ios-forward-fill',
+            blockedReason: trackingNumber ? '' : 'Track & trace ontbreekt',
+            onClick: handleSendToSnelstart,
+          },
+        ]),
+  ];
+
+  const nextStepKey = steps.find((step) => !step.done && !step.blockedReason)?.key;
+  const doneCount = steps.filter((step) => step.done).length;
+
   return (
     <>
       <Stack
-        spacing={3}
+        spacing={2}
         direction={{ xs: 'column', md: 'row' }}
-        sx={{
-          mb: { xs: 3, md: 5 },
-        }}
+        alignItems={{ md: 'flex-start' }}
+        justifyContent="space-between"
+        sx={{ mb: 3 }}
       >
         <Stack spacing={1} direction="row" alignItems="flex-start">
-          <IconButton onClick={onBack}>
+          <IconButton onClick={onBack} aria-label="Terug">
             <Iconify icon="eva:arrow-ios-back-fill" />
           </IconButton>
 
           <Stack spacing={0.5}>
             <Stack spacing={1} direction="row" alignItems="center">
-              <Typography variant="h4"> Order {id} </Typography>
-              <img style={{ height: 16, width: 16 }} src={`/assets/icons/home/${source_host === "europowerbv.com" ? "europowerbv.png" : source_host === "bol.com" ? "bol.ico" : "kooptop.png"}`} alt="icon" />
-              {extra_note === "offer" ? <Label variant="soft" color="info" onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>{t("offer")}</Label> :
-                <Label variant="soft" color={is_paid ? 'success' : 'error'} onClick={popoverStatus.onOpen} sx={{ cursor: "pointer" }}>
-                  {t(is_paid ? 'paid' : 'unpaid')}
-                </Label>}
-              <Button
-                color="inherit"
-                variant="outlined"
-                endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                onClick={popover.onOpen}
-                sx={{ textTransform: 'capitalize' }}
-              >
-                {t(status)}
-              </Button>
-            </Stack>
-            {source_host !== "bol.com" && (
-              <Typography variant="h5"> Snelstart order nummer: {snelstart_order_number || ""}
-                <IconButton
-                  color="primary"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(`https://be.kooptop.com/api/orders/${id}/generate_snelstart_number/`, {
-                        method: 'POST',
-                        headers: {
-                          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-                          'Content-Type': 'application/json'
-                        }
-                      });
-
-                      if (response.ok) {
-                        window.location.reload();
-                      } else {
-                        console.error('Failed to generate snelstart number');
-                      }
-                    } catch (error) {
-                      console.error('Error generating snelstart number:', error);
-                    }
-                  }}
-                >
-                  <Iconify icon="eva:refresh-fill" />
-                </IconButton>
+              <Typography variant="h4" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                Bestelling #{id}
               </Typography>
-            )}
-            {/* TODO: add a link to the snelstart order */}
-            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-              {fDateTime(ordered_date)}
-            </Typography>
+              <Tooltip title={source_host || 'kooptop.com'}>
+                <img
+                  style={{ height: 16, width: 16 }}
+                  src={`/assets/icons/home/${source_host === 'europowerbv.com' ? 'europowerbv.png' : isBol ? 'bol.ico' : 'kooptop.png'}`}
+                  alt={source_host || 'kooptop.com'}
+                />
+              </Tooltip>
+              {extra_note === 'offer' && (
+                <Label variant="soft" color="info">
+                  Offer
+                </Label>
+              )}
+            </Stack>
+
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="wrap"
+              useFlexGap
+              columnGap={2}
+              sx={{ typography: 'body2', color: 'text.secondary' }}
+            >
+              <span>{fDateTime(ordered_date)}</span>
+              {!isBol && (
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>Snelstart-nr.</span>
+                  <Box
+                    component="span"
+                    sx={{ color: 'text.primary', typography: 'subtitle2', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {snelstart_order_number || '—'}
+                  </Box>
+                  <Tooltip title="Snelstart-nummer genereren">
+                    <IconButton size="small" color="primary" onClick={handleGenerateSnelstartNumber}>
+                      <Iconify icon="eva:refresh-fill" width={18} />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              )}
+            </Stack>
           </Stack>
         </Stack>
 
-        <Stack
-          flexGrow={1}
-          spacing={1.5}
-          direction="row"
-          alignItems="start"
-          justifyContent="flex-end"
-        >
+        <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1} justifyContent={{ md: 'flex-end' }}>
+          <Button
+            color="inherit"
+            variant="outlined"
+            endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+            onClick={popover.onOpen}
+          >
+            <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400, mr: 1 }}>
+              Status
+            </Box>
+            <Label variant="soft" color={ORDER_STATUS_COLOR[status] || 'default'} sx={{ cursor: 'inherit' }}>
+              {t(status)}
+            </Label>
+          </Button>
 
+          <Button
+            color="inherit"
+            variant="outlined"
+            endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+            onClick={popoverStatus.onOpen}
+          >
+            <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400, mr: 1 }}>
+              Betaling
+            </Box>
+            <Label variant="soft" color={is_paid ? 'success' : 'error'} sx={{ cursor: 'inherit' }}>
+              {t(is_paid ? 'paid' : 'unpaid')}
+            </Label>
+          </Button>
 
           <Button
             color="inherit"
@@ -286,224 +502,134 @@ export default function OrderDetailsToolbar({
             Download
           </Button>
 
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon={is_on_map_planning ? 'solar:map-point-remove-bold' : 'solar:map-point-add-bold'} />}
-            onClick={handleToggleMapPlanning}
-            disabled={isTogglingPlanning}
-            sx={{
-              backgroundColor: is_on_map_planning ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: is_on_map_planning ? 'lightgreen' : undefined,
-              }
-            }}
-          >
-            {is_on_map_planning ? 'Remove from map planning' : 'Add to map planning'}
-          </Button>
-
-          {extra_note === "offer" ? <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="eva:email-fill" />}
-            onClick={() => handleSendOffer({ id })}
-            sx={{
-              backgroundColor: isOfferSent ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: isOfferSent ? 'lightgreen' : undefined,
-              }
-            }}
-          >
-            {t('send_offer')}
-          </Button> : null}
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={() => {
-              handleDownloadDocument({ doc: 'werkbon' });
-              onChangeStatus('werkbon');
-            }}
-            sx={{
-              backgroundColor: isWerkbonCompleted ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: isWerkbonCompleted ? 'lightgreen' : undefined,
-              }
-            }}
-          >
-            {t('werkbon')}
-          </Button>
-          
-          {source_host === 'bol.com' && currentOrder?.delivery_details?.bol_pakbon_url ? (
-            <Button
-              color="inherit"
-              variant="outlined"
-              startIcon={<Iconify icon="solar:download-bold" />}
-              onClick={() => {
-                const history = currentOrder.history || [];
-                history.push({
-                  date: new Date(),
-                  event: `Bol pakbon gedownload door ${user?.email || 'gebruiker'}`,
-                });
-                updateOrder(id, { history });
-
-                window.open(
-                  (currentOrder.delivery_details.bol_pakbon_url.startsWith('http') 
-                    ? currentOrder.delivery_details.bol_pakbon_url 
-                    : `${HOST_API}${currentOrder.delivery_details.bol_pakbon_url}`).replace('europower.s3.amazonaws.com', 'cdn.depotely.com'), 
-                  '_blank'
-                );
-              }}
-              sx={{
-                backgroundColor: 'lightgreen',
-              }}
-            >
-              Download Bol Pakbon
-            </Button>
-          ) : (
-            <Button
-              color="inherit"
-              variant="outlined"
-              startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-              onClick={() => {
-                handleDownloadDocument({ doc: 'pakbon' });
-                onChangeStatus('packing');
-              }}
-              disabled={!currentOrder?.delivery_details?.tracking_number}
-              sx={{
-                backgroundColor: isPackingCompleted ? 'lightgreen' : 'transparent',
-                '&:hover': {
-                  backgroundColor: isPackingCompleted ? 'lightgreen' : undefined,
-                }
-              }}
-            >
-              {t('packing')}
-            </Button>
-          )}
-
-          {source_host === 'bol.com' && !currentOrder?.delivery_details?.bol_pakbon_url && (
-            <Button
-              component="label"
-              color="inherit"
-              variant="outlined"
-              startIcon={<Iconify icon="solar:upload-bold" />}
-            >
-              Upload Bol Pakbon
-              <input type="file" hidden onChange={handleUploadBolPakbon} accept="application/pdf" />
-            </Button>
-          )}
-
-          {source_host === 'bol.com' && !currentOrder?.invoice && (
-            <Button
-              color="inherit"
-              variant="outlined"
-              startIcon={<Iconify icon="solar:document-add-bold" />}
-              onClick={() => handleAddToLatestInvoice({ id })}
-            >
-              Toegevoegd aan de factuur
-            </Button>
-          )}
-
           {currentOrder?.invoice && (
             <Button
               color="inherit"
               variant="outlined"
               startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-              onClick={() => handleDownloadDocument({ 
-                doc: 'invoice', 
-                customUrl: `/consolidated_invoice/${currentOrder.invoice}/` 
-              })}
-              sx={{
-                backgroundColor: 'lightgreen',
-                '&:hover': {
-                  backgroundColor: 'lightgreen',
-                }
-              }}
+              onClick={() =>
+                handleDownloadDocument({
+                  doc: 'invoice',
+                  customUrl: `/consolidated_invoice/${currentOrder.invoice}/`,
+                })
+              }
             >
               Download Factuur
             </Button>
           )}
 
-          {source_host !== 'bol.com' && (
-            <>
-              <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="solar:printer-minimalistic-bold" />}
-            onClick={() => handleDownloadDocument({ doc: 'invoice' })}
-            disabled={
-              source_host === 'bol.com'
-                ? !snelstart_order_number
-                : !currentOrder?.delivery_details?.tracking_number || !snelstart_order_number
-            }
-            sx={{
-              backgroundColor: isInvoiceDownloaded ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: isInvoiceDownloaded ? 'lightgreen' : undefined,
-              }
-            }}
-          >
-            {t('invoice')}
-          </Button>
           <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="eva:email-fill" />}
-            endIcon={invoiceEmails.length > 1 ? <Iconify icon="eva:arrow-ios-downward-fill" /> : undefined}
-            onClick={(event) => {
-              if (invoiceEmails.length === 1) {
-                handleSendInvoice({ id, email: invoiceEmails[0].value });
-              } else {
-                popoverSendInvoice.onOpen(event);
-              }
-            }}
-            disabled={
-              source_host === 'bol.com'
-                ? !snelstart_order_number || invoiceEmails.length === 0
-                : !currentOrder?.delivery_details?.tracking_number || !snelstart_order_number || invoiceEmails.length === 0
+            color={is_on_map_planning ? 'primary' : 'inherit'}
+            variant={is_on_map_planning ? 'soft' : 'outlined'}
+            startIcon={
+              <Iconify
+                icon={is_on_map_planning ? 'solar:map-point-remove-bold' : 'solar:map-point-add-bold'}
+              />
             }
-            sx={{
-              backgroundColor: isInvoiceSent ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: isInvoiceSent ? 'lightgreen' : undefined,
-              }
-            }}
+            onClick={handleToggleMapPlanning}
+            disabled={isTogglingPlanning}
           >
-            {t('send_invoice')}
+            {is_on_map_planning ? 'Op kaartplanning' : 'Naar kaartplanning'}
           </Button>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
-            onClick={() => {
-              if (
-                is_sent_to_snelstart &&
-                !window.confirm(
-                  `Deze order staat al in Snelstart (factuur ${snelstart_order_number || '?'}). De bestaande boeking wordt verwijderd en opnieuw verzonden. Doorgaan?`
-                )
-              ) {
-                return;
-              }
-              sendToSnelstart({ id });
-            }}
-            disabled={source_host !== 'bol.com' && !currentOrder?.delivery_details?.tracking_number}
-            sx={{
-              backgroundColor: is_sent_to_snelstart ? 'lightgreen' : 'transparent',
-              '&:hover': {
-                backgroundColor: is_sent_to_snelstart ? 'lightgreen' : undefined,
-              }
-            }}
-          >
-            {t('sendToSnelstart')}
-          </Button>
-            </>
-          )}
-
-          {/* <Button color="inherit" variant="contained" startIcon={<Iconify icon="solar:pen-bold" />}>
-            {t('edit')}
-          </Button> */}
         </Stack>
       </Stack>
+
+      <Card sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Typography variant="h6">Afhandeling</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {doneCount} van {steps.length} stappen gedaan
+          </Typography>
+        </Stack>
+
+        <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5}>
+          {steps.map((step, index) => {
+            const isNext = step.key === nextStepKey;
+            const buttonProps = {
+              fullWidth: true,
+              disabled: !!step.blockedReason,
+              color: (isNext && 'primary') || (step.done && 'success') || 'inherit',
+              variant: isNext ? 'contained' : 'outlined',
+              startIcon: <Iconify icon={step.icon} />,
+              endIcon: step.hasMenu ? <Iconify icon="eva:arrow-ios-downward-fill" /> : undefined,
+            } as const;
+
+            return (
+              <Stack
+                key={step.key}
+                spacing={1}
+                sx={{
+                  p: 1.5,
+                  flex: '1 1 180px',
+                  borderRadius: 1.5,
+                  border: (theme) =>
+                    `solid 1px ${
+                      (step.done && alpha(theme.palette.success.main, 0.4)) ||
+                      (isNext && theme.palette.primary.main) ||
+                      theme.palette.divider
+                    }`,
+                  ...(step.done && {
+                    bgcolor: (theme) => alpha(theme.palette.success.main, 0.08),
+                  }),
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      typography: 'caption',
+                      fontWeight: 600,
+                      color: step.done || isNext ? 'common.white' : 'text.secondary',
+                      bgcolor:
+                        (step.done && 'success.main') || (isNext && 'grey.800') || 'background.neutral',
+                    }}
+                  >
+                    {step.done ? <Iconify icon="eva:checkmark-fill" width={16} /> : index + 1}
+                  </Box>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ ...(!step.done && !isNext && { color: 'text.secondary' }) }}
+                  >
+                    {step.title}
+                  </Typography>
+                </Stack>
+
+                <Typography
+                  variant="caption"
+                  sx={{
+                    flexGrow: 1,
+                    minHeight: 18,
+                    color:
+                      (step.blockedReason && 'warning.dark') ||
+                      (step.done && 'success.dark') ||
+                      'text.secondary',
+                    ...(step.blockedReason && { fontWeight: 600 }),
+                  }}
+                >
+                  {step.blockedReason || (step.done && step.doneNote) || (isNext && 'Volgende stap') || ''}
+                </Typography>
+
+                {step.onUpload ? (
+                  <Button component="label" {...buttonProps}>
+                    {step.action}
+                    <input type="file" hidden onChange={step.onUpload} accept="application/pdf" />
+                  </Button>
+                ) : (
+                  <Button onClick={step.onClick} {...buttonProps}>
+                    {step.action}
+                  </Button>
+                )}
+              </Stack>
+            );
+          })}
+        </Stack>
+      </Card>
 
       <CustomPopover
         open={popover.open}
