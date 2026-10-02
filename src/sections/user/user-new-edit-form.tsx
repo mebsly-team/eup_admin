@@ -19,6 +19,8 @@ import axiosInstance from 'src/utils/axios';
 
 import { useTranslate } from 'src/locales';
 
+import Label from 'src/components/label';
+import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFSelect, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 import UserDetailsHistory from './user-details-history';
@@ -38,10 +40,41 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Tooltip,
 } from '@mui/material';
 import { Add, Edit, Delete, Map } from '@mui/icons-material';
 import { MAP_USER_COLORS } from 'src/constants/colors';
 import { useAuthContext } from 'src/auth/hooks';
+
+// The dashboard header is fixed: one bar on small screens, two from lg up.
+// Only from md up: the card is not sticky below that and `top` would shift it.
+const STICKY_TOP = { md: 64, lg: 128 };
+// Below the form's own sticky header.
+const SIDE_STICKY_TOP = { xs: 164, lg: 228 };
+const SECTION_SX = { scrollMarginTop: { xs: 80, md: 164, lg: 228 } };
+
+const FIELD_GRID_SX = {
+  rowGap: 3,
+  columnGap: 2,
+  display: 'grid',
+  gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)' },
+};
+
+const SECTIONS = [
+  { id: 'user-account', title: 'Account', hint: 'Waarmee de klant inlogt en hoe hij is ingedeeld' },
+  { id: 'user-person', title: 'Persoon', hint: 'Gegevens van de accounthouder' },
+  { id: 'user-business', title: 'Bedrijf', hint: 'Bedrijfsgegevens en contactpersoon' },
+  {
+    id: 'user-payment',
+    title: 'Betaling en korting',
+    hint: 'Voorwaarden die op elke bestelling van deze klant gelden',
+  },
+  { id: 'user-invoicing', title: 'Facturatie', hint: 'Waar en hoe facturen naartoe gaan' },
+  { id: 'user-relation', title: 'Relatie', hint: 'Interne indeling en afspraken' },
+  { id: 'user-communication', title: 'Communicatie', hint: 'Wat de klant van ons ontvangt' },
+  { id: 'user-social', title: 'Social media', hint: 'Profielen van de klant' },
+  { id: 'user-notes', title: 'Notities', hint: 'Interne notitie over deze klant' },
+];
 
 const SITE_SOURCE_OPTIONS = [
   { value: 'kooptop.com', label: 'kooptop.com' },
@@ -661,531 +694,242 @@ export default function UserNewEditForm({ currentUser }: Props) {
     }
   };
 
-  return (
-    <>
-      <FormProvider methods={methods} onSubmit={onSubmit}>
-        <Grid container spacing={3}>
-          <Grid xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-              >
-                <RHFTextField name="relation_code" label={t('relation_code')} />
-                <RHFSelect
-                  name="type"
-                  label={t('user_type')}
-                  onChange={handleTypeChange}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  {USER_TYPES.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
-                <RHFSelect
-                  name="site_source"
-                  label={t('site_source')}
-                  onChange={(e) => {
-                    setValue('site_source', e.target.value);
-                  }}
-                >
-                  {SITE_SOURCE_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
-                <RHFTextField
-                  name="email"
-                  label={t('email')}
-                  labelColor="purple"
-                  onChange={(e) => {
-                    setValue('email', e.target.value.toLowerCase());
-                  }}
-                />
-                <RHFTextField name="first_name" label={t('name')} labelColor="purple" />
-                <RHFTextField name="last_name" label={t('lastname')} labelColor="purple" />
-                {/* {currentUser ? null : (
-                  <RHFTextField name="password" label={t('password')} type="password" />
-                )} */}
-                <RHFSelect
-                  name="gender"
-                  label={t('gender')}
-                  labelColor="purple"
-                  onChange={(e) => {
-                    setValue('gender', e.target.value);
-                  }}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  <MenuItem key="M" value="M">
-                    M
-                  </MenuItem>
-                  <MenuItem key="V" value="V">
-                    V
-                  </MenuItem>
-                  <MenuItem key="O" value="O">
-                    Ander
-                  </MenuItem>
-                </RHFSelect>
-                <RHFTextField name="phone_number" label={t('phone')} labelColor="purple" />
-                <RHFTextField name="mobile_number" label={t('mobile')} labelColor="purple" />
-                <Controller
-                  name="birthdate"
-                  control={control}
-                  render={({ field, fieldState: { error } }) => (
-                    <DatePicker
-                      label={t('birthdate')}
-                      value={new Date(field.value) || null}
-                      format="yyyy-MM-dd"
-                      onChange={(newValue) => {
-                        field.onChange(newValue);
-                      }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          error: !!error,
-                          helperText: error?.message,
-                        },
-                      }}
-                    />
-                  )}
-                />
-                <RHFSwitch
-                  name="inform_when_new_products"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
-                      {t('inform_when_new_products')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="is_subscribed_newsletters"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
-                      {t('is_subscribed_newsletters')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="is_access_granted_social_media"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
-                      {t('is_access_granted_social_media')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-              </Box>
-            </Card>
+  const values = watch();
 
-            <Card sx={{ p: 3, mt: 5 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-              >
-                <RHFTextField name="business_name" label={t('business_name')} labelColor="purple" />
-                {/* <RHFTextField name="contact_person_name" label={t('contact_person_name')} />
-                <RHFTextField name="contact_person_address" label={t('contact_person_address')} />
-                <RHFTextField name="contact_person_postcode" label={t('contact_person_postcode')} />
-                <RHFTextField name="contact_person_city" label={t('contact_person_city')} />
-                <RHFTextField name="contact_person_country" label={t('contact_person_country')} /> */}
-                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} labelColor="purple" />
-                <RHFTextField
-                  name="contact_person_email"
-                  label={t('contact_person_email')}
-                  labelColor="purple"
-                  onChange={(e) => {
-                    setValue('contact_person_email', e.target.value.toLowerCase());
-                  }}
-                />
-                <RHFTextField
-                  name="contact_person_department"
-                  label={t('contact_person_department')}
-                />
-                <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
-                <RHFTextField
-                  name="contact_person_nationality"
-                  label={t('contact_person_nationality')}
-                />
-                <Controller
-                  name="branch"
-                  control={control}
-                  render={({ field, fieldState: { error } }) => {
-                    const selectValue = isOtherSelected ? 'other' : (field.value || '');
+  const headerTitle = currentUser
+    ? currentUser.business_name ||
+      `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() ||
+      currentUser.email
+    : t('new_user');
 
-                    return (
-                      <Stack spacing={2} sx={{ width: 1 }}>
-                        <FormControl fullWidth error={!!error}>
-                          <InputLabel id="branch-select-label" sx={{ color: 'purple !important' }}>{t('branch')}</InputLabel>
-                          <Select
-                            labelId="branch-select-label"
-                            label={t('branch')}
-                            value={selectValue}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === 'other') {
-                                setIsOtherSelected(true);
-                                field.onChange('');
-                              } else {
-                                setIsOtherSelected(false);
-                                field.onChange(val);
-                              }
-                            }}
-                          >
-                            <MenuItem value="">{t('none')}</MenuItem>
-                            <Divider sx={{ borderStyle: 'dashed' }} />
-                            <MenuItem value="Bakkerij">Bakkerij</MenuItem>
-                            <MenuItem value="Slagerij">Slagerij</MenuItem>
-                            <MenuItem value="Kantor">Kantor</MenuItem>
-                            <MenuItem value="other">{t('other') || 'Anders...'}</MenuItem>
-                          </Select>
-                        </FormControl>
+  const renderSwitch = (name: string, label: string, color?: string) => (
+    <RHFSwitch
+      name={name}
+      labelPlacement="start"
+      label={
+        <Typography variant="body2" sx={{ ...(color && { color }) }}>
+          {label}
+        </Typography>
+      }
+      sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+    />
+  );
 
-                        {isOtherSelected && (
-                          <TextField
-                            fullWidth
-                            label={`${t('branch')} (${t('other') || 'Anders'})`}
-                            InputLabelProps={{ sx: { color: 'purple !important' } }}
-                            value={field.value || ''}
-                            onChange={(e) => {
-                              field.onChange(e.target.value);
-                            }}
-                            error={!!error}
-                            helperText={error?.message}
-                          />
-                        )}
-                      </Stack>
-                    );
-                  }}
-                />
-                <RHFTextField name="iban" label={t('iban')} />
-                <RHFTextField name="bic" label={t('bic')} />
-                <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
-                <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
-                <RHFTextField name="vat" label={t('vat')} labelColor="orange" />
-                <RHFSwitch
-                  name="is_vat_document_printed"
-                  labelPlacement="start"
-                  disabled={!getValues('vat')}
-                  label={<>
-                    <Typography variant="body1">
-                      {t('is_vat_zero')}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 0.5 }}>
-                      {t('is_vat_document_printed')}
-                    </Typography>
-                  </>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFTextField name="kvk" label={t('kvk')} labelColor="orange" />
-                <RHFSelect name="payment_method" label={t('payment_method')}>
-                  <MenuItem value="">{t('none')}</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  {PAYMENT_METHOD_TYPES.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
+  const renderSection = (
+    section: { id: string; title: string; hint: string },
+    fields: React.ReactNode,
+    switches?: React.ReactNode
+  ) => (
+    <Card id={section.id} sx={{ p: 3, ...SECTION_SX }}>
+      <Typography variant="h6">{section.title}</Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary', mb: fields ? 3 : 1 }}>
+        {section.hint}
+      </Typography>
 
-                <RHFTextField
-                  name="customer_percentage"
-                  label={t('customer_percentage')}
-                  labelColor="orange"
-                  type="number"
-                />
-                <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
-                <RHFSelect name="payment_termin" label={t('payment_termin')} labelColor="orange">
-                  <MenuItem value="">{t('none')}</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  <MenuItem value="1 week">1 week</MenuItem>
-                  <MenuItem value="2 weeks">2 weeks</MenuItem>
-                  <MenuItem value="3 weeks">3 weeks</MenuItem>
-                  <MenuItem value="4 weeks">4 weeks</MenuItem>
-                  <MenuItem value="6 weeks">6 weeks</MenuItem>
-                  <MenuItem value="8 weeks">8 weeks</MenuItem>
-                </RHFSelect>
-                <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
-                <RHFTextField name="invoice_address" label={t('invoice_address')} />
-                <RHFTextField name="invoice_language" label={t('invoice_language')} />
-                <RHFTextField name="invoice_email" label={t('invoice_email')} />
-                <RHFTextField name="invoice_cc_email" label={t('invoice_cc_email')} />
-                {/* <RHFTextField name="discount_group" label={t('discount_group')} /> */}
-                <RHFTextField name="inform_via" label={t('inform_via')} />
-                <RHFTextField name="classification" label={t('classification')} labelColor="orange" />
+      {fields && <Box sx={FIELD_GRID_SX}>{fields}</Box>}
 
-                <RHFSelect
-                  name="customer_color"
-                  label={t('customer_color')}
-                  labelColor="orange"
-                  SelectProps={{
-                    renderValue: (value) => {
-                      if (!value) return '';
-                      const option = MAP_USER_COLORS.find((c) => c.color === value);
-                      return (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Box
-                            className="color-dot"
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: '50%',
-                              backgroundColor: value,
-                              border: '2px solid #fff',
-                              boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
-                              flexShrink: 0
-                            }}
-                          />
-                          <Typography noWrap>{option ? t(option.value) : value}</Typography>
-                        </Box>
-                      );
-                    }
-                  }}
-                >
-                  <MenuItem value="">{t('none')}</MenuItem>
-                  <Divider sx={{ borderStyle: 'dashed' }} />
-                  {MAP_USER_COLORS.map((option) => (
-                    <MenuItem
-                      key={option.color}
-                      value={option.color}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        py: 1,
-                        '&:hover .color-dot': {
-                          transform: 'scale(1.2)',
-                          boxShadow: '0 0 0 2px rgba(0,0,0,0.2)'
-                        }
-                      }}
-                    >
-                      <Box
-                        className="color-dot"
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: '50%',
-                          backgroundColor: option.color,
-                          border: '2px solid #fff',
-                          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
-                          transition: 'all 0.2s ease-in-out',
-                          flexShrink: 0
-                        }}
-                      />
-                      <Typography noWrap>{t(option.value)}</Typography>
-                    </MenuItem>
-                  ))}
-                </RHFSelect>
+      {switches && (
+        <>
+          {fields && <Divider sx={{ borderStyle: 'dashed', my: 2.5 }} />}
+          <Box sx={{ ...FIELD_GRID_SX, rowGap: 0.5 }}>{switches}</Box>
+        </>
+      )}
+    </Card>
+  );
 
-                <RHFTextField name="relation_type" label={t('relation_type')} labelColor="orange" />
-                <RHFTextField name="relation_via" label={t('relation_via')} />
-                <RHFTextField name="days_closed" label={t('days_closed')} />
-                <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
-                <RHFTextField name="fax" label={t('fax')} />
-                <RHFTextField name="website" label={t('website')} />
-                <RHFSwitch
-                  name="incasseren"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('incasseren')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
+  const renderHeader = (
+    <Card sx={{ position: { md: 'sticky' }, top: STICKY_TOP, zIndex: 10, mb: 3 }}>
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        useFlexGap
+        alignItems="center"
+        spacing={1.5}
+        sx={{ px: 2, py: 1.5 }}
+      >
+        <IconButton
+          type="button"
+          onClick={() => router.back()}
+          aria-label="Terug"
+          sx={{ border: (theme) => `solid 1px ${theme.palette.divider}`, borderRadius: 1 }}
+        >
+          <Iconify icon="eva:arrow-ios-back-fill" />
+        </IconButton>
 
-                <RHFSwitch
-                  name="is_eligible_to_work_with"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('is_eligible_to_work_with')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+        <Box sx={{ minWidth: 0, flex: '1 1 260px' }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+            <Typography variant="h5" noWrap title={headerTitle}>
+              {headerTitle}
+            </Typography>
+            {values.site_source && (
+              <Tooltip title={values.site_source}>
+                <img
+                  style={{ height: 16, width: 16, flexShrink: 0 }}
+                  src={`/assets/icons/home/${values.site_source === 'europowerbv.com' ? 'europowerbv.png' : 'kooptop.png'}`}
+                  alt={values.site_source}
                 />
-                <RHFSwitch
-                  name="is_no_payment"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('is_no_payment')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-                <RHFSwitch
-                  name="inform_when_new_products"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'purple' }}>
-                      {t('inform_when_new_products')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
+              </Tooltip>
+            )}
+            <Label variant="soft" color={values.is_active ? 'success' : 'default'}>
+              {values.is_active ? 'Actief' : 'Inactief'}
+            </Label>
+          </Stack>
+          <Typography variant="body2" noWrap sx={{ color: 'text.secondary' }}>
+            {[
+              values.relation_code && `Relatiecode ${values.relation_code}`,
+              values.type && t(values.type),
+              values.email,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Typography>
+        </Box>
 
-                <RHFSwitch
-                  name="notify"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('notify')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-              </Box>
-            </Card>
+        {currentUser && (
+          <Button
+            type="button"
+            variant="outlined"
+            color="inherit"
+            startIcon={<Iconify icon="solar:lock-password-outline" />}
+            onClick={handlePasswordReset}
+          >
+            {t('send_password_reset')}
+          </Button>
+        )}
+        <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+          {!currentUser ? t('create_user') : t('save')}
+        </LoadingButton>
+      </Stack>
+    </Card>
+  );
 
-            <Card sx={{ p: 3, mt: 5 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-              >
-                <RHFTextField name="facebook" label={t('facebook')} placeholder='https://www.facebook.com/yourprofile' />
-                <RHFTextField name="linkedin" label={t('linkedin')} placeholder='https://www.linkedin.com/in/yourprofile' />
-                <RHFTextField name="twitter" label={t('twitter')} placeholder='https://www.twitter.com/yourhandle' />
-                <RHFTextField name="instagram" label={t('instagram')} placeholder='https://www.instagram.com/yourprofile' />
-                <RHFTextField name="pinterest" label={t('pinterest')} placeholder='https://www.pinterest.com/yourprofile' />
-                <RHFTextField name="tiktok" label={t('tiktok')} placeholder='https://www.tiktok.com/@yourusername' />
-              </Box>
-            </Card>
-            <Card sx={{ p: 3, mt: 5 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-              >
-                <RHFTextField name="notes" label={t('notes')} type="textarea" />
-              </Box>
-            </Card>
+  const renderNav = (
+    <Box
+      component="nav"
+      aria-label="Secties"
+      sx={{
+        display: { xs: 'none', lg: 'block' },
+        flex: '0 0 180px',
+        position: 'sticky',
+        top: SIDE_STICKY_TOP,
+      }}
+    >
+      <Stack spacing={0.25}>
+        {SECTIONS.map((section) => (
+          <Button
+            key={section.id}
+            type="button"
+            color="inherit"
+            onClick={() =>
+              document
+                .getElementById(section.id)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+            sx={{ justifyContent: 'flex-start', fontWeight: 400 }}
+          >
+            {section.title}
+          </Button>
+        ))}
+      </Stack>
+    </Box>
+  );
 
-            <Card sx={{ p: 3, mt: 5 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
-              >
-                <RHFSwitch
-                  name="is_active"
-                  labelPlacement="start"
-                  label={
-                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                      {t('active')}
-                    </Typography>
-                  }
-                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
-                />
-              </Box>
-            </Card>
-            <Stack alignItems="flex-end" sx={{ mt: 3 }} direction="row" spacing={2}>
-              {currentUser && (
-                <LoadingButton
-                  variant="contained"
-                  onClick={handlePasswordReset}
-                >
-                  {t('send_password_reset')}
-                </LoadingButton>
-              )}
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {!currentUser ? t('create_user') : t('save')}
-              </LoadingButton>
-            </Stack>
-          </Grid>
-          <Grid xs={12} md={4}>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>#</TableCell>
-                    <TableCell>Adres Type</TableCell>
-                    <TableCell>Adres Naam</TableCell>
-                    <TableCell>Adres</TableCell>
-                    <TableCell>Acties</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {addressList.map((address, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>
-                        {address?.is_delivery_address ? t('delivery_address') :
-                          address?.is_contact_person_address ? t('contact_person_address') : address?.is_invoice_address ? t('invoice_address') : ""}
-                      </TableCell>
-                      <TableCell>{address.address_name}</TableCell>
-                      <TableCell>
-                        {[
-                          address.street_name,
-                          address.house_number,
-                          address.house_suffix + ', ',
-                          address.zip_code + ', ',
-                          address.city + ', ',
-                          address.country
-                        ].filter(Boolean).join(' ')}
-                      </TableCell>
-                      <TableCell>
-                        <IconButton type="button" onClick={() => handleOpenAddressForm(index)}>
-                          <Edit />
-                        </IconButton>
-                        <IconButton type="button" onClick={() => handleDeleteAddress(index)}>
-                          <Delete />
-                        </IconButton>
-                        {address.latitude && address.longitude && (
-                          <IconButton type="button" onClick={() => handleShowOnMap(address)} title="Show on map">
-                            <Map />
-                          </IconButton>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+  const renderAddresses = (
+    <Card sx={{ p: 2.5 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Typography variant="h6">Adressen</Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          {addressList.length}
+        </Typography>
+      </Stack>
 
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => handleAddAddress()}
-              sx={{ mt: 2 }}
-              disabled={!currentUser?.id}
-              type="button"
+      <Stack spacing={1.5}>
+        {addressList.map((address: any, index: number) => {
+          const addressType =
+            (address?.is_delivery_address && t('delivery_address')) ||
+            (address?.is_contact_person_address && t('contact_person_address')) ||
+            (address?.is_invoice_address && t('invoice_address')) ||
+            '';
+
+          return (
+            <Box
+              key={index}
+              sx={{
+                p: 1.5,
+                borderRadius: 1.5,
+                typography: 'body2',
+                border: (theme) => `solid 1px ${theme.palette.divider}`,
+              }}
             >
-              Adres Toevoegen
-            </Button>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+                {addressType && (
+                  <Label
+                    variant="soft"
+                    color={
+                      (address?.is_delivery_address && 'info') ||
+                      (address?.is_invoice_address && 'secondary') ||
+                      'default'
+                    }
+                  >
+                    {addressType}
+                  </Label>
+                )}
+                <Typography variant="body2" noWrap sx={{ color: 'text.secondary' }}>
+                  {address.address_name}
+                </Typography>
+              </Stack>
+
+              <Box>
+                {[address.street_name, address.house_number, address.house_suffix]
+                  .filter(Boolean)
+                  .join(' ')}
+              </Box>
+              <Box>
+                {[[address.zip_code, address.city].filter(Boolean).join(' '), address.country]
+                  .filter(Boolean)
+                  .join(', ')}
+              </Box>
+
+              <Stack direction="row" sx={{ mt: 0.5, ml: -1 }}>
+                <Tooltip title="Bewerken">
+                  <IconButton type="button" onClick={() => handleOpenAddressForm(index)}>
+                    <Edit fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                {address.latitude && address.longitude && (
+                  <Tooltip title="Op kaart tonen">
+                    <IconButton type="button" onClick={() => handleShowOnMap(address)}>
+                      <Map fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                <Tooltip title="Verwijderen">
+                  <IconButton type="button" color="error" onClick={() => handleDeleteAddress(index)}>
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Box>
+          );
+        })}
+
+        {addressList.length === 0 && (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {currentUser?.id ? 'Nog geen adressen' : 'Adressen kunnen na het opslaan worden toegevoegd'}
+          </Typography>
+        )}
+
+        <Button
+          variant="outlined"
+          color="inherit"
+          startIcon={<Add />}
+          onClick={() => handleAddAddress()}
+          disabled={!currentUser?.id}
+          type="button"
+        >
+          Adres Toevoegen
+        </Button>
+      </Stack>
 
             <Dialog open={openAddressForm} onClose={handleCloseAddressForm}>
               <DialogTitle>{editingIndex !== null ? 'Bewerk Adres' : 'Adres Toevoegen'}</DialogTitle>
@@ -1284,15 +1028,382 @@ export default function UserNewEditForm({ currentUser }: Props) {
                 </form>
               </DialogContent>
             </Dialog>
+    </Card>
+  );
 
-          </Grid>
-        </Grid>
-      </FormProvider>
+  return (
+    <FormProvider methods={methods} onSubmit={onSubmit}>
+      {renderHeader}
 
-      <Stack sx={{ mt: 3 }}>
-        <UserDetailsHistory currentUser={currentUser} />
-      </Stack>
+      <Box
+        sx={{
+          gap: 3,
+          display: 'flex',
+          alignItems: 'flex-start',
+          flexDirection: { xs: 'column', md: 'row' },
+        }}
+      >
+        {renderNav}
 
-    </>
+        <Stack spacing={3} sx={{ flex: '1 1 0', minWidth: 0, width: { xs: 1, md: 'auto' } }}>
+          {renderSection(
+            SECTIONS[0],
+            <>
+                <RHFTextField name="relation_code" label={t('relation_code')} />
+                <RHFSelect
+                  name="type"
+                  label={t('user_type')}
+                  onChange={handleTypeChange}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {USER_TYPES.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+                <RHFSelect
+                  name="site_source"
+                  label={t('site_source')}
+                  onChange={(e) => {
+                    setValue('site_source', e.target.value);
+                  }}
+                >
+                  {SITE_SOURCE_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+                <RHFTextField
+                  name="email"
+                  label={t('email')}
+                  labelColor="purple"
+                  onChange={(e) => {
+                    setValue('email', e.target.value.toLowerCase());
+                  }}
+                />
+            </>,
+            renderSwitch('is_active', t('active'))
+          )}
+
+          {renderSection(
+            SECTIONS[1],
+            <>
+                <RHFTextField name="first_name" label={t('name')} labelColor="purple" />
+                <RHFTextField name="last_name" label={t('lastname')} labelColor="purple" />
+                <RHFSelect
+                  name="gender"
+                  label={t('gender')}
+                  labelColor="purple"
+                  onChange={(e) => {
+                    setValue('gender', e.target.value);
+                  }}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <MenuItem key="M" value="M">
+                    M
+                  </MenuItem>
+                  <MenuItem key="V" value="V">
+                    V
+                  </MenuItem>
+                  <MenuItem key="O" value="O">
+                    Ander
+                  </MenuItem>
+                </RHFSelect>
+                <Controller
+                  name="birthdate"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <DatePicker
+                      label={t('birthdate')}
+                      value={new Date(field.value) || null}
+                      format="yyyy-MM-dd"
+                      onChange={(newValue) => {
+                        field.onChange(newValue);
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!error,
+                          helperText: error?.message,
+                        },
+                      }}
+                    />
+                  )}
+                />
+                <RHFTextField name="phone_number" label={t('phone')} labelColor="purple" />
+                <RHFTextField name="mobile_number" label={t('mobile')} labelColor="purple" />
+            </>
+          )}
+
+          {renderSection(
+            SECTIONS[2],
+            <>
+                <RHFTextField name="business_name" label={t('business_name')} labelColor="purple" />
+                <Controller
+                  name="branch"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => {
+                    const selectValue = isOtherSelected ? 'other' : (field.value || '');
+
+                    return (
+                      <Stack spacing={2} sx={{ width: 1 }}>
+                        <FormControl fullWidth error={!!error}>
+                          <InputLabel id="branch-select-label" sx={{ color: 'purple !important' }}>{t('branch')}</InputLabel>
+                          <Select
+                            labelId="branch-select-label"
+                            label={t('branch')}
+                            value={selectValue}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'other') {
+                                setIsOtherSelected(true);
+                                field.onChange('');
+                              } else {
+                                setIsOtherSelected(false);
+                                field.onChange(val);
+                              }
+                            }}
+                          >
+                            <MenuItem value="">{t('none')}</MenuItem>
+                            <Divider sx={{ borderStyle: 'dashed' }} />
+                            <MenuItem value="Bakkerij">Bakkerij</MenuItem>
+                            <MenuItem value="Slagerij">Slagerij</MenuItem>
+                            <MenuItem value="Kantor">Kantor</MenuItem>
+                            <MenuItem value="other">{t('other') || 'Anders...'}</MenuItem>
+                          </Select>
+                        </FormControl>
+
+                        {isOtherSelected && (
+                          <TextField
+                            fullWidth
+                            label={`${t('branch')} (${t('other') || 'Anders'})`}
+                            InputLabelProps={{ sx: { color: 'purple !important' } }}
+                            value={field.value || ''}
+                            onChange={(e) => {
+                              field.onChange(e.target.value);
+                            }}
+                            error={!!error}
+                            helperText={error?.message}
+                          />
+                        )}
+                      </Stack>
+                    );
+                  }}
+                />
+                <RHFTextField name="kvk" label={t('kvk')} labelColor="orange" />
+                <RHFTextField name="vat" label={t('vat')} labelColor="orange" />
+                <RHFTextField name="contact_person_phone" label={t('contact_person_phone')} labelColor="purple" />
+                <RHFTextField
+                  name="contact_person_email"
+                  label={t('contact_person_email')}
+                  labelColor="purple"
+                  onChange={(e) => {
+                    setValue('contact_person_email', e.target.value.toLowerCase());
+                  }}
+                />
+                <RHFTextField
+                  name="contact_person_department"
+                  label={t('contact_person_department')}
+                />
+                <RHFTextField name="contact_person_branch" label={t('contact_person_branch')} />
+                <RHFTextField
+                  name="contact_person_nationality"
+                  label={t('contact_person_nationality')}
+                />
+                <RHFTextField name="fax" label={t('fax')} />
+                <RHFTextField name="website" label={t('website')} />
+            </>,
+            <>
+                <RHFSwitch
+                  name="is_vat_document_printed"
+                  labelPlacement="start"
+                  disabled={!getValues('vat')}
+                  label={<>
+                    <Typography variant="body1">
+                      {t('is_vat_zero')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 0.5 }}>
+                      {t('is_vat_document_printed')}
+                    </Typography>
+                  </>
+                  }
+                  sx={{ mx: 0, width: 1, justifyContent: 'space-between' }}
+                />
+            </>
+          )}
+
+          {renderSection(
+            SECTIONS[3],
+            <>
+                <RHFSelect name="payment_method" label={t('payment_method')}>
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {PAYMENT_METHOD_TYPES.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+                <RHFSelect name="payment_termin" label={t('payment_termin')} labelColor="orange">
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  <MenuItem value="1 week">1 week</MenuItem>
+                  <MenuItem value="2 weeks">2 weeks</MenuItem>
+                  <MenuItem value="3 weeks">3 weeks</MenuItem>
+                  <MenuItem value="4 weeks">4 weeks</MenuItem>
+                  <MenuItem value="6 weeks">6 weeks</MenuItem>
+                  <MenuItem value="8 weeks">8 weeks</MenuItem>
+                </RHFSelect>
+                <RHFTextField name="credit_limit" label={t('credit_limit')} type="number" />
+                <RHFTextField
+                  name="customer_percentage"
+                  label={t('customer_percentage')}
+                  labelColor="orange"
+                  type="number"
+                />
+                <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
+                <RHFTextField name="iban" label={t('iban')} />
+                <RHFTextField name="bic" label={t('bic')} />
+                <RHFTextField name="account_holder_name" label={t('account_holder_name')} />
+                <RHFTextField name="account_holder_city" label={t('account_holder_city')} />
+            </>,
+            <>
+              {renderSwitch('incasseren', t('incasseren'))}
+              {renderSwitch('is_no_payment', t('is_no_payment'))}
+            </>
+          )}
+
+          {renderSection(
+            SECTIONS[4],
+            <>
+                <RHFTextField name="invoice_email" label={t('invoice_email')} />
+                <RHFTextField name="invoice_cc_email" label={t('invoice_cc_email')} />
+                <RHFTextField name="invoice_address" label={t('invoice_address')} />
+                <RHFTextField name="invoice_language" label={t('invoice_language')} />
+            </>
+          )}
+
+          {renderSection(
+            SECTIONS[5],
+            <>
+                <RHFTextField name="classification" label={t('classification')} labelColor="orange" />
+                <RHFSelect
+                  name="customer_color"
+                  label={t('customer_color')}
+                  labelColor="orange"
+                  SelectProps={{
+                    renderValue: (value) => {
+                      if (!value) return '';
+                      const option = MAP_USER_COLORS.find((c) => c.color === value);
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Box
+                            className="color-dot"
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: '50%',
+                              backgroundColor: value,
+                              border: '2px solid #fff',
+                              boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+                              flexShrink: 0
+                            }}
+                          />
+                          <Typography noWrap>{option ? t(option.value) : value}</Typography>
+                        </Box>
+                      );
+                    }
+                  }}
+                >
+                  <MenuItem value="">{t('none')}</MenuItem>
+                  <Divider sx={{ borderStyle: 'dashed' }} />
+                  {MAP_USER_COLORS.map((option) => (
+                    <MenuItem
+                      key={option.color}
+                      value={option.color}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        py: 1,
+                        '&:hover .color-dot': {
+                          transform: 'scale(1.2)',
+                          boxShadow: '0 0 0 2px rgba(0,0,0,0.2)'
+                        }
+                      }}
+                    >
+                      <Box
+                        className="color-dot"
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          backgroundColor: option.color,
+                          border: '2px solid #fff',
+                          boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+                          transition: 'all 0.2s ease-in-out',
+                          flexShrink: 0
+                        }}
+                      />
+                      <Typography noWrap>{t(option.value)}</Typography>
+                    </MenuItem>
+                  ))}
+                </RHFSelect>
+                <RHFTextField name="relation_type" label={t('relation_type')} labelColor="orange" />
+                <RHFTextField name="relation_via" label={t('relation_via')} />
+                <RHFTextField name="inform_via" label={t('inform_via')} />
+                <RHFTextField name="days_closed" label={t('days_closed')} />
+                <RHFTextField name="days_no_delivery" label={t('days_no_delivery')} />
+            </>,
+            renderSwitch('is_eligible_to_work_with', t('is_eligible_to_work_with'))
+          )}
+
+          {renderSection(
+            SECTIONS[6],
+            null,
+            <>
+              {renderSwitch('inform_when_new_products', t('inform_when_new_products'), 'purple')}
+              {renderSwitch('is_subscribed_newsletters', t('is_subscribed_newsletters'), 'purple')}
+              {renderSwitch(
+                'is_access_granted_social_media',
+                t('is_access_granted_social_media'),
+                'purple'
+              )}
+              {renderSwitch('notify', t('notify'))}
+            </>
+          )}
+
+          {renderSection(
+            SECTIONS[7],
+            <>
+                <RHFTextField name="facebook" label={t('facebook')} placeholder='https://www.facebook.com/yourprofile' />
+                <RHFTextField name="linkedin" label={t('linkedin')} placeholder='https://www.linkedin.com/in/yourprofile' />
+                <RHFTextField name="twitter" label={t('twitter')} placeholder='https://www.twitter.com/yourhandle' />
+                <RHFTextField name="instagram" label={t('instagram')} placeholder='https://www.instagram.com/yourprofile' />
+                <RHFTextField name="pinterest" label={t('pinterest')} placeholder='https://www.pinterest.com/yourprofile' />
+                <RHFTextField name="tiktok" label={t('tiktok')} placeholder='https://www.tiktok.com/@yourusername' />
+            </>
+          )}
+
+          <Card id={SECTIONS[8].id} sx={{ p: 3, ...SECTION_SX }}>
+            <Typography variant="h6">{SECTIONS[8].title}</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+              {SECTIONS[8].hint}
+            </Typography>
+            <RHFTextField name="notes" label={t('notes')} multiline minRows={3} />
+          </Card>
+        </Stack>
+
+        <Stack spacing={3} sx={{ flexShrink: 0, width: { xs: 1, md: 320 } }}>
+          {renderAddresses}
+
+          {currentUser && <UserDetailsHistory currentUser={currentUser} />}
+        </Stack>
+      </Box>
+    </FormProvider>
   );
 }

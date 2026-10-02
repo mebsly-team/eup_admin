@@ -1,72 +1,63 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Timeline from '@mui/lab/Timeline';
-import TimelineDot from '@mui/lab/TimelineDot';
-import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
-import TimelineContent from '@mui/lab/TimelineContent';
-import TimelineSeparator from '@mui/lab/TimelineSeparator';
-import TimelineConnector from '@mui/lab/TimelineConnector';
-import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem';
 
 import { fDateTime } from 'src/utils/format-time';
-
-import { IProductItem } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
 type Props = {
-    currentUser: IProductItem;
+  currentUser: any;
 };
 
 export default function UserDetailsHistory({ currentUser }: Props) {
-    const renderTimeline = (
-        <Timeline
-            sx={{
-                p: 0,
-                m: 0,
-                [`& .${timelineItemClasses.root}:before`]: {
-                    flex: 0,
-                    padding: 0,
-                },
-            }}
-        >
-            {currentUser?.history?.map((item, index) => {
-                const firstTimeline = index === 0;
-                const lastTimeline = index === (currentUser?.history?.length || 0) - 1;
+  const history: any[] = Array.isArray(currentUser?.history) ? currentUser.history : [];
 
-                return (
-                    <TimelineItem key={item.date}>
-                        <TimelineSeparator>
-                            <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
-                            {lastTimeline ? null : <TimelineConnector />}
-                        </TimelineSeparator>
+  // Newest first: the latest change is what one comes here to check.
+  const events = history.map((item, index) => ({ ...item, index })).reverse();
 
-                        <TimelineContent>
-                            <Typography variant="subtitle2">{item.event}</Typography>
+  return (
+    <Card sx={{ p: 2.5 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Geschiedenis
+      </Typography>
 
-                            <Box sx={{ color: 'text.disabled', typography: 'caption', mt: 0.5 }}>
-                                {fDateTime(item.date)}
-                            </Box>
-                        </TimelineContent>
-                    </TimelineItem>
-                );
-            })}
-        </Timeline>
-    );
-
-    return (
-        <Card sx={{ mb: 3 }}>
-            <CardHeader title="History" />
-            <Stack
-                spacing={3}
-                alignItems={{ md: 'flex-start' }}
-                direction={{ xs: 'column-reverse', md: 'row' }}
-                sx={{ p: 3 }}
-            >
-                {renderTimeline}
+      <Stack sx={{ maxHeight: 480, overflowY: 'auto' }}>
+        {events.map((item, position) => (
+          <Stack key={item.index} direction="row" spacing={1.5}>
+            <Stack alignItems="center" sx={{ pt: 0.75 }}>
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  flexShrink: 0,
+                  borderRadius: '50%',
+                  bgcolor: position === 0 ? 'primary.main' : 'grey.400',
+                }}
+              />
+              {position < events.length - 1 && (
+                <Box sx={{ width: '1px', flexGrow: 1, mt: 0.5, bgcolor: 'divider' }} />
+              )}
             </Stack>
-        </Card>
-    );
-} 
+
+            <Box sx={{ pb: 2, minWidth: 0 }}>
+              <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                {item.event}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {fDateTime(item.date)}
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+
+        {events.length === 0 && (
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Nog geen geschiedenis
+          </Typography>
+        )}
+      </Stack>
+    </Card>
+  );
+}
