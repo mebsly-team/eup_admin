@@ -32,6 +32,7 @@ import { isAfter } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
 
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
 import { useSnackbar } from 'src/components/snackbar';
@@ -145,6 +146,8 @@ export default function OrderListView() {
   const [isLoading, setIsLoading] = useState(false); // State for the spinner
   const [isSyncing, setIsSyncing] = useState(false);
   const [count, setCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number> | null>(null);
+  const [countsVersion, setCountsVersion] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -207,6 +210,43 @@ export default function OrderListView() {
     getAll();
   }, [filters, table.page, table.rowsPerPage, table.orderBy, table.order]);
 
+  // Every filter except the status itself, shared by the list and the tab counts.
+  const buildFilterQuery = () => {
+    const searchFilter = filters.name ? `&search=${filters.name}` : '';
+    const orderIdFilter = filters.orderId ? `&order_id=${encodeURIComponent(filters.orderId)}` : '';
+    const eanFilter = filters.ean ? `&ean=${encodeURIComponent(filters.ean)}` : '';
+    const startDateFilter = filters.startDate
+      ? `&start_date=${filters.startDate instanceof Date ? formatDate(filters.startDate) : filters.startDate}`
+      : '';
+    const endDateFilter = filters.endDate
+      ? `&end_date=${filters.endDate instanceof Date ? formatDate(filters.endDate) : filters.endDate}`
+      : '';
+    const paymentStatusFilter =
+      filters.paymentStatus !== 'all' ? `&is_paid=${filters.paymentStatus === 'paid'}` : '';
+
+    return `${searchFilter}${orderIdFilter}${eanFilter}${startDateFilter}${endDateFilter}${paymentStatusFilter}`;
+  };
+
+  const countsQuery = buildFilterQuery();
+
+  useEffect(() => {
+    let active = true;
+
+    axiosInstance
+      .get(`/orders/status-counts/?${countsQuery.slice(1)}`)
+      .then(({ data }) => {
+        if (active) setStatusCounts({ all: data.total, ...data.counts });
+      })
+      .catch(() => {
+        // The tabs work without counts.
+        if (active) setStatusCounts(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [countsQuery, countsVersion]);
+
   const getAll = async () => {
     try {
       console.log('OrderListView - fetching orders...');
@@ -216,23 +256,10 @@ export default function OrderListView() {
       const orderByParam = table.orderBy
         ? `&ordering=${table.order === 'desc' ? '' : '-'}${table.orderBy}`
         : '';
-      const searchFilter = filters.name ? `&search=${filters.name}` : '';
-      const orderIdFilter = filters.orderId ? `&order_id=${encodeURIComponent(filters.orderId)}` : '';
-      const eanFilter = filters.ean ? `&ean=${encodeURIComponent(filters.ean)}` : '';
-      const startDateFilter = filters.startDate
-        ? `&start_date=${filters.startDate instanceof Date ? formatDate(filters.startDate) : filters.startDate}`
-        : '';
-      const endDateFilter = filters.endDate
-        ? `&end_date=${filters.endDate instanceof Date ? formatDate(filters.endDate) : filters.endDate}`
-        : '';
-      const paymentStatusFilter =
-        filters.paymentStatus !== 'all'
-          ? `&is_paid=${filters.paymentStatus === 'paid'}`
-          : '';
 
       const { data } = await axiosInstance.get(
         `/orders/?limit=${table.rowsPerPage}&offset=${table.page * table.rowsPerPage
-        }${searchFilter}${orderIdFilter}${eanFilter}${statusFilter}${uninvoicedFilter}${orderByParam}${startDateFilter}${endDateFilter}${paymentStatusFilter}`
+        }${buildFilterQuery()}${statusFilter}${uninvoicedFilter}${orderByParam}`
       );
       console.log('OrderListView - orders fetched successfully:', data);
       setCount(data.count || 0);
@@ -253,6 +280,7 @@ export default function OrderListView() {
       const response = await axiosInstance.get('/orders/sync-snelstart-payments/');
       enqueueSnackbar(response.data.message || 'Payments synced successfully', { variant: 'success' });
       getAll(); // Refresh the list
+      setCountsVersion((version) => version + 1);
     } catch (error) {
       console.error('Error syncing payments:', error);
       enqueueSnackbar('Failed to sync payments', { variant: 'error' });
@@ -434,7 +462,22 @@ export default function OrderListView() {
               sx={{ flexGrow: 1, minWidth: 0 }}
             >
               {STATUS_TABS.map((tab) => (
-                <Tab key={tab.value} value={tab.value} label={tab.label} />
+                <Tab
+                  key={tab.value}
+                  value={tab.value}
+                  label={tab.label}
+                  iconPosition="end"
+                  icon={
+                    statusCounts ? (
+                      <Label
+                        variant={tab.value === filters.status ? 'filled' : 'soft'}
+                        color={tab.value === filters.status ? 'primary' : 'default'}
+                      >
+                        {statusCounts[tab.value] || 0}
+                      </Label>
+                    ) : undefined
+                  }
+                />
               ))}
             </Tabs>
 
@@ -463,7 +506,12 @@ export default function OrderListView() {
                     handleApplyFilters({ status: option.value });
                   }}
                 >
-                  {option.label}
+                  <Box sx={{ flexGrow: 1, mr: 3 }}>{option.label}</Box>
+                  {statusCounts && (
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {statusCounts[option.value] || 0}
+                    </Typography>
+                  )}
                 </MenuItem>
               ))}
             </Menu>
