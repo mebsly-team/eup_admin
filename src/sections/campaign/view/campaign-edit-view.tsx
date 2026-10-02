@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 
+import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
 
 import axiosInstance from 'src/utils/axios';
 
-import { useTranslate } from 'src/locales';
-
+import EmptyContent from 'src/components/empty-content';
 import { useSettingsContext } from 'src/components/settings';
-import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
+import { LoadingScreen } from 'src/components/loading-screen';
 
 import { ICampaignItem } from 'src/types/campaign';
 
@@ -24,36 +25,36 @@ type Props = {
 export default function CampaignEditView({ id }: Props) {
   const settings = useSettingsContext();
   const [currentCampaign, setCurrentCampaign] = useState<ICampaignItem>();
-  const getCampaignInfo = async (campaignId: string) => {
-    const { data } = await axiosInstance.get(`/campaigns/${campaignId}/?nocache=true`);
-    setCurrentCampaign(data);
-  };
-  const { t, onChangeLang } = useTranslate();
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    getCampaignInfo(id);
+    setCurrentCampaign(undefined);
+    setFailed(false);
+    axiosInstance
+      .get(`/campaigns/${id}/`)
+      .then(({ data }) => setCurrentCampaign(data))
+      .catch((error) => {
+        console.error(error);
+        setFailed(true);
+      });
   }, [id]);
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      <CustomBreadcrumbs
-        heading={t('edit')}
-        links={[
-          {
-            name: t('dashboard'),
-            href: paths.dashboard.root,
-          },
-          {
-            name: t('campaign'),
-            href: paths.dashboard.campaign.root,
-          },
-          { name: currentCampaign?.name },
-        ]}
-        sx={{
-          mb: { xs: 3, md: 5 },
-        }}
-      />
-      {currentCampaign && <CampaignNewEditForm currentCampaign={currentCampaign} />}
+      {!currentCampaign && !failed && <LoadingScreen />}
+      {failed && (
+        <EmptyContent
+          filled
+          title="Actie niet gevonden"
+          action={
+            <Button component={RouterLink} href={paths.dashboard.campaign.root} sx={{ mt: 2 }}>
+              Terug naar de lijst
+            </Button>
+          }
+          sx={{ py: 10 }}
+        />
+      )}
+      {currentCampaign && <CampaignNewEditForm key={currentCampaign.id} currentCampaign={currentCampaign} />}
     </Container>
   );
 }

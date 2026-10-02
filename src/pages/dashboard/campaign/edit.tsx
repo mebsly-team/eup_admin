@@ -13,7 +13,7 @@ export default function CampaignEditPage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard: Campaign Edit</title>
+        <title> Dashboard: Actie bewerken</title>
       </Helmet>
 
       <CampaignEditView id={`${id}`} />

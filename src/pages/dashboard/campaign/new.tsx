@@ -8,7 +8,7 @@ export default function CampaignCreatePage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard: Create a new brand</title>
+        <title> Dashboard: Nieuwe actie</title>
       </Helmet>
 
       <CampaignCreateView />

@@ -7,7 +7,7 @@ export default function CampaignListPage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard: Campaign List</title>
+        <title> Dashboard: Acties</title>
       </Helmet>
 
       <CampaignListView />
