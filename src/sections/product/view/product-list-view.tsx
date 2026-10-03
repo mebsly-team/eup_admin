@@ -87,6 +87,8 @@ export default function ProductListView() {
         queryParams.get('category') !== 'undefined' &&
         queryParams.get('category')) ||
       '',
+    // Comma-separated supplier ids.
+    supplier: queryParams.get('supplier') || '',
   };
   const [filters, setFilters] = useState(defaultFilters);
   const { t } = useTranslate();
@@ -135,16 +137,19 @@ export default function ProductListView() {
     const urlVisibility = params.get('visibility') || 'visible';
     const urlName = params.get('name') || '';
     const urlCategory = params.get('category') || '';
+    const urlSupplier = params.get('supplier') || '';
 
     if (
       filters.visibility !== urlVisibility ||
       filters.name !== urlName ||
-      filters.category !== urlCategory
+      filters.category !== urlCategory ||
+      filters.supplier !== urlSupplier
     ) {
       setFilters({
         visibility: urlVisibility,
         name: urlName,
         category: urlCategory,
+        supplier: urlSupplier,
       });
     }
   }, [location.search]);
@@ -156,7 +161,9 @@ export default function ProductListView() {
   // Every list filter except the visibility itself, so each tab gets its count.
   const countsQuery = `${!showBundles ? '&is_variant=false' : ''}${
     filters.name ? `&search=${encodeURIComponent(filters.name)}` : ''
-  }${filters.category ? `&category=${filters.category}` : ''}`;
+  }${filters.category ? `&category=${filters.category}` : ''}${
+    filters.supplier ? `&supplier=${filters.supplier}` : ''
+  }`;
 
   useEffect(() => {
     let active = true;
@@ -197,13 +204,14 @@ export default function ProductListView() {
       : '';
     const searchFilter = filters.name ? `&search=${encodeURIComponent(filters.name)}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
+    const supplierFilter = filters.supplier ? `&supplier=${filters.supplier}` : '';
     try {
       const { data } = await axiosInstance.get(
         `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${
           table.rowsPerPage
         }&offset=${
           table.page * table.rowsPerPage
-        }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}`
+        }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}${supplierFilter}`
       );
       // A slower response of an older search must not overwrite the newest one
       if (requestId !== latestRequestRef.current) return;
@@ -248,6 +256,7 @@ export default function ProductListView() {
       visibility: 'visible',
       name: '',
       category: '',
+      supplier: '',
     });
     router.push(`${location.pathname}`);
   }, [location.pathname, router]);
@@ -368,7 +377,8 @@ export default function ProductListView() {
     }
   };
 
-  const canReset = !!filters.name || !!filters.category || filters.visibility !== 'visible';
+  const canReset =
+    !!filters.name || !!filters.category || !!filters.supplier || filters.visibility !== 'visible';
 
   return (
     <>

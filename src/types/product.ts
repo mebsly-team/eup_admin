@@ -35,6 +35,7 @@ export type IProductTableFilterValue = string | string[];
 
 export type IProductTableFilters = {
   category: any;
+  supplier?: string;
   is_product_active: string | undefined;
   name: unknown;
   title: string;
@@ -132,6 +133,8 @@ export interface IProductItem {
   languages_on_item_package: number[];
   images: string[];
   supplier: Supplier;
+  // Admin list only: price and stock per supplier, cheapest first.
+  supplier_offers?: IProductSupplierSummary[];
   brand: Brand;
   categories: Category[];
   tags: any[];
@@ -218,3 +221,39 @@ export interface SubCategory {
   is_active: boolean;
   order: number;
 }
+
+// A supplier's price and stock for one product (/product-suppliers/).
+export type IProductSupplierSummary = {
+  supplier_id: number;
+  supplier_name: string;
+  purchase_price: string | null;
+  stock_free: number;
+  stock_total: number;
+  stock_updated_at: string | null;
+};
+
+export type IProductSupplier = {
+  id: number;
+  product: number;
+  product_detail: {
+    id: number;
+    title: string;
+    ean: string | null;
+    image: string | null;
+    free_stock: number;
+    overall_stock: number;
+    price_per_piece: string | null;
+    price_cost: string | null;
+    is_product_active: boolean;
+    default_supplier_id: number | null;
+  };
+  supplier: number;
+  supplier_detail: { id: number; name: string; supplier_code: string; is_active: boolean };
+  supplier_article_code: string;
+  purchase_price: string | null;
+  stock_total: number;
+  stock_free: number;
+  source: 'manual' | 'import' | 'api';
+  stock_updated_at: string | null;
+  updated_at: string;
+};

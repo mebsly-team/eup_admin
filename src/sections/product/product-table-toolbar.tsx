@@ -53,6 +53,7 @@ export default function ProductTableToolbar({
 }: Props) {
   const { t } = useTranslate();
   const [categoryList, setCategoryList] = useState<any[]>([]);
+  const [supplierList, setSupplierList] = useState<{ id: number; name: string }[]>([]);
   const [qrReaderOpen, setQRReaderOpen] = useState(false);
 
   useEffect(() => {
@@ -65,10 +66,26 @@ export default function ProductTableToolbar({
       })
       .catch((error) => console.error(error));
 
+    axiosInstance
+      .get(`/suppliers/?limit=3000&offset=0&ordering=name`)
+      .then(({ data }) => {
+        if (active) {
+          setSupplierList(
+            (data?.results || data || []).map((s: any) => ({ id: s.id, name: s.name }))
+          );
+        }
+      })
+      .catch((error) => console.error(error));
+
     return () => {
       active = false;
     };
   }, []);
+
+  const selectedSupplierIds = String(filters.supplier || '')
+    .split(',')
+    .filter(Boolean)
+    .map(Number);
 
   // onFilters changes on every render of the parent, so the debounced function reads it from a
   // ref and is created once. Recreating it per render left one pending timer per keystroke.
@@ -150,6 +167,26 @@ export default function ProductTableToolbar({
           value={categoryList.find((category) => category?.id === Number(filters.category)) || null}
           onChange={(event: any, newValue: any) => onFilters('category', newValue?.id || '')}
           sx={{ flex: '0 1 260px', minWidth: 200 }}
+        />
+
+        <Autocomplete
+          multiple
+          size="small"
+          limitTags={1}
+          options={supplierList}
+          getOptionLabel={(option) => option.name}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          renderInput={(params) => <TextField {...params} label={t('supplier')} margin="none" />}
+          renderOption={(props, option) => (
+            <li {...props} key={option.id}>
+              {option.name}
+            </li>
+          )}
+          value={supplierList.filter((supplier) => selectedSupplierIds.includes(supplier.id))}
+          onChange={(event: any, newValue) =>
+            onFilters('supplier', newValue.map((supplier) => supplier.id).join(','))
+          }
+          sx={{ flex: '0 1 280px', minWidth: 200 }}
         />
 
         <Button

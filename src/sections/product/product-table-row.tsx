@@ -21,6 +21,7 @@ import { RouterLink } from 'src/routes/components';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
+import { fCurrency } from 'src/utils/format-number';
 
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
@@ -30,7 +31,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
-import { IProductItem } from 'src/types/product';
+import { IProductItem, IProductSupplierSummary } from 'src/types/product';
 
 // ----------------------------------------------------------------------
 
@@ -88,6 +89,7 @@ export default function ProductTableRow({
     is_visible_B2B,
     siblings_count,
     supplier,
+    supplier_offers,
     vat,
   } = row as any;
 
@@ -137,6 +139,10 @@ export default function ProductTableRow({
   const outOfStock = free <= 0;
   const lowStock = !outOfStock && minStock > 0 && free <= minStock;
   const stockColor = (outOfStock && 'error') || (lowStock && 'warning') || 'success';
+
+  const offers: IProductSupplierSummary[] = supplier_offers || [];
+  const supplierFree = offers.reduce((sum, offer) => sum + (offer.stock_free || 0), 0);
+  const supplierTotal = offers.reduce((sum, offer) => sum + (offer.stock_total || 0), 0);
 
   const counts = [
     variants_count ? `${variants_count} ${variants_count === 1 ? 'bundel' : 'bundels'}` : '',
@@ -258,6 +264,11 @@ export default function ProductTableRow({
               sx={{ display: 'block' }}
             >
               {supplier.name || '—'}
+              {offers.length > 1 && (
+                <Box component="span" sx={{ color: 'text.secondary' }}>
+                  {` +${offers.length - 1}`}
+                </Box>
+              )}
             </Link>
           ) : (
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
@@ -322,6 +333,46 @@ export default function ProductTableRow({
             value={overall > 0 ? Math.min(100, Math.max(0, (free / overall) * 100)) : 0}
             sx={{ mt: 0.5, height: 4, borderRadius: 1 }}
           />
+          {offers.length > 0 && (
+            <Tooltip
+              arrow
+              title={
+                <Box sx={{ py: 0.5 }}>
+                  {offers.map((offer) => (
+                    <Box key={offer.supplier_id} sx={{ display: 'flex', gap: 1.5, typography: 'caption' }}>
+                      <Box sx={{ flex: 1 }}>{offer.supplier_name}</Box>
+                      <Box sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {offer.stock_free} / {offer.stock_total}
+                      </Box>
+                      <Box sx={{ fontVariantNumeric: 'tabular-nums', minWidth: 56, textAlign: 'right' }}>
+                        {offer.purchase_price !== null ? fCurrency(offer.purchase_price) || '€ 0' : '—'}
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              }
+            >
+              <Typography
+                variant="caption"
+                component="div"
+                sx={{
+                  mt: 0.75,
+                  pt: 0.5,
+                  borderTop: (theme) => `1px dashed ${theme.palette.divider}`,
+                  color: 'info.dark',
+                  fontVariantNumeric: 'tabular-nums',
+                  cursor: 'default',
+                }}
+              >
+                Lev. {supplierFree} / {supplierTotal}
+                {offers.length > 1 && (
+                  <Box component="span" sx={{ color: 'text.disabled' }}>
+                    {` · ${offers.length}`}
+                  </Box>
+                )}
+              </Typography>
+            </Tooltip>
+          )}
         </TableCell>
 
         <TableCell sx={{ px: 1 }} onClick={stopPropagation}>

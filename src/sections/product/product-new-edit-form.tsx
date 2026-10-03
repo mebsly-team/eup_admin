@@ -59,6 +59,8 @@ import Rating from './Rating';
 import ProductVariantForm from './product-variant-form';
 import ProductSiblingForm from './product-sibling-form';
 import ProductDetailsHistory from './product-details-history';
+import ProductSuppliersCard, { cheapestOffer } from '../product-supplier/product-suppliers-card';
+import { IProductSupplier } from 'src/types/product';
 import { useAuthContext } from 'src/auth/hooks';
 import { random } from 'lodash';
 
@@ -211,6 +213,9 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
   const [variantListforPallet, setVariantListforPallet] = useState([]);
   const [parentProduct, setParentProduct] = useState({});
   const [isSupplierEdit, setSupplierEdit] = useState(false);
+  // Supplier offers from the Leveranciers card; with any, the default supplier is automatic.
+  const [supplierOffers, setSupplierOffers] = useState<IProductSupplier[]>([]);
+  const autoSupplier = cheapestOffer(supplierOffers);
   const parent_price_per_piece = Number(currentProduct?.parent_price_per_piece || 0);
   const [pendingChanges, setPendingChanges] = useState([]);
   const canToggle = allowedEmails.includes(user?.email);
@@ -1529,7 +1534,25 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
               </Box>
             )}
 
-            {isSupplierEdit ? (
+            {autoSupplier ? (
+              <Box>
+                <Typography variant="caption" sx={{ display: 'block', color: 'violet' }}>
+                  {t('supplier')}
+                </Typography>
+                <Link
+                  href={paths.dashboard.supplier.edit(String(autoSupplier.supplier))}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="subtitle2"
+                  color="inherit"
+                >
+                  {`${autoSupplier.supplier_detail.supplier_code || ''}-${autoSupplier.supplier_detail.name}`}
+                </Link>
+                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                  Automatisch: goedkoopste leverancier (zie Leveranciers)
+                </Typography>
+              </Box>
+            ) : isSupplierEdit ? (
               <RHFAutocomplete
                 name="supplier"
                 placeholder={t('supplier')}
@@ -1596,12 +1619,6 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
               name="supplier_article_code"
               label={t('supplier_article_code')}
               labelColor="violet"
-            />
-            <RHFTextField
-              name="stock_at_supplier"
-              label={t('stock_at_supplier')}
-              type="number"
-              onBlur={handleEmptyNumbers}
             />
 
             <RHFSwitch
@@ -2907,8 +2924,9 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
     {
       id: 'sec-merk',
       label: 'Merk & leverancier',
-      fields: ['brand', 'supplier', 'supplier_article_code', 'stock_at_supplier'],
+      fields: ['brand', 'supplier', 'supplier_article_code'],
     },
+    { id: 'sec-leveranciers', label: 'Leveranciers', fields: [] },
     {
       id: 'sec-prijs',
       label: t('pricing'),
@@ -3336,6 +3354,15 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
               {renderDetails}
               {renderTitles}
               {renderDetails2}
+              <Grid xs={12} id="sec-leveranciers" sx={SECTION_SX}>
+                <ProductSuppliersCard
+                  productId={currentProduct?.id ? Number(currentProduct.id) : undefined}
+                  sellPrice={currentProduct?.price_per_piece}
+                  ownFree={currentProduct?.free_stock}
+                  ownTotal={currentProduct?.overall_stock}
+                  onOffersChange={setSupplierOffers}
+                />
+              </Grid>
               {renderPricing}
               {renderProperties}
               {renderMetrics}
