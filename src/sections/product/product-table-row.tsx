@@ -22,6 +22,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 
 import axiosInstance from 'src/utils/axios';
 import { fCurrency } from 'src/utils/format-number';
+import { fDateTime } from 'src/utils/format-time';
 
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
@@ -141,8 +142,6 @@ export default function ProductTableRow({
   const stockColor = (outOfStock && 'error') || (lowStock && 'warning') || 'success';
 
   const offers: IProductSupplierSummary[] = supplier_offers || [];
-  const supplierFree = offers.reduce((sum, offer) => sum + (offer.stock_free || 0), 0);
-  const supplierTotal = offers.reduce((sum, offer) => sum + (offer.stock_total || 0), 0);
 
   const counts = [
     variants_count ? `${variants_count} ${variants_count === 1 ? 'bundel' : 'bundels'}` : '',
@@ -252,8 +251,52 @@ export default function ProductTableRow({
           </Stack>
         </TableCell>
 
-        <TableCell sx={{ px: 1, maxWidth: 180 }}>
-          {supplier?.id ? (
+        <TableCell sx={{ px: 1, maxWidth: 240 }}>
+          {offers.length > 0 ? (
+            <Stack spacing={0.5}>
+              {offers.map((offer) => (
+                <Tooltip
+                  key={offer.supplier_id}
+                  placement="left"
+                  title={`Inkoopprijs ${
+                    offer.purchase_price !== null ? fCurrency(offer.purchase_price) || '€ 0' : '—'
+                  }${
+                    offer.stock_updated_at
+                      ? ` · voorraad bijgewerkt ${fDateTime(offer.stock_updated_at, 'dd-MM-yyyy HH:mm')}`
+                      : ''
+                  }`}
+                >
+                  <Stack direction="row" alignItems="baseline" spacing={1}>
+                    <Link
+                      component={RouterLink}
+                      href={paths.dashboard.supplier.edit(String(offer.supplier_id))}
+                      onClick={stopPropagation}
+                      variant="body2"
+                      color="inherit"
+                      noWrap
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
+                        ...(offer.supplier_id === supplier?.id && offers.length > 1 && { fontWeight: 600 }),
+                      }}
+                    >
+                      {offer.supplier_name}
+                    </Link>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        flexShrink: 0,
+                        fontVariantNumeric: 'tabular-nums',
+                        color: offer.stock_free > 0 ? 'info.dark' : 'text.disabled',
+                      }}
+                    >
+                      {offer.stock_free} / {offer.stock_total}
+                    </Typography>
+                  </Stack>
+                </Tooltip>
+              ))}
+            </Stack>
+          ) : supplier?.id ? (
             <Link
               component={RouterLink}
               href={paths.dashboard.supplier.edit(String(supplier.id))}
@@ -264,11 +307,6 @@ export default function ProductTableRow({
               sx={{ display: 'block' }}
             >
               {supplier.name || '—'}
-              {offers.length > 1 && (
-                <Box component="span" sx={{ color: 'text.secondary' }}>
-                  {` +${offers.length - 1}`}
-                </Box>
-              )}
             </Link>
           ) : (
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
@@ -333,46 +371,6 @@ export default function ProductTableRow({
             value={overall > 0 ? Math.min(100, Math.max(0, (free / overall) * 100)) : 0}
             sx={{ mt: 0.5, height: 4, borderRadius: 1 }}
           />
-          {offers.length > 0 && (
-            <Tooltip
-              arrow
-              title={
-                <Box sx={{ py: 0.5 }}>
-                  {offers.map((offer) => (
-                    <Box key={offer.supplier_id} sx={{ display: 'flex', gap: 1.5, typography: 'caption' }}>
-                      <Box sx={{ flex: 1 }}>{offer.supplier_name}</Box>
-                      <Box sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {offer.stock_free} / {offer.stock_total}
-                      </Box>
-                      <Box sx={{ fontVariantNumeric: 'tabular-nums', minWidth: 56, textAlign: 'right' }}>
-                        {offer.purchase_price !== null ? fCurrency(offer.purchase_price) || '€ 0' : '—'}
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              }
-            >
-              <Typography
-                variant="caption"
-                component="div"
-                sx={{
-                  mt: 0.75,
-                  pt: 0.5,
-                  borderTop: (theme) => `1px dashed ${theme.palette.divider}`,
-                  color: 'info.dark',
-                  fontVariantNumeric: 'tabular-nums',
-                  cursor: 'default',
-                }}
-              >
-                Lev. {supplierFree} / {supplierTotal}
-                {offers.length > 1 && (
-                  <Box component="span" sx={{ color: 'text.disabled' }}>
-                    {` · ${offers.length}`}
-                  </Box>
-                )}
-              </Typography>
-            </Tooltip>
-          )}
         </TableCell>
 
         <TableCell sx={{ px: 1 }} onClick={stopPropagation}>

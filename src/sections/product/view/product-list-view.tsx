@@ -113,7 +113,7 @@ export default function ProductListView() {
   }, []);
   const TABLE_HEAD = [
     { id: 'title', label: 'Product', padding: 1 },
-    { id: 'supplier', label: t('supplier'), width: 180, padding: 1 },
+    { id: 'supplier', label: t('supplier'), width: 240, padding: 1 },
     { id: 'price_per_piece', label: t('price'), width: 100, align: 'right', padding: 1 },
     { id: 'price_cost', label: 'Kostprijs', width: 120, align: 'right', padding: 1 },
     { id: 'variants', label: 'Bundels / varianten', width: 150, padding: 1 },
