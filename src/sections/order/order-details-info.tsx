@@ -788,6 +788,26 @@ export default function OrderDetailsInfo({
         }
       />
 
+      {currentOrder?.delivery_details?.method === 'pickup' ? (
+        <Box
+          sx={{
+            mx: 3,
+            mb: 1,
+            p: 1.5,
+            borderRadius: 1,
+            bgcolor: 'warning.lighter',
+            color: 'warning.darker',
+            typography: 'subtitle2',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <Iconify icon="solar:shop-bold" />
+          Afhalen bij magazijn — klant haalt de bestelling zelf op, geen verzending nodig.
+        </Box>
+      ) : null}
+
       {currentOrder?.delivery_details?.shipping_label_url ? (
         <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
           <Box sx={{ color: 'text.secondary' }}>
