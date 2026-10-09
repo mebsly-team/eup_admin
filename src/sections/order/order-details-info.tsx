@@ -19,7 +19,6 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-import axios from 'axios';
 import axiosInstance from 'src/utils/axios';
 
 import Iconify from 'src/components/iconify';
@@ -231,7 +230,7 @@ export default function OrderDetailsInfo({
 
   const getParcelTypes = async () => {
     try {
-      const response = await axios.get(`${HOST_API}/get_dhl_parcel_types/`, {
+      const response = await axiosInstance.get(`/get_dhl_parcel_types/`, {
         params: {
           toCountry: selectedCountry,
           toPostalCode: updatedShippingAddress?.zip_code || shippingAddress?.zip_code,
@@ -539,7 +538,7 @@ export default function OrderDetailsInfo({
   const createShipment = async () => {
     if (selectedShipmentMethod === 'dhl') {
       try {
-        const response = await axios.post(`${HOST_API}/create_shipment_dhl/${orderId}/`, {
+        const response = await axiosInstance.post(`/create_shipment_dhl/${orderId}/`, {
           auto_calculate: autoCalculateParcel,
           parcel_type: selectedParcelType
         });
