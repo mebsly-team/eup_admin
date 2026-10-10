@@ -836,10 +836,10 @@ export default function OrderDetailsInfo({
         <Stack spacing={1.5} sx={{ p: 3, typography: 'body2' }}>
         {/* Carrier Select Box */}
         <Box sx={{ color: 'text.secondary' }}>
-          Totaalgewicht: {currentOrder?.cart?.cart_total_weight?.toFixed(2)} kg
+          Totaalgewicht: {(Number(currentOrder?.cart?.cart_total_weight) || 0).toFixed(2)} kg
         </Box>
         <Box sx={{ color: 'text.secondary' }}>
-          Total Volume: {currentOrder?.cart?.cart_total_volume?.toFixed(2)} m3
+          Total Volume: {(Number(currentOrder?.cart?.cart_total_volume) || 0).toFixed(2)} m3
         </Box>
         <Stack direction="row" alignItems="center">
           <Box component="span" sx={{ color: 'text.secondary', width: 120, flexShrink: 0 }}>
