@@ -191,6 +191,7 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/order/new`,
       details: (id: string) => `${ROOTS.DASHBOARD}/order/${id}`,
       carts: `${ROOTS.DASHBOARD}/order/carts`,
+      payments: `${ROOTS.DASHBOARD}/order/payments`,
       demo: {
         details: `${ROOTS.DASHBOARD}/order/${MOCK_ID}`,
       },
