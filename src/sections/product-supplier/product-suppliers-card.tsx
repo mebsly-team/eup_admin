@@ -40,6 +40,8 @@ type Props = {
   ownFree?: number;
   ownTotal?: number;
   onOffersChange?: (offers: IProductSupplier[]) => void;
+  // Supplier whose catalogue import created the product; empty for Europower's own products.
+  originSupplierName?: string | null;
 };
 
 export const SOURCE_LABEL: Record<string, string> = {
@@ -82,6 +84,7 @@ export default function ProductSuppliersCard({
   ownFree = 0,
   ownTotal = 0,
   onOffersChange,
+  originSupplierName,
 }: Props) {
   const { enqueueSnackbar } = useSnackbar();
   const [offers, setOffers] = useState<IProductSupplier[]>([]);
@@ -135,7 +138,21 @@ export default function ProductSuppliersCard({
     <Card>
       <CardHeader
         title="Leveranciers"
-        subheader="Inkoop gaat naar de goedkoopste leverancier die genoeg vrije voorraad heeft."
+        subheader={
+          <>
+            Inkoop gaat naar de goedkoopste leverancier die genoeg vrije voorraad heeft.
+            {productId && (
+              <Box component="span" sx={{ display: 'block', mt: 0.5 }}>
+                Herkomst:{' '}
+                <Box component="strong" sx={{ color: 'text.primary' }}>
+                  {originSupplierName
+                    ? `catalogusimport van ${originSupplierName}`
+                    : 'Europower (eigen product)'}
+                </Box>
+              </Box>
+            )}
+          </>
+        }
         action={
           productId ? (
             <Button
@@ -247,7 +264,9 @@ export default function ProductSuppliersCard({
                         {offer.stock_free} / {offer.stock_total}
                       </TableCell>
                       <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                        {offer.stock_updated_at ? fDateTime(offer.stock_updated_at, 'dd-MM-yyyy HH:mm') : '—'}
+                        {offer.stock_updated_at
+                          ? fDateTime(offer.stock_updated_at, 'dd-MM-yyyy HH:mm')
+                          : '—'}
                         <Box component="span" sx={{ ml: 0.75, color: 'text.disabled' }}>
                           {SOURCE_LABEL[offer.source] || offer.source}
                         </Box>
@@ -276,7 +295,10 @@ export default function ProductSuppliersCard({
 
                 {!offers.length && (
                   <TableRow>
-                    <TableCell colSpan={7} sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                    <TableCell
+                      colSpan={7}
+                      sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}
+                    >
                       {loading ? 'Laden…' : 'Nog geen leveranciers gekoppeld.'}
                     </TableCell>
                   </TableRow>

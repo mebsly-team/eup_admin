@@ -89,6 +89,7 @@ export default function ProductListView() {
       '',
     // Comma-separated supplier ids.
     supplier: queryParams.get('supplier') || '',
+    origin: queryParams.get('origin') || '',
   };
   const [filters, setFilters] = useState(defaultFilters);
   const { t } = useTranslate();
@@ -138,18 +139,21 @@ export default function ProductListView() {
     const urlName = params.get('name') || '';
     const urlCategory = params.get('category') || '';
     const urlSupplier = params.get('supplier') || '';
+    const urlOrigin = params.get('origin') || '';
 
     if (
       filters.visibility !== urlVisibility ||
       filters.name !== urlName ||
       filters.category !== urlCategory ||
-      filters.supplier !== urlSupplier
+      filters.supplier !== urlSupplier ||
+      filters.origin !== urlOrigin
     ) {
       setFilters({
         visibility: urlVisibility,
         name: urlName,
         category: urlCategory,
         supplier: urlSupplier,
+        origin: urlOrigin,
       });
     }
   }, [location.search]);
@@ -163,7 +167,7 @@ export default function ProductListView() {
     filters.name ? `&search=${encodeURIComponent(filters.name)}` : ''
   }${filters.category ? `&category=${filters.category}` : ''}${
     filters.supplier ? `&supplier=${filters.supplier}` : ''
-  }`;
+  }${filters.origin ? `&origin=${filters.origin}` : ''}`;
 
   useEffect(() => {
     let active = true;
@@ -205,13 +209,14 @@ export default function ProductListView() {
     const searchFilter = filters.name ? `&search=${encodeURIComponent(filters.name)}` : '';
     const categoryFilter = filters.category ? `&category=${filters.category}` : '';
     const supplierFilter = filters.supplier ? `&supplier=${filters.supplier}` : '';
+    const originFilter = filters.origin ? `&origin=${filters.origin}` : '';
     try {
       const { data } = await axiosInstance.get(
         `/products/?short=true${!showBundles ? '&is_variant=false' : ''}&limit=${
           table.rowsPerPage
         }&offset=${
           table.page * table.rowsPerPage
-        }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}${supplierFilter}`
+        }${searchFilter}${statusFilter}${orderByParam}${categoryFilter}${supplierFilter}${originFilter}`
       );
       // A slower response of an older search must not overwrite the newest one
       if (requestId !== latestRequestRef.current) return;
@@ -257,6 +262,7 @@ export default function ProductListView() {
       name: '',
       category: '',
       supplier: '',
+      origin: '',
     });
     router.push(`${location.pathname}`);
   }, [location.pathname, router]);
@@ -378,7 +384,11 @@ export default function ProductListView() {
   };
 
   const canReset =
-    !!filters.name || !!filters.category || !!filters.supplier || filters.visibility !== 'visible';
+    !!filters.name ||
+    !!filters.category ||
+    !!filters.supplier ||
+    !!filters.origin ||
+    filters.visibility !== 'visible';
 
   return (
     <>
@@ -640,4 +650,3 @@ export default function ProductListView() {
     </>
   );
 }
-

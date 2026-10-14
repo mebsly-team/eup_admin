@@ -82,6 +82,13 @@ export default function ProductTableToolbar({
     };
   }, []);
 
+  // Europower's own catalogue, every supplier import, or one supplier's import.
+  const originOptions = [
+    { value: 'europower', label: 'Europower (eigen producten)' },
+    { value: 'suppliers', label: 'Alle leveranciersimports' },
+    ...supplierList.map((supplier) => ({ value: String(supplier.id), label: supplier.name })),
+  ];
+
   const selectedSupplierIds = String(filters.supplier || '')
     .split(',')
     .filter(Boolean)
@@ -187,6 +194,22 @@ export default function ProductTableToolbar({
             onFilters('supplier', newValue.map((supplier) => supplier.id).join(','))
           }
           sx={{ flex: '0 1 280px', minWidth: 200 }}
+        />
+
+        <Autocomplete
+          size="small"
+          options={originOptions}
+          getOptionLabel={(option) => option.label}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          renderInput={(params) => <TextField {...params} label="Herkomst" margin="none" />}
+          renderOption={(props, option) => (
+            <li {...props} key={option.value}>
+              {option.label}
+            </li>
+          )}
+          value={originOptions.find((option) => option.value === filters.origin) || null}
+          onChange={(event: any, newValue) => onFilters('origin', newValue?.value || '')}
+          sx={{ flex: '0 1 240px', minWidth: 200 }}
         />
 
         <Button

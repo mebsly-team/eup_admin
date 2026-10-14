@@ -27,6 +27,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { useTranslate } from 'src/locales';
 import { IMAGE_FOLDER_PATH } from 'src/config-global';
 
+import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { useSnackbar } from 'src/components/snackbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -91,6 +92,7 @@ export default function ProductTableRow({
     siblings_count,
     supplier,
     supplier_offers,
+    origin_supplier_name,
     vat,
   } = row as any;
 
@@ -207,6 +209,13 @@ export default function ProductTableRow({
                 >
                   {title}
                 </Link>
+                {origin_supplier_name && (
+                  <Tooltip title={`Aangemaakt door de catalogusimport van ${origin_supplier_name}`}>
+                    <Label color="info" variant="soft" sx={{ flexShrink: 0 }}>
+                      Import · {origin_supplier_name}
+                    </Label>
+                  </Tooltip>
+                )}
               </Stack>
 
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
@@ -262,7 +271,10 @@ export default function ProductTableRow({
                     offer.purchase_price !== null ? fCurrency(offer.purchase_price) || '€ 0' : '—'
                   }${
                     offer.stock_updated_at
-                      ? ` · voorraad bijgewerkt ${fDateTime(offer.stock_updated_at, 'dd-MM-yyyy HH:mm')}`
+                      ? ` · voorraad bijgewerkt ${fDateTime(
+                          offer.stock_updated_at,
+                          'dd-MM-yyyy HH:mm'
+                        )}`
                       : ''
                   }`}
                 >
@@ -277,7 +289,8 @@ export default function ProductTableRow({
                       sx={{
                         flex: 1,
                         minWidth: 0,
-                        ...(offer.supplier_id === supplier?.id && offers.length > 1 && { fontWeight: 600 }),
+                        ...(offer.supplier_id === supplier?.id &&
+                          offers.length > 1 && { fontWeight: 600 }),
                       }}
                     >
                       {offer.supplier_name}
@@ -344,10 +357,7 @@ export default function ProductTableRow({
         </TableCell>
 
         <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>
-          <Typography
-            variant="body2"
-            sx={{ ...(!counts.length && { color: 'text.disabled' }) }}
-          >
+          <Typography variant="body2" sx={{ ...(!counts.length && { color: 'text.disabled' }) }}>
             {counts.join(' · ') || '—'}
           </Typography>
         </TableCell>

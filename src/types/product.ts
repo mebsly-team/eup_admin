@@ -36,6 +36,8 @@ export type IProductTableFilterValue = string | string[];
 export type IProductTableFilters = {
   category: any;
   supplier?: string;
+  // '' (all), 'europower', 'suppliers' or a supplier id.
+  origin?: string;
   is_product_active: string | undefined;
   name: unknown;
   title: string;

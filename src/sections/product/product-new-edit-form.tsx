@@ -3361,6 +3361,7 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
                   ownFree={currentProduct?.free_stock}
                   ownTotal={currentProduct?.overall_stock}
                   onOffersChange={setSupplierOffers}
+                  originSupplierName={(currentProduct as any)?.origin_supplier_name}
                 />
               </Grid>
               {renderPricing}
