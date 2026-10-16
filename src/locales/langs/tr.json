@@ -342,6 +342,8 @@
   "invoice_date": "Fatura Tarihi",
   "invoice_number": "Fatura No",
   "items": "Satırlar",
+  "minimum_order_amount": "Minimum sipariş tutarı",
+  "below_minimum_order_amount": "Tedarikçinin minimum sipariş tutarının altında (KDV hariç)",
   "total_excl_btw": "Toplam (KDV hariç)",
   "total_incl_btw": "Toplam (KDV dahil)",
   "image": "Görsel",

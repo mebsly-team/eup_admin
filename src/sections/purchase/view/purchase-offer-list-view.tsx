@@ -43,6 +43,7 @@ const TABLE_HEAD = [
   { id: 'purchase_invoice_date', label: 'invoice_date' },
   { id: 'purchase_invoice_number', label: 'invoice_number' },
   { id: 'number_of_items', label: 'items', align: 'center' },
+  { id: 'minimum_order_amount', label: 'minimum_order_amount', align: 'right' },
   { id: 'total_exc_btw', label: 'total_excl_btw', align: 'right' },
   { id: 'total_inc_btw', label: 'total_incl_btw', align: 'right' },
   { id: 'expand', label: '', width: 68 },
@@ -371,6 +372,7 @@ export default function PurchaseListView() {
                       onEditRow={() => handleEditRow(row.id)}
                       expanded={expandedRow === row.id}
                       onExpand={() => handleExpandRow(row.id)}
+                      showMinimumOrder
                       onSendToSupplier={() => handleSendToSupplier(row.id)}
                       sending={sendingId === row.id}
                     />

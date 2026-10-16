@@ -29,6 +29,8 @@ type Props = {
     onExpand: VoidFunction;
     /** Renders an extra "sent at" column, used by the sent-offers list. */
     showSentAt?: boolean;
+    /** Bestel advies list: show the supplier's minimum order amount and flag totals below it. */
+    showMinimumOrder?: boolean;
     /** Bestel advies list: build the PDF and move the offer to the sent list. */
     onSendToSupplier?: VoidFunction;
     sending?: boolean;
@@ -49,6 +51,7 @@ export default function PurchaseTableRow({
     expanded,
     onExpand,
     showSentAt = false,
+    showMinimumOrder = false,
     onSendToSupplier,
     sending = false,
     onDownloadPdf,
@@ -67,6 +70,12 @@ export default function PurchaseTableRow({
         !!purchase.total_inc_btw &&
         purchase.total_inc_btw !== '0.00';
     const isActionable = hasItems && hasTotals;
+
+    // Supplier minimums are excl. BTW, so compare against the excl. total.
+    const minimumOrder = Number(purchase.supplier_detail?.minimum_order_amount || 0);
+    const belowMinimum =
+        showMinimumOrder && minimumOrder > 0 && parseFloat(purchase.total_exc_btw || '0') < minimumOrder;
+    const totalSx = belowMinimum ? { color: 'error.main', fontWeight: 600 } : undefined;
 
     const blockedReason = !hasItems
         ? t('offer_has_no_items')
@@ -116,9 +125,17 @@ export default function PurchaseTableRow({
 
             <TableCell align="center">{purchase.items?.length || 0}</TableCell>
 
-            <TableCell align="right">€{parseFloat(purchase.total_exc_btw).toFixed(2)}</TableCell>
+            {showMinimumOrder && (
+                <TableCell align="right">{minimumOrder > 0 ? `€${minimumOrder.toFixed(2)}` : '-'}</TableCell>
+            )}
 
-            <TableCell align="right">€{parseFloat(purchase.total_inc_btw).toFixed(2)}</TableCell>
+            <TableCell align="right" sx={totalSx}>
+                <Tooltip title={belowMinimum ? t('below_minimum_order_amount') : ''}>
+                    <span>€{parseFloat(purchase.total_exc_btw).toFixed(2)}</span>
+                </Tooltip>
+            </TableCell>
+
+            <TableCell align="right" sx={totalSx}>€{parseFloat(purchase.total_inc_btw).toFixed(2)}</TableCell>
 
             <TableCell>
                 <IconButton onClick={onExpand}>

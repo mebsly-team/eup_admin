@@ -156,6 +156,11 @@ export default function PurchaseEditView() {
     calculateTotals(updatedItems);
   };
 
+  // Supplier minimums are excl. BTW, so compare against the excl. total.
+  const minimumOrder = Number(selectedSupplier?.minimum_order_amount || 0);
+  const belowMinimum =
+    minimumOrder > 0 && Number(currentPurchase?.total_exc_btw || 0) < minimumOrder;
+
   const calculateTotals = (items: IPurchaseItem['items']) => {
     const totals = items?.reduce(
       (acc, item) => {
@@ -388,7 +393,11 @@ export default function PurchaseEditView() {
                         fullWidth
                         required
                         error={!selectedSupplier}
-                        helperText={!selectedSupplier ? t('supplier_required') : ''}
+                        helperText={
+                          !selectedSupplier
+                            ? t('supplier_required')
+                            : `${t('minimum_order_amount')}: ${minimumOrder > 0 ? `€${minimumOrder.toFixed(2)}` : '-'}`
+                        }
                       />
                     )}
                   />
@@ -545,11 +554,28 @@ export default function PurchaseEditView() {
                     <Typography variant="subtitle2">{currentPurchase?.items?.length}</Typography>
                   </Stack>
 
+                  {selectedSupplier && (
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {t('minimum_order_amount')}
+                      </Typography>
+                      <Typography variant="subtitle2">
+                        {minimumOrder > 0 ? `€${minimumOrder.toFixed(2)}` : '-'}
+                      </Typography>
+                    </Stack>
+                  )}
+
                   <Stack direction="row" justifyContent="space-between">
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {t('total_excl_btw')}
                     </Typography>
-                    <Typography variant="subtitle2">€{currentPurchase?.total_exc_btw}</Typography>
+                    <Typography
+                      variant="subtitle2"
+                      title={belowMinimum ? t('below_minimum_order_amount') : undefined}
+                      sx={belowMinimum ? { color: 'error.main' } : undefined}
+                    >
+                      €{currentPurchase?.total_exc_btw}
+                    </Typography>
                   </Stack>
 
                   <Stack direction="row" justifyContent="space-between">

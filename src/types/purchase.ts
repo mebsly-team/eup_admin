@@ -23,6 +23,7 @@ export type IPurchaseItem = {
         name: string;
         supplier_code: string;
         logo?: string;
+        minimum_order_amount?: string | number | null;
     };
     items: Array<{
         id: string;

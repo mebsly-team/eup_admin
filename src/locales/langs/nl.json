@@ -849,6 +849,7 @@
   "all_products_from_supplier": "Alle producten van",
   "offer_details": "Offerte details",
   "total_items": "Totaal items",
+  "below_minimum_order_amount": "Onder het minimale bestelbedrag van de leverancier (excl. BTW)",
   "total_excl_btw": "Totaal excl. BTW",
   "total_incl_btw": "Totaal incl. BTW",
   "failed_to_fetch_suppliers": "Ophalen leveranciers mislukt",

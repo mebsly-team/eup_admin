@@ -352,6 +352,8 @@
   "invoice_date": "Invoice Date",
   "invoice_number": "Invoice No.",
   "items": "Items",
+  "minimum_order_amount": "Minimum order amount",
+  "below_minimum_order_amount": "Below the supplier's minimum order amount (excl. BTW)",
   "total_excl_btw": "Total (excl. BTW)",
   "total_incl_btw": "Total (incl. BTW)",
   "image": "Image",
