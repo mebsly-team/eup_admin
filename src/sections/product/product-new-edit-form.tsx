@@ -444,7 +444,7 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
       variant_discount: currentProduct?.variant_discount || 0,
       price_per_piece: currentProduct?.price_per_piece || 0,
       price_per_unit: currentProduct?.price_per_unit,
-      price_consumers: currentProduct?.price_consumers || 0,
+      price_consumers: currentProduct?.price_consumers ? roundUp(currentProduct.price_consumers) : 0,
       price_cost: currentProduct?.price_cost || 0,
       vat: Number(currentProduct?.vat || 0),
       expiry_date: currentProduct?.expiry_date || null,
