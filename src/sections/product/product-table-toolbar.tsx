@@ -38,6 +38,20 @@ type Props = {
   onToggleBundles: VoidFunction;
 };
 
+const ORIGIN_SUPPLIERS = [
+  { label: 'Best Trading', pattern: /best\s*trading/i },
+  { label: 'Galesco', pattern: /galesco/i },
+  { label: 'De Vijzel Trading BV', pattern: /vijzel/i },
+  { label: 'Van der Tang', pattern: /van\s*der\s*tang/i },
+  { label: 'Partijhandel World Trading BVBA', pattern: /world\s*trading/i },
+  { label: 'Wouters', pattern: /wouters/i },
+  { label: 'Tarraco', pattern: /tarraco/i },
+  { label: 'Eurosoep', pattern: /euro\s*so[ea]p/i },
+  { label: 'Nergiz', pattern: /nergiz/i },
+  { label: 'Gold Pack', pattern: /gold\s*pack/i },
+  { label: 'Paardekoper', pattern: /paardekoo?per/i },
+];
+
 export default function ProductTableToolbar({
   filters,
   onFilters,
@@ -82,11 +96,15 @@ export default function ProductTableToolbar({
     };
   }, []);
 
-  // Europower's own catalogue, every supplier import, or one supplier's import.
+  // Herkomst lists only the suppliers we import catalogues from, matched by name so the ids
+  // don't have to be hardcoded. "Alles" clears the filter.
   const originOptions = [
-    { value: 'europower', label: 'Europower (eigen producten)' },
-    { value: 'suppliers', label: 'Alle leveranciersimports' },
-    ...supplierList.map((supplier) => ({ value: String(supplier.id), label: supplier.name })),
+    { value: '', label: 'Alles' },
+    { value: 'europower', label: 'Europower (eigen)' },
+    ...ORIGIN_SUPPLIERS.flatMap(({ label, pattern }) => {
+      const supplier = supplierList.find((s) => pattern.test(s.name));
+      return supplier ? [{ value: String(supplier.id), label }] : [];
+    }),
   ];
 
   const selectedSupplierIds = String(filters.supplier || '')
@@ -207,7 +225,7 @@ export default function ProductTableToolbar({
               {option.label}
             </li>
           )}
-          value={originOptions.find((option) => option.value === filters.origin) || null}
+          value={originOptions.find((option) => option.value === (filters.origin || '')) || null}
           onChange={(event: any, newValue) => onFilters('origin', newValue?.value || '')}
           sx={{ flex: '0 1 240px', minWidth: 200 }}
         />
