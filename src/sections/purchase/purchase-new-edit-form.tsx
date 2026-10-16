@@ -40,6 +40,8 @@ type PurchaseHistory = {
   user: string;
 };
 
+const EXCLUDED_PURCHASE_UNITS = ['pak', 'package', 'box', 'pallet_layer', 'pallet_full'];
+
 export default function PurchaseEditView() {
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -84,7 +86,9 @@ export default function PurchaseEditView() {
     if (!query) return;
     try {
       const response = await axiosInstance.get(`/products/?ean=${encodeURIComponent(query)}`);
-      const results: any[] = Array.isArray(response.data) ? response.data : response.data?.results || [];
+      const allResults: any[] = Array.isArray(response.data) ? response.data : response.data?.results || [];
+      // Bundle products (package/box/pallet) are never bought directly.
+      const results = allResults.filter((product) => !EXCLUDED_PURCHASE_UNITS.includes(product.unit));
       if (results.length === 0) {
         enqueueSnackbar(t('product_not_found'), { variant: 'error' });
         return;
