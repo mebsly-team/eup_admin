@@ -3358,6 +3358,7 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
                 <ProductSuppliersCard
                   productId={currentProduct?.id ? Number(currentProduct.id) : undefined}
                   sellPrice={currentProduct?.price_per_piece}
+                  costPrice={values.price_cost as number | string}
                   ownFree={currentProduct?.free_stock}
                   ownTotal={currentProduct?.overall_stock}
                   onOffersChange={setSupplierOffers}

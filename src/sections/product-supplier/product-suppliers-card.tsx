@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import Table from '@mui/material/Table';
 import Stack from '@mui/material/Stack';
@@ -37,6 +38,8 @@ type Props = {
   productId?: number;
   // Our selling price excl. btw per piece, for the margin column.
   sellPrice?: number | string | null;
+  // Product.price_cost (Kostprijs per stuk), compared with the cheapest offer.
+  costPrice?: number | string | null;
   ownFree?: number;
   ownTotal?: number;
   onOffersChange?: (offers: IProductSupplier[]) => void;
@@ -81,6 +84,7 @@ export function cheapestOffer(offers: IProductSupplier[]) {
 export default function ProductSuppliersCard({
   productId,
   sellPrice,
+  costPrice,
   ownFree = 0,
   ownTotal = 0,
   onOffersChange,
@@ -133,6 +137,9 @@ export default function ProductSuppliersCard({
   const supplierFree = offers.reduce((sum, offer) => sum + offer.stock_free, 0);
   const supplierTotal = offers.reduce((sum, offer) => sum + offer.stock_total, 0);
   const price = Number(sellPrice) || 0;
+  const cost = Number(costPrice) || 0;
+  const offerPrice = chosen?.purchase_price != null ? Number(chosen.purchase_price) : null;
+  const costMismatch = offerPrice !== null && Math.abs(offerPrice - cost) > 0.005;
 
   return (
     <Card>
@@ -176,6 +183,13 @@ export default function ProductSuppliersCard({
         </Typography>
       ) : (
         <>
+          {costMismatch && (
+            <Alert severity="warning" sx={{ mx: 3, mt: 2 }}>
+              Kostprijs per stuk ({formatPrice(cost)}) wijkt af van de inkoopprijs van de
+              goedkoopste leverancier ({formatPrice(offerPrice)}). Verkoopprijs en marge zijn
+              berekend met de Kostprijs; pas die aan als de inkoopprijs klopt.
+            </Alert>
+          )}
           <Stack direction="row" spacing={3} sx={{ px: 3, pt: 2, typography: 'body2' }}>
             <Box>
               <Box component="span" sx={{ color: 'text.secondary' }}>
