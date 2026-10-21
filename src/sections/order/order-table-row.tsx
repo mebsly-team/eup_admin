@@ -198,7 +198,7 @@ export default function OrderTableRow({ row, selected, onViewRow, onSelectRow }:
       </TableCell>
 
       <TableCell sx={{ px: 1 }}>
-        {extra_note === 'offer' ? (
+        {status === 'pending_offer' || extra_note === 'offer' ? (
           <Label variant="soft" color="info">
             Offer
           </Label>

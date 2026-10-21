@@ -220,6 +220,10 @@ export default function OrderDetailsToolbar({
   const isInvoiceSent = checkHistoryForInvoiceSent();
   const isOfferSent = checkHistoryForOfferSent();
 
+  // An order is an offer when it was created with "Maak offerte" (status pending_offer).
+  // extra_note used to carry the marker 'offer', but a typed Notitie overwrites it.
+  const isOffer = status === 'pending_offer' || extra_note === 'offer';
+
   const isBol = source_host === 'bol.com';
   const trackingNumber = currentOrder?.delivery_details?.tracking_number;
   const bolPakbonUrl = currentOrder?.delivery_details?.bol_pakbon_url;
@@ -281,7 +285,7 @@ export default function OrderDetailsToolbar({
   // The handling steps of an order, in the order they are normally done. Nothing
   // enforces that order: a step is only blocked by what it really needs.
   const steps: HandlingStep[] = [
-    ...(extra_note === 'offer'
+    ...(isOffer
       ? [
           {
             key: 'offer',
@@ -428,7 +432,7 @@ export default function OrderDetailsToolbar({
                   alt={source_host || 'kooptop.com'}
                 />
               </Tooltip>
-              {extra_note === 'offer' && (
+              {isOffer && (
                 <Label variant="soft" color="info">
                   Offer
                 </Label>
