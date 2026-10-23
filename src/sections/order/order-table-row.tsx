@@ -79,10 +79,12 @@ export default function OrderTableRow({ row, selected, onViewRow, onSelectRow }:
 
   const hasTime = typeof ordered_date === 'string' && ordered_date.includes('T');
 
+  const isCancelled = status === 'cancelled';
+
   const paymentLabel = (
     <Label
       variant="soft"
-      color={is_paid ? 'success' : 'error'}
+      color={isCancelled ? 'default' : is_paid ? 'success' : 'error'}
       startIcon={
         <Box
           sx={{
@@ -96,7 +98,7 @@ export default function OrderTableRow({ row, selected, onViewRow, onSelectRow }:
       }
       sx={{ cursor: 'inherit' }}
     >
-      {t(is_paid ? 'paid' : 'unpaid')}
+      {t(isCancelled ? 'cancelled' : is_paid ? 'paid' : 'unpaid')}
     </Label>
   );
 
