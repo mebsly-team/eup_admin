@@ -3068,10 +3068,16 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
         }
       } catch (error) {
         console.error('Missing Fields:', error);
-        const missingFields: any = Object.values(error)?.[0] || [];
-        missingFields.forEach((element) => {
-          enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
-        });
+        // {"Required:": [field, ...]} lists missing fields; the price rule comes as
+        // {price_per_piece: "message"} and is shown as-is.
+        const detail: any = Object.values(error || {})?.[0] || [];
+        if (Array.isArray(detail)) {
+          detail.forEach((element: string) => {
+            enqueueSnackbar({ variant: 'error', message: `${t(element)} verplicht` });
+          });
+        } else {
+          enqueueSnackbar({ variant: 'error', message: String(detail) });
+        }
       }
     };
 
