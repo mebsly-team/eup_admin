@@ -35,6 +35,7 @@ import { ISupplierItem } from 'src/types/supplier';
 import PurchaseTableRow from '../purchase-table-row';
 import PurchaseItemRow from '../purchase-item-row';
 import PurchaseTableToolbar from '../purchase-table-toolbar';
+import PurchaseWhatsAppDialog from '../purchase-whatsapp-dialog';
 import PurchaseTableFiltersResult from '../purchase-table-filters-result';
 
 const TABLE_HEAD = [
@@ -85,6 +86,7 @@ export default function PurchaseListView() {
   const [selectedSupplier, setSelectedSupplier] = useState<ISupplierItem | null>(null);
   const [creatingOffer, setCreatingOffer] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [whatsAppOffer, setWhatsAppOffer] = useState<IPurchaseItem | null>(null);
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -213,6 +215,23 @@ export default function PurchaseListView() {
         });
       } finally {
         setSendingId(null);
+      }
+    },
+    [enqueueSnackbar, t, fetchOffers]
+  );
+
+  // The PDF went out over WhatsApp: move the offer to the "sent to supplier" list.
+  const handleWhatsAppShared = useCallback(
+    async (offer: IPurchaseItem) => {
+      try {
+        await axiosInstance.post(`/purchases/${offer.id}/mark-as-sent/`);
+        enqueueSnackbar(t('offer_sent_to_supplier_successfully'), { variant: 'success' });
+        fetchOffers();
+      } catch (error: any) {
+        console.error('Error marking offer as sent:', error);
+        enqueueSnackbar(error?.response?.data?.error || t('failed_to_send_offer'), {
+          variant: 'error',
+        });
       }
     },
     [enqueueSnackbar, t, fetchOffers]
@@ -374,6 +393,7 @@ export default function PurchaseListView() {
                       onExpand={() => handleExpandRow(row.id)}
                       showMinimumOrder
                       onSendToSupplier={() => handleSendToSupplier(row.id)}
+                      onShareWhatsApp={() => setWhatsAppOffer(row)}
                       sending={sendingId === row.id}
                     />
                     {expandedRow === row.id && (
@@ -405,6 +425,12 @@ export default function PurchaseListView() {
           onChangeDense={table.onChangeDense}
         />
       </Card>
+
+      <PurchaseWhatsAppDialog
+        purchase={whatsAppOffer}
+        onClose={() => setWhatsAppOffer(null)}
+        onShared={handleWhatsAppShared}
+      />
     </Container>
   );
 }

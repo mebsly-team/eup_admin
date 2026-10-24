@@ -37,6 +37,8 @@ type Props = {
     /** Sent-offers list: download the offer PDF again. */
     onDownloadPdf?: VoidFunction;
     downloading?: boolean;
+    /** Opens the WhatsApp share dialog for the offer PDF. */
+    onShareWhatsApp?: VoidFunction;
     /** Sent-offers list: book the offer as a purchase (inkoop). */
     onConvertToPurchase?: VoidFunction;
     converting?: boolean;
@@ -56,6 +58,7 @@ export default function PurchaseTableRow({
     sending = false,
     onDownloadPdf,
     downloading = false,
+    onShareWhatsApp,
     onConvertToPurchase,
     converting = false,
 }: Props) {
@@ -175,6 +178,20 @@ export default function PurchaseTableRow({
                                 ) : (
                                     <Iconify icon="eva:download-outline" />
                                 )}
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                )}
+
+                {onShareWhatsApp && (
+                    <Tooltip title={isActionable ? 'Verstuur via WhatsApp' : blockedReason}>
+                        <span>
+                            <IconButton
+                                color="success"
+                                onClick={onShareWhatsApp}
+                                disabled={busy || !isActionable}
+                            >
+                                <Iconify icon="ic:baseline-whatsapp" />
                             </IconButton>
                         </span>
                     </Tooltip>

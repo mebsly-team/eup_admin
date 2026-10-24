@@ -24,6 +24,11 @@ export type IPurchaseItem = {
         supplier_code: string;
         logo?: string;
         minimum_order_amount?: string | number | null;
+        mobile_phone?: string | null;
+        phone?: string | null;
+        contact_person_phone?: string | null;
+        contact_person_name?: string | null;
+        supplier_country?: string | null;
     };
     items: Array<{
         id: string;

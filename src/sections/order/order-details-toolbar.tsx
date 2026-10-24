@@ -27,6 +27,8 @@ import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { useAuthContext } from 'src/auth/hooks';
 
+import WhatsAppShareDialog, { countryCallingCode } from 'src/components/whatsapp-share';
+
 import { ORDER_STATUS_COLOR } from './order-table-row';
 
 // ----------------------------------------------------------------------
@@ -41,6 +43,8 @@ type HandlingStep = {
   blockedReason?: string;
   hasMenu?: boolean;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  // Optional second, smaller button under the main action (e.g. WhatsApp).
+  secondary?: { label: string; icon: string; onClick: VoidFunction };
   onUpload?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -95,6 +99,20 @@ export default function OrderDetailsToolbar({
   const invoiceEmails = rawInvoiceEmails.filter((item, index, self) =>
     index === self.findIndex((t) => t.value === item.value)
   );
+
+  const [openWhatsAppInvoice, setOpenWhatsAppInvoice] = useState(false);
+
+  const handleInvoiceWhatsAppShared = () => {
+    updateOrder(id, {
+      history: [
+        ...(currentOrder.history || []),
+        {
+          date: new Date(),
+          event: `Invoice verzonden naar klant via WhatsApp door ${user?.email}`,
+        },
+      ],
+    });
+  };
 
   const [openDownloadDialog, setOpenDownloadDialog] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState({
@@ -389,6 +407,11 @@ export default function OrderDetailsToolbar({
                 popoverSendInvoice.onOpen(event);
               }
             },
+            secondary: {
+              label: 'Via WhatsApp',
+              icon: 'ic:baseline-whatsapp',
+              onClick: () => setOpenWhatsAppInvoice(true),
+            },
           },
           {
             key: 'snelstart',
@@ -629,6 +652,19 @@ export default function OrderDetailsToolbar({
                     {step.action}
                   </Button>
                 )}
+
+                {step.secondary && (
+                  <Button
+                    size="small"
+                    color="success"
+                    fullWidth
+                    disabled={!!step.blockedReason}
+                    onClick={step.secondary.onClick}
+                    startIcon={<Iconify icon={step.secondary.icon} />}
+                  >
+                    {step.secondary.label}
+                  </Button>
+                )}
               </Stack>
             );
           })}
@@ -673,6 +709,28 @@ export default function OrderDetailsToolbar({
           </MenuItem>
         ))}
       </CustomPopover>
+      <WhatsAppShareDialog
+        open={openWhatsAppInvoice}
+        onClose={() => setOpenWhatsAppInvoice(false)}
+        title={`Factuur #${id} via WhatsApp`}
+        filename={`Factuur_${id}.pdf`}
+        message={`Beste ${currentOrder?.user?.business_name || 'klant'},\n\nIn de bijlage vindt u de factuur voor uw bestelling #${id}${currentOrder?.total ? ` (totaal €${currentOrder.total})` : ''}.\n\nMet vriendelijke groet,\n${source_host === 'kooptop.com' ? 'Kooptop.com' : 'Europower BV'}`}
+        phones={[
+          { label: 'Factuuradres', value: currentOrder?.invoice_address?.phone_number },
+          { label: 'Bezorgadres', value: currentOrder?.shipping_address?.phone_number },
+        ]}
+        defaultCountryCode={countryCallingCode(
+          currentOrder?.invoice_address?.country || currentOrder?.shipping_address?.country
+        )}
+        loadPdf={async () => {
+          const response = await axiosInstance.get(`/invoice/${id}/?all=true`, {
+            responseType: 'blob',
+          });
+          return response.data as Blob;
+        }}
+        onShared={handleInvoiceWhatsAppShared}
+      />
+
       <CustomPopover
         open={popoverSendInvoice.open}
         onClose={popoverSendInvoice.onClose}

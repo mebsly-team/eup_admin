@@ -41,6 +41,7 @@ import { IPurchaseItem, IPurchaseTableFilters } from 'src/types/purchase';
 import PurchaseItemRow from '../purchase-item-row';
 import PurchaseTableRow from '../purchase-table-row';
 import PurchaseTableToolbar from '../purchase-table-toolbar';
+import PurchaseWhatsAppDialog from '../purchase-whatsapp-dialog';
 import PurchaseTableFiltersResult from '../purchase-table-filters-result';
 
 // ----------------------------------------------------------------------
@@ -93,6 +94,7 @@ export default function PurchaseOfferSentListView() {
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [whatsAppOffer, setWhatsAppOffer] = useState<IPurchaseItem | null>(null);
   const [convertingId, setConvertingId] = useState<string | null>(null);
   const [pendingConvert, setPendingConvert] = useState<IPurchaseItem | null>(null);
 
@@ -339,6 +341,7 @@ export default function PurchaseOfferSentListView() {
                       onExpand={() => handleExpandRow(row.id)}
                       showSentAt
                       onDownloadPdf={() => handleDownloadPdf(row.id)}
+                      onShareWhatsApp={() => setWhatsAppOffer(row)}
                       downloading={downloadingId === row.id}
                       onConvertToPurchase={() => handleAskConvert(row)}
                       converting={convertingId === row.id}
@@ -399,6 +402,8 @@ export default function PurchaseOfferSentListView() {
           </LoadingButton>
         }
       />
+
+      <PurchaseWhatsAppDialog purchase={whatsAppOffer} onClose={() => setWhatsAppOffer(null)} />
     </Container>
   );
 }
