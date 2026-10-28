@@ -778,7 +778,7 @@ export default function OrderDetailsInfo({
             <IconButton onClick={handleDeliveryEditClick}>
               <Iconify icon="solar:pen-bold" />
             </IconButton>
-            {source_host === 'bol.com' && (
+            {(source_host === 'bol.com' || source_host === 'amazon.com') && (
               <Button size="small" variant="contained" onClick={handleCompleteScan}>
                 Complete Scan
               </Button>
@@ -1536,7 +1536,7 @@ export default function OrderDetailsInfo({
 
       <Card>
         {renderPayment}
-        {currentOrder?.source_host !== 'bol.com' && (
+        {currentOrder?.source_host !== 'bol.com' && currentOrder?.source_host !== 'amazon.com' && (
           <>
             {divider}
             {renderInvoiceDate}

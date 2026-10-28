@@ -151,7 +151,7 @@ export default function OrderDetailsToolbar({
         const history = currentOrder.history || [];
         history.push({
           date: new Date(),
-          event: `Bol pakbon geüpload door ${user?.email || 'gebruiker'}`,
+          event: `${marketplaceName} pakbon geüpload door ${user?.email || 'gebruiker'}`,
         });
         const updatedDetails = {
           ...currentOrder.delivery_details,
@@ -242,12 +242,15 @@ export default function OrderDetailsToolbar({
   // extra_note used to carry the marker 'offer', but a typed Notitie overwrites it.
   const isOffer = status === 'pending_offer' || extra_note === 'offer';
 
-  const isBol = source_host === 'bol.com';
+  // Marketplace orders (bol.com, amazon.com) bring their own pakbon and are
+  // invoiced through the consolidated invoice instead of a Snelstart number.
+  const isMarketplace = source_host === 'bol.com' || source_host === 'amazon.com';
+  const marketplaceName = source_host === 'amazon.com' ? 'Amazon' : 'Bol';
   const trackingNumber = currentOrder?.delivery_details?.tracking_number;
   const bolPakbonUrl = currentOrder?.delivery_details?.bol_pakbon_url;
 
   const invoiceBlockedReason =
-    (!isBol && !trackingNumber && 'Track & trace ontbreekt') ||
+    (!isMarketplace && !trackingNumber && 'Track & trace ontbreekt') ||
     (!snelstart_order_number && 'Snelstart-nummer ontbreekt') ||
     '';
 
@@ -255,7 +258,7 @@ export default function OrderDetailsToolbar({
     const history = currentOrder.history || [];
     history.push({
       date: new Date(),
-      event: `Bol pakbon gedownload door ${user?.email || 'gebruiker'}`,
+      event: `${marketplaceName} pakbon gedownload door ${user?.email || 'gebruiker'}`,
     });
     updateOrder(id, { history });
 
@@ -328,13 +331,13 @@ export default function OrderDetailsToolbar({
         onChangeStatus('werkbon');
       },
     },
-    isBol && bolPakbonUrl
+    isMarketplace && bolPakbonUrl
       ? {
           key: 'bol-pakbon',
-          title: 'Bol pakbon',
+          title: `${marketplaceName} pakbon`,
           done: true,
           doneNote: 'Geüpload',
-          action: 'Download Bol Pakbon',
+          action: `Download ${marketplaceName} Pakbon`,
           icon: 'solar:download-bold',
           onClick: handleDownloadBolPakbon,
         }
@@ -351,20 +354,20 @@ export default function OrderDetailsToolbar({
             onChangeStatus('packing');
           },
         },
-    ...(isBol && !bolPakbonUrl
+    ...(isMarketplace && !bolPakbonUrl
       ? [
           {
             key: 'bol-pakbon',
-            title: 'Bol pakbon',
+            title: `${marketplaceName} pakbon`,
             done: false,
             doneNote: '',
-            action: 'Upload Bol Pakbon',
+            action: `Upload ${marketplaceName} Pakbon`,
             icon: 'solar:upload-bold',
             onUpload: handleUploadBolPakbon,
           },
         ]
       : []),
-    ...(isBol && !currentOrder?.invoice
+    ...(isMarketplace && !currentOrder?.invoice
       ? [
           {
             key: 'add-to-invoice',
@@ -377,7 +380,7 @@ export default function OrderDetailsToolbar({
           },
         ]
       : []),
-    ...(isBol
+    ...(isMarketplace
       ? []
       : [
           {
@@ -451,7 +454,7 @@ export default function OrderDetailsToolbar({
               <Tooltip title={source_host || 'kooptop.com'}>
                 <img
                   style={{ height: 16, width: 16 }}
-                  src={`/assets/icons/home/${source_host === 'europowerbv.com' ? 'europowerbv.png' : isBol ? 'bol.ico' : source_host === 'amazon.com' ? 'amazon.svg' : 'kooptop.png'}`}
+                  src={`/assets/icons/home/${source_host === 'europowerbv.com' ? 'europowerbv.png' : source_host === 'amazon.com' ? 'amazon.svg' : source_host === 'bol.com' ? 'bol.ico' : 'kooptop.png'}`}
                   alt={source_host || 'kooptop.com'}
                 />
               </Tooltip>
@@ -471,7 +474,7 @@ export default function OrderDetailsToolbar({
               sx={{ typography: 'body2', color: 'text.secondary' }}
             >
               <span>{fDateTime(ordered_date)}</span>
-              {!isBol && (
+              {!isMarketplace && (
                 <Stack direction="row" alignItems="center" spacing={0.5}>
                   <span>Snelstart-nr.</span>
                   <Box
@@ -785,7 +788,7 @@ export default function OrderDetailsToolbar({
                   checked={selectedDocs.invoice}
                   onChange={(e) => setSelectedDocs({ ...selectedDocs, invoice: e.target.checked })}
                   disabled={
-                    source_host === 'bol.com'
+                    isMarketplace
                       ? !snelstart_order_number
                       : !currentOrder?.delivery_details?.tracking_number || !snelstart_order_number
                   }
