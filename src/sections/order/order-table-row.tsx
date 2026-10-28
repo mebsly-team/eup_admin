@@ -41,6 +41,7 @@ export const ORDER_STATUS_COLOR: Record<string, LabelColor> = {
 const SOURCE_ICON: Record<string, string> = {
   'europowerbv.com': 'europowerbv.png',
   'bol.com': 'bol.ico',
+  'amazon.com': 'amazon.svg',
 };
 
 const LINE_COLUMNS = 'minmax(220px, 1fr) 140px 110px 150px 150px 120px';

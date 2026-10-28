@@ -451,7 +451,7 @@ export default function OrderDetailsToolbar({
               <Tooltip title={source_host || 'kooptop.com'}>
                 <img
                   style={{ height: 16, width: 16 }}
-                  src={`/assets/icons/home/${source_host === 'europowerbv.com' ? 'europowerbv.png' : isBol ? 'bol.ico' : 'kooptop.png'}`}
+                  src={`/assets/icons/home/${source_host === 'europowerbv.com' ? 'europowerbv.png' : isBol ? 'bol.ico' : source_host === 'amazon.com' ? 'amazon.svg' : 'kooptop.png'}`}
                   alt={source_host || 'kooptop.com'}
                 />
               </Tooltip>

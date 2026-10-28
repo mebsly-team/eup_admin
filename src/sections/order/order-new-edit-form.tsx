@@ -610,6 +610,7 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
                                 <MenuItem value="europowerbv.com">europowerbv.com</MenuItem>
                                 <MenuItem value="kooptop.com">kooptop.com</MenuItem>
                                 <MenuItem value="bol.com">bol.com</MenuItem>
+                                <MenuItem value="amazon.com">amazon.com</MenuItem>
                             </RHFSelect>
 
                             {/* <RHFSelect name="status" label="Status">
