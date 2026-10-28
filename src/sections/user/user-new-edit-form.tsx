@@ -45,6 +45,8 @@ import {
 import { Add, Edit, Delete, Map } from '@mui/icons-material';
 import { MAP_USER_COLORS } from 'src/constants/colors';
 import { useAuthContext } from 'src/auth/hooks';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 
 // The dashboard header is fixed: one bar on small screens, two from lg up.
 // Only from md up: the card is not sticky below that and `top` would shift it.
@@ -694,6 +696,27 @@ export default function UserNewEditForm({ currentUser }: Props) {
     }
   };
 
+  const confirmDelete = useBoolean();
+  const [deleting, setDeleting] = useState(false);
+
+  // Soft delete: the backend keeps the row and renames the email to deleted_<id>_<email>
+  const handleDeleteUser = async () => {
+    if (!currentUser) return;
+    setDeleting(true);
+    try {
+      await axiosInstance.delete(`/users/${currentUser.id}/`);
+      enqueueSnackbar(t('delete_success'));
+      confirmDelete.onFalse();
+      router.push(`${paths.dashboard.user.list}?page=1`);
+    } catch (error) {
+      enqueueSnackbar(error?.error || error?.detail || 'Verwijderen mislukt', {
+        variant: 'error',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const values = watch();
 
   const headerTitle = currentUser
@@ -794,6 +817,17 @@ export default function UserNewEditForm({ currentUser }: Props) {
             onClick={handlePasswordReset}
           >
             {t('send_password_reset')}
+          </Button>
+        )}
+        {currentUser && (
+          <Button
+            type="button"
+            variant="outlined"
+            color="error"
+            startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+            onClick={confirmDelete.onTrue}
+          >
+            Gebruiker verwijderen
           </Button>
         )}
         <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
@@ -1404,6 +1438,24 @@ export default function UserNewEditForm({ currentUser }: Props) {
           {currentUser && <UserDetailsHistory currentUser={currentUser} />}
         </Stack>
       </Box>
+
+      <ConfirmDialog
+        open={confirmDelete.value}
+        onClose={confirmDelete.onFalse}
+        title="Gebruiker verwijderen"
+        content={`Weet je zeker dat je ${headerTitle} wilt verwijderen? Het account wordt gedeactiveerd en het e-mailadres wordt gewijzigd naar deleted_${currentUser?.id}_${currentUser?.email}. Bestellingen en facturen blijven bewaard.`}
+        action={
+          <LoadingButton
+            type="button"
+            variant="contained"
+            color="error"
+            loading={deleting}
+            onClick={handleDeleteUser}
+          >
+            {t('delete')}
+          </LoadingButton>
+        }
+      />
     </FormProvider>
   );
 }
