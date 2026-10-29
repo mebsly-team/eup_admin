@@ -25,6 +25,7 @@ import EcommerceWidgetSummary from '../ecommerce-widget-summary';
 import EcommerceLatestProducts from '../ecommerce-latest-products';
 import EcommerceCurrentBalance from '../ecommerce-current-balance';
 import EcommerceUnpaidCustomers from '../ecommerce-unpaid-customers';
+import EcommerceLeadTimes from '../ecommerce-lead-times';
 
 // ----------------------------------------------------------------------
 
@@ -111,7 +112,8 @@ export default function OverviewEcommerceView() {
     yearly_sales = [],
     sales_overview = {},
     current_balance = {},
-    latest_products = []
+    latest_products = [],
+    lead_times = {},
   } = metrics || {};
 
   const salesOverviewData = [
@@ -228,6 +230,22 @@ export default function OverviewEcommerceView() {
               colors: [theme.palette.success.light, theme.palette.success.main],
               series: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
             }}
+          />
+        </Grid>
+
+        <Grid xs={12} md={6}>
+          <EcommerceLeadTimes
+            title="Totale ordertijd"
+            subheader="Besteld → bevestigd"
+            summary={lead_times.order_time}
+          />
+        </Grid>
+
+        <Grid xs={12} md={6}>
+          <EcommerceLeadTimes
+            title="Voorbereidingstijd"
+            subheader="Werkbon geprint → factuur geprint"
+            summary={lead_times.preparation_time}
           />
         </Grid>
 
