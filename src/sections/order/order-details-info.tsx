@@ -1526,6 +1526,10 @@ export default function OrderDetailsInfo({
     <Stack spacing={3}>
       <Card>{renderCustomer}</Card>
 
+      {currentOrder?.source_host !== 'bol.com' && currentOrder?.source_host !== 'amazon.com' && (
+        <Card>{renderInvoiceDate}</Card>
+      )}
+
       <Card>{renderDelivery}</Card>
 
       <Card>
@@ -1536,12 +1540,6 @@ export default function OrderDetailsInfo({
 
       <Card>
         {renderPayment}
-        {currentOrder?.source_host !== 'bol.com' && currentOrder?.source_host !== 'amazon.com' && (
-          <>
-            {divider}
-            {renderInvoiceDate}
-          </>
-        )}
         {divider}
         {renderReminders}
       </Card>
