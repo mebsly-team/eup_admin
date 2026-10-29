@@ -21,6 +21,7 @@ import OrderDetailsItems from '../order-details-item';
 import OrderDetailsToolbar from '../order-details-toolbar';
 import OrderDetailsFinance from '../order-details-finance';
 import OrderDetailsHistory from '../order-details-history';
+import OrderDetailsDurations from '../order-details-durations';
 
 // ----------------------------------------------------------------------
 
@@ -342,6 +343,8 @@ export default function OrderDetailsView({ id }: Props) {
               updateOrder={updateOrder}
               orderId={id}
             />
+
+            <OrderDetailsDurations currentOrder={currentOrder} />
 
             <OrderDetailsFinance orderId={id} currentOrder={currentOrder} />
           </Stack>
