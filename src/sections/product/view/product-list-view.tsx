@@ -373,13 +373,44 @@ export default function ProductListView() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      await axiosInstance.post('import/products/', formData);
+      const response = await axiosInstance.post('import/products/', formData);
+      if (response.status === 202 && response.data?.job) {
+        // A supplier price list: the backend imports it in the background.
+        const { job, supplier, rows } = response.data;
+        enqueueSnackbar(`${supplier} lijst: ${rows} artikelen worden geïmporteerd…`, { variant: 'info' });
+        const poll = async () => {
+          try {
+            const { data } = await axiosInstance.get(`import/products/status/${job}/`);
+            if (data.status === 'running') {
+              setTimeout(poll, 3000);
+              return;
+            }
+            if (data.status === 'failed') {
+              enqueueSnackbar(`${supplier} import mislukt: ${data.error}`, { variant: 'error' });
+              return;
+            }
+            const errors = data.errors?.length ? `, ${data.errors.length} fouten` : '';
+            enqueueSnackbar(
+              `${supplier} import klaar: ${data.updated} leveranciersaanbiedingen bijgewerkt, ` +
+                `${data.created} nieuwe (verborgen) producten${errors}`,
+              { variant: data.errors?.length ? 'warning' : 'success', autoHideDuration: 15000 }
+            );
+            getAll();
+            setCountsVersion((version) => version + 1);
+          } catch (error) {
+            console.error(error);
+            enqueueSnackbar(t('error'), { variant: 'error' });
+          }
+        };
+        setTimeout(poll, 3000);
+        return;
+      }
       enqueueSnackbar(t('update_success'), { variant: 'success' });
       getAll();
       setCountsVersion((version) => version + 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      enqueueSnackbar(t('error'), { variant: 'error' });
+      enqueueSnackbar(error?.error || (typeof error === 'string' ? error : t('error')), { variant: 'error' });
     }
   };
 
@@ -408,8 +439,8 @@ export default function ProductListView() {
                 color="inherit"
                 startIcon={<Iconify icon="solar:import-linear" />}
               >
-                {t('import')} (CSV)
-                <input type="file" accept=".csv" hidden onChange={handleImport} />
+                {t('import')} (CSV/Excel)
+                <input type="file" accept=".csv,.xls,.xlsx" hidden onChange={handleImport} />
               </Button>
               <Button
                 variant="outlined"
