@@ -20,6 +20,8 @@ import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
+import { Theme } from '@mui/material/styles';
+import { SystemStyleObject } from '@mui/system';
 import { DatePicker } from '@mui/x-date-pickers';
 
 import { paths } from 'src/routes/paths';
@@ -36,7 +38,31 @@ import { IPurchaseItem } from 'src/types/purchase';
 import { ISupplierItem } from 'src/types/supplier';
 import { IProductItem } from 'src/types/product';
 import PurchaseDetailsHistory from './purchase-details-history';
+import PurchaseSupplierStock, { fetchSupplierOffers } from '../purchase-supplier-stock';
 import { countries } from 'src/assets/data/countries';
+
+// Where the item table scrolls sideways (below about 1280 px), image and
+// product name stay on the left so every row still shows which product it
+// is. Sticky cells need a background of their own. Phones hide the image.
+const IMAGE_COLUMN_WIDTH = 92;
+const STICKY_IMAGE_CELL = {
+  position: 'sticky',
+  left: 0,
+  zIndex: 1,
+  width: IMAGE_COLUMN_WIDTH,
+  minWidth: IMAGE_COLUMN_WIDTH,
+  display: { xs: 'none', sm: 'table-cell' },
+} as const;
+const STICKY_PRODUCT_CELL = (theme: Theme): SystemStyleObject<Theme> => ({
+  position: 'sticky',
+  left: { xs: 0, sm: IMAGE_COLUMN_WIDTH },
+  zIndex: 1,
+  minWidth: { xs: 140, sm: 180 },
+  // The edge the other columns slide under; not needed once the table fits.
+  [theme.breakpoints.down(1280)]: {
+    boxShadow: `inset -1px 0 0 ${theme.palette.divider}`,
+  },
+});
 
 type PurchaseHistory = {
   id: string;
@@ -258,7 +284,13 @@ export default function PurchaseEditView() {
         return;
       }
 
-      const newItems = toAdd.map((product) => {
+      // The product search has no supplier stock; the saved items get it from
+      // the purchase API (product_detail.supplier_offers).
+      const offersPerProduct = await Promise.all(
+        toAdd.map((product) => fetchSupplierOffers(product.id))
+      );
+
+      const newItems = toAdd.map((product, index) => {
         const vatRate = getVatRate(selectedSupplier?.supplier_country, product.vat);
         return {
           id: crypto.randomUUID(),
@@ -276,6 +308,7 @@ export default function PurchaseEditView() {
             min_order_amount: product.min_order_amount || 0,
             max_stock_at_rack: product.max_stock_at_rack || 0,
             quantity_per_unit: product.quantity_per_unit,
+            supplier_offers: offersPerProduct[index],
           },
           product_quantity: 1,
           product_purchase_price: product.price_cost || '0',
@@ -751,7 +784,16 @@ export default function PurchaseEditView() {
   return (
     <Container maxWidth={false}>
       <Stack spacing={3}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        {/* On a phone the buttons go under the title instead of past the screen edge. */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          flexWrap="wrap"
+          useFlexGap
+          spacing={2}
+          sx={{ mb: 3 }}
+        >
           <Stack spacing={1} direction="row" alignItems="center">
             <IconButton onClick={router.back}>
               <Iconify icon="eva:arrow-ios-back-fill" />
@@ -759,7 +801,7 @@ export default function PurchaseEditView() {
             <Typography variant="h4">{t('edit_purchase')}</Typography>
           </Stack>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" flexWrap="wrap" useFlexGap spacing={{ xs: 1, sm: 2 }}>
             <LoadingButton
               variant="contained"
               color="primary"
@@ -896,211 +938,6 @@ export default function PurchaseEditView() {
                       }));
                     }}
                   />
-
-                  <Stack direction="row" spacing={2} alignItems="flex-start">
-                    <TextField
-                      fullWidth
-                      label={t('search_product_by_ean')}
-                      value={eanSearch}
-                      onChange={(e) => setEanSearch(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddProduct();
-                        }
-                      }}
-                    />
-                    <Button variant="contained" onClick={handleAddProduct} disabled={!eanSearch}>
-                      {t('add_product')}
-                    </Button>
-                  </Stack>
-
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ width: 90 }} />
-                          <TableCell>{t('product')}</TableCell>
-                          <TableCell>{t('ean')}</TableCell>
-                          <TableCell align="right">{t('stock')}</TableCell>
-                          <TableCell align="right">{t('stock')}</TableCell>
-                          <TableCell align="right">{t('excl_btw_price_cost')}</TableCell>
-                          <TableCell align="right">{t('quantity')}</TableCell>
-                          <TableCell align="right">{t('exc_btw_total')}</TableCell>
-                          <TableCell align="center">{t('actions')}</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {currentPurchase.items.map((item: any) => (
-                          <TableRow
-                            key={item.id}
-                            sx={{
-                              ...(item.isNewItem && {
-                                backgroundColor: 'warning.lighter',
-                              }),
-                            }}
-                          >
-                            <TableCell sx={{ p: 1 }}>
-                              {item.product_detail?.images?.[0] ? (
-                                <Box
-                                  component="img"
-                                  loading="lazy"
-                                  alt={item.product_detail.title}
-                                  src={`${IMAGE_FOLDER_PATH}${item.product_detail.images[0]}`}
-                                  sx={{
-                                    display: 'block',
-                                    width: 'auto',
-                                    height: 'auto',
-                                    maxWidth: 75,
-                                    maxHeight: 60,
-                                    borderRadius: 1,
-                                  }}
-                                />
-                              ) : (
-                                <Iconify
-                                  icon="solar:gallery-bold"
-                                  width={32}
-                                  sx={{ color: 'text.disabled' }}
-                                />
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="subtitle2">
-                                {item.product_detail.title}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Link
-                                href={paths.dashboard.product.edit(
-                                  item.product_detail.id.toString()
-                                )}
-                                target="_blank"
-                                rel="noreferrer"
-                                sx={{
-                                  fontWeight: 'normal',
-                                  textDecoration: 'underline',
-                                  cursor: 'pointer',
-                                  color: 'primary.main',
-                                }}
-                              >
-                                <Typography variant="body2">{item.product_detail.ean}</Typography>
-                                <Typography variant="caption">
-                                  Leverancierscode:{' '}
-                                  {(item.product_detail as any).supplier_article_code}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    color:
-                                      selectedSupplier?.supplier_country === 'NL'
-                                        ? 'success.main'
-                                        : 'warning.main',
-                                    fontWeight: 'bold',
-                                    display: 'block',
-                                  }}
-                                >
-                                  {calculateItemTax(
-                                    selectedSupplier?.supplier_country,
-                                    Number(
-                                      (item as any).product_detail?.vat ??
-                                        (item as any).vat ??
-                                        (item as any).vat_rate ??
-                                        0
-                                    )
-                                  )}
-                                  % ({getCountryName(selectedSupplier?.supplier_country)})
-                                </Typography>
-                                {!selectedSupplier?.supplier_country && (
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      color: 'error.main',
-                                      fontWeight: 'bold',
-                                      display: 'block',
-                                    }}
-                                  >
-                                    ⚠️{' '}
-                                    {t('supplier_country_required') || 'Supplier country required'}
-                                  </Typography>
-                                )}
-                              </Link>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography variant="caption" display="block">
-                                {t('overall_stock')}:{' '}
-                                {(item.product_detail as any)?.overall_stock || 0}
-                              </Typography>
-                              <Typography variant="caption" display="block">
-                                {t('free_stock')}: {(item.product_detail as any)?.free_stock || 0}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography variant="caption" display="block">
-                                {t('min_stock_value')}:{' '}
-                                {(item.product_detail as any)?.min_stock_value || 0}
-                              </Typography>
-                              <Typography variant="caption" display="block">
-                                {t('min_order_amount')}:{' '}
-                                {(item.product_detail as any)?.min_order_amount || 0}
-                              </Typography>
-                              <Typography variant="caption" display="block">
-                                {t('max_stock_at_rack')}:{' '}
-                                {(item.product_detail as any)?.max_stock_at_rack || 0}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <TextField
-                                type="number"
-                                value={item.product_purchase_price}
-                                onChange={(e) => handleUpdatePrice(item.id, e.target.value)}
-                                size="small"
-                                sx={{ width: 100 }}
-                                InputProps={{
-                                  startAdornment: <Typography variant="caption">€</Typography>,
-                                }}
-                                inputProps={{
-                                  min: 0,
-                                  step: '0.01',
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <TextField
-                                type="number"
-                                defaultValue={item.product_quantity}
-                                onBlur={(e) => handleUpdateQuantity(item.id, e.target.value)}
-                                size="small"
-                                sx={{ width: 80 }}
-                              />
-                              <Typography
-                                variant="caption"
-                                display="block"
-                                sx={{ color: 'text.secondary', mt: 0.5, fontSize: 11 }}
-                              >
-                                Stuks: {(item.product_detail as any)?.quantity_per_unit ?? '-'}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                €
-                                {(
-                                  Number(item.product_purchase_price) * item.product_quantity
-                                ).toFixed(2)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="center">
-                              <IconButton
-                                color="error"
-                                onClick={() => handleRemoveProduct(item.id)}
-                                title={t('remove')}
-                              >
-                                <Iconify icon="eva:trash-2-outline" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
                 </Stack>
               </Stack>
             </Card>
@@ -1283,6 +1120,277 @@ export default function PurchaseEditView() {
                     </Typography>
                   </Stack>
                 </Stack>
+              </Stack>
+            </Card>
+          </Grid>
+
+          {/* The items get the full width: next to the summary the table did not fit. */}
+          <Grid item xs={12}>
+            <Card sx={{ p: { xs: 2, md: 3 } }}>
+              <Stack spacing={2}>
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  alignItems={{ xs: 'stretch', md: 'center' }}
+                  justifyContent="space-between"
+                  spacing={2}
+                >
+                  <Typography variant="h6">
+                    {t('products')} ({currentPurchase.items.length})
+                  </Typography>
+
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="flex-start"
+                    sx={{ width: { xs: 1, md: 480 } }}
+                  >
+                    <TextField
+                      fullWidth
+                      label={t('search_product_by_ean')}
+                      value={eanSearch}
+                      onChange={(e) => setEanSearch(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddProduct();
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={handleAddProduct}
+                      disabled={!eanSearch}
+                      sx={{ flexShrink: 0, alignSelf: 'stretch', whiteSpace: 'nowrap' }}
+                    >
+                      {t('add_product')}
+                    </Button>
+                  </Stack>
+                </Stack>
+
+                {/* Narrower cell padding so the ten columns fit from 1280 px up;
+                    below that the table scrolls sideways inside the card. */}
+                <TableContainer>
+                  <Table size="small" sx={{ '& .MuiTableCell-root': { px: 1 } }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ ...STICKY_IMAGE_CELL, zIndex: 3 }} />
+                        <TableCell sx={[STICKY_PRODUCT_CELL, { zIndex: 3 }]}>
+                          {t('product')}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 150 }}>{t('ean')}</TableCell>
+                        <TableCell align="right">{t('stock')}</TableCell>
+                        <TableCell align="right" sx={{ minWidth: 150 }}>
+                          {t('stock')}
+                        </TableCell>
+                        <TableCell align="right" sx={{ minWidth: 110 }}>
+                          {t('stock_at_supplier')}
+                          <Typography
+                            variant="caption"
+                            display="block"
+                            sx={{ color: 'text.disabled' }}
+                          >
+                            vrij / totaal
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">{t('excl_btw_price_cost')}</TableCell>
+                        <TableCell align="right">{t('quantity')}</TableCell>
+                        <TableCell align="right">{t('exc_btw_total')}</TableCell>
+                        <TableCell sx={{ width: 56 }} />
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {currentPurchase.items.map((item: any) => (
+                        <TableRow
+                          key={item.id}
+                          sx={{
+                            ...(item.isNewItem && {
+                              backgroundColor: 'warning.lighter',
+                            }),
+                          }}
+                        >
+                          <TableCell
+                            sx={{
+                              ...STICKY_IMAGE_CELL,
+                              p: 1,
+                              bgcolor: item.isNewItem ? 'warning.lighter' : 'background.paper',
+                            }}
+                          >
+                            {item.product_detail?.images?.[0] ? (
+                              <Box
+                                component="img"
+                                loading="lazy"
+                                alt={item.product_detail.title}
+                                src={`${IMAGE_FOLDER_PATH}${item.product_detail.images[0]}`}
+                                sx={{
+                                  display: 'block',
+                                  width: 'auto',
+                                  height: 'auto',
+                                  maxWidth: 75,
+                                  maxHeight: 60,
+                                  borderRadius: 1,
+                                }}
+                              />
+                            ) : (
+                              <Iconify
+                                icon="solar:gallery-bold"
+                                width={32}
+                                sx={{ color: 'text.disabled' }}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell
+                            sx={[
+                              STICKY_PRODUCT_CELL,
+                              { bgcolor: item.isNewItem ? 'warning.lighter' : 'background.paper' },
+                            ]}
+                          >
+                            <Typography variant="subtitle2">
+                              {item.product_detail.title}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={paths.dashboard.product.edit(
+                                item.product_detail.id.toString()
+                              )}
+                              target="_blank"
+                              rel="noreferrer"
+                              sx={{
+                                fontWeight: 'normal',
+                                textDecoration: 'underline',
+                                cursor: 'pointer',
+                                color: 'primary.main',
+                              }}
+                            >
+                              <Typography variant="body2">{item.product_detail.ean}</Typography>
+                              <Typography variant="caption">
+                                Leverancierscode:{' '}
+                                {(item.product_detail as any).supplier_article_code}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color:
+                                    selectedSupplier?.supplier_country === 'NL'
+                                      ? 'success.main'
+                                      : 'warning.main',
+                                  fontWeight: 'bold',
+                                  display: 'block',
+                                }}
+                              >
+                                {calculateItemTax(
+                                  selectedSupplier?.supplier_country,
+                                  Number(
+                                    (item as any).product_detail?.vat ??
+                                      (item as any).vat ??
+                                      (item as any).vat_rate ??
+                                      0
+                                  )
+                                )}
+                                % ({getCountryName(selectedSupplier?.supplier_country)})
+                              </Typography>
+                              {!selectedSupplier?.supplier_country && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: 'error.main',
+                                    fontWeight: 'bold',
+                                    display: 'block',
+                                  }}
+                                >
+                                  ⚠️{' '}
+                                  {t('supplier_country_required') || 'Supplier country required'}
+                                </Typography>
+                              )}
+                            </Link>
+                          </TableCell>
+                          <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                            <Typography variant="caption" display="block">
+                              {t('overall_stock')}:{' '}
+                              {(item.product_detail as any)?.overall_stock || 0}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {t('free_stock')}: {(item.product_detail as any)?.free_stock || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption" display="block">
+                              {t('min_stock_value')}:{' '}
+                              {(item.product_detail as any)?.min_stock_value || 0}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {t('min_order_amount')}:{' '}
+                              {(item.product_detail as any)?.min_order_amount || 0}
+                            </Typography>
+                            <Typography variant="caption" display="block">
+                              {t('max_stock_at_rack')}:{' '}
+                              {(item.product_detail as any)?.max_stock_at_rack || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <PurchaseSupplierStock
+                              offers={(item.product_detail as any)?.supplier_offers}
+                              supplierId={selectedSupplier?.id}
+                              supplierName={selectedSupplier?.name}
+                              quantity={item.product_quantity}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              type="number"
+                              value={item.product_purchase_price}
+                              onChange={(e) => handleUpdatePrice(item.id, e.target.value)}
+                              size="small"
+                              sx={{ width: 100 }}
+                              InputProps={{
+                                startAdornment: <Typography variant="caption">€</Typography>,
+                              }}
+                              inputProps={{
+                                min: 0,
+                                step: '0.01',
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              type="number"
+                              defaultValue={item.product_quantity}
+                              onBlur={(e) => handleUpdateQuantity(item.id, e.target.value)}
+                              size="small"
+                              sx={{ width: 80 }}
+                            />
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              sx={{ color: 'text.secondary', mt: 0.5, fontSize: 11 }}
+                            >
+                              Stuks: {(item.product_detail as any)?.quantity_per_unit ?? '-'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                            >
+                              €
+                              {(
+                                Number(item.product_purchase_price) * item.product_quantity
+                              ).toFixed(2)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              color="error"
+                              onClick={() => handleRemoveProduct(item.id)}
+                              title={t('remove')}
+                            >
+                              <Iconify icon="eva:trash-2-outline" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Stack>
             </Card>
           </Grid>
