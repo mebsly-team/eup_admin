@@ -234,7 +234,7 @@ const dayLabels = (dayEvents: VisitEvent[]) => {
 
 const startOfDay = (timestamp: number) => new Date(timestamp).setHours(0, 0, 0, 0);
 
-const addDays = (timestamp: number, days: number) => {
+export const addDays = (timestamp: number, days: number) => {
   const date = new Date(timestamp);
   date.setDate(date.getDate() + days);
   return date.getTime();

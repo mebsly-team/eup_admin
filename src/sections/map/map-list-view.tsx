@@ -39,7 +39,7 @@ import Iconify from 'src/components/iconify';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 
-import { findVisitSlot, matchVisitsToPins, pinKey } from './visit-pins';
+import { addDays, findVisitSlot, matchVisitsToPins, pinKey } from './visit-pins';
 
 interface Address {
   id: string;
@@ -157,6 +157,10 @@ interface PlanningOrder {
 const PLANNING_MARKER_COLOR = '#D32F2F';
 
 const EVENTS_REFRESH_INTERVAL_MS = 30 * 1000;
+const EVENTS_DAYS_BACK = 30;
+const EVENTS_DAYS_AHEAD = 60;
+
+const GOOGLE_CALENDAR_ID = import.meta.env.VITE_GOOGLE_CALENDAR_ID || 'm.sahin@europowerbv.nl';
 
 const USER_TYPES = [
   { value: "all", label: "Alle" },
@@ -213,6 +217,47 @@ const createCustomIcon = (color: string, label?: string | number, labelBgColor?:
   popupAnchor: [0, -40]
 });
 
+const readCalendarEvents = async (from: number, until: number) => {
+  // Google sends 250 events unless told otherwise, oldest first: the coming days fall off.
+  const items: any[] = [];
+  let pageToken: string | undefined;
+  do {
+    const currentPage = pageToken;
+    // eslint-disable-next-line no-await-in-loop
+    const response: any = await withCalendarToken(() =>
+      window.gapi.client.calendar.events.list({
+        calendarId: GOOGLE_CALENDAR_ID,
+        timeMin: new Date(from).toISOString(),
+        timeMax: new Date(until).toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 2500,
+        ...(currentPage ? { pageToken: currentPage } : {}),
+      })
+    );
+    items.push(...(response.result.items || []));
+    pageToken = response.result.nextPageToken;
+  } while (pageToken);
+
+  return items.map((event: any): CalendarEvent => {
+    const startTime = event.start.dateTime || event.start.date;
+    const endTime = event.end.dateTime || event.end.date;
+
+    return {
+      id: event.id,
+      title: event.summary || 'Untitled Event',
+      description: event.description || '',
+      start: new Date(startTime).getTime(),
+      end: new Date(endTime).getTime(),
+      color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
+      allDay: !event.start.dateTime,
+      eventType: event.eventType,
+      userId: event.extendedProperties?.private?.userId,
+      location: event.location || '',
+    };
+  });
+};
+
 // Separate component to handle map initialization
 const MapInitializer = ({ onMapReady }: { onMapReady: (map: LeafletMap) => void }) => {
   const map = useMap();
@@ -264,57 +309,21 @@ const Map = () => {
     end: null,
   });
 
-  const GOOGLE_CALENDAR_ID = import.meta.env.VITE_GOOGLE_CALENDAR_ID || 'm.sahin@europowerbv.nl';
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+
+  // The weeks around today, and on top of that whatever the calendar has on screen.
+  const eventsFrom = Math.min(addDays(todayStart, -EVENTS_DAYS_BACK), visibleRange?.start ?? Infinity);
+  const eventsUntil = Math.max(addDays(todayStart, EVENTS_DAYS_AHEAD), visibleRange?.end ?? -Infinity);
 
   // Fetch events from Google Calendar
   const fetchEvents = useCallback(async () => {
-    lastEventsFetchRef.current = Date.now();
+    const startedAt = Date.now();
+    lastEventsFetchRef.current = startedAt;
     try {
-      // Get events from 30 days ago to 60 days in the future
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const googleEvents = await readCalendarEvents(eventsFrom, eventsUntil);
 
-      const sixtyDaysFromNow = new Date();
-      sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
-
-      // Google sends 250 events unless told otherwise, oldest first: the coming days fall off.
-      const items: any[] = [];
-      let pageToken: string | undefined;
-      do {
-        const currentPage = pageToken;
-        // eslint-disable-next-line no-await-in-loop
-        const response: any = await withCalendarToken(() =>
-          window.gapi.client.calendar.events.list({
-            calendarId: GOOGLE_CALENDAR_ID,
-            timeMin: thirtyDaysAgo.toISOString(),
-            timeMax: sixtyDaysFromNow.toISOString(),
-            singleEvents: true,
-            orderBy: 'startTime',
-            maxResults: 2500,
-            ...(currentPage ? { pageToken: currentPage } : {}),
-          })
-        );
-        items.push(...(response.result.items || []));
-        pageToken = response.result.nextPageToken;
-      } while (pageToken);
-
-      const googleEvents: CalendarEvent[] = items.map((event: any) => {
-        const startTime = event.start.dateTime || event.start.date;
-        const endTime = event.end.dateTime || event.end.date;
-
-        return {
-          id: event.id,
-          title: event.summary || 'Untitled Event',
-          description: event.description || '',
-          start: new Date(startTime).getTime(),
-          end: new Date(endTime).getTime(),
-          color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
-          allDay: !event.start.dateTime,
-          eventType: event.eventType,
-          userId: event.extendedProperties?.private?.userId,
-          location: event.location || '',
-        };
-      });
+      // Clicking through the calendar starts several reads: only the last one counts.
+      if (lastEventsFetchRef.current !== startedAt) return;
 
       setEvents((previous) =>
         JSON.stringify(previous) === JSON.stringify(googleEvents) ? previous : googleEvents
@@ -326,9 +335,10 @@ const Map = () => {
         { variant: 'error' }
       );
     }
-  }, [enqueueSnackbar]);
+  }, [enqueueSnackbar, eventsFrom, eventsUntil]);
 
-  // The Google Calendar API is set up by GoogleCalendarAuth, wait for it
+  // The Google Calendar API is set up by GoogleCalendarAuth, wait for it.
+  // Runs again when the calendar goes beyond the dates that have been read.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     const initAndFetch = () => {
@@ -358,7 +368,6 @@ const Map = () => {
     };
   }, [fetchEvents]);
 
-  const todayStart = new Date().setHours(0, 0, 0, 0);
   const pinVisits = useMemo(
     () => matchVisitsToPins(events, users, { today: todayStart, visibleRange }),
     [events, users, todayStart, visibleRange]
@@ -695,8 +704,17 @@ const Map = () => {
       // Get the currently selected date from the calendar view
       const selectedDate = calendarApi.getDate();
 
+      if (!window.gapi?.client?.calendar) {
+        throw new Error('Google Agenda API niet geïnitialiseerd');
+      }
+
+      // Ask Google about this day first: its appointments may not have been read yet, and the visit
+      // would land on top of them. A visit planned a moment ago is in memory, so that stays included.
+      const selectedDay = new Date(selectedDate).setHours(0, 0, 0, 0);
+      const dayEvents = await readCalendarEvents(selectedDay, addDays(selectedDay, 1));
+
       const bezoekDuur = 30 * 60 * 1000; // 30 minuten in milliseconden
-      const bezoekStart = findVisitSlot(events, selectedDate, bezoekDuur);
+      const bezoekStart = findVisitSlot([...events, ...dayEvents], selectedDate, bezoekDuur);
       if (bezoekStart === null) {
         enqueueSnackbar('Deze dag is vol: geen vrij half uur tussen 08:00 en 20:00', { variant: 'warning' });
         return;
@@ -704,10 +722,6 @@ const Map = () => {
       const bezoekEind = bezoekStart + bezoekDuur;
 
       // First create the event in Google Calendar
-      if (!window.gapi?.client?.calendar) {
-        throw new Error('Google Agenda API niet geïnitialiseerd');
-      }
-
       const phoneNumber = user.phone_number || user.mobile_number || user.mobile_phone;
       const phoneInfo = phoneNumber ? `\nTelefoon: ${phoneNumber}` : '';
 
