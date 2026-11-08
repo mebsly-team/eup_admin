@@ -2,6 +2,42 @@
 /// <reference types="gapi.client.calendar" />
 
 import { ICalendarEvent } from 'src/types/calendar';
+import axiosInstance from 'src/utils/axios';
+
+const TOKEN_KEY = 'googleCalendarToken';
+const TOKEN_EXPIRY_KEY = 'googleCalendarTokenExpiry';
+const TOKEN_LIFETIME_MS = 3500000;
+const TOKEN_RENEW_MARGIN_MS = 5 * 60 * 1000;
+
+const renewCalendarToken = async () => {
+    const response = await axiosInstance.get('/google/calendar-token/');
+    const accessToken = response.data?.access_token;
+    if (!accessToken) {
+        throw new Error('Geen toegang tot Google Agenda ontvangen');
+    }
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + TOKEN_LIFETIME_MS));
+    window.gapi.client.setToken({ access_token: accessToken });
+};
+
+// The token lasts an hour and a tab stays open for longer: renew it before it runs out,
+// and once more when Google refuses it anyway.
+export const withCalendarToken = async <T>(call: () => PromiseLike<T>): Promise<T> => {
+    const expiry = Number(localStorage.getItem(TOKEN_EXPIRY_KEY));
+    if (!window.gapi.client.getToken() || !expiry || expiry - Date.now() < TOKEN_RENEW_MARGIN_MS) {
+        await renewCalendarToken();
+    }
+    try {
+        return await call();
+    } catch (error: any) {
+        if (error?.status !== 401) throw error;
+        await renewCalendarToken();
+        return call();
+    }
+};
+
+export const calendarErrorMessage = (error: any, fallback: string): string =>
+    error?.result?.error?.message || error?.message || fallback;
 
 // Convert our app's event format to Google Calendar event format
 const convertToGoogleEvent = (event: ICalendarEvent): gapi.client.calendar.Event => {

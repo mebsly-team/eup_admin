@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, Circle, CircleMarker, Pane } from "react-leaflet";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import axiosInstance from "src/utils/axios";
 import Calendar from '@fullcalendar/react';
 import listPlugin from '@fullcalendar/list';
@@ -32,21 +32,26 @@ import { StyledCalendar } from 'src/sections/calendar/styles';
 import { fTimestamp } from 'src/utils/format-time';
 import { CALENDAR_COLOR_OPTIONS } from 'src/_mock/_calendar';
 import { createEvent, updateEvent, deleteEvent } from 'src/api/calendar';
+import { calendarErrorMessage, withCalendarToken } from 'src/services/google-calendar';
 import GoogleCalendarAuth from 'src/components/google-calendar/GoogleCalendarAuth';
 import { MAP_USER_COLORS } from 'src/constants/colors';
 import Iconify from 'src/components/iconify';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 
+import { findVisitSlot, matchVisitsToPins, pinKey } from './visit-pins';
+
 interface Address {
   id: string;
   street_name: string;
   house_number: string;
+  house_suffix?: string;
   city: string;
   zip_code: string;
   country: string;
   latitude: number;
   longitude: number;
+  is_delivery_address?: boolean;
   branch?: string;
   type?: string;
   contact_person_branch?: string;
@@ -151,6 +156,8 @@ interface PlanningOrder {
 
 const PLANNING_MARKER_COLOR = '#D32F2F';
 
+const EVENTS_REFRESH_INTERVAL_MS = 30 * 1000;
+
 const USER_TYPES = [
   { value: "all", label: "Alle" },
   { value: "special", label: "Speciaal" },
@@ -221,6 +228,7 @@ const Map = () => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [visibleRange, setVisibleRange] = useState<{ start: number; end: number } | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 51.6978, lng: 5.3037 });
   const [zoom, setZoom] = useState(8);
   const [isLoading, setIsLoading] = useState(false);
@@ -245,6 +253,7 @@ const Map = () => {
   const mapRef = useRef<LeafletMap | null>(null);
   const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const calendarRef = useRef<Calendar>(null);
+  const lastEventsFetchRef = useRef(0);
   const { enqueueSnackbar } = useSnackbar();
 
   // Add new state for time change dialog
@@ -258,95 +267,102 @@ const Map = () => {
   const GOOGLE_CALENDAR_ID = import.meta.env.VITE_GOOGLE_CALENDAR_ID || 'm.sahin@europowerbv.nl';
 
   // Fetch events from Google Calendar
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        // Get events from 30 days ago to 60 days in the future
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const fetchEvents = useCallback(async () => {
+    lastEventsFetchRef.current = Date.now();
+    try {
+      // Get events from 30 days ago to 60 days in the future
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const sixtyDaysFromNow = new Date();
-        sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
+      const sixtyDaysFromNow = new Date();
+      sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
 
-        const tokenFromGapi = window.gapi?.client?.getToken();
-        let token = tokenFromGapi;
-        if (!tokenFromGapi) {
-          const storedToken = localStorage.getItem('googleCalendarToken');
-          const tokenExpiry = localStorage.getItem('googleCalendarTokenExpiry');
-          if (storedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
-            window.gapi?.client?.setToken({ access_token: storedToken });
-            token = window.gapi?.client?.getToken();
-          }
-        }
-        console.log('Google Calendar token:', token ? 'Present' : 'Missing');
-
-        if (!window.gapi?.client?.calendar) {
-          console.error('Google Calendar API niet geïnitialiseerd');
-          enqueueSnackbar('Google Calendar API niet geïnitialiseerd', { variant: 'error' });
-          return;
-        }
-
-        if (token) {
-          console.log('Fetching Google Calendar events...');
-          const response = await window.gapi.client.calendar.events.list({
+      // Google sends 250 events unless told otherwise, oldest first: the coming days fall off.
+      const items: any[] = [];
+      let pageToken: string | undefined;
+      do {
+        const currentPage = pageToken;
+        // eslint-disable-next-line no-await-in-loop
+        const response: any = await withCalendarToken(() =>
+          window.gapi.client.calendar.events.list({
             calendarId: GOOGLE_CALENDAR_ID,
             timeMin: thirtyDaysAgo.toISOString(),
             timeMax: sixtyDaysFromNow.toISOString(),
             singleEvents: true,
             orderBy: 'startTime',
-          });
+            maxResults: 2500,
+            ...(currentPage ? { pageToken: currentPage } : {}),
+          })
+        );
+        items.push(...(response.result.items || []));
+        pageToken = response.result.nextPageToken;
+      } while (pageToken);
 
-          console.log('Google Calendar response:', response.result);
+      const googleEvents: CalendarEvent[] = items.map((event: any) => {
+        const startTime = event.start.dateTime || event.start.date;
+        const endTime = event.end.dateTime || event.end.date;
 
-          const googleEvents = response.result.items?.map((event: any) => {
-            const startTime = event.start.dateTime || event.start.date;
-            const endTime = event.end.dateTime || event.end.date;
+        return {
+          id: event.id,
+          title: event.summary || 'Untitled Event',
+          description: event.description || '',
+          start: new Date(startTime).getTime(),
+          end: new Date(endTime).getTime(),
+          color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
+          allDay: !event.start.dateTime,
+          eventType: event.eventType,
+          userId: event.extendedProperties?.private?.userId,
+          location: event.location || '',
+        };
+      });
 
+      setEvents((previous) =>
+        JSON.stringify(previous) === JSON.stringify(googleEvents) ? previous : googleEvents
+      );
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      enqueueSnackbar(
+        `Afspraken konden niet worden geladen: ${calendarErrorMessage(error, 'onbekende fout')}`,
+        { variant: 'error' }
+      );
+    }
+  }, [enqueueSnackbar]);
 
-            return {
-              id: event.id,
-              title: event.summary || 'Untitled Event',
-              description: event.description || '',
-              start: new Date(startTime).getTime(),
-              end: new Date(endTime).getTime(),
-              color: event.colorId ? CALENDAR_COLOR_OPTIONS[parseInt(event.colorId) % CALENDAR_COLOR_OPTIONS.length] : CALENDAR_COLOR_OPTIONS[0],
-              allDay: !event.start.dateTime,
-              eventType: event.eventType,
-              userId: event.extendedProperties?.private?.userId,
-              location: event.location || '',
-            };
-          }) || [];
-
-          setEvents(googleEvents);
-        }
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        // Disconnect Google Calendar on error
-        const token = window.gapi?.client?.getToken();
-        if (token) {
-          window.google.accounts.oauth2.revoke(token.access_token);
-          window.gapi.client.setToken(null);
-        }
-        localStorage.removeItem('googleCalendarToken');
-        localStorage.removeItem('googleCalendarTokenExpiry');
-        enqueueSnackbar('Error fetching calendar events - Disconnected from Google Calendar', { variant: 'error' });
-      }
-    };
-
-    // Check if Google Calendar API is initialized and fetch events
+  // The Google Calendar API is set up by GoogleCalendarAuth, wait for it
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
     const initAndFetch = () => {
       if (window.gapi?.client?.calendar) {
-        console.log('Google Calendar API is available, fetching events...');
         fetchEvents();
       } else {
-        console.log('Waiting for Google Calendar API to initialize...');
-        // Retry after a short delay
-        setTimeout(initAndFetch, 1000);
+        timer = setTimeout(initAndFetch, 1000);
       }
     };
-
     initAndFetch();
-  }, [enqueueSnackbar]);
+    return () => clearTimeout(timer);
+  }, [fetchEvents]);
+
+  // The planning is also edited in Google Calendar itself, while this tab stays open for hours
+  useEffect(() => {
+    const refresh = () => {
+      const isDue = Date.now() - lastEventsFetchRef.current > EVENTS_REFRESH_INTERVAL_MS;
+      if (document.visibilityState === 'visible' && isDue && window.gapi?.client?.calendar) {
+        fetchEvents();
+      }
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [fetchEvents]);
+
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+  const pinVisits = useMemo(
+    () => matchVisitsToPins(events, users, { today: todayStart, visibleRange }),
+    [events, users, todayStart, visibleRange]
+  );
 
   // Fetch color counts on mount
   useEffect(() => {
@@ -678,74 +694,14 @@ const Map = () => {
 
       // Get the currently selected date from the calendar view
       const selectedDate = calendarApi.getDate();
-      console.log('Geselecteerde datum van kalender:', selectedDate.toLocaleString('nl-NL'));
-
-      // Create visitDate starting at 9 AM on the selected date
-      const visitDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        8, // Start checking from 6 AM
-        0,
-        0
-      );
-
-      console.log('Initiële bezoekdatum (9:00):', visitDate.toLocaleString('nl-NL'));
-
-      // Get all events for the selected date
-      const dayStart = new Date(visitDate);
-      dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(visitDate);
-      dayEnd.setHours(23, 59, 59, 999);
-
-      // Filter events for the selected date
-      const dayEvents = events.filter(event => {
-        const eventStart = new Date(event.start);
-        return eventStart >= dayStart && eventStart <= dayEnd;
-      }).sort((a, b) => a.start - b.start);
-
-      console.log('Afspraken voor geselecteerde datum:', dayEvents.map(e => ({
-        title: e.title,
-        start: new Date(e.start).toLocaleString('nl-NL'),
-        end: new Date(e.end).toLocaleString('nl-NL')
-      })));
 
       const bezoekDuur = 30 * 60 * 1000; // 30 minuten in milliseconden
-
-      let slotStart = visitDate;
-      if (dayEvents.length > 0) {
-        const maxEndTime = Math.max(...dayEvents.map(e => new Date(e.end).getTime()));
-        slotStart = new Date(maxEndTime);
-        if (slotStart.getTime() < visitDate.getTime()) {
-          slotStart = visitDate;
-        }
-      }
-
-      const slotEnd = new Date(slotStart.getTime() + bezoekDuur);
-
-      const startHour = slotStart.getHours();
-      const endHour = slotEnd.getHours();
-      const endMinutes = slotEnd.getMinutes();
-
-      if (
-        startHour >= 20 || 
-        startHour < 6 || 
-        endHour > 20 || 
-        (endHour === 20 && endMinutes > 0)
-      ) {
-        enqueueSnackbar('Tussen 20:00 en 06:00 worden er geen afspraken gepland', { variant: 'warning' });
+      const bezoekStart = findVisitSlot(events, selectedDate, bezoekDuur);
+      if (bezoekStart === null) {
+        enqueueSnackbar('Deze dag is vol: geen vrij half uur tussen 08:00 en 20:00', { variant: 'warning' });
         return;
       }
-
-      visitDate.setTime(slotStart.getTime());
-
-      const bezoekStart = visitDate.getTime();
       const bezoekEind = bezoekStart + bezoekDuur;
-
-      console.log('Geplande tijden:', {
-        startTijd: new Date(bezoekStart).toLocaleString('nl-NL'),
-        eindTijd: new Date(bezoekEind).toLocaleString('nl-NL')
-      });
 
       // First create the event in Google Calendar
       if (!window.gapi?.client?.calendar) {
@@ -772,17 +728,19 @@ const Map = () => {
         colorId: '1',
         extendedProperties: {
           private: {
-            userId: user.id,
+            userId: String(user.id),
           },
         },
       };
 
       console.log('Agenda-afspraak maken:', eventData);
 
-      const response = await window.gapi.client.calendar.events.insert({
-        calendarId: GOOGLE_CALENDAR_ID,
-        resource: eventData,
-      });
+      const response = await withCalendarToken<any>(() =>
+        window.gapi.client.calendar.events.insert({
+          calendarId: GOOGLE_CALENDAR_ID,
+          resource: eventData,
+        })
+      );
 
       if (response.status !== 200) {
         throw new Error('Kan geen afspraak maken in Google Agenda');
@@ -797,23 +755,11 @@ const Map = () => {
         end: bezoekEind,
         color: CALENDAR_COLOR_OPTIONS[0],
         allDay: false,
-        userId: user.id,
+        userId: String(user.id),
+        location: eventData.location,
       };
 
-      // Update events state and force calendar refresh
-      setEvents(prevEvents => {
-        const updatedEvents = [...prevEvents, newEvent];
-        console.log('Updated events:', updatedEvents);
-
-        // Force calendar refresh
-        if (calendarRef.current) {
-          const calendarApi = calendarRef.current.getApi();
-          calendarApi.removeAllEvents();
-          calendarApi.addEventSource(updatedEvents);
-        }
-
-        return updatedEvents;
-      });
+      setEvents(prevEvents => [...prevEvents, newEvent]);
 
       // Format date and time for the success message
       const startDate = new Date(bezoekStart);
@@ -834,18 +780,8 @@ const Map = () => {
       );
     } catch (error) {
       console.error('Fout bij het plannen van bezoek:', error);
-      // Disconnect Google Calendar on error
-      const token = window.gapi?.client?.getToken();
-      if (token) {
-        window.google.accounts.oauth2.revoke(token.access_token);
-        window.gapi.client.setToken(null);
-      }
-      localStorage.removeItem('googleCalendarToken');
-      localStorage.removeItem('googleCalendarTokenExpiry');
       enqueueSnackbar(
-        error instanceof Error
-          ? `${error.message} - Verbinding met Google Agenda verbroken`
-          : 'Fout bij het plannen van bezoek - Verbinding met Google Agenda verbroken',
+        `Bezoek kon niet worden gepland: ${calendarErrorMessage(error, 'onbekende fout')}`,
         { variant: 'error' }
       );
     }
@@ -871,11 +807,14 @@ const Map = () => {
         },
       };
 
-      const response = await window.gapi.client.calendar.events.patch({
-        calendarId: GOOGLE_CALENDAR_ID,
-        eventId: event.id,
-        resource: eventData,
-      });
+      const eventId = event.id as string;
+      const response = await withCalendarToken<any>(() =>
+        window.gapi.client.calendar.events.patch({
+          calendarId: GOOGLE_CALENDAR_ID,
+          eventId,
+          resource: eventData,
+        })
+      );
 
       if (response.status !== 200) {
         throw new Error('Failed to update event in Google Calendar');
@@ -924,11 +863,14 @@ const Map = () => {
         },
       };
 
-      const response = await window.gapi.client.calendar.events.patch({
-        calendarId: GOOGLE_CALENDAR_ID,
-        eventId: event.id,
-        resource: eventData,
-      });
+      const eventId = event.id as string;
+      const response = await withCalendarToken<any>(() =>
+        window.gapi.client.calendar.events.patch({
+          calendarId: GOOGLE_CALENDAR_ID,
+          eventId,
+          resource: eventData,
+        })
+      );
 
       if (response.status !== 200) {
         throw new Error('Failed to update event in Google Calendar');
@@ -973,10 +915,12 @@ const Map = () => {
       // If not in local state or type is unknown, fetch the event to check its type
       let event: any = null;
       if (!localEvent || !localEvent.eventType) {
-        const eventResponse = await window.gapi.client.calendar.events.get({
-          calendarId: GOOGLE_CALENDAR_ID,
-          eventId: eventId,
-        });
+        const eventResponse = await withCalendarToken<any>(() =>
+          window.gapi.client.calendar.events.get({
+            calendarId: GOOGLE_CALENDAR_ID,
+            eventId,
+          })
+        );
 
         if (eventResponse.status !== 200) {
           throw new Error('Kan afspraak niet ophalen uit Google Agenda');
@@ -998,10 +942,12 @@ const Map = () => {
       }
 
       // Delete from Google Calendar
-      const response = await window.gapi.client.calendar.events.delete({
-        calendarId: GOOGLE_CALENDAR_ID,
-        eventId: eventId,
-      });
+      const response = await withCalendarToken<any>(() =>
+        window.gapi.client.calendar.events.delete({
+          calendarId: GOOGLE_CALENDAR_ID,
+          eventId,
+        })
+      );
 
       if (response.status !== 204) {
         throw new Error('Kan afspraak niet verwijderen uit Google Agenda');
@@ -1009,13 +955,6 @@ const Map = () => {
 
       // Update local state
       setEvents(prevEvents => prevEvents.filter(e => e.id !== eventId));
-
-      // Force calendar refresh
-      if (calendarRef.current) {
-        const calendarApi = calendarRef.current.getApi();
-        calendarApi.removeAllEvents();
-        calendarApi.addEventSource(events.filter(e => e.id !== eventId));
-      }
 
       enqueueSnackbar('Afspraak succesvol verwijderd', { variant: 'success' });
     } catch (error: any) {
@@ -1088,11 +1027,14 @@ const Map = () => {
         },
       };
 
-      const response = await window.gapi.client.calendar.events.patch({
-        calendarId: GOOGLE_CALENDAR_ID,
-        eventId: timeChangeDialog.eventId,
-        resource: eventData,
-      });
+      const eventId = timeChangeDialog.eventId as string;
+      const response = await withCalendarToken<any>(() =>
+        window.gapi.client.calendar.events.patch({
+          calendarId: GOOGLE_CALENDAR_ID,
+          eventId,
+          resource: eventData,
+        })
+      );
 
       if (response.status !== 200) {
         throw new Error('Failed to update event in Google Calendar');
@@ -1201,6 +1143,13 @@ const Map = () => {
             slotMaxTime="24:00:00"
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+            datesSet={(dates) => {
+              const start = dates.start.getTime();
+              const end = dates.end.getTime();
+              setVisibleRange((previous) =>
+                previous?.start === start && previous?.end === end ? previous : { start, end }
+              );
+            }}
             eventDrop={handleEventDrop}
             eventResize={handleEventResize}
             eventClick={(eventInfo) => handleOpenTimeChange(eventInfo)}
@@ -1604,97 +1553,9 @@ const Map = () => {
               // Create a marker for each valid address
               return validAddresses.map((address) => {
                 const markerColor = user.customer_color || MARKER_COLORS[0].color;
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const startWindow = new Date(today);
-                startWindow.setDate(startWindow.getDate() - 10);
-                const endWindow = new Date(today);
-                endWindow.setDate(endWindow.getDate() + 10);
-
-                const windowEvents = events
-                  .filter((e) => e.start >= startWindow.getTime() && e.start <= endWindow.getTime())
-                  .sort((a, b) => a.start - b.start);
-
-                const matchingEvents = windowEvents.filter((e) => {
-                  const title = (e.title || '').toLowerCase().replace(/\s+/g, ' ').trim();
-                  const desc = (e.description || '').toLowerCase().replace(/\s+/g, ' ').trim();
-                  const loc = (e.location || '').toLowerCase().replace(/\s+/g, ' ').trim();
-
-                  const first = (user.first_name || '').toLowerCase().trim();
-                  const last = (user.last_name || '').toLowerCase().trim();
-                  const business = (user.business_name || '').toLowerCase().trim();
-                  const full = `${first} ${last}`.replace(/\s+/g, ' ').trim();
-                  const fullWithBusiness = business ? `${full} - ${business}`.trim() : full;
-
-                  // Build address strings for description/location matching
-                  const street = String(address.street_name || '').toLowerCase().trim();
-                  const house = String(address.house_number || '').toLowerCase().trim();
-                  const city = String(address.city || '').toLowerCase().trim();
-
-                  const hasAddressMatch = (street.length > 2 && (desc.includes(street) || loc.includes(street))) && 
-                                          (city.length > 2 && (desc.includes(city) || loc.includes(city)));
-                  const addrStr = `${street} ${house}, ${city}`.replace(/\s+/g, ' ').trim();
-                  const hasStrictAddressMatch = addrStr.length > 5 && (desc.includes(addrStr) || loc.includes(addrStr));
-                  const isAddressInDesc = hasStrictAddressMatch || hasAddressMatch;
-
-                  // Primary match: by user ID stored in event's extendedProperties
-                  if (e.userId && e.userId === user.id) {
-                     // If user has multiple valid addresses, we must match the address to pick the right pin
-                     if (validAddresses.length > 1) {
-                        return isAddressInDesc;
-                     }
-                     return true;
-                  }
-
-                  let nameMatch = false;
-                  // If user has no first/last name but has business name, match by business name
-                  if (!first && !last && business) {
-                    if (title === business || title.includes(business)) nameMatch = true;
-                  }
-                  // If user has first/last name, match by full name or both names in any order
-                  else if (first && last) {
-                    if (title.includes(full) || title.includes(fullWithBusiness)) nameMatch = true;
-                    else if (title.includes(first) && title.includes(last)) nameMatch = true;
-                  }
-                  // If only first name or only last name, match as a complete word
-                  else if (first && !last) {
-                    if (new RegExp(`\\b${first}\\b`, 'i').test(title)) nameMatch = true;
-                  }
-                  else if (last && !first) {
-                    if (new RegExp(`\\b${last}\\b`, 'i').test(title)) nameMatch = true;
-                  }
-
-                  if (nameMatch) {
-                    // To avoid two pins appearing for users with similar names, we strongly prefer an address match.
-                    // If the address matches, it's definitely this location.
-                    if (isAddressInDesc) return true;
-                    // If no address match, it might be a manual event. But returning true here causes
-                    // the bug where both similar-named users get the pin. So we return false.
-                  }
-
-                  // If we didn't match by user ID or name, but the exact address is in the description
-                  if (hasStrictAddressMatch) return true;
-
-                  return false;
-                });
-
-                let label: number | undefined;
-                let labelBg: string | undefined;
-                if (matchingEvents.length) {
-                  // Pick the earliest matching event; compute its day offset from today
-                  const firstEvent = matchingEvents[0];
-                  const eventDate = new Date(firstEvent.start);
-                  eventDate.setHours(0, 0, 0, 0);
-                  const diffDays = Math.round((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                  const dayStartTs = eventDate.getTime();
-                  const dayEndTs = dayStartTs + 24 * 60 * 60 * 1000 - 1;
-                  const eventsSameDay = events
-                    .filter((e) => e.start >= dayStartTs && e.start <= dayEndTs)
-                    .sort((a, b) => a.start - b.start);
-                  const indexInDay = eventsSameDay.findIndex((e) => e.id === firstEvent.id);
-                  label = indexInDay >= 0 ? indexInDay + 1 : undefined;
-                  labelBg = DAY_LABEL_COLORS[diffDays as -5 | -4 | -3 | -2 | -1 | 1 | 2 | 3 | 4 | 5];
-                }
+                const visit = pinVisits.get(pinKey(user.id, address.id));
+                const label = visit?.label;
+                const labelBg = visit ? DAY_LABEL_COLORS[visit.diffDays] : undefined;
                 return (
                   <Marker
                     key={`${user.id}-${address.id}`}
@@ -1796,17 +1657,17 @@ const Map = () => {
                       {address.street_name} {address.house_number}, {address.city} <br />
                       {address.zip_code}, {address.country} <br />
 
-                      {matchingEvents.length > 0 && (
+                      {visit && (
                         <Box component="div" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Iconify icon="solar:calendar-bold" width={14} sx={{ mr: 0.5 }} />
-                            <strong> {new Date(matchingEvents[0].start).toLocaleString('nl-NL')}</strong>
+                            <strong> {new Date(visit.event.start).toLocaleString('nl-NL')}</strong>
                           </Box>
                           <IconButton
                             size="small"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEventDelete(matchingEvents[0].id);
+                              handleEventDelete(visit.event.id);
                             }}
                             sx={{
                               p: 0.5,
