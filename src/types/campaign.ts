@@ -14,6 +14,9 @@ export type ICampaignItem = {
   products: number[];
   product_count: number;
   sort_order: number;
+  // The main campaign: its products get a row on the storefront's home page
+  // and a label on their cards and pages. Missing from an older API.
+  is_featured?: boolean;
   status: ICampaignStatus;
 };
 

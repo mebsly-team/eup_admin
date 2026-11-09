@@ -63,6 +63,22 @@ export function heroSlots(liveIds: number[]) {
   return slots;
 }
 
+// The campaign's own page in the webshop is /acties/<name as below>; only a
+// campaign with products has one. Same rule as the storefront (eup_fe,
+// src/utils/campaign.ts): keep the two alike.
+export const campaignSlug = (name: string) =>
+  (name || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+// The storefront also answers on /black-friday for the campaign whose name
+// starts with "Black Friday".
+export const isBlackFriday = (name: string) =>
+  campaignSlug(name).replace(/-/g, '').startsWith('blackfriday');
+
 export const discountLabel = (value: ICampaignItem['discount_percentage']) => {
   const number = Number(value);
   return number > 0 ? `${number}%` : null;

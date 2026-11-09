@@ -34,7 +34,7 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 import { ICampaignItem } from 'src/types/campaign';
 
-import { campaignStatus, CAMPAIGN_STATUS } from './campaign-utils';
+import { campaignSlug, isBlackFriday, campaignStatus, CAMPAIGN_STATUS } from './campaign-utils';
 import CampaignProductsCard, { fetchProducts, CampaignProduct } from './campaign-products-card';
 
 // The dashboard header is fixed: one bar on small screens, two from lg up.
@@ -69,6 +69,8 @@ export default function CampaignNewEditForm({ currentCampaign, template }: Props
   const [isImageGalleryOpen, setImageGalleryOpen] = useState(false);
   const [image, setImage] = useState<string | null>(source?.images?.[0] || null);
   const [isActive, setIsActive] = useState(currentCampaign ? currentCampaign.is_active : !template);
+  // A copy does not start as the main campaign: there would be two at once.
+  const [isFeatured, setIsFeatured] = useState(!!currentCampaign?.is_featured);
   const [startDate, setStartDate] = useState<Date | null>(
     currentCampaign ? new Date(currentCampaign.start_date) : new Date()
   );
@@ -152,6 +154,7 @@ export default function CampaignNewEditForm({ currentCampaign, template }: Props
       discount_percentage: data.discount_percentage ?? null,
       sort_order: data.sort_order ?? 0,
       is_active: isActive,
+      is_featured: isFeatured,
       start_date: (startDate as Date).toISOString(),
       end_date: endDate ? endDate.toISOString() : null,
       images: image ? [image] : [],
@@ -188,6 +191,8 @@ export default function CampaignNewEditForm({ currentCampaign, template }: Props
   });
 
   const headerTitle = name || currentCampaign?.name || t('create_campaign');
+  // Where the campaign lives in the webshop once it has products (see campaign-utils).
+  const slug = campaignSlug(name || '');
 
   const renderHeader = (
     <Card sx={{ position: { md: 'sticky' }, top: STICKY_TOP, zIndex: 10, mb: 3 }}>
@@ -404,7 +409,8 @@ export default function CampaignNewEditForm({ currentCampaign, template }: Props
           )}
           {endDate && !datesInvalid && (
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              Geldig t/m {fDate(endDate, 'd MMMM')}
+              {/* As in the webshop: a campaign that ends at midnight ran until the day before. */}
+              Geldig t/m {fDate(new Date(endDate.getTime() - 1000), 'd MMMM')}
             </Typography>
           )}
           <Box
@@ -437,6 +443,24 @@ export default function CampaignNewEditForm({ currentCampaign, template }: Props
           ? `De knop opent de ${products.length} gekozen producten.`
           : `De knop zoekt in de webshop op "${name || '…'}".`}
       </Typography>
+      {products.length > 0 && slug && (
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+          Eigen pagina in de webshop:{' '}
+          <Box component="span" sx={{ color: 'text.primary', wordBreak: 'break-all' }}>
+            /acties/{slug}
+          </Box>
+          {isBlackFriday(name || '') && (
+            <>
+              {' '}
+              (ook via{' '}
+              <Box component="span" sx={{ color: 'text.primary' }}>
+                /black-friday
+              </Box>
+              )
+            </>
+          )}
+        </Typography>
+      )}
 
       <RHFTextField
         name="sort_order"
@@ -447,6 +471,19 @@ export default function CampaignNewEditForm({ currentCampaign, template }: Props
         helperText="Laagste eerst. Bij 3 of meer actieve acties zijn de laatste twee de zijbanners."
         sx={{ mt: 2.5 }}
       />
+
+      <FormControlLabel
+        sx={{ mt: 2 }}
+        control={
+          <Switch checked={isFeatured} onChange={(event) => setIsFeatured(event.target.checked)} />
+        }
+        label="Hoofdactie"
+      />
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+        De hoofdactie krijgt op de homepage een eigen rij met haar producten, en die producten
+        krijgen in de hele webshop een zwart label met de naam van de actie. Zijn er meerdere
+        hoofdacties actief, dan telt de eerste in de volgorde.
+      </Typography>
     </Card>
   );
 

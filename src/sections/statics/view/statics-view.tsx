@@ -42,6 +42,7 @@ const USPS = [
 // Every section name the webshop reads; anything else in the table is unused.
 const USED_NAMES = [
   'ads',
+  'ads_link',
   'ads2',
   'careers',
   'text9',
@@ -174,7 +175,7 @@ export default function StaticsView() {
     setSaving(false);
   };
 
-  const field = (name: string, label: string, multiline = false, hint = '') => (
+  const field = (name: string, label: string, multiline = false, hint = '', error = false) => (
     <TextField
       fullWidth
       size="small"
@@ -184,8 +185,9 @@ export default function StaticsView() {
       multiline={multiline}
       minRows={multiline ? 2 : undefined}
       helperText={hint || undefined}
+      error={error}
       focused={name in drafts ? true : undefined}
-      color={name in drafts ? 'warning' : undefined}
+      color={name in drafts && !error ? 'warning' : undefined}
     />
   );
 
@@ -230,13 +232,28 @@ export default function StaticsView() {
     </Card>
   );
 
+  // The storefront only follows a path of its own or an https address.
+  const adsLink = valueOf('ads_link').trim();
+  const adsLinkInvalid = !!adsLink && !/^\/(?!\/)/.test(adsLink) && !/^https:\/\//i.test(adsLink);
+
   const renderAnnouncement = (
     <Card sx={{ p: 2.5 }}>
       <SectionTitle
         title="Mededelingenbalk"
         hint="Gekleurde balk helemaal bovenaan elke pagina. Laat leeg om de balk te verbergen."
       />
-      {field('ads', 'Mededeling', true)}
+      <Stack spacing={2}>
+        {field('ads', 'Mededeling', true)}
+        {field(
+          'ads_link',
+          'Link (optioneel)',
+          false,
+          adsLinkInvalid
+            ? 'Begin met / voor een pagina van de webshop (bijvoorbeeld /black-friday) of met https://'
+            : 'Waar een klik op de balk naartoe gaat, bijvoorbeeld /black-friday of /acties/naam-van-de-actie. Leeg = geen link.',
+          adsLinkInvalid
+        )}
+      </Stack>
       {valueOf('ads') && (
         <Preview>
           <Box
@@ -248,6 +265,7 @@ export default function StaticsView() {
               textAlign: 'center',
               bgcolor: 'primary.main',
               color: 'primary.contrastText',
+              textDecoration: adsLink && !adsLinkInvalid ? 'underline' : 'none',
             }}
           >
             {valueOf('ads')}

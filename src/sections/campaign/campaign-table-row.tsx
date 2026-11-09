@@ -123,9 +123,20 @@ export default function CampaignTableRow({
         </TableCell>
 
         <TableCell sx={{ px: 1 }}>
-          <Label variant="soft" color={statusMeta.color}>
-            {statusMeta.label}
-          </Label>
+          <Stack direction="row" flexWrap="wrap" useFlexGap spacing={0.5}>
+            <Label variant="soft" color={statusMeta.color}>
+              {statusMeta.label}
+            </Label>
+            {row.is_featured && (
+              <Label
+                variant="filled"
+                color="default"
+                title="Eigen rij op de homepage en een label op de producten"
+              >
+                Hoofdactie
+              </Label>
+            )}
+          </Stack>
           {heroSlot && (
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
               {heroSlot}
