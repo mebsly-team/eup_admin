@@ -1111,9 +1111,11 @@ const Map = () => {
             minWidth: 'auto',
             lineHeight: 1.2
           },
-          // It wraps under prev/next in this narrow panel: its margin would push the view buttons out.
-          '& .fc .fc-toolbar-chunk .fc-today-button': {
-            marginLeft: 0
+          // The panel shrinks with the window: what does not fit goes to the next row, not out of view.
+          '& .fc .fc-toolbar': {
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+            gap: '4px 8px'
           },
           '& .fc .fc-toolbar-title': {
             fontSize: '1rem'
