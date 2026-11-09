@@ -1111,6 +1111,10 @@ const Map = () => {
             minWidth: 'auto',
             lineHeight: 1.2
           },
+          // It wraps under prev/next in this narrow panel: its margin would push the view buttons out.
+          '& .fc .fc-toolbar-chunk .fc-today-button': {
+            marginLeft: 0
+          },
           '& .fc .fc-toolbar-title': {
             fontSize: '1rem'
           },
@@ -1140,7 +1144,7 @@ const Map = () => {
             eventDisplay="block"
             height="100%"
             headerToolbar={{
-              left: 'prev,next vandaag',
+              left: 'prev,next today',
               center: 'title',
               right: 'timeGridDay,timeGridWeek,listWeek'
             }}
