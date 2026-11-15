@@ -98,6 +98,26 @@ function updateQueryParams(key, value) {
   url.searchParams.set(key, value);
   window.history.replaceState({}, '', url);
 }
+// The backend's price rule (products/models.py): a piece costs at least
+// PRICE_MARGIN times its cost price, a bundle that less its volume discount.
+const PRICE_MARGIN = 1.71;
+const BUNDLE_PRICE_FACTORS: Record<string, number> = {
+  package: 0.95,
+  box: 0.9,
+  pallet_layer: 0.85,
+  pallet_full: 0.8,
+};
+
+function priceMarginForUnit(unit?: string) {
+  return Number((PRICE_MARGIN * (BUNDLE_PRICE_FACTORS[unit || ''] ?? 1)).toFixed(4));
+}
+
+// Cut off at four decimals, like the backend's minimum_price_per_piece.
+function minimumPricePerPiece(priceCost: number, unit?: string) {
+  if (!priceCost || priceCost <= 0) return 0;
+  return Math.floor(priceCost * priceMarginForUnit(unit) * 10000 + 1e-6) / 10000;
+}
+
 export default function ProductNewEditForm({ id, headerActions }: Props) {
   const { product: currentProduct } = useGetProduct(id || undefined);
   const { user } = useAuthContext();
@@ -288,11 +308,12 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
     title: Yup.string().required(t('required')),
     unit: Yup.string().required(t('required')),
     price_per_piece: Yup.number()
-      .when('price_cost', (price_cost, schema) => {
-        return price_cost
+      .when(['price_cost', 'unit'], ([price_cost, unit], schema) => {
+        const minimum = minimumPricePerPiece(Number(price_cost), unit);
+        return minimum > 0
           ? schema.min(
-            price_cost * 1.15,
-            `Prijs per stuk moet minstens 15% meer zijn dan de kostprijs`
+            minimum,
+            `Prijs per stuk moet minstens ${String(priceMarginForUnit(unit)).replace('.', ',')}x de kostprijs zijn (minimaal ${minimum.toFixed(4)})`
           )
           : schema;
       })
@@ -1944,8 +1965,8 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
     pricePerPiece > 0 && priceCost > 0
       ? Math.round(((pricePerPiece - priceCost) / pricePerPiece) * 100)
       : null;
-  // Same rule as the price_per_piece validation: at least 15% above the cost price.
-  const marginTooLow = priceCost > 0 && pricePerPiece < priceCost * 1.15;
+  // Same rule as the price_per_piece validation: at least 1.71x the cost price, less a bundle's discount.
+  const marginTooLow = priceCost > 0 && pricePerPiece < minimumPricePerPiece(priceCost, values.unit);
 
   const renderPricing = (
     <Grid xs={12} id="sec-prijs" sx={SECTION_SX}>
@@ -1977,31 +1998,8 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
                 label={t('variant_discount')}
                 placeholder="0.00"
                 type="number"
+                disabled
                 value={getValues('variant_discount')}
-                onChange={(e) => {
-                  setValue('variant_discount', e.target.value);
-                  setValue(
-                    'price_per_piece',
-                    roundUp((1 - Number(e.target.value) / 100) * parent_price_per_piece)
-                  );
-                  setValue(
-                    'price_per_unit',
-                    roundUp(
-                      (1 - Number(e.target.value) / 100) *
-                      Number(getValues('quantity_per_unit')) *
-                      parent_price_per_piece
-                    )
-                  );
-                  setValue(
-                    'price_consumers',
-                    roundUp(
-                      (1 - Number(e.target.value) / 100) *
-                      Number(getValues('quantity_per_unit')) *
-                      getRandomMarkup() *
-                      parent_price_per_piece
-                    )
-                  );
-                }}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
                   startAdornment: (
@@ -2045,7 +2043,7 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
             <RHFTextField
               name="price_cost"
               label={t('price_cost')}
-              // disabled={['box', 'pallet_full', 'pallet_layer'].includes(currentProduct?.unit)}
+              disabled={Boolean(currentProduct?.is_variant)}
               placeholder="0.00"
               type="number"
               value={getValues('price_cost')}
@@ -2123,6 +2121,7 @@ export default function ProductNewEditForm({ id, headerActions }: Props) {
             <RHFTextField
               name="price_per_piece"
               label={t('price_per_piece')}
+              disabled={Boolean(currentProduct?.is_variant)}
               helperText={
                 getValues('min_price_to_sell') ? (
                   <FormHelperText error={errors.price_per_piece} sx={{ p: 0, m: -1 }}>

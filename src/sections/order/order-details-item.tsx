@@ -147,27 +147,41 @@ export default function OrderDetailsItems({
   const handleAddProduct = async (eanSearch: string) => {
     if (!eanSearch) return;
     try {
-      const response = await axiosInstance.get(`/products/?ean=${eanSearch}`);
+      const customerId = currentOrder?.user?.id;
+      const userParam = customerId ? `&user_id=${customerId}` : '';
+      const response = await axiosInstance.get(`/products/?ean=${eanSearch}${userParam}`);
       if (response.status === 200) {
-        const products = response.data;
+        const products = Array.isArray(response.data) ? response.data : response.data?.results || [];
         if (Array.isArray(products) && products.length > 0) {
-          // Get klantpercentage (customer_percentage) from currentOrder.user or default to 10
           const klantpercentage = currentOrder?.user?.customer_percentage ?? 0;
-          const discountFactor = 1 - Number(klantpercentage) / 100;
+          const bundleFactors: Record<string, number> = {
+            package: 0.95,
+            box: 0.90,
+            pallet_layer: 0.85,
+            pallet_full: 0.80,
+          };
           // Helper to create new item from product
-          const createNewItem = (product: any) => ({
-            id: product.id,
-            product,
-            quantity: 1,
-            completed: false,
-            isNewItem: true,
-            single_product_discounted_price_per_unit: Number(
-              (Number(product.price_per_unit) * discountFactor).toFixed(2)
-            ),
-            single_product_discounted_price_per_unit_vat: Number(
-              (Number(product.price_per_unit_vat) * discountFactor).toFixed(2)
-            ),
-          });
+          const createNewItem = (product: any) => {
+            const bundleFactor = bundleFactors[product?.unit] || 1;
+            const discountFactor = Math.max(1 - Number(klantpercentage) / 100, 0.75 / bundleFactor);
+            const unitExcl =
+              product?.discounted_price_per_unit !== undefined && product?.discounted_price_per_unit !== null
+                ? Number(product.discounted_price_per_unit)
+                : Number(product.price_per_unit) * discountFactor;
+            const unitIncl =
+              product?.discounted_price_per_unit_vat !== undefined && product?.discounted_price_per_unit_vat !== null
+                ? Number(product.discounted_price_per_unit_vat)
+                : Number(product.price_per_unit_vat) * discountFactor;
+            return {
+              id: product.id,
+              product,
+              quantity: 1,
+              completed: false,
+              isNewItem: true,
+              single_product_discounted_price_per_unit: Number(unitExcl.toFixed(2)),
+              single_product_discounted_price_per_unit_vat: Number(unitIncl.toFixed(2)),
+            };
+          };
           // Collect all products and their variants recursively
           const collectProductsAndVariants = (product: any): any[] => {
             const items: any[] = [createNewItem(product)];

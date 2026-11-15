@@ -206,8 +206,11 @@ export default function UserNewEditForm({ currentUser }: Props) {
     // relation_via: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
     // days_closed: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
     // days_no_delivery: isBusiness ? Yup.string().required(t('required')) : Yup.string(),
-    // credit_limit: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
-    // invoice_discount: Yup.number().nullable().transform((value) => (value === '' ? null : value)),
+    customer_percentage: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => (originalValue === '' ? null : value))
+      .min(0, 'Klantpercentage mag niet lager zijn dan 0%')
+      .max(15, 'Klantpercentage mag niet hoger zijn dan 15%'),
   });
 
   const ADDRESS_TYPES = [
@@ -269,7 +272,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
       website: currentUser?.website || null,
       classification: currentUser?.classification || "",
       credit_limit: currentUser?.credit_limit || 0,
-      customer_percentage: currentUser?.customer_percentage || 10,
+      customer_percentage: currentUser?.customer_percentage ?? 0,
       days_closed: currentUser?.days_closed || "",
       days_no_delivery: currentUser?.days_no_delivery || "",
       department: currentUser?.department || "",
@@ -346,9 +349,9 @@ export default function UserNewEditForm({ currentUser }: Props) {
   const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newType = e.target.value as UserType;
     const typeToPercentage: Record<UserType, number> = {
-      special: 15,
-      wholesaler: 10,
-      supermarket: 5,
+      special: 5,
+      wholesaler: 0,
+      supermarket: 0,
       particular: 0,
     };
 
@@ -1298,6 +1301,7 @@ export default function UserNewEditForm({ currentUser }: Props) {
                   label={t('customer_percentage')}
                   labelColor="orange"
                   type="number"
+                  inputProps={{ min: 0, max: 15, step: 0.01 }}
                 />
                 <RHFTextField name="invoice_discount" label={t('invoice_discount')} type="number" />
                 <RHFTextField name="iban" label={t('iban')} />

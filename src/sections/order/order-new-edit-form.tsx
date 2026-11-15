@@ -297,6 +297,24 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         }
     };
 
+    const customerDiscountedUnitPrice = (product: any, customerPercentage: number) => {
+        if (product?.discounted_price_per_unit !== undefined && product?.discounted_price_per_unit !== null) {
+            return Number(Number(product.discounted_price_per_unit).toFixed(2));
+        }
+        const bundleFactors: Record<string, number> = {
+            package: 0.95,
+            box: 0.90,
+            pallet_layer: 0.85,
+            pallet_full: 0.80,
+        };
+        const bundleFactor = bundleFactors[product?.unit] || 1;
+        const rawCustomerFactor = 1 - (Number(customerPercentage || 0) / 100);
+        const minFactor = 0.75 / bundleFactor;
+        const discountFactor = Math.max(rawCustomerFactor, minFactor);
+        const basePrice = Number(product?.price_per_unit || 0);
+        return Number((basePrice * discountFactor).toFixed(2));
+    };
+
     const fetchProducts = async (searchTerm = '') => {
         if (!searchTerm) {
             setProducts([]);
@@ -304,7 +322,9 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         }
 
         try {
-            const { data } = await axiosInstance.get(`/products/?search=${searchTerm}&limit=20`);
+            const customerId = watch('customer')?.id;
+            const userParam = customerId ? `&user_id=${customerId}` : '';
+            const { data } = await axiosInstance.get(`/products/?search=${searchTerm}&limit=20${userParam}`);
             console.log('Fetched products:', data);
 
             let products: IProductItem[] = [];
@@ -343,27 +363,22 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
 
         try {
             setLoading(true);
-            const response = await axiosInstance.get(`/products/?ean=${eanValue}`);
+            const customer = watch('customer');
+            const userParam = customer?.id ? `&user_id=${customer.id}` : '';
+            const response = await axiosInstance.get(`/products/?ean=${eanValue}${userParam}`);
             if (response.status === 200) {
                 const products = Array.isArray(response.data) ? response.data :
                     response.data.results ? response.data.results : [];
 
                 if (products.length > 0) {
-                    const customer = watch('customer');
                     const customerPercentage = customer?.customer_percentage || 0;
-                    const discountFactor = 1 - (customerPercentage / 100);
 
-                    const newItems = products.map((product: IProductItem) => {
-                        const basePrice = product.price_per_unit || 0;
-                        const discountedPrice = basePrice * discountFactor;
-
-                        return {
-                            product,
-                            quantity: 1,
-                            price: Number(discountedPrice.toFixed(2)),
-                            vat_rate: product.vat || 21,
-                        };
-                    });
+                    const newItems = products.map((product: IProductItem) => ({
+                        product,
+                        quantity: 1,
+                        price: customerDiscountedUnitPrice(product, customerPercentage),
+                        vat_rate: product.vat || 21,
+                    }));
 
                     const currentItems = watch('items') || [];
 
@@ -502,14 +517,11 @@ export default function OrderNewEditForm({ currentOrder }: Props) {
         if (field === 'product' && value) {
             const customer = watch('customer');
             const customerPercentage = customer?.customer_percentage || 0;
-            const discountFactor = 1 - (customerPercentage / 100);
-            const basePrice = value.price_per_unit || 0;
-            const discountedPrice = basePrice * discountFactor;
 
             updatedItems[index] = {
                 ...updatedItems[index],
                 [field]: value,
-                price: Number(discountedPrice.toFixed(2)),
+                price: customerDiscountedUnitPrice(value, customerPercentage),
                 vat_rate: value.vat || 21
             };
         } else {
