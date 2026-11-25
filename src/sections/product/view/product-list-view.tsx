@@ -390,9 +390,10 @@ export default function ProductListView() {
               return;
             }
             const errors = data.errors?.length ? `, ${data.errors.length} fouten` : '';
+            const zeroed = data.zeroed ? `, ${data.zeroed} niet op de lijst → voorraad 0` : '';
             enqueueSnackbar(
               `${supplier} import klaar: ${data.updated} leveranciersaanbiedingen bijgewerkt, ` +
-                `${data.created} nieuwe (verborgen) producten${errors}`,
+                `${data.created} nieuwe (verborgen) producten${zeroed}${errors}`,
               { variant: data.errors?.length ? 'warning' : 'success', autoHideDuration: 15000 }
             );
             getAll();
